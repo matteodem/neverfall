@@ -11,12 +11,38 @@ import {
 } from "@babylonjs/core";
 
 import {
+  SWORD,
+} from "./config";
+
+import {
   createMaterial,
 } from "./materials";
 
 import {
   createGameCamera,
 } from "./camera";
+
+const findRightHandBone = (
+  skeleton
+) => {
+  if (!skeleton) {
+    return null;
+  }
+
+  return skeleton.bones.find(
+    (bone) => {
+      const name =
+        bone.name.toLowerCase();
+
+      return (
+        name.includes("righthand") ||
+        name.includes("right_hand") ||
+        name.includes("hand_r")
+      );
+    }
+  );
+};
+
 
 export const createWorld = async (
   scene
@@ -109,42 +135,78 @@ export const createWorld = async (
   playerModel.parent =
     player;
 
+  const skeleton =
+    result.skeletons[0];
+
+  const skinnedMesh =
+    result.meshes.find(
+      (mesh) =>
+        mesh.skeleton === skeleton
+    );
+
   /*
    * SWORD
    */
 
-  const sword =
-    MeshBuilder.CreateBox(
-      "sword",
-      {
-        width: 0.15,
-        height: 1.4,
-        depth: 0.15,
-      },
+  const swordResult =
+    await SceneLoader.ImportMeshAsync(
+      "",
+      "/models/",
+      "sword.glb",
       scene
     );
 
-  sword.parent = player;
+  const sword =
+    swordResult.meshes[0];
+  
+  const rightHandBone =
+    findRightHandBone(
+      skeleton
+    );
+
+  if (
+    rightHandBone &&
+    skinnedMesh
+  ) {
+    sword.attachToBone(
+      rightHandBone,
+      skinnedMesh
+    );
+
+    console.log(
+      "Sword attached to:",
+      rightHandBone.name
+    );
+  } else {
+    console.warn(
+      "Could not attach sword to right hand."
+    );
+
+    if (skeleton) {
+      console.log(
+        skeleton.bones.map(
+          (bone) =>
+            bone.name
+        )
+      );
+    }
+  }
 
   sword.position.set(
-    0.7,
-    0.2,
-    0.2
+    SWORD.position.x,
+    SWORD.position.y,
+    SWORD.position.z
   );
 
-  sword.rotation.z =
-    Math.PI / 4;
+  sword.rotation.set(
+    SWORD.rotation.x,
+    SWORD.rotation.y,
+    SWORD.rotation.z
+  );
 
-  sword.material =
-    createMaterial(
-      "swordMaterial",
-      new Color3(
-        0.8,
-        0.8,
-        0.9
-      ),
-      scene
-    );
+  sword.scaling.setAll(
+    SWORD.scale
+  );
 
   /*
    * ENEMY
@@ -192,13 +254,11 @@ export const createWorld = async (
 
   return {
     player,
-    playerModel,
-    animationGroups:
-    result.animationGroups,
-
     sword,
     enemy,
     enemyMaterial,
     camera,
+    animationGroups:
+      result.animationGroups,
   };
 };

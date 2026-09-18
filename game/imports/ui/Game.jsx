@@ -98,9 +98,7 @@ export const Game = ({
         enemyMaterial,
         camera,
         animationGroups,
-      } = await createWorld(
-        scene
-      );
+      } = await createWorld(scene);
 
       if (disposed) {
         return;
