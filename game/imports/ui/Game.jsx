@@ -54,6 +54,7 @@ export const Game = ({
     let scene = null;
     let input = null;
     let animations = null;
+    let combat = null;
 
     let disposed = false;
 
@@ -94,11 +95,15 @@ export const Game = ({
       const {
         player,
         sword,
+        swordPivot,
+        swordTip,
         enemy,
         enemyMaterial,
         camera,
         animationGroups,
-      } = await createWorld(scene);
+      } = await createWorld(
+        scene
+      );
 
       if (disposed) {
         return;
@@ -126,10 +131,13 @@ export const Game = ({
        * COMBAT
        */
 
-      const combat =
+      combat =
         createCombat({
+          scene,
           player,
           sword,
+          swordPivot,
+          swordTip,
           enemy,
           enemyMaterial,
           enemyHpRef,
@@ -296,6 +304,7 @@ export const Game = ({
     return () => {
       disposed = true;
 
+      combat?.destroy();
       animations?.destroy();
       input?.destroy();
 

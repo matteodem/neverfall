@@ -158,6 +158,18 @@ export const createWorld = async (
 
   const sword =
     swordResult.meshes[0];
+
+  /*
+  * Pivot between hand and sword.
+  *
+  * We animate this instead of
+  * rotating the imported sword directly.
+  */
+  const swordPivot =
+    new TransformNode(
+      "swordPivot",
+      scene
+    );
   
   const rightHandBone =
     findRightHandBone(
@@ -168,10 +180,19 @@ export const createWorld = async (
     rightHandBone &&
     skinnedMesh
   ) {
-    sword.attachToBone(
+    /*
+    * Attach pivot to the hand.
+    */
+    swordPivot.attachToBone(
       rightHandBone,
       skinnedMesh
     );
+
+    /*
+    * Sword becomes child of pivot.
+    */
+    sword.parent =
+      swordPivot;
 
     console.log(
       "Sword attached to:",
@@ -207,6 +228,38 @@ export const createWorld = async (
   sword.scaling.setAll(
     SWORD.scale
   );
+
+  const swordTip =
+    MeshBuilder.CreateSphere(
+      "swordTip",
+      {
+        diameter: 0.03,
+      },
+      scene
+    );
+
+  swordTip.parent =
+    sword;
+
+  /*
+  * IMPORTANT:
+  *
+  * This position is relative to the sword.
+  * You may have to tweak Y depending on
+  * the sword model.
+  */
+  swordTip.position.set(
+    0,
+    1.2,
+    0
+  );
+
+  /*
+  * Invisible, but still exists
+  * as a TrailMesh target.
+  */
+  swordTip.isVisible =
+    false;
 
   /*
    * ENEMY
@@ -255,6 +308,8 @@ export const createWorld = async (
   return {
     player,
     sword,
+    swordPivot,
+    swordTip,
     enemy,
     enemyMaterial,
     camera,
