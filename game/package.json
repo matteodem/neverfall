@@ -1,0 +1,48 @@
+{
+  "name": "game",
+  "private": true,
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test --once --driver-package meteortesting:mocha",
+    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.23.5",
+    "@babylonjs/core": "^9.27.0",
+    "@babylonjs/gui": "^9.27.0",
+    "@babylonjs/loaders": "^9.27.0",
+    "@colyseus/core": "^0.18.14",
+    "@colyseus/schema": "^5.0.33",
+    "@colyseus/sdk": "^0.18.2",
+    "@colyseus/ws-transport": "^0.18.2",
+    "@swc/helpers": "^0.5.17",
+    "autoprefixer": "^10.4.4",
+    "colyseus": "^0.18.6",
+    "meteor-node-stubs": "^1.2.30",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "zustand": "^4.5.7"
+  },
+  "devDependencies": {
+    "@meteorjs/rspack": "^2.2.0",
+    "@rsdoctor/rspack-plugin": "^1.5.7",
+    "@rspack/cli": "^1.7.1",
+    "@rspack/core": "^1.7.1",
+    "@rspack/plugin-react-refresh": "^1.4.3",
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/meteor": "^2.9.7",
+    "postcss": "^8.5.6",
+    "postcss-loader": "^8.1.1",
+    "react-refresh": "^0.17.0",
+    "tailwindcss": "^4.1.12"
+  },
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.jsx",
+      "server": "server/main.js"
+    },
+    "testModule": "tests/main.js",
+    "modern": true
+  }
+}
