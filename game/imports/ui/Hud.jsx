@@ -1,10 +1,39 @@
 import React from "react";
 
+import {
+  useHudStore,
+} from "./stores/useHudStore";
+
+import {
+  HelpModal,
+} from "./components/modals/HelpModal";
+import { InventoryModal } from "./components/modals/InventoryModal";
+import { Icon } from "./components/Icon";
+import { SettingsModal } from "./components/modals/SettingsModal";
+
 const ACTION_SLOTS = [
   { key: "1", label: "Attack" },
   { key: "2", label: "" },
   { key: "3", label: "" },
   { key: "4", label: "" },
+];
+
+const HUD_BUTTONS = [
+  {
+    id: "settings",
+    icon: "gear",
+    label: "Settings",
+  },
+  {
+    id: "help",
+    icon: "question",
+    label: "Help",
+  },
+  {
+    id: "inventory",
+    icon: "bag",
+    label: "Inventory",
+  },
 ];
 
 const EnemyHealthBar = ({ hp, maxHp = 100 }) => {
@@ -64,17 +93,35 @@ const ActionBar = () => {
   );
 };
 
-const ControlsHelp = () => {
+const MenuButtons = () => {
+  const openModal =
+    useHudStore(
+      (state) =>
+        state.openModal
+    );
+
   return (
     <div className="absolute left-4 top-4 rounded-lg bg-black/70 px-4 py-3 text-white">
-      <h1 className="text-xl font-bold">
-        Neverfall
-      </h1>
-
-      <div className="mt-2 text-sm text-gray-300">
-        <div>WASD - Move</div>
-        <div>1 - Attack</div>
-      </div>
+      <div className="flex gap-4">
+        {HUD_BUTTONS.map(
+          ({
+            id,
+            icon,
+            label,
+          }) => (
+            <button
+              key={id}
+              className="btn btn-circle"
+              title={label}
+              onClick={() =>
+                openModal(id)
+              }
+            >
+              <Icon icon={icon} />
+            </button>
+          )
+        )}
+      </div> 
     </div>
   );
 };
@@ -82,9 +129,13 @@ const ControlsHelp = () => {
 export const Hud = ({ enemyHp }) => {
   return (
     <>
-      <ControlsHelp />
+      <MenuButtons />
       <EnemyHealthBar hp={enemyHp} />
       <ActionBar />
+
+      <HelpModal />
+      <InventoryModal />
+      <SettingsModal />
     </>
   );
 };
