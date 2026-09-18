@@ -2,6 +2,8 @@ import {
   Meteor,
 } from "meteor/meteor";
 
+import "./methods/colyseusAuth";
+
 import {
   startColyseus,
 } from "./colyseus";

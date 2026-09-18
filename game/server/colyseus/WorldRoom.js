@@ -1,6 +1,7 @@
 import {
   Room,
 } from "colyseus";
+import jwt from "jsonwebtoken";
 
 import {
   PlayerState,
@@ -13,6 +14,44 @@ export class WorldRoom extends Room {
    */
   state =
     new WorldState();
+
+  static async onAuth(
+    token,
+    options,
+    context
+  ) {
+    const secret =
+      process.env
+        .COLYSEUS_AUTH_SECRET ||
+      "neverfall-development-secret";
+
+    try {
+      const payload =
+        jwt.verify(
+          token,
+          secret,
+          {
+            issuer:
+              "neverfall-meteor",
+          }
+        );
+
+      if (!payload.userId) {
+        return false;
+      }
+
+      return {
+        userId:
+          payload.userId,
+      };
+    } catch (error) {
+      console.error(
+        "[Colyseus] Invalid auth token"
+      );
+
+      return false;
+    }
+  }
 
   /*
    * Client messages.
@@ -92,18 +131,26 @@ export class WorldRoom extends Room {
     },
   };
 
-  /*
-   * New player joins.
-   */
   onJoin(
-    client
+    client,
+    options,
+    auth
   ) {
+    const userId =
+      auth.userId;
+
     console.log(
-      `[Colyseus] ${client.sessionId} joined world`
+      `[Colyseus] user ${userId} joined world`
+    );
+
+    console.log(
+      `[Colyseus] session ${client.sessionId}`
     );
 
     const player =
       new PlayerState({
+        userId,
+
         x: 0,
         y: 0,
         z: 0,
@@ -111,6 +158,12 @@ export class WorldRoom extends Room {
         rotationY: 0,
       });
 
+    /*
+    * Continue using sessionId
+    * as map key.
+    *
+    * More on why below.
+    */
     this.state.players.set(
       client.sessionId,
       player

@@ -6,6 +6,14 @@ import {
 } from "@colyseus/sdk";
 
 import {
+  Meteor,
+} from "meteor/meteor";
+
+import {
+  ensureGuestUser,
+} from "../auth/guest";
+
+import {
   Color3,
   MeshBuilder,
   SceneLoader,
@@ -607,10 +615,28 @@ export const createMultiplayer =
   async ({
     scene,
   }) => {
+    await ensureGuestUser();
+
+    const userId =
+      Meteor.userId();
+
+    console.log(
+      "[Meteor] userId:",
+      userId
+    );
+
+    const authToken =
+      await Meteor.callAsync(
+        "colyseus.authToken"
+      );
+
     const client =
       new Client(
         SERVER_URL
       );
+
+    client.auth.token =
+      authToken;
 
     const room =
       await client.joinOrCreate(

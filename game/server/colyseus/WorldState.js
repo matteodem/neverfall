@@ -8,9 +8,17 @@ import {
  */
 export const PlayerState = schema(
   {
-    x: t.number().default(0),
-    y: t.number().default(0),
-    z: t.number().default(0),
+    userId:
+      t.string().default(""),
+
+    x:
+      t.number().default(0),
+
+    y:
+      t.number().default(0),
+
+    z:
+      t.number().default(0),
 
     rotationY:
       t.number().default(0),
