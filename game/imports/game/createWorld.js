@@ -1,8 +1,12 @@
+import "@babylonjs/loaders/glTF";
+
 import {
   Color3,
   DirectionalLight,
   HemisphericLight,
   MeshBuilder,
+  SceneLoader,
+  TransformNode,
   Vector3,
 } from "@babylonjs/core";
 
@@ -14,7 +18,7 @@ import {
   createGameCamera,
 } from "./camera";
 
-export const createWorld = (
+export const createWorld = async (
   scene
 ) => {
   /*
@@ -73,35 +77,37 @@ export const createWorld = (
     );
 
   /*
-   * PLAYER
-   */
+ * PLAYER ROOT
+ */
 
-  const player =
-    MeshBuilder.CreateCapsule(
-      "player",
-      {
-        height: 2,
-        radius: 0.5,
-      },
-      scene
-    );
+  const player = new TransformNode(
+    "player",
+    scene
+  );
 
   player.position.set(
     0,
-    1,
+    0,
     0
   );
 
-  player.material =
-    createMaterial(
-      "playerMaterial",
-      new Color3(
-        0.15,
-        0.45,
-        1
-      ),
+  /*
+  * PLAYER MODEL
+  */
+
+  const result =
+    await SceneLoader.ImportMeshAsync(
+      "",
+      "/models/",
+      "player.glb",
       scene
     );
+
+  const playerModel =
+    result.meshes[0];
+
+  playerModel.parent =
+    player;
 
   /*
    * SWORD
@@ -186,6 +192,10 @@ export const createWorld = (
 
   return {
     player,
+    playerModel,
+    animationGroups:
+    result.animationGroups,
+
     sword,
     enemy,
     enemyMaterial,
