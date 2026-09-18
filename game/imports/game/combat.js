@@ -241,158 +241,166 @@ export const createCombat = ({
 
   const updateAttackAnimation = (
     progress
-  ) => {
-    /*
-     * ---------------------------------
-     * PHASE 1
-     * WIND-UP
-     *
-     * 0.00 -> 0.20
-     * ---------------------------------
-     */
+) => {
+  /*
+   * ============================================
+   * 1. WIND-UP
+   *
+   * Sword goes backwards and up.
+   * ============================================
+   */
 
-    if (progress < 0.2) {
-      const t =
-        progress / 0.2;
-
-      /*
-       * Pull sword back/right.
-       */
-
-      swordPivot.rotation.x =
-        lerp(
-          defaultRotation.x,
-          defaultRotation.x -
-            0.45,
-          t
-        );
-
-      swordPivot.rotation.y =
-        lerp(
-          defaultRotation.y,
-          defaultRotation.y +
-            0.8,
-          t
-        );
-
-      swordPivot.rotation.z =
-        lerp(
-          defaultRotation.z,
-          defaultRotation.z +
-            0.75,
-          t
-        );
-
-      return;
-    }
+  if (progress < 0.25) {
+    const t =
+      progress / 0.25;
 
     /*
-     * ---------------------------------
-     * PHASE 2
-     * MAIN SLASH
-     *
-     * 0.20 -> 0.65
-     * ---------------------------------
+     * Pull sword backwards.
      */
 
-    if (progress < 0.65) {
-      let t =
-        (progress - 0.2) /
-        0.45;
-
-      t =
-        easeOutCubic(
-          t
-        );
-
-      /*
-       * Enable Swoosh only
-       * during actual sword swing.
-       */
-
-      trail.setEnabled(
-        true
+    swordPivot.rotation.x =
+      lerp(
+        defaultRotation.x,
+        defaultRotation.x -
+          0.9,
+        t
       );
 
-      /*
-       * Big diagonal slash.
-       *
-       * This combination generally
-       * feels much more like the
-       * hand/arm is performing a hit
-       * instead of spinning the sword.
-       */
+    /*
+     * Move sword to player's right side.
+     */
 
-      swordPivot.rotation.x =
-        lerp(
-          defaultRotation.x -
-            0.45,
-          defaultRotation.x +
-            0.55,
-          t
-        );
-
-      swordPivot.rotation.y =
-        lerp(
-          defaultRotation.y +
-            0.8,
-          defaultRotation.y -
-            1.35,
-          t
-        );
-
-      swordPivot.rotation.z =
-        lerp(
-          defaultRotation.z +
-            0.75,
-          defaultRotation.z -
-            0.65,
-          t
-        );
-
-      return;
-    }
+    swordPivot.rotation.y =
+      lerp(
+        defaultRotation.y,
+        defaultRotation.y +
+          0.65,
+        t
+      );
 
     /*
-     * ---------------------------------
-     * PHASE 3
-     * RECOVERY
-     *
-     * 0.65 -> 1.00
-     * ---------------------------------
+     * Lift weapon slightly.
      */
+
+    swordPivot.rotation.z =
+      lerp(
+        defaultRotation.z,
+        defaultRotation.z -
+          0.35,
+        t
+      );
 
     trail.setEnabled(
       false
     );
 
-    const t =
-      (progress - 0.65) /
-      0.35;
+    return;
+  }
+
+  /*
+   * ============================================
+   * 2. FORWARD SLASH
+   *
+   * This is the actual hit.
+   * ============================================
+   */
+
+  if (progress < 0.65) {
+    let t =
+      (progress - 0.25) /
+      0.4;
+
+    t =
+      easeOutCubic(
+        t
+      );
+
+    trail.setEnabled(
+      true
+    );
+
+    /*
+     * Main movement:
+     *
+     * Sword swings from behind the player
+     * strongly FORWARD.
+     */
 
     swordPivot.rotation.x =
       lerp(
+        defaultRotation.x -
+          0.9,
         defaultRotation.x +
-          0.55,
-        defaultRotation.x,
+          1.15,
         t
       );
 
+    /*
+     * Sweep across body.
+     */
+
     swordPivot.rotation.y =
       lerp(
+        defaultRotation.y +
+          0.65,
         defaultRotation.y -
-          1.35,
-        defaultRotation.y,
+          0.55,
         t
       );
+
+    /*
+     * Small diagonal component.
+     */
 
     swordPivot.rotation.z =
       lerp(
         defaultRotation.z -
-          0.65,
-        defaultRotation.z,
+          0.35,
+        defaultRotation.z +
+          0.25,
         t
       );
+
+    return;
+  }
+
+  /*
+   * ============================================
+   * 3. RECOVERY
+   * ============================================
+   */
+
+  trail.setEnabled(
+    false
+  );
+
+  const t =
+    (progress - 0.65) /
+    0.35;
+
+  swordPivot.rotation.x =
+    lerp(
+      defaultRotation.x +
+        1.15,
+      defaultRotation.x,
+      t
+    );
+
+  swordPivot.rotation.y =
+    lerp(
+      defaultRotation.y -
+        0.55,
+      defaultRotation.y,
+      t
+    );
+
+  swordPivot.rotation.z =
+    lerp(
+      defaultRotation.z +
+        0.25,
+      defaultRotation.z,
+      t
+    );
   };
 
   /*

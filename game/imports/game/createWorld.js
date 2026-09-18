@@ -170,6 +170,12 @@ export const createWorld = async (
       "swordPivot",
       scene
     );
+
+  const swordGrip =
+    new TransformNode(
+      "swordGrip",
+      scene
+    );
   
   const rightHandBone =
     findRightHandBone(
@@ -181,7 +187,7 @@ export const createWorld = async (
     skinnedMesh
   ) {
     /*
-    * Attach pivot to the hand.
+    * Attack pivot follows the hand.
     */
     swordPivot.attachToBone(
       rightHandBone,
@@ -189,10 +195,30 @@ export const createWorld = async (
     );
 
     /*
-    * Sword becomes child of pivot.
+    * Small attack pivot offset.
+    *
+    * The pivot stays near the hand,
+    * but slightly behind it so the swing
+    * gets a larger arc without detaching
+    * the sword.
+    */
+    swordPivot.position.set(
+      0,
+      -0.05,
+      -0.15
+    );
+
+    /*
+    * Grip is underneath the attack pivot.
+    */
+    swordGrip.parent =
+      swordPivot;
+
+    /*
+    * Actual sword is underneath the grip.
     */
     sword.parent =
-      swordPivot;
+      swordGrip;
 
     console.log(
       "Sword attached to:",
@@ -213,13 +239,17 @@ export const createWorld = async (
     }
   }
 
-  sword.position.set(
+  /*
+  * Position / rotation of the weapon
+  * relative to the player's hand.
+  */
+  swordGrip.position.set(
     SWORD.position.x,
     SWORD.position.y,
     SWORD.position.z
   );
 
-  sword.rotation.set(
+  swordGrip.rotation.set(
     SWORD.rotation.x,
     SWORD.rotation.y,
     SWORD.rotation.z
@@ -227,6 +257,24 @@ export const createWorld = async (
 
   sword.scaling.setAll(
     SWORD.scale
+  );
+
+  /*
+  * Keep sword itself close to the hand.
+  *
+  * Do NOT use a large offset here,
+  * otherwise the weapon looks detached.
+  */
+  sword.position.set(
+    0,
+    0,
+    0
+  );
+
+  sword.rotation.set(
+    0,
+    0,
+    0
   );
 
   const swordTip =
