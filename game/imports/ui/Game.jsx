@@ -4,6 +4,10 @@ import React, {
 } from "react";
 
 import {
+  createMultiplayer,
+} from "../game/multiplayer";
+
+import {
   Engine,
   Scene,
 } from "@babylonjs/core";
@@ -22,6 +26,7 @@ import {
 } from "../game/camera";
 
 import {
+  isMoving,
   updateMovement,
   updateCameraFacing,
 } from "../game/movement";
@@ -55,6 +60,7 @@ export const Game = ({
     let input = null;
     let animations = null;
     let combat = null;
+    let multiplayer = null;
 
     let disposed = false;
 
@@ -104,6 +110,11 @@ export const Game = ({
       } = await createWorld(
         scene
       );
+
+      multiplayer =
+        await createMultiplayer({
+          scene,
+        });
 
       if (disposed) {
         return;
@@ -211,7 +222,15 @@ export const Game = ({
 
         event.preventDefault();
 
+        /*
+        * Local attack.
+        */
         combat.startAttack();
+
+        /*
+        * Tell other clients.
+        */
+        multiplayer?.sendAttack();
       };
 
       input.on(
@@ -241,19 +260,12 @@ export const Game = ({
 
       engine.runRenderLoop(
         () => {
-          if (
-            disposed ||
-            !scene
-          ) {
-            return;
-          }
-
           const deltaTime =
             engine.getDeltaTime();
 
           /*
-           * MOVEMENT
-           */
+          * Local player.
+          */
 
           updateMovement({
             deltaTime,
@@ -268,31 +280,28 @@ export const Game = ({
             player,
           });
 
-          /*
-           * RUN / IDLE ANIMATION
-           */
-
-          const isMoving =
-            input.state.keys.w ||
-            input.state.keys.a ||
-            input.state.keys.s ||
-            input.state.keys.d;
-
           animations.setRunning(
-            isMoving
+            isMoving(
+              input.state
+            )
           );
-
-          /*
-           * COMBAT
-           */
 
           combat.update(
             deltaTime
           );
 
           /*
-           * RENDER
-           */
+          * Multiplayer.
+          */
+
+          multiplayer?.sendMovement(
+            player,
+            deltaTime
+          );
+
+          multiplayer?.update(
+            deltaTime
+          );
 
           scene.render();
         }
@@ -303,6 +312,8 @@ export const Game = ({
 
     return () => {
       disposed = true;
+
+      multiplayer?.destroy();
 
       combat?.destroy();
       animations?.destroy();

@@ -75,6 +75,17 @@ const getMovementDirection = ({
   return movement;
 };
 
+export const isMoving = (
+  input
+) => {
+  return Boolean(
+    input.keys.w ||
+    input.keys.a ||
+    input.keys.s ||
+    input.keys.d
+  );
+};
+
 export const updateMovement = ({
   deltaTime,
   input,
