@@ -1,10 +1,18 @@
-import React from 'react';
-import { Hello } from './Hello.jsx';
-import { Info } from './Info.jsx';
+import React, { useState } from "react";
+import { Game } from "./Game";
+import { Hud } from "./Hud";
 
-export const App = () => (
-  <div className="max-w-3xl min-h-screen mx-auto sm:pt-10">
-    <Hello/>
-    <Info/>
-  </div>
-);
+export const App = () => {
+  const [enemyHp, setEnemyHp] = useState(100);
+
+  return (
+    <div className="relative h-screen w-screen overflow-hidden bg-black">
+      <Game
+        enemyHp={enemyHp}
+        setEnemyHp={setEnemyHp}
+      />
+
+      <Hud enemyHp={enemyHp} />
+    </div>
+  );
+};
