@@ -25,14 +25,14 @@ const HUD_BUTTONS = [
     label: "Settings",
   },
   {
-    id: "help",
-    icon: "question",
-    label: "Help",
-  },
-  {
     id: "inventory",
     icon: "bag",
     label: "Inventory",
+  },
+  {
+    id: "help",
+    icon: "question",
+    label: "Help",
   },
 ];
 
