@@ -5,6 +5,9 @@ import {
 } from "./stores/useHudStore";
 
 import {
+  DeathOverlay,
+} from "./DeathOverlay";
+import {
   HelpModal,
 } from "./components/modals/HelpModal";
 import { InventoryModal } from "./components/modals/InventoryModal";
@@ -171,6 +174,9 @@ export const Hud = ({
   enemyHp,
   playerHealth,
 }) => {
+  const isDead =
+    playerHealth.health <= 0;
+
   return (
     <>
       <MenuButtons />
@@ -188,6 +194,10 @@ export const Hud = ({
         }
       />
       <ActionBar />
+
+      {isDead && (
+        <DeathOverlay />
+      )}
 
       <HelpModal />
       <InventoryModal />
