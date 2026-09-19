@@ -15,6 +15,19 @@ export class WorldRoom extends Room {
   state =
     new WorldState();
 
+  respawnPlayer(
+    player
+  ) {
+    player.x = 0;
+    player.y = 0;
+    player.z = 0;
+
+    player.rotationY = 0;
+
+    player.health =
+      player.maxHealth;
+  }
+
   static async onAuth(
     token,
     options,
@@ -136,6 +149,9 @@ export class WorldRoom extends Room {
       let target =
         null;
 
+      let targetSessionId =
+        null;
+
       let closestDistance =
         Infinity;
 
@@ -196,6 +212,9 @@ export class WorldRoom extends Room {
 
             target =
               player;
+
+            targetSessionId =
+              sessionId;
           }
         }
       );
@@ -206,13 +225,44 @@ export class WorldRoom extends Room {
       * Colyseus then automatically
       * synchronizes it.
       */
-      if (target) {
+      if (
+        target &&
+        targetSessionId
+      ) {
         target.health =
           Math.max(
             0,
             target.health -
               DAMAGE
           );
+
+        if (
+          target.health <= 0
+        ) {
+          const deadSessionId =
+            targetSessionId;
+
+          setTimeout(
+            () => {
+              const deadPlayer =
+                this.state.players.get(
+                  deadSessionId
+                );
+
+              /*
+              * Player may have disconnected.
+              */
+              if (!deadPlayer) {
+                return;
+              }
+
+              this.respawnPlayer(
+                deadPlayer
+              );
+            },
+            2000
+          );
+        }
       }
 
       /*

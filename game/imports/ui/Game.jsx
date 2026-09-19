@@ -297,6 +297,10 @@ export const Game = ({
           * Multiplayer.
           */
 
+          multiplayer?.syncLocalPlayer(
+            player
+          );
+
           multiplayer?.sendMovement(
             player,
             deltaTime

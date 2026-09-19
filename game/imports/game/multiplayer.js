@@ -641,6 +641,9 @@ export const createMultiplayer =
     const remotePlayers =
       new Map();
 
+    let localPlayerState =
+      null;
+
     const removedPlayers =
       new Set();
 
@@ -658,9 +661,9 @@ export const createMultiplayer =
           sessionId ===
           room.sessionId
         ) {
-          /*
-          * Initial health.
-          */
+          localPlayerState =
+            playerState;
+
           onLocalHealthChange?.({
             health:
               playerState.health,
@@ -669,27 +672,9 @@ export const createMultiplayer =
               playerState.maxHealth,
           });
 
-          /*
-          * Health changes received
-          * from Colyseus.
-          */
           callbacks.listen(
             playerState,
             "health",
-            () => {
-              onLocalHealthChange?.({
-                health:
-                  playerState.health,
-
-                maxHealth:
-                  playerState.maxHealth,
-              });
-            }
-          );
-
-          callbacks.listen(
-            playerState,
-            "maxHealth",
             () => {
               onLocalHealthChange?.({
                 health:
@@ -881,6 +866,49 @@ export const createMultiplayer =
     let sendAccumulator =
       0;
 
+    const syncLocalPlayer = (
+      player
+    ) => {
+      if (!localPlayerState) {
+        return;
+      }
+
+      /*
+      * Detect server-side respawn.
+      *
+      * If server put us back at spawn
+      * while client is far away,
+      * accept server position.
+      */
+      if (
+        localPlayerState.health ===
+          localPlayerState.maxHealth &&
+        Math.abs(
+          localPlayerState.x
+        ) < 0.001 &&
+        Math.abs(
+          localPlayerState.z
+        ) < 0.001 &&
+        (
+          Math.abs(
+            player.position.x
+          ) > 1 ||
+          Math.abs(
+            player.position.z
+          ) > 1
+        )
+      ) {
+        player.position.set(
+          localPlayerState.x,
+          localPlayerState.y,
+          localPlayerState.z
+        );
+
+        player.rotation.y =
+          localPlayerState.rotationY;
+      }
+    };
+
     const sendMovement = (
       player,
       deltaTime
@@ -1015,6 +1043,7 @@ export const createMultiplayer =
 
       sendMovement,
       sendAttack,
+      syncLocalPlayer,
 
       update,
       destroy,
