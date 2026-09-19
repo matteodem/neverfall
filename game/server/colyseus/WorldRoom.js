@@ -1,37 +1,53 @@
 import {
   Room,
 } from "colyseus";
+
 import jwt from "jsonwebtoken";
 
 import {
+  EnemyState,
   PlayerState,
   WorldState,
 } from "./WorldState";
 
+const ENEMY_ID =
+  "training-enemy";
+
+const ENEMY_SPAWN = {
+  x: 0,
+  y: 0,
+  z: 5,
+};
+
+const ENEMY = {
+  health: 100,
+  speed: 2,
+
+  attackDamage: 20,
+  attackRange: 1.8,
+  attackCooldown: 1000,
+
+  respawnDelay: 2000,
+};
+
+const PLAYER_RESPAWN_DELAY =
+  2000;
+
 export class WorldRoom extends Room {
-  /*
-   * Synchronized state.
-   */
   state =
     new WorldState();
 
-  respawnPlayer(
-    player
-  ) {
-    player.x = 0;
-    player.y = 0;
-    player.z = 0;
-
-    player.rotationY = 0;
-
-    player.health =
-      player.maxHealth;
-  }
+  /*
+   * Runtime-only enemy data.
+   *
+   * This does not need to be
+   * synchronized to clients.
+   */
+  enemyRuntime =
+    new Map();
 
   static async onAuth(
-    token,
-    options,
-    context
+    token
   ) {
     const secret =
       process.env
@@ -57,23 +73,34 @@ export class WorldRoom extends Room {
         userId:
           payload.userId,
       };
-    } catch (error) {
-      console.error(
-        "[Colyseus] Invalid auth token"
-      );
-
+    } catch {
       return false;
     }
   }
 
-  /*
-   * Client messages.
-   */
-  messages = {
+  onCreate() {
+    this.spawnEnemy();
+
     /*
-     * Player sends its current
-     * Babylon position.
+     * Server-side enemy AI.
      */
+    this.setTimestep(
+      (deltaTime) => {
+        this.updateEnemy(
+          deltaTime
+        );
+      },
+      50
+    );
+  }
+
+  /*
+   * =====================================================
+   * MESSAGES
+   * =====================================================
+   */
+
+  messages = {
     move: (
       client,
       data
@@ -87,19 +114,10 @@ export class WorldRoom extends Room {
         return;
       }
 
-      /*
-       * Very basic validation.
-       */
       if (
-        !Number.isFinite(
-          data.x
-        ) ||
-        !Number.isFinite(
-          data.y
-        ) ||
-        !Number.isFinite(
-          data.z
-        ) ||
+        !Number.isFinite(data.x) ||
+        !Number.isFinite(data.y) ||
+        !Number.isFinite(data.z) ||
         !Number.isFinite(
           data.rotationY
         )
@@ -107,168 +125,21 @@ export class WorldRoom extends Room {
         return;
       }
 
-      player.x =
-        data.x;
-
-      player.y =
-        data.y;
-
-      player.z =
-        data.z;
+      player.x = data.x;
+      player.y = data.y;
+      player.z = data.z;
 
       player.rotationY =
         data.rotationY;
     },
 
-    /*
-     * Optional:
-     * basic attack event.
-     *
-     * Doesn't belong in persistent
-     * state because it's a one-time
-     * event.
-     */
     attack: (
       client
     ) => {
-      const attacker =
-        this.state.players.get(
-          client.sessionId
-        );
-
-      if (!attacker) {
-        return;
-      }
-
-      const ATTACK_RANGE =
-        2.5;
-
-      const DAMAGE =
-        25;
-
-      let target =
-        null;
-
-      let targetSessionId =
-        null;
-
-      let closestDistance =
-        Infinity;
-
       /*
-      * Find closest living
-      * player in attack range.
-      */
-      this.state.players.forEach(
-        (
-          player,
-          sessionId
-        ) => {
-          if (
-            sessionId ===
-            client.sessionId
-          ) {
-            return;
-          }
-
-          if (
-            player.health <= 0
-          ) {
-            return;
-          }
-
-          const dx =
-            player.x -
-            attacker.x;
-
-          const dy =
-            player.y -
-            attacker.y;
-
-          const dz =
-            player.z -
-            attacker.z;
-
-          const distance =
-            Math.sqrt(
-              dx * dx +
-              dy * dy +
-              dz * dz
-            );
-
-          if (
-            distance >
-            ATTACK_RANGE
-          ) {
-            return;
-          }
-
-          if (
-            distance <
-            closestDistance
-          ) {
-            closestDistance =
-              distance;
-
-            target =
-              player;
-
-            targetSessionId =
-              sessionId;
-          }
-        }
-      );
-
-      /*
-      * Server changes health.
-      *
-      * Colyseus then automatically
-      * synchronizes it.
-      */
-      if (
-        target &&
-        targetSessionId
-      ) {
-        target.health =
-          Math.max(
-            0,
-            target.health -
-              DAMAGE
-          );
-
-        if (
-          target.health <= 0
-        ) {
-          const deadSessionId =
-            targetSessionId;
-
-          setTimeout(
-            () => {
-              const deadPlayer =
-                this.state.players.get(
-                  deadSessionId
-                );
-
-              /*
-              * Player may have disconnected.
-              */
-              if (!deadPlayer) {
-                return;
-              }
-
-              this.respawnPlayer(
-                deadPlayer
-              );
-            },
-            2000
-          );
-        }
-      }
-
-      /*
-      * Existing visual attack
-      * event for remote clients.
-      */
+       * Visual sword attack for
+       * other players.
+       */
       this.broadcast(
         "attack",
         {
@@ -279,28 +150,32 @@ export class WorldRoom extends Room {
           except: client,
         }
       );
+
+      /*
+       * Actual damage is decided
+       * server-side.
+       */
+      this.attackEnemy(
+        client.sessionId
+      );
     },
   };
+
+  /*
+   * =====================================================
+   * PLAYERS
+   * =====================================================
+   */
 
   onJoin(
     client,
     options,
     auth
   ) {
-    const userId =
-      auth.userId;
-
-    console.log(
-      `[Colyseus] user ${userId} joined world`
-    );
-
-    console.log(
-      `[Colyseus] session ${client.sessionId}`
-    );
-
     const player =
       new PlayerState({
-        userId,
+        userId:
+          auth.userId,
 
         x: 0,
         y: 0,
@@ -312,30 +187,383 @@ export class WorldRoom extends Room {
         maxHealth: 100,
       });
 
-    /*
-    * Continue using sessionId
-    * as map key.
-    *
-    * More on why below.
-    */
     this.state.players.set(
       client.sessionId,
       player
     );
   }
 
-  /*
-   * Player leaves.
-   */
   onLeave(
     client
   ) {
-    console.log(
-      `[Colyseus] ${client.sessionId} left world`
-    );
-
     this.state.players.delete(
       client.sessionId
+    );
+
+    /*
+     * Remove aggro if enemy was
+     * chasing this player.
+     */
+    const runtime =
+      this.enemyRuntime.get(
+        ENEMY_ID
+      );
+
+    if (
+      runtime?.targetSessionId ===
+      client.sessionId
+    ) {
+      runtime.targetSessionId =
+        null;
+    }
+  }
+
+  damagePlayer(
+    sessionId,
+    damage
+  ) {
+    const player =
+      this.state.players.get(
+        sessionId
+      );
+
+    if (
+      !player ||
+      player.health <= 0
+    ) {
+      return;
+    }
+
+    player.health =
+      Math.max(
+        0,
+        player.health -
+          damage
+      );
+
+    if (
+      player.health > 0
+    ) {
+      return;
+    }
+
+    /*
+     * Respawn player.
+     */
+
+    this.clock.setTimeout(
+      () => {
+        const currentPlayer =
+          this.state.players.get(
+            sessionId
+          );
+
+        if (
+          !currentPlayer ||
+          currentPlayer.health > 0
+        ) {
+          return;
+        }
+
+        this.respawnPlayer(
+          currentPlayer
+        );
+      },
+      PLAYER_RESPAWN_DELAY
+    );
+  }
+
+  respawnPlayer(
+    player
+  ) {
+    player.x = 0;
+    player.y = 0;
+    player.z = 0;
+
+    player.rotationY = 0;
+
+    player.health =
+      player.maxHealth;
+  }
+
+  /*
+   * =====================================================
+   * ENEMY
+   * =====================================================
+   */
+
+  spawnEnemy() {
+    /*
+     * Don't spawn two.
+     */
+    if (
+      this.state.enemies.has(
+        ENEMY_ID
+      )
+    ) {
+      return;
+    }
+
+    const enemy =
+      new EnemyState({
+        x:
+          ENEMY_SPAWN.x,
+
+        y:
+          ENEMY_SPAWN.y,
+
+        z:
+          ENEMY_SPAWN.z,
+
+        rotationY: 0,
+
+        health:
+          ENEMY.health,
+
+        maxHealth:
+          ENEMY.health,
+      });
+
+    this.state.enemies.set(
+      ENEMY_ID,
+      enemy
+    );
+
+    this.enemyRuntime.set(
+      ENEMY_ID,
+      {
+        targetSessionId:
+          null,
+
+        nextAttackAt:
+          0,
+      }
+    );
+  }
+
+  attackEnemy(
+    sessionId
+  ) {
+    const player =
+      this.state.players.get(
+        sessionId
+      );
+
+    const enemy =
+      this.state.enemies.get(
+        ENEMY_ID
+      );
+
+    if (
+      !player ||
+      !enemy ||
+      enemy.health <= 0
+    ) {
+      return;
+    }
+
+    const distance =
+      this.getDistance(
+        player,
+        enemy
+      );
+
+    /*
+     * Same approximate range
+     * as our sword attack.
+     */
+    if (
+      distance > 2.5
+    ) {
+      return;
+    }
+
+    const runtime =
+      this.enemyRuntime.get(
+        ENEMY_ID
+      );
+
+    /*
+     * Enemy only aggroes after
+     * somebody attacks it.
+     */
+    runtime.targetSessionId =
+      sessionId;
+
+    enemy.health =
+      Math.max(
+        0,
+        enemy.health - 25
+      );
+
+    if (
+      enemy.health <= 0
+    ) {
+      this.killEnemy();
+    }
+  }
+
+  killEnemy() {
+    this.state.enemies.delete(
+      ENEMY_ID
+    );
+
+    this.enemyRuntime.delete(
+      ENEMY_ID
+    );
+
+    /*
+     * Colyseus clock automatically
+     * belongs to this room.
+     */
+    this.clock.setTimeout(
+      () => {
+        this.spawnEnemy();
+      },
+      ENEMY.respawnDelay
+    );
+  }
+
+  /*
+   * =====================================================
+   * ENEMY AI
+   * =====================================================
+   */
+
+  updateEnemy(
+    deltaTime
+  ) {
+    const enemy =
+      this.state.enemies.get(
+        ENEMY_ID
+      );
+
+    const runtime =
+      this.enemyRuntime.get(
+        ENEMY_ID
+      );
+
+    /*
+     * No enemy or no aggro:
+     * do absolutely nothing.
+     */
+    if (
+      !enemy ||
+      !runtime?.targetSessionId
+    ) {
+      return;
+    }
+
+    const target =
+      this.state.players.get(
+        runtime.targetSessionId
+      );
+
+    /*
+     * Target left or died.
+     */
+    if (
+      !target ||
+      target.health <= 0
+    ) {
+      runtime.targetSessionId =
+        null;
+
+      return;
+    }
+
+    const dx =
+      target.x -
+      enemy.x;
+
+    const dz =
+      target.z -
+      enemy.z;
+
+    const distance =
+      Math.sqrt(
+        dx * dx +
+        dz * dz
+      );
+
+    /*
+     * Face player.
+     */
+    enemy.rotationY =
+      Math.atan2(
+        dx,
+        dz
+      );
+
+    /*
+     * Chase until melee range.
+     */
+    if (
+      distance >
+      ENEMY.attackRange
+    ) {
+      const length =
+        Math.max(
+          distance,
+          0.001
+        );
+
+      const movement =
+        ENEMY.speed *
+        (deltaTime / 1000);
+
+      enemy.x +=
+        (dx / length) *
+        movement;
+
+      enemy.z +=
+        (dz / length) *
+        movement;
+
+      return;
+    }
+
+    /*
+     * Melee attack.
+     */
+
+    const now =
+      Date.now();
+
+    if (
+      now <
+      runtime.nextAttackAt
+    ) {
+      return;
+    }
+
+    runtime.nextAttackAt =
+      now +
+      ENEMY.attackCooldown;
+
+    this.damagePlayer(
+      runtime.targetSessionId,
+      ENEMY.attackDamage
+    );
+  }
+
+  getDistance(
+    a,
+    b
+  ) {
+    const dx =
+      a.x - b.x;
+
+    const dy =
+      a.y - b.y;
+
+    const dz =
+      a.z - b.z;
+
+    return Math.sqrt(
+      dx * dx +
+      dy * dy +
+      dz * dz
     );
   }
 }

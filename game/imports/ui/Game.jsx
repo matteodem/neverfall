@@ -40,20 +40,10 @@ import {
 } from "../game/animation";
 
 export const Game = ({
-  enemyHp,
-  setEnemyHp,
   setPlayerHealth,
 }) => {
   const canvasRef =
     useRef(null);
-
-  const enemyHpRef =
-    useRef(enemyHp);
-
-  useEffect(() => {
-    enemyHpRef.current =
-      enemyHp;
-  }, [enemyHp]);
 
   useEffect(() => {
     let engine = null;
@@ -104,8 +94,6 @@ export const Game = ({
         sword,
         swordPivot,
         swordTip,
-        enemy,
-        enemyMaterial,
         camera,
         animationGroups,
       } = await createWorld(
@@ -148,14 +136,8 @@ export const Game = ({
       combat =
         createCombat({
           scene,
-          player,
-          sword,
           swordPivot,
           swordTip,
-          enemy,
-          enemyMaterial,
-          enemyHpRef,
-          setEnemyHp,
         });
 
       /*
@@ -331,7 +313,7 @@ export const Game = ({
       scene?.dispose();
       engine?.dispose();
     };
-  }, [setEnemyHp]);
+  }, []);
 
   return (
     <canvas

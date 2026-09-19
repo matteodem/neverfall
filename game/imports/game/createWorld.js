@@ -144,6 +144,10 @@ export const createWorld = async (
         mesh.skeleton === skeleton
     );
 
+  
+  const animationGroups =
+    result.animationGroups;
+
   /*
    * SWORD
    */
@@ -310,40 +314,6 @@ export const createWorld = async (
     false;
 
   /*
-   * ENEMY
-   */
-
-  const enemy =
-    MeshBuilder.CreateCapsule(
-      "enemy",
-      {
-        height: 2,
-        radius: 0.55,
-      },
-      scene
-    );
-
-  enemy.position.set(
-    0,
-    1,
-    5
-  );
-
-  const enemyMaterial =
-    createMaterial(
-      "enemyMaterial",
-      new Color3(
-        0.8,
-        0.1,
-        0.1
-      ),
-      scene
-    );
-
-  enemy.material =
-    enemyMaterial;
-
-  /*
    * CAMERA
    */
 
@@ -358,10 +328,8 @@ export const createWorld = async (
     sword,
     swordPivot,
     swordTip,
-    enemy,
-    enemyMaterial,
+
     camera,
-    animationGroups:
-      result.animationGroups,
+    animationGroups,
   };
 };

@@ -18,6 +18,10 @@ import {
 } from "./healthBar";
 
 import {
+  createEnemy,
+} from "./enemy";
+
+import {
   Color3,
   MeshBuilder,
   SceneLoader,
@@ -676,6 +680,9 @@ export const createMultiplayer =
     const remotePlayers =
       new Map();
 
+    const enemies =
+      new Map();
+
     let localPlayerState =
       null;
 
@@ -997,6 +1004,104 @@ export const createMultiplayer =
       }
     };
 
+    /*
+    * =========================================================
+    * ENEMIES
+    * =========================================================
+    */
+
+    callbacks.onAdd(
+      "enemies",
+      (
+        enemyState,
+        enemyId
+      ) => {
+        const enemy =
+          createEnemy({
+            scene,
+
+            state:
+              enemyState,
+
+            id:
+              enemyId,
+          });
+
+        enemies.set(
+          enemyId,
+          enemy
+        );
+
+        /*
+        * Any enemy state change.
+        */
+
+        callbacks.onChange(
+          enemyState,
+          () => {
+            enemy.targetPosition.set(
+              enemyState.x,
+              enemyState.y,
+              enemyState.z
+            );
+
+            enemy.setTargetRotation(
+              enemyState.rotationY
+            );
+          }
+        );
+
+        /*
+        * Health.
+        */
+
+        callbacks.listen(
+          enemyState,
+          "health",
+          () => {
+            enemy.setHealth(
+              enemyState.health,
+              enemyState.maxHealth
+            );
+          }
+        );
+
+        callbacks.listen(
+          enemyState,
+          "maxHealth",
+          () => {
+            enemy.setHealth(
+              enemyState.health,
+              enemyState.maxHealth
+            );
+          }
+        );
+      }
+    );
+
+    callbacks.onRemove(
+      "enemies",
+      (
+        _enemyState,
+        enemyId
+      ) => {
+        const enemy =
+          enemies.get(
+            enemyId
+          );
+
+        if (!enemy) {
+          return;
+        }
+
+        enemy.destroy();
+
+        enemies.delete(
+          enemyId
+        );
+      }
+    );
+
     const sendMovement = (
       player,
       deltaTime
@@ -1095,6 +1200,32 @@ export const createMultiplayer =
           deltaTime
         );
       }
+
+      /*
+      * ENEMIES
+      */
+
+      for (
+        const enemy
+        of enemies.values()
+      ) {
+        Vector3.LerpToRef(
+          enemy.root.position,
+          enemy.targetPosition,
+          smoothing,
+          enemy.root.position
+        );
+
+        const difference =
+          normalizeAngle(
+            enemy.getTargetRotation() -
+              enemy.root.rotation.y
+          );
+
+        enemy.root.rotation.y +=
+          difference *
+          smoothing;
+      }
     };
 
     /*
@@ -1122,6 +1253,15 @@ export const createMultiplayer =
         }
 
         remotePlayers.clear();
+
+        for (
+          const enemy
+          of enemies.values()
+        ) {
+          enemy.destroy();
+        }
+
+        enemies.clear();
 
         await room.leave();
       };

@@ -39,40 +39,6 @@ const HUD_BUTTONS = [
   },
 ];
 
-const EnemyHealthBar = ({ hp, maxHp = 100 }) => {
-  if (hp <= 0) {
-    return null;
-  }
-
-  const percentage = Math.max(
-    0,
-    Math.min(100, (hp / maxHp) * 100)
-  );
-
-  return (
-    <div className="absolute left-1/2 top-4 -translate-x-1/2">
-      <div className="w-64 rounded bg-black/70 p-3 text-white">
-        <div className="mb-1 text-center text-sm">
-          Training Dummy
-        </div>
-
-        <div className="h-4 overflow-hidden rounded bg-gray-700">
-          <div
-            className="h-full bg-red-500 transition-all"
-            style={{
-              width: `${percentage}%`,
-            }}
-          />
-        </div>
-
-        <div className="mt-1 text-center text-xs">
-          {hp} / {maxHp} HP
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const ActionBar = () => {
   return (
     <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
@@ -171,7 +137,6 @@ const PlayerHealthBar = ({
 };
 
 export const Hud = ({
-  enemyHp,
   playerHealth,
 }) => {
   const isDead =
@@ -180,10 +145,6 @@ export const Hud = ({
   return (
     <>
       <MenuButtons />
-
-      <EnemyHealthBar
-        hp={enemyHp}
-      />
 
       <PlayerHealthBar
         health={

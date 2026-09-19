@@ -5,23 +5,22 @@ import {
 
 import {
   AdvancedDynamicTexture,
+  Control,
   Rectangle,
 } from "@babylonjs/gui";
 
-const WIDTH = 1.5;
-const HEIGHT = 0.18;
+const WIDTH =
+  1.5;
+
+const HEIGHT =
+  0.18;
 
 export const createHealthBar = ({
   scene,
   player,
+  color = "#22c55e",
+  y = 2.4,
 }) => {
-  /*
-   * Single 3D plane.
-   *
-   * This avoids having separate
-   * background/fill planes fighting
-   * for depth.
-   */
   const plane =
     MeshBuilder.CreatePlane(
       "healthBar",
@@ -32,20 +31,15 @@ export const createHealthBar = ({
       scene
     );
 
-  plane.parent = player;
+  plane.parent =
+    player;
 
-  plane.position.y = 2.4;
+  plane.position.y =
+    y;
 
-  /*
-   * Always face camera.
-   */
   plane.billboardMode =
     Mesh.BILLBOARDMODE_ALL;
 
-  /*
-   * GUI texture rendered onto
-   * this one plane.
-   */
   const texture =
     AdvancedDynamicTexture.CreateForMesh(
       plane,
@@ -55,12 +49,11 @@ export const createHealthBar = ({
     );
 
   /*
-   * Background.
+   * BACKGROUND
    */
+
   const background =
-    new Rectangle(
-      "healthBackground"
-    );
+    new Rectangle();
 
   background.width = 1;
   background.height = 1;
@@ -71,41 +64,40 @@ export const createHealthBar = ({
   background.color =
     "#333333";
 
-  background.thickness = 2;
+  background.thickness =
+    2;
 
-  background.cornerRadius = 8;
+  background.cornerRadius =
+    8;
 
   texture.addControl(
     background
   );
 
   /*
-   * Green health fill.
+   * FILL
    */
+
   const fill =
-    new Rectangle(
-      "healthFill"
-    );
+    new Rectangle();
 
-  fill.height = 0.72;
+  fill.height =
+    0.72;
 
-  fill.width = 1;
+  fill.width =
+    "100%";
 
   fill.background =
-    "#22c55e";
+    color;
 
-  fill.color =
-    "transparent";
+  fill.thickness =
+    0;
 
-  fill.thickness = 0;
+  fill.cornerRadius =
+    5;
 
-  fill.cornerRadius = 5;
-
-  /*
-   * Anchor fill to the left.
-   */
   fill.horizontalAlignment =
-    Rectangle.HORIZONTAL_ALIGNMENT_LEFT;
+    Control.HORIZONTAL_ALIGNMENT_LEFT;
 
   background.addControl(
     fill
@@ -125,18 +117,15 @@ export const createHealthBar = ({
         )
       );
 
-    /*
-     * GUI width accepts percentages.
-     */
     fill.width =
       `${percentage * 100}%`;
+  };
 
-    /*
-     * Don't disable the whole bar.
-     * At 0 HP simply show empty.
-     */
+  const setVisible = (
+    visible
+  ) => {
     plane.setEnabled(
-      true
+      visible
     );
   };
 
@@ -147,15 +136,7 @@ export const createHealthBar = ({
 
   return {
     setHealth,
-
-    setVisible(
-      visible
-    ) {
-      plane.setEnabled(
-        visible
-      );
-    },
-
+    setVisible,
     destroy,
   };
 };

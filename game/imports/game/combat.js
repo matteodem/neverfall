@@ -2,7 +2,6 @@ import {
   Color3,
   StandardMaterial,
   TrailMesh,
-  Vector3,
 } from "@babylonjs/core";
 
 import {
@@ -35,26 +34,18 @@ const easeOutCubic = (
 
 export const createCombat = ({
   scene,
-
-  player,
-
-  sword,
   swordPivot,
   swordTip,
-
-  enemy,
-  enemyMaterial,
-
-  enemyHpRef,
-  setEnemyHp,
 }) => {
-  let attacking = false;
-  let attackProgress = 0;
-  let damageApplied = false;
+  let attacking =
+    false;
+
+  let attackProgress =
+    0;
 
   /*
    * =====================================================
-   * ORIGINAL SWORD/HAND ROTATION
+   * ORIGINAL SWORD ROTATION
    * =====================================================
    */
 
@@ -65,10 +56,6 @@ export const createCombat = ({
    * =====================================================
    * SWOOSH
    * =====================================================
-   *
-   * IMPORTANT:
-   * Trail follows sword TIP,
-   * not sword origin.
    */
 
   const trail =
@@ -113,124 +100,20 @@ export const createCombat = ({
 
   /*
    * =====================================================
-   * HIT
-   * =====================================================
-   */
-
-  const hitEnemy = () => {
-    if (
-      enemyHpRef.current <= 0
-    ) {
-      return;
-    }
-
-    const distance =
-      Vector3.Distance(
-        player.position,
-        enemy.position
-      );
-
-    if (
-      distance >
-      ATTACK.range
-    ) {
-      return;
-    }
-
-    const nextHp =
-      Math.max(
-        0,
-        enemyHpRef.current -
-          ATTACK.damage
-      );
-
-    enemyHpRef.current =
-      nextHp;
-
-    setEnemyHp(
-      nextHp
-    );
-
-    /*
-     * FLASH
-     */
-
-    enemyMaterial.diffuseColor =
-      new Color3(
-        1,
-        1,
-        1
-      );
-
-    setTimeout(() => {
-      if (
-        !enemy.isDisposed()
-      ) {
-        enemyMaterial.diffuseColor =
-          new Color3(
-            0.8,
-            0.1,
-            0.1
-          );
-      }
-    }, 100);
-
-    /*
-     * KNOCKBACK
-     */
-
-    const direction =
-      enemy.position
-        .subtract(
-          player.position
-        )
-        .normalize();
-
-    enemy.position.addInPlace(
-      direction.scale(
-        ATTACK.knockback
-      )
-    );
-
-    /*
-     * DEATH
-     */
-
-    if (nextHp <= 0) {
-      setTimeout(() => {
-        enemy.setEnabled(
-          false
-        );
-      }, 200);
-    }
-  };
-
-  /*
-   * =====================================================
    * ATTACK START
    * =====================================================
    */
 
   const startAttack = () => {
-    if (
-      attacking ||
-      enemyHpRef.current <= 0
-    ) {
+    if (attacking) {
       return;
     }
 
-    attacking = true;
-    attackProgress = 0;
-    damageApplied = false;
+    attacking =
+      true;
 
-    /*
-     * Start with no trail during
-     * the wind-up.
-     */
-
-    trail.setEnabled(
-      false
-    );
+    attackProgress =
+      0;
   };
 
   /*
@@ -241,166 +124,139 @@ export const createCombat = ({
 
   const updateAttackAnimation = (
     progress
-) => {
-  /*
-   * ============================================
-   * 1. WIND-UP
-   *
-   * Sword goes backwards and up.
-   * ============================================
-   */
-
-  if (progress < 0.25) {
-    const t =
-      progress / 0.25;
-
+  ) => {
     /*
-     * Pull sword backwards.
+     * WIND-UP
      */
 
-    swordPivot.rotation.x =
-      lerp(
-        defaultRotation.x,
-        defaultRotation.x -
-          0.9,
-        t
+    if (
+      progress < 0.25
+    ) {
+      const t =
+        progress / 0.25;
+
+      swordPivot.rotation.x =
+        lerp(
+          defaultRotation.x,
+          defaultRotation.x -
+            0.9,
+          t
+        );
+
+      swordPivot.rotation.y =
+        lerp(
+          defaultRotation.y,
+          defaultRotation.y +
+            0.65,
+          t
+        );
+
+      swordPivot.rotation.z =
+        lerp(
+          defaultRotation.z,
+          defaultRotation.z -
+            0.35,
+          t
+        );
+
+      trail.setEnabled(
+        false
       );
+
+      return;
+    }
 
     /*
-     * Move sword to player's right side.
+     * FORWARD SLASH
      */
 
-    swordPivot.rotation.y =
-      lerp(
-        defaultRotation.y,
-        defaultRotation.y +
-          0.65,
-        t
+    if (
+      progress < 0.65
+    ) {
+      let t =
+        (
+          progress -
+          0.25
+        ) /
+        0.4;
+
+      t =
+        easeOutCubic(
+          t
+        );
+
+      trail.setEnabled(
+        true
       );
+
+      swordPivot.rotation.x =
+        lerp(
+          defaultRotation.x -
+            0.9,
+          defaultRotation.x +
+            1.15,
+          t
+        );
+
+      swordPivot.rotation.y =
+        lerp(
+          defaultRotation.y +
+            0.65,
+          defaultRotation.y -
+            0.55,
+          t
+        );
+
+      swordPivot.rotation.z =
+        lerp(
+          defaultRotation.z -
+            0.35,
+          defaultRotation.z +
+            0.25,
+          t
+        );
+
+      return;
+    }
 
     /*
-     * Lift weapon slightly.
+     * RECOVERY
      */
-
-    swordPivot.rotation.z =
-      lerp(
-        defaultRotation.z,
-        defaultRotation.z -
-          0.35,
-        t
-      );
 
     trail.setEnabled(
       false
     );
 
-    return;
-  }
-
-  /*
-   * ============================================
-   * 2. FORWARD SLASH
-   *
-   * This is the actual hit.
-   * ============================================
-   */
-
-  if (progress < 0.65) {
-    let t =
-      (progress - 0.25) /
-      0.4;
-
-    t =
-      easeOutCubic(
-        t
-      );
-
-    trail.setEnabled(
-      true
-    );
-
-    /*
-     * Main movement:
-     *
-     * Sword swings from behind the player
-     * strongly FORWARD.
-     */
+    const t =
+      (
+        progress -
+        0.65
+      ) /
+      0.35;
 
     swordPivot.rotation.x =
       lerp(
-        defaultRotation.x -
-          0.9,
         defaultRotation.x +
           1.15,
+        defaultRotation.x,
         t
       );
-
-    /*
-     * Sweep across body.
-     */
 
     swordPivot.rotation.y =
       lerp(
-        defaultRotation.y +
-          0.65,
         defaultRotation.y -
           0.55,
+        defaultRotation.y,
         t
       );
-
-    /*
-     * Small diagonal component.
-     */
 
     swordPivot.rotation.z =
       lerp(
-        defaultRotation.z -
-          0.35,
         defaultRotation.z +
           0.25,
+        defaultRotation.z,
         t
       );
-
-    return;
-  }
-
-  /*
-   * ============================================
-   * 3. RECOVERY
-   * ============================================
-   */
-
-  trail.setEnabled(
-    false
-  );
-
-  const t =
-    (progress - 0.65) /
-    0.35;
-
-  swordPivot.rotation.x =
-    lerp(
-      defaultRotation.x +
-        1.15,
-      defaultRotation.x,
-      t
-    );
-
-  swordPivot.rotation.y =
-    lerp(
-      defaultRotation.y -
-        0.55,
-      defaultRotation.y,
-      t
-    );
-
-  swordPivot.rotation.z =
-    lerp(
-      defaultRotation.z +
-        0.25,
-      defaultRotation.z,
-      t
-    );
   };
 
   /*
@@ -420,28 +276,19 @@ export const createCombat = ({
       deltaTime /
       ATTACK.duration;
 
+    /*
+     * Prevent progress from
+     * going above 1.
+     */
+    const progress =
+      Math.min(
+        attackProgress,
+        1
+      );
+
     updateAttackAnimation(
-      attackProgress
+      progress
     );
-
-    /*
-     * Damage happens during
-     * fastest part of slash.
-     */
-
-    if (
-      attackProgress >= 0.42 &&
-      !damageApplied
-    ) {
-      damageApplied =
-        true;
-
-      hitEnemy();
-    }
-
-    /*
-     * Finish.
-     */
 
     if (
       attackProgress >= 1
