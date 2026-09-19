@@ -8,5 +8,6 @@ After [installing Meteor](https://docs.meteor.com/about/install.html) do followi
 
 ```sh
 cd game 
+meteor npm install
 meteor run
 ```
