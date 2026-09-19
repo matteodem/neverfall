@@ -1,4 +1,7 @@
-import React from "react";
+import React, {
+  useEffect,
+  useState,
+} from "react";
 
 import {
   useHudStore,
@@ -38,6 +41,98 @@ const HUD_BUTTONS = [
     label: "Help",
   },
 ];
+
+const CooldownOverlay = ({
+  until,
+  duration,
+}) => {
+  const [
+    progress,
+    setProgress,
+  ] = useState(
+    0
+  );
+
+  const [
+    seconds,
+    setSeconds,
+  ] = useState(
+    0
+  );
+
+  useEffect(
+    () => {
+      if (!until) {
+        setProgress(0);
+        setSeconds(0);
+
+        return;
+      }
+
+      const update = () => {
+        const remaining =
+          Math.max(
+            0,
+            until -
+              Date.now()
+          );
+
+        setProgress(
+          remaining /
+            duration
+        );
+
+        setSeconds(
+          Math.ceil(
+            remaining /
+              1000
+          )
+        );
+      };
+
+      update();
+
+      const interval =
+        setInterval(
+          update,
+          100
+        );
+
+      return () =>
+        clearInterval(
+          interval
+        );
+    },
+    [
+      until,
+      duration,
+    ]
+  );
+
+  if (
+    progress <= 0
+  ) {
+    return null;
+  }
+
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 flex items-center justify-center rounded bg-black/40"
+      style={{
+        backgroundImage:
+          `conic-gradient(
+            rgba(0, 0, 0, 0.8)
+            ${progress * 360}deg,
+            rgba(0, 0, 0, 0.25) 0deg
+          )`,
+      }}
+    >
+      <span className="rounded bg-black/70 px-1.5 py-0.5 text-sm font-bold text-cyan-300 shadow">
+        {seconds}
+      </span>
+    </div>
+  );
+};
 
 const MenuButtons = () => {
   const openModal =
@@ -113,7 +208,9 @@ const PlayerHealthBar = ({
   );
 };
 
-const ActionBar = () => {
+const ActionBar = ({
+  healCooldownUntil,
+}) => {
   return (
     <div className="absolute bottom-20 left-1/2 flex -translate-x-1/2 gap-2">
       {ACTION_SLOTS.map((slot) => (
@@ -126,6 +223,17 @@ const ActionBar = () => {
           </span>
 
           {slot.icon && <Icon icon={slot.icon} className="w-5 h-5" />}
+
+          {slot.key === "4" && (
+            <CooldownOverlay
+              until={
+                healCooldownUntil
+              }
+              duration={
+                15000
+              }
+            />
+          )}
         </div>
       ))}
     </div>
@@ -134,10 +242,15 @@ const ActionBar = () => {
 
 const BottomHud = ({
   playerHealth,
+  healCooldownUntil,
 }) => {
   return (
     <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
-      <ActionBar />
+      <ActionBar
+        healCooldownUntil={
+          healCooldownUntil
+        }
+      />
 
       <PlayerHealthBar
         health={
@@ -153,6 +266,7 @@ const BottomHud = ({
 
 export const Hud = ({
   playerHealth,
+  healCooldownUntil,
 }) => {
   const isDead =
     playerHealth.health <= 0;
@@ -164,6 +278,10 @@ export const Hud = ({
       <BottomHud
         playerHealth={
           playerHealth
+        }
+
+        healCooldownUntil={
+          healCooldownUntil
         }
       />
 

@@ -647,6 +647,7 @@ export const createMultiplayer = async ({
     scene,
     player,
     onLocalHealthChange,
+    onHealCooldown,
   }) => {
     await ensureGuestUser();
 
@@ -932,6 +933,17 @@ export const createMultiplayer = async ({
 
         remotePlayers.delete(
           sessionId
+        );
+      }
+    );
+
+    room.onMessage(
+      "healCooldown",
+      ({
+        duration,
+      }) => {
+        onHealCooldown?.(
+          duration
         );
       }
     );

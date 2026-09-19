@@ -33,6 +33,9 @@ const ENEMY = {
 const HEAL_AMOUNT =
   50;
 
+const HEAL_COOLDOWN =
+  15000;
+
 const PLAYER_RESPAWN_DELAY =
   2000;
 
@@ -47,6 +50,9 @@ export class WorldRoom extends Room {
    * synchronized to clients.
    */
   enemyRuntime =
+    new Map();
+
+  playerRuntime =
     new Map();
 
   static async onAuth(
@@ -144,15 +150,34 @@ export class WorldRoom extends Room {
           client.sessionId
         );
 
+      const runtime =
+        this.playerRuntime.get(
+          client.sessionId
+        );
+
       if (
         !player ||
+        !runtime ||
         player.health <= 0
       ) {
         return;
       }
 
+      const now =
+        Date.now();
+
       /*
-      * Already full health.
+      * Still on cooldown.
+      */
+      if (
+        now <
+        runtime.healAvailableAt
+      ) {
+        return;
+      }
+
+      /*
+      * No need to heal.
       */
       if (
         player.health >=
@@ -168,9 +193,24 @@ export class WorldRoom extends Room {
             HEAL_AMOUNT
         );
 
+      runtime.healAvailableAt =
+        now +
+        HEAL_COOLDOWN;
+
       /*
-      * Visual effect for
-      * every connected client.
+      * Tell caster to start
+      * cooldown UI.
+      */
+      client.send(
+        "healCooldown",
+        {
+          duration:
+            HEAL_COOLDOWN,
+        }
+      );
+
+      /*
+      * Visual heal effect.
       */
       this.broadcast(
         "playerHeal",
@@ -239,6 +279,13 @@ export class WorldRoom extends Room {
       client.sessionId,
       player
     );
+
+    this.playerRuntime.set(
+      client.sessionId,
+      {
+        healAvailableAt: 0,
+      }
+    );
   }
 
   onLeave(
@@ -264,6 +311,10 @@ export class WorldRoom extends Room {
       runtime.targetSessionId =
         null;
     }
+
+    this.playerRuntime.delete(
+      client.sessionId
+    );
   }
 
   damagePlayer(

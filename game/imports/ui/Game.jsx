@@ -41,6 +41,7 @@ import {
 
 export const Game = ({
   setPlayerHealth,
+  setHealCooldownUntil,
 }) => {
   const canvasRef =
     useRef(null);
@@ -103,11 +104,20 @@ export const Game = ({
       multiplayer =
         await createMultiplayer({
           scene,
-
           player,
 
           onLocalHealthChange:
             setPlayerHealth,
+
+          onHealCooldown:
+            (
+              duration
+            ) => {
+              setHealCooldownUntil(
+                Date.now() +
+                  duration
+              );
+            },
         });
 
       if (disposed) {

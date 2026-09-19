@@ -11,14 +11,33 @@ export const App = () => {
     maxHealth: 100,
   });
 
+  const [
+    healCooldownUntil,
+    setHealCooldownUntil,
+  ] = useState(
+    0
+  );
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       <Game
-        setPlayerHealth={setPlayerHealth}
+        setPlayerHealth={
+          setPlayerHealth
+        }
+
+        setHealCooldownUntil={
+          setHealCooldownUntil
+        }
       />
 
       <Hud
-        playerHealth={playerHealth}
+        playerHealth={
+          playerHealth
+        }
+
+        healCooldownUntil={
+          healCooldownUntil
+        }
       />
     </div>
   );
