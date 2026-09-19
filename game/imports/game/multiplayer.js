@@ -26,6 +26,10 @@ import {
 } from "./healEffect";
 
 import {
+  createNameplate,
+} from "./nameplate";
+
+import {
   Color3,
   MeshBuilder,
   SceneLoader,
@@ -410,7 +414,8 @@ const createRemoteCombat = ({
 const createRemotePlayer =
   async (
     scene,
-    sessionId
+    sessionId,
+    name
   ) => {
     const root =
       new TransformNode(
@@ -422,6 +427,22 @@ const createRemotePlayer =
       createHealthBar({
         scene,
         player: root,
+      });
+
+    const nameplate =
+      createNameplate({
+        scene,
+
+        player:
+          root,
+
+        name,
+
+        color:
+          "#4ade80",
+
+        y:
+          -0.4,
       });
 
     /*
@@ -571,6 +592,8 @@ const createRemotePlayer =
       root,
       model,
 
+      nameplate,
+
       sword,
       swordPivot,
       swordGrip,
@@ -623,6 +646,7 @@ const createRemotePlayer =
       destroy() {
         animations.destroy();
         combat.destroy();
+        nameplate.destroy();
 
         healthBar.destroy();
 
@@ -743,7 +767,8 @@ export const createMultiplayer = async ({
         const entity =
           await createRemotePlayer(
             scene,
-            sessionId
+            sessionId,
+            playerState.name
           );
 
         if (

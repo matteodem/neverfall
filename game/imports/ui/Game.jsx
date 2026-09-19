@@ -106,6 +106,9 @@ export const Game = ({
           {
             assetFile:
               character.assetFile,
+
+            name:
+              character.name,
           }
         );
 

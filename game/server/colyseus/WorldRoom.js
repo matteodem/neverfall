@@ -95,6 +95,9 @@ export class WorldRoom extends Room {
 
         characterId:
           payload.characterId,
+
+        characterName:
+          payload.characterName,
       };
     } catch {
       return false;
@@ -180,9 +183,6 @@ export class WorldRoom extends Room {
       const now =
         Date.now();
 
-      /*
-      * Still on cooldown.
-      */
       if (
         now <
         runtime.healAvailableAt
@@ -190,9 +190,6 @@ export class WorldRoom extends Room {
         return;
       }
 
-      /*
-      * No need to heal.
-      */
       if (
         player.health >=
         player.maxHealth
@@ -203,29 +200,19 @@ export class WorldRoom extends Room {
       player.health =
         Math.min(
           player.maxHealth,
-          player.health +
-            HEAL_AMOUNT
+          player.health + 30
         );
 
       runtime.healAvailableAt =
-        now +
-        HEAL_COOLDOWN;
+        now + 15000;
 
-      /*
-      * Tell caster to start
-      * cooldown UI.
-      */
       client.send(
         "healCooldown",
         {
-          duration:
-            HEAL_COOLDOWN,
+          duration: 15000,
         }
       );
 
-      /*
-      * Visual heal effect.
-      */
       this.broadcast(
         "playerHeal",
         {
@@ -282,6 +269,9 @@ export class WorldRoom extends Room {
         characterId:
           auth.characterId,
 
+        name:
+          auth.characterName,
+
         x: 0,
         y: 0,
         z: 0,
@@ -302,6 +292,13 @@ export class WorldRoom extends Room {
     this.state.players.set(
       client.sessionId,
       player
+    );
+
+    this.playerRuntime.set(
+      client.sessionId,
+      {
+        healAvailableAt: 0,
+      }
     );
 
     await Meteor.users.updateAsync(

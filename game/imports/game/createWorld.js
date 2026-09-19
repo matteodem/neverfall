@@ -22,6 +22,10 @@ import {
   createGameCamera,
 } from "./camera";
 
+import {
+  createNameplate,
+} from "./nameplate";
+
 const findRightHandBone = (
   skeleton
 ) => {
@@ -48,6 +52,7 @@ export const createWorld =
     scene,
     {
       assetFile,
+      name,
     }
   ) => {
   /*
@@ -166,6 +171,21 @@ export const createWorld =
   
   const animationGroups =
     result.animationGroups;
+
+  const nameplate =
+    createNameplate({
+      scene,
+
+      player,
+
+      name,
+
+      color:
+        "white",
+
+      y:
+        -0.4,
+    });
 
   /*
    * SWORD
@@ -347,8 +367,8 @@ export const createWorld =
     sword,
     swordPivot,
     swordTip,
-
     camera,
     animationGroups,
+    nameplate,
   };
 };

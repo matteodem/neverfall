@@ -79,6 +79,9 @@ Meteor.methods({
 
         characterId:
           character.id,
+
+        characterName:
+          character.name,
       },
       getSecret(),
       {

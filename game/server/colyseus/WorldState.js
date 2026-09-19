@@ -7,44 +7,31 @@ export const PlayerState =
   schema(
     {
       userId:
-        t.string().default(
-          ""
-        ),
+        t.string().default(""),
 
       characterId:
-        t.string().default(
-          ""
-        ),
+        t.string().default(""),
+
+      name:
+        t.string().default(""),
 
       x:
-        t.number().default(
-          0
-        ),
+        t.number().default(0),
 
       y:
-        t.number().default(
-          0
-        ),
+        t.number().default(0),
 
       z:
-        t.number().default(
-          0
-        ),
+        t.number().default(0),
 
       rotationY:
-        t.number().default(
-          0
-        ),
+        t.number().default(0),
 
       health:
-        t.number().default(
-          100
-        ),
+        t.number().default(100),
 
       maxHealth:
-        t.number().default(
-          100
-        ),
+        t.number().default(100),
     },
     "PlayerState"
   );
