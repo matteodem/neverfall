@@ -3,31 +3,51 @@ import {
   t,
 } from "@colyseus/schema";
 
-export const PlayerState = schema(
-  {
-    userId:
-      t.string().default(""),
+export const PlayerState =
+  schema(
+    {
+      userId:
+        t.string().default(
+          ""
+        ),
 
-    x:
-      t.number().default(0),
+      characterId:
+        t.string().default(
+          ""
+        ),
 
-    y:
-      t.number().default(0),
+      x:
+        t.number().default(
+          0
+        ),
 
-    z:
-      t.number().default(0),
+      y:
+        t.number().default(
+          0
+        ),
 
-    rotationY:
-      t.number().default(0),
+      z:
+        t.number().default(
+          0
+        ),
 
-    health:
-      t.number().default(100),
+      rotationY:
+        t.number().default(
+          0
+        ),
 
-    maxHealth:
-      t.number().default(100),
-  },
-  "PlayerState"
-);
+      health:
+        t.number().default(
+          100
+        ),
+
+      maxHealth:
+        t.number().default(
+          100
+        ),
+    },
+    "PlayerState"
+  );
 
 export const EnemyState = schema(
   {

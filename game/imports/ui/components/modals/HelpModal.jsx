@@ -14,18 +14,18 @@ export const HelpModal = () => {
         Keyboard Controls
       </p>
 
-      <p className="mt-2">
+      <div className="mt-2">
         <ul>
           <li>WASD to move.</li>
           <li>1 to 4 to do actions.</li>
         </ul>
-      </p>
+      </div>
 
       <p className="mt-5 text-lg font-bold">
         How To Support This Project
       </p>
 
-      <p className="mt-2">
+      <div className="mt-2">
         Feel free to support me: <br />
 
         <div className="flex gap-4">
@@ -33,7 +33,7 @@ export const HelpModal = () => {
           <a className="btn mt-2 btn-soft btn-secondary" href="">Buy Me a Coffee</a>
           <a className="btn mt-2 btn-soft btn-secondary" href="">Github Repository</a>
         </div>       
-      </p>
+      </div>
     </HudModal>
   );
 };

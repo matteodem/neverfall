@@ -1,4 +1,8 @@
 import {
+  Meteor,
+} from "meteor/meteor";
+
+import {
   Room,
 } from "colyseus";
 
@@ -9,6 +13,10 @@ import {
   PlayerState,
   WorldState,
 } from "./WorldState";
+
+import {
+  Characters,
+} from "../../imports/api/characters/characters";
 
 const ENEMY_ID =
   "training-enemy";
@@ -74,13 +82,19 @@ export class WorldRoom extends Room {
           }
         );
 
-      if (!payload.userId) {
+      if (
+        !payload.userId ||
+        !payload.characterId
+      ) {
         return false;
       }
 
       return {
         userId:
           payload.userId,
+
+        characterId:
+          payload.characterId,
       };
     } catch {
       return false;
@@ -255,7 +269,7 @@ export class WorldRoom extends Room {
    * =====================================================
    */
 
-  onJoin(
+  async onJoin(
     client,
     options,
     auth
@@ -264,6 +278,9 @@ export class WorldRoom extends Room {
       new PlayerState({
         userId:
           auth.userId,
+
+        characterId:
+          auth.characterId,
 
         x: 0,
         y: 0,
@@ -275,46 +292,90 @@ export class WorldRoom extends Room {
         maxHealth: 100,
       });
 
+    /*
+    * sessionId remains the
+    * network entity key.
+    *
+    * characterId is the persistent
+    * MMORPG identity.
+    */
     this.state.players.set(
       client.sessionId,
       player
     );
 
-    this.playerRuntime.set(
-      client.sessionId,
+    await Meteor.users.updateAsync(
+      auth.userId,
       {
-        healAvailableAt: 0,
+        $set: {
+          "profile.isPlaying":
+            true,
+
+          "profile.currentCharacterId":
+            auth.characterId,
+        },
       }
     );
   }
 
-  onLeave(
+  async onLeave(
     client
   ) {
+    const leavingPlayer =
+      this.state.players.get(
+        client.sessionId
+      );
+
     this.state.players.delete(
       client.sessionId
     );
 
-    /*
-     * Remove aggro if enemy was
-     * chasing this player.
-     */
-    const runtime =
-      this.enemyRuntime.get(
-        ENEMY_ID
-      );
-
-    if (
-      runtime?.targetSessionId ===
-      client.sessionId
-    ) {
-      runtime.targetSessionId =
-        null;
+    if (!leavingPlayer) {
+      return;
     }
 
-    this.playerRuntime.delete(
-      client.sessionId
+    /*
+    * Check whether another tab/session
+    * of this user still exists.
+    */
+
+    const stillPlaying =
+      Array.from(
+        this.state.players.values()
+      ).some(
+        (
+          player
+        ) =>
+          player.userId ===
+          leavingPlayer.userId
+      );
+
+    if (!stillPlaying) {
+      await Meteor.users.updateAsync(
+        leavingPlayer.userId,
+        {
+          $set: {
+            "profile.isPlaying":
+              false,
+          },
+        }
+      );
+    }
+
+    await Characters.updateAsync(
+      leavingPlayer.characterId,
+      {
+        $set: {
+          lastPlayedAt:
+            new Date(),
+        },
+      }
     );
+
+    /*
+    * Your existing enemy aggro
+    * cleanup can stay below this.
+    */
   }
 
   damagePlayer(

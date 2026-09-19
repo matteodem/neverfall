@@ -43,10 +43,13 @@ const findRightHandBone = (
   );
 };
 
-
-export const createWorld = async (
-  scene
-) => {
+export const createWorld =
+  async (
+    scene,
+    {
+      assetFile,
+    }
+  ) => {
   /*
    * LIGHTS
    */
@@ -121,11 +124,27 @@ export const createWorld = async (
   * PLAYER MODEL
   */
 
+  const lastSlash =
+  assetFile.lastIndexOf(
+    "/"
+    );
+
+  const rootUrl =
+    assetFile.slice(
+      0,
+      lastSlash + 1
+    );
+
+  const fileName =
+    assetFile.slice(
+      lastSlash + 1
+    );
+
   const result =
     await SceneLoader.ImportMeshAsync(
       "",
-      "/models/",
-      "player.glb",
+      rootUrl,
+      fileName,
       scene
     );
 

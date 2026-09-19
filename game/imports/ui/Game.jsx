@@ -40,7 +40,10 @@ import {
 } from "../game/animation";
 
 export const Game = ({
+  character,
+
   setPlayerHealth,
+
   setHealCooldownUntil,
 }) => {
   const canvasRef =
@@ -97,9 +100,14 @@ export const Game = ({
         swordTip,
         camera,
         animationGroups,
-      } = await createWorld(
-        scene
-      );
+      } =
+        await createWorld(
+          scene,
+          {
+            assetFile:
+              character.assetFile,
+          }
+        );
 
       multiplayer =
         await createMultiplayer({

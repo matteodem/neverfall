@@ -32,7 +32,12 @@ const createGuestAccount = () => {
 
           profile: {
             guest: true,
-          },
+
+            isPlaying: true,
+
+            currentCharacterId:
+              "",
+          }
         },
         (error) => {
           if (error) {

@@ -3,6 +3,7 @@ import {
 } from "meteor/meteor";
 
 import "./methods/colyseusAuth";
+import "./methods/characters";
 
 import {
   startColyseus,
