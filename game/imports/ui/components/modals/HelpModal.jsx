@@ -17,7 +17,7 @@ export const HelpModal = () => {
       <p className="mt-2">
         <ul>
           <li>WASD to move.</li>
-          <li>1 to Attack.</li>
+          <li>1 to 4 to do actions.</li>
         </ul>
       </p>
 

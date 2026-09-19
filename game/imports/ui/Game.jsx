@@ -103,6 +103,9 @@ export const Game = ({
       multiplayer =
         await createMultiplayer({
           scene,
+
+          player,
+
           onLocalHealthChange:
             setPlayerHealth,
         });
@@ -191,37 +194,38 @@ export const Game = ({
         }
       );
 
-      /*
-       * ATTACK
-       */
-
-      const handleAttack = (
+      const handleSkill = (
         event
       ) => {
         if (
-          event.code !==
-          "Digit1"
+          event.repeat
         ) {
           return;
         }
 
-        event.preventDefault();
+        if (
+          event.code ===
+          "Digit1"
+        ) {
+          combat?.startAttack();
 
-        /*
-        * Local attack.
-        */
-        combat.startAttack();
+          multiplayer?.sendAttack();
 
-        /*
-        * Tell other clients.
-        */
-        multiplayer?.sendAttack();
+          return;
+        }
+
+        if (
+          event.code ===
+          "Digit4"
+        ) {
+          multiplayer?.sendHeal();
+        }
       };
 
       input.on(
         window,
         "keydown",
-        handleAttack
+        handleSkill
       );
 
       /*

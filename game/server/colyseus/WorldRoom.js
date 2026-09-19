@@ -30,6 +30,9 @@ const ENEMY = {
   respawnDelay: 2000,
 };
 
+const HEAL_AMOUNT =
+  50;
+
 const PLAYER_RESPAWN_DELAY =
   2000;
 
@@ -131,6 +134,51 @@ export class WorldRoom extends Room {
 
       player.rotationY =
         data.rotationY;
+    },
+
+    heal: (
+      client
+    ) => {
+      const player =
+        this.state.players.get(
+          client.sessionId
+        );
+
+      if (
+        !player ||
+        player.health <= 0
+      ) {
+        return;
+      }
+
+      /*
+      * Already full health.
+      */
+      if (
+        player.health >=
+        player.maxHealth
+      ) {
+        return;
+      }
+
+      player.health =
+        Math.min(
+          player.maxHealth,
+          player.health +
+            HEAL_AMOUNT
+        );
+
+      /*
+      * Visual effect for
+      * every connected client.
+      */
+      this.broadcast(
+        "playerHeal",
+        {
+          sessionId:
+            client.sessionId,
+        }
+      );
     },
 
     attack: (

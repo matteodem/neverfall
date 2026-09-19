@@ -15,10 +15,10 @@ import { Icon } from "./components/Icon";
 import { SettingsModal } from "./components/modals/SettingsModal";
 
 const ACTION_SLOTS = [
-  { key: "1", label: "Attack" },
-  { key: "2", label: "" },
-  { key: "3", label: "" },
-  { key: "4", label: "" },
+  { key: "1", icon: 'sword' },
+  { key: "2" },
+  { key: "3" },
+  { key: "4", icon: 'healthCapsule' },
 ];
 
 const HUD_BUTTONS = [
@@ -119,17 +119,13 @@ const ActionBar = () => {
       {ACTION_SLOTS.map((slot) => (
         <div
           key={slot.key}
-          className="flex h-14 w-14 flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white"
+          className="flex relative h-14 w-14 flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white"
         >
-          <span className="text-sm font-bold">
+          <span className="text-sm font-bold absolute right-[5px] top-[2px]">
             {slot.key}
           </span>
 
-          {slot.label && (
-            <span className="text-[10px] text-gray-300">
-              {slot.label}
-            </span>
-          )}
+          {slot.icon && <Icon icon={slot.icon} className="w-5 h-5" />}
         </div>
       ))}
     </div>

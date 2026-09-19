@@ -22,6 +22,10 @@ import {
 } from "./enemy";
 
 import {
+  playHealEffect,
+} from "./healEffect";
+
+import {
   Color3,
   MeshBuilder,
   SceneLoader,
@@ -639,9 +643,9 @@ const createRemotePlayer =
  * =========================================================
  */
 
-export const createMultiplayer =
-  async ({
+export const createMultiplayer = async ({
     scene,
+    player,
     onLocalHealthChange,
   }) => {
     await ensureGuestUser();
@@ -972,6 +976,46 @@ export const createMultiplayer =
       }
     );
 
+    room.onMessage(
+      "playerHeal",
+      ({
+        sessionId,
+      }) => {
+        /*
+        * Our own character.
+        */
+        if (
+          sessionId ===
+          room.sessionId
+        ) {
+          playHealEffect({
+            scene,
+            player,
+          });
+
+          return;
+        }
+
+        /*
+        * Remote character.
+        */
+        const entity =
+          remotePlayers.get(
+            sessionId
+          );
+
+        if (!entity) {
+          return;
+        }
+
+        playHealEffect({
+          scene,
+          player:
+            entity.root,
+        });
+      }
+    );
+
     /*
      * LOCAL MOVEMENT SEND
      */
@@ -1280,6 +1324,12 @@ export const createMultiplayer =
         );
       };
 
+    const sendHeal = () => {
+      room.send(
+        "heal"
+      );
+    };
+
     /*
      * CLEANUP
      */
@@ -1312,8 +1362,9 @@ export const createMultiplayer =
 
       sendMovement,
       sendAttack,
-      syncLocalPlayer,
+      sendHeal,
 
+      syncLocalPlayer,
       update,
       destroy,
     };
