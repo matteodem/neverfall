@@ -147,6 +147,15 @@ export const createHealthBar = ({
 
   return {
     setHealth,
+
+    setVisible(
+      visible
+    ) {
+      plane.setEnabled(
+        visible
+      );
+    },
+
     destroy,
   };
 };

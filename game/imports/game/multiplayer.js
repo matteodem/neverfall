@@ -563,6 +563,11 @@ const createRemotePlayer =
       root,
       model,
 
+      sword,
+      swordPivot,
+      swordGrip,
+      swordTip,
+
       healthBar,
 
       animations,
@@ -577,11 +582,41 @@ const createRemotePlayer =
       movingUntil:
         0,
 
-      destroy() {
-        healthBar.destroy();
+      /*
+      * Show / hide the complete
+      * remote player entity.
+      */
+      setAlive(alive) {
+        root.setEnabled(
+          alive
+        );
 
+        swordPivot?.setEnabled(
+          alive
+        );
+
+        swordGrip?.setEnabled(
+          alive
+        );
+
+        sword?.setEnabled(
+          alive
+        );
+
+        swordTip?.setEnabled(
+          alive
+        );
+
+        healthBar.setVisible(
+          alive
+        );
+      },
+
+      destroy() {
         animations.destroy();
         combat.destroy();
+
+        healthBar.destroy();
 
         swordTip?.dispose();
         sword?.dispose();
@@ -699,18 +734,12 @@ export const createMultiplayer =
             sessionId
           );
 
-        entity.healthBar.setHealth(
-          playerState.health,
-          playerState.maxHealth
-        );
-
         if (
           removedPlayers.has(
             sessionId
           )
         ) {
           entity.destroy();
-
           return;
         }
 
@@ -732,6 +761,15 @@ export const createMultiplayer =
         entity.targetRotationY =
           playerState.rotationY;
 
+        entity.healthBar.setHealth(
+          playerState.health,
+          playerState.maxHealth
+        );
+
+        entity.setAlive(
+          playerState.health > 0
+        );
+
         remotePlayers.set(
           sessionId,
           entity
@@ -741,9 +779,59 @@ export const createMultiplayer =
           playerState,
           "health",
           () => {
+            const alive =
+              playerState.health > 0;
+
+            /*
+            * Update HP first.
+            */
             entity.healthBar.setHealth(
               playerState.health,
               playerState.maxHealth
+            );
+
+            /*
+            * DEAD
+            */
+            if (!alive) {
+              entity.setAlive(
+                false
+              );
+
+              return;
+            }
+
+            /*
+            * RESPAWN
+            *
+            * Apply authoritative spawn
+            * position before showing player.
+            */
+            entity.root.position.set(
+              playerState.x,
+              playerState.y,
+              playerState.z
+            );
+
+            entity.targetPosition.set(
+              playerState.x,
+              playerState.y,
+              playerState.z
+            );
+
+            entity.root.rotation.y =
+              playerState.rotationY;
+
+            entity.targetRotationY =
+              playerState.rotationY;
+
+            /*
+            * Show everything again:
+            * model, sword, trail helpers,
+            * healthbar.
+            */
+            entity.setAlive(
+              true
             );
           }
         );
