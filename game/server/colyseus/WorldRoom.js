@@ -118,6 +118,107 @@ export class WorldRoom extends Room {
     attack: (
       client
     ) => {
+      const attacker =
+        this.state.players.get(
+          client.sessionId
+        );
+
+      if (!attacker) {
+        return;
+      }
+
+      const ATTACK_RANGE =
+        2.5;
+
+      const DAMAGE =
+        25;
+
+      let target =
+        null;
+
+      let closestDistance =
+        Infinity;
+
+      /*
+      * Find closest living
+      * player in attack range.
+      */
+      this.state.players.forEach(
+        (
+          player,
+          sessionId
+        ) => {
+          if (
+            sessionId ===
+            client.sessionId
+          ) {
+            return;
+          }
+
+          if (
+            player.health <= 0
+          ) {
+            return;
+          }
+
+          const dx =
+            player.x -
+            attacker.x;
+
+          const dy =
+            player.y -
+            attacker.y;
+
+          const dz =
+            player.z -
+            attacker.z;
+
+          const distance =
+            Math.sqrt(
+              dx * dx +
+              dy * dy +
+              dz * dz
+            );
+
+          if (
+            distance >
+            ATTACK_RANGE
+          ) {
+            return;
+          }
+
+          if (
+            distance <
+            closestDistance
+          ) {
+            closestDistance =
+              distance;
+
+            target =
+              player;
+          }
+        }
+      );
+
+      /*
+      * Server changes health.
+      *
+      * Colyseus then automatically
+      * synchronizes it.
+      */
+      if (target) {
+        target.health =
+          Math.max(
+            0,
+            target.health -
+              DAMAGE
+          );
+      }
+
+      /*
+      * Existing visual attack
+      * event for remote clients.
+      */
       this.broadcast(
         "attack",
         {
@@ -156,6 +257,9 @@ export class WorldRoom extends Room {
         z: 0,
 
         rotationY: 0,
+
+        health: 100,
+        maxHealth: 100,
       });
 
     /*

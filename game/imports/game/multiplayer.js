@@ -14,6 +14,10 @@ import {
 } from "../auth/guest";
 
 import {
+  createHealthBar,
+} from "./healthBar";
+
+import {
   Color3,
   MeshBuilder,
   SceneLoader,
@@ -406,6 +410,12 @@ const createRemotePlayer =
         scene
       );
 
+    const healthBar =
+      createHealthBar({
+        scene,
+        player: root,
+      });
+
     /*
      * PLAYER MODEL
      */
@@ -553,10 +563,7 @@ const createRemotePlayer =
       root,
       model,
 
-      sword,
-      swordPivot,
-      swordGrip,
-      swordTip,
+      healthBar,
 
       animations,
       combat,
@@ -571,34 +578,16 @@ const createRemotePlayer =
         0,
 
       destroy() {
-        /*
-        * Stop animation resources first.
-        */
+        healthBar.destroy();
+
         animations.destroy();
         combat.destroy();
-
-        /*
-        * Sword was imported separately,
-        * therefore we must explicitly
-        * dispose it.
-        */
 
         swordTip?.dispose();
         sword?.dispose();
 
-        /*
-        * Dispose helper transform nodes.
-        */
-
         swordGrip?.dispose();
         swordPivot?.dispose();
-
-        /*
-        * Finally remove player.
-        *
-        * This also disposes the GLB meshes
-        * parented underneath root.
-        */
 
         root.dispose();
       },
@@ -614,6 +603,7 @@ const createRemotePlayer =
 export const createMultiplayer =
   async ({
     scene,
+    onLocalHealthChange,
   }) => {
     await ensureGuestUser();
 
@@ -668,6 +658,49 @@ export const createMultiplayer =
           sessionId ===
           room.sessionId
         ) {
+          /*
+          * Initial health.
+          */
+          onLocalHealthChange?.({
+            health:
+              playerState.health,
+
+            maxHealth:
+              playerState.maxHealth,
+          });
+
+          /*
+          * Health changes received
+          * from Colyseus.
+          */
+          callbacks.listen(
+            playerState,
+            "health",
+            () => {
+              onLocalHealthChange?.({
+                health:
+                  playerState.health,
+
+                maxHealth:
+                  playerState.maxHealth,
+              });
+            }
+          );
+
+          callbacks.listen(
+            playerState,
+            "maxHealth",
+            () => {
+              onLocalHealthChange?.({
+                health:
+                  playerState.health,
+
+                maxHealth:
+                  playerState.maxHealth,
+              });
+            }
+          );
+
           return;
         }
 
@@ -680,6 +713,11 @@ export const createMultiplayer =
             scene,
             sessionId
           );
+
+        entity.healthBar.setHealth(
+          playerState.health,
+          playerState.maxHealth
+        );
 
         if (
           removedPlayers.has(
@@ -712,6 +750,28 @@ export const createMultiplayer =
         remotePlayers.set(
           sessionId,
           entity
+        );
+
+        callbacks.listen(
+          playerState,
+          "health",
+          () => {
+            entity.healthBar.setHealth(
+              playerState.health,
+              playerState.maxHealth
+            );
+          }
+        );
+
+        callbacks.listen(
+          playerState,
+          "maxHealth",
+          () => {
+            entity.healthBar.setHealth(
+              playerState.health,
+              playerState.maxHealth
+            );
+          }
         );
 
         callbacks.onChange(

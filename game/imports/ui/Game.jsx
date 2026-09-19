@@ -42,6 +42,7 @@ import {
 export const Game = ({
   enemyHp,
   setEnemyHp,
+  setPlayerHealth,
 }) => {
   const canvasRef =
     useRef(null);
@@ -114,6 +115,8 @@ export const Game = ({
       multiplayer =
         await createMultiplayer({
           scene,
+          onLocalHealthChange:
+            setPlayerHealth,
         });
 
       if (disposed) {

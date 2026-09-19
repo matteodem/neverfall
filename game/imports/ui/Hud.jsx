@@ -126,11 +126,67 @@ const MenuButtons = () => {
   );
 };
 
-export const Hud = ({ enemyHp }) => {
+const PlayerHealthBar = ({
+  health,
+  maxHealth,
+}) => {
+  const percentage =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        (
+          health /
+          maxHealth
+        ) * 100
+      )
+    );
+
+  return (
+    <div className="absolute bottom-6 left-6 w-64 rounded bg-black/70 p-3 text-white">
+      <div className="mb-1 flex justify-between text-sm">
+        <span>
+          Health
+        </span>
+
+        <span>
+          {health} / {maxHealth}
+        </span>
+      </div>
+
+      <div className="h-4 overflow-hidden rounded bg-gray-700">
+        <div
+          className="h-full bg-red-500 transition-all"
+          style={{
+            width:
+              `${percentage}%`,
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const Hud = ({
+  enemyHp,
+  playerHealth,
+}) => {
   return (
     <>
       <MenuButtons />
-      <EnemyHealthBar hp={enemyHp} />
+
+      <EnemyHealthBar
+        hp={enemyHp}
+      />
+
+      <PlayerHealthBar
+        health={
+          playerHealth.health
+        }
+        maxHealth={
+          playerHealth.maxHealth
+        }
+      />
       <ActionBar />
 
       <HelpModal />

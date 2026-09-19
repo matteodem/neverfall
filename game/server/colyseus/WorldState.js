@@ -3,9 +3,6 @@ import {
   t,
 } from "@colyseus/schema";
 
-/*
- * One synchronized player.
- */
 export const PlayerState = schema(
   {
     userId:
@@ -22,18 +19,22 @@ export const PlayerState = schema(
 
     rotationY:
       t.number().default(0),
+
+    health:
+      t.number().default(100),
+
+    maxHealth:
+      t.number().default(100),
   },
   "PlayerState"
 );
 
-/*
- * Entire world state.
- */
 export const WorldState = schema(
   {
-    players: t.map(
-      PlayerState
-    ),
+    players:
+      t.map(
+        PlayerState
+      ),
   },
   "WorldState"
 );
