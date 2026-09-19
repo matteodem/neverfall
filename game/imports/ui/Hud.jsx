@@ -39,29 +39,6 @@ const HUD_BUTTONS = [
   },
 ];
 
-const ActionBar = () => {
-  return (
-    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
-      {ACTION_SLOTS.map((slot) => (
-        <div
-          key={slot.key}
-          className="flex h-14 w-14 flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white"
-        >
-          <span className="text-sm font-bold">
-            {slot.key}
-          </span>
-
-          {slot.label && (
-            <span className="text-[10px] text-gray-300">
-              {slot.label}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const MenuButtons = () => {
   const openModal =
     useHudStore(
@@ -112,7 +89,7 @@ const PlayerHealthBar = ({
     );
 
   return (
-    <div className="absolute bottom-6 left-6 w-64 rounded bg-black/70 p-3 text-white">
+    <div className="absolute bottom-2 left-1/2 w-72 -translate-x-1/2 rounded bg-black/70 p-2 text-white">
       <div className="mb-1 flex justify-between text-sm">
         <span>
           Health
@@ -136,6 +113,48 @@ const PlayerHealthBar = ({
   );
 };
 
+const ActionBar = () => {
+  return (
+    <div className="absolute bottom-20 left-1/2 flex -translate-x-1/2 gap-2">
+      {ACTION_SLOTS.map((slot) => (
+        <div
+          key={slot.key}
+          className="flex h-14 w-14 flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white"
+        >
+          <span className="text-sm font-bold">
+            {slot.key}
+          </span>
+
+          {slot.label && (
+            <span className="text-[10px] text-gray-300">
+              {slot.label}
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const BottomHud = ({
+  playerHealth,
+}) => {
+  return (
+    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+      <ActionBar />
+
+      <PlayerHealthBar
+        health={
+          playerHealth.health
+        }
+        maxHealth={
+          playerHealth.maxHealth
+        }
+      />
+    </div>
+  );
+};
+
 export const Hud = ({
   playerHealth,
 }) => {
@@ -146,15 +165,11 @@ export const Hud = ({
     <>
       <MenuButtons />
 
-      <PlayerHealthBar
-        health={
-          playerHealth.health
-        }
-        maxHealth={
-          playerHealth.maxHealth
+      <BottomHud
+        playerHealth={
+          playerHealth
         }
       />
-      <ActionBar />
 
       {isDead && (
         <DeathOverlay />
