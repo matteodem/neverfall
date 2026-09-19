@@ -1,7 +1,5 @@
 import {
-  Color3,
-  MeshBuilder,
-  StandardMaterial,
+  SceneLoader,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
@@ -10,30 +8,132 @@ import {
   createHealthBar,
 } from "./healthBar";
 
-const createMaterial = (
-  scene
-) => {
-  const material =
-    new StandardMaterial(
-      "enemyMaterial",
-      scene
-    );
-
-  material.diffuseColor =
-    new Color3(
-      0.35,
-      0.08,
-      0.08
-    );
-
-  return material;
+const IDLE = {
+  from: 0,
+  to: 29,
 };
 
-export const createEnemy = ({
+const ATTACK = {
+  from: 30,
+  to: 59,
+};
+
+const WALK = {
+  from: 90,
+  to: 119,
+};
+
+const createAnimationController = (
+  animationGroup
+) => {
+  let currentAnimation =
+    null;
+
+  let attacking =
+    false;
+
+  const play = (
+    name,
+    range,
+    loop = true
+  ) => {
+    if (
+      currentAnimation === name &&
+      animationGroup.isPlaying
+    ) {
+      return;
+    }
+
+    currentAnimation =
+      name;
+
+    animationGroup.stop();
+
+    animationGroup.start(
+      loop,
+      1,
+      range.from,
+      range.to
+    );
+  };
+
+  const idle = () => {
+    if (attacking) {
+      return;
+    }
+
+    play(
+      "idle",
+      IDLE
+    );
+  };
+
+  const walk = () => {
+    if (attacking) {
+      return;
+    }
+
+    play(
+      "walk",
+      WALK
+    );
+  };
+
+  const attack = () => {
+    if (attacking) {
+      return;
+    }
+
+    attacking =
+      true;
+
+    currentAnimation =
+      "attack";
+
+    animationGroup.stop();
+
+    animationGroup.start(
+      false,
+      1,
+      ATTACK.from,
+      ATTACK.to
+    );
+
+    animationGroup
+      .onAnimationGroupEndObservable
+      .addOnce(
+        () => {
+          attacking =
+            false;
+
+          idle();
+        }
+      );
+  };
+
+  idle();
+
+  return {
+    idle,
+    walk,
+    attack,
+  };
+};
+
+export const createEnemy = async ({
   scene,
   state,
   id,
 }) => {
+  /*
+   * =====================================================
+   * NETWORK ROOT
+   * =====================================================
+   *
+   * Colyseus position / rotation
+   * lives on this node.
+   */
+
   const root =
     new TransformNode(
       `enemy-${id}`,
@@ -41,68 +141,111 @@ export const createEnemy = ({
     );
 
   /*
-   * BODY
+   * =====================================================
+   * MODEL ROOT
+   * =====================================================
+   *
+   * Used only for GLB orientation
+   * and visual scale.
    */
 
-  const body =
-    MeshBuilder.CreateCapsule(
-      `enemy-body-${id}`,
-      {
-        height: 1.7,
-        radius: 0.45,
-      },
+  const modelRoot =
+    new TransformNode(
+      `enemy-model-${id}`,
       scene
     );
 
-  body.parent =
+  modelRoot.parent =
     root;
 
-  body.position.y =
-    0.85;
-
   /*
-   * HEAD
+   * Flip Boar 180°.
+   *
+   * This fixes the model facing
+   * backwards while attacking.
    */
 
-  const head =
-    MeshBuilder.CreateSphere(
-      `enemy-head-${id}`,
-      {
-        diameter: 0.65,
-      },
-      scene
-    );
-
-  head.parent =
-    root;
-
-  head.position.y =
-    1.9;
-
-  const material =
-    createMaterial(
-      scene
-    );
-
-  body.material =
-    material;
-
-  head.material =
-    material;
+  modelRoot.rotation.y = 0;
 
   /*
-   * RED HEALTHBAR
+   * 2x smaller than the previous
+   * 1.2 scale.
+   */
+
+  modelRoot.scaling.setAll(
+    0.3
+  );
+
+  /*
+   * =====================================================
+   * LOAD BOAR
+   * =====================================================
+   */
+
+  const result =
+    await SceneLoader.ImportMeshAsync(
+      "",
+      "/models/",
+      "boar.glb",
+      scene
+    );
+
+  /*
+   * Parent only top-level imported
+   * meshes to modelRoot.
+   *
+   * Child meshes keep their original
+   * GLB hierarchy.
+   */
+
+  for (
+    const mesh
+    of result.meshes
+  ) {
+    if (!mesh.parent) {
+      mesh.parent =
+        modelRoot;
+    }
+  }
+
+  /*
+   * =====================================================
+   * ANIMATION
+   * =====================================================
+   */
+
+  const animationGroup =
+    result.animationGroups[0];
+
+  if (!animationGroup) {
+    throw new Error(
+      "Boar has no animation group."
+    );
+  }
+
+  const animations =
+    createAnimationController(
+      animationGroup
+    );
+
+  /*
+   * =====================================================
+   * HEALTH BAR
+   * =====================================================
    */
 
   const healthBar =
     createHealthBar({
       scene,
-      player: root,
+
+      player:
+        root,
 
       color:
         "#ef4444",
 
-      y: 2.55,
+      y:
+        1.35,
     });
 
   healthBar.setHealth(
@@ -111,7 +254,9 @@ export const createEnemy = ({
   );
 
   /*
-   * NETWORK TARGETS
+   * =====================================================
+   * INITIAL NETWORK STATE
+   * =====================================================
    */
 
   root.position.set(
@@ -133,10 +278,18 @@ export const createEnemy = ({
   let targetRotationY =
     state.rotationY;
 
+  /*
+   * =====================================================
+   * PUBLIC API
+   * =====================================================
+   */
+
   return {
     root,
 
     targetPosition,
+
+    animations,
 
     setTargetRotation(
       rotation
@@ -162,10 +315,20 @@ export const createEnemy = ({
     destroy() {
       healthBar.destroy();
 
-      body.dispose();
-      head.dispose();
-      material.dispose();
+      animationGroup.stop();
 
+      /*
+       * Dispose imported GLB meshes.
+       */
+
+      for (
+        const mesh
+        of result.meshes
+      ) {
+        mesh.dispose();
+      }
+
+      modelRoot.dispose();
       root.dispose();
     },
   };

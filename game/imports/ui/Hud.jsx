@@ -29,7 +29,7 @@ const HUD_BUTTONS = [
   },
   {
     id: "inventory",
-    icon: "bag",
+    icon: "backpack",
     label: "Inventory",
   },
   {

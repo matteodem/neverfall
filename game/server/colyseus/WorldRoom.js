@@ -315,7 +315,7 @@ export class WorldRoom extends Room {
         z:
           ENEMY_SPAWN.z,
 
-        rotationY: 0,
+        rotationY: Math.PI,
 
         health:
           ENEMY.health,
@@ -540,6 +540,14 @@ export class WorldRoom extends Room {
     runtime.nextAttackAt =
       now +
       ENEMY.attackCooldown;
+
+    this.broadcast(
+      "enemyAttack",
+      {
+        enemyId:
+          ENEMY_ID,
+      }
+    );
 
     this.damagePlayer(
       runtime.targetSessionId,

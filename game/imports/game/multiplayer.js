@@ -954,6 +954,24 @@ export const createMultiplayer =
       }
     );
 
+    room.onMessage(
+      "enemyAttack",
+      ({
+        enemyId,
+      }) => {
+        const enemy =
+          enemies.get(
+            enemyId
+          );
+
+        if (!enemy) {
+          return;
+        }
+
+        enemy.animations.attack();
+      }
+    );
+
     /*
      * LOCAL MOVEMENT SEND
      */
@@ -1012,12 +1030,12 @@ export const createMultiplayer =
 
     callbacks.onAdd(
       "enemies",
-      (
+      async (
         enemyState,
         enemyId
       ) => {
         const enemy =
-          createEnemy({
+          await createEnemy({
             scene,
 
             state:
@@ -1027,14 +1045,23 @@ export const createMultiplayer =
               enemyId,
           });
 
+        /*
+        * Enemy could theoretically
+        * disappear while GLB loads.
+        */
+        if (
+          !room.state.enemies.has(
+            enemyId
+          )
+        ) {
+          enemy.destroy();
+          return;
+        }
+
         enemies.set(
           enemyId,
           enemy
         );
-
-        /*
-        * Any enemy state change.
-        */
 
         callbacks.onChange(
           enemyState,
@@ -1050,10 +1077,6 @@ export const createMultiplayer =
             );
           }
         );
-
-        /*
-        * Health.
-        */
 
         callbacks.listen(
           enemyState,
@@ -1209,6 +1232,12 @@ export const createMultiplayer =
         const enemy
         of enemies.values()
       ) {
+        const distance =
+          Vector3.Distance(
+            enemy.root.position,
+            enemy.targetPosition
+          );
+
         Vector3.LerpToRef(
           enemy.root.position,
           enemy.targetPosition,
@@ -1225,6 +1254,18 @@ export const createMultiplayer =
         enemy.root.rotation.y +=
           difference *
           smoothing;
+
+        /*
+        * Animation.
+        */
+
+        if (
+          distance > 0.03
+        ) {
+          enemy.animations.walk();
+        } else {
+          enemy.animations.idle();
+        }
       }
     };
 
