@@ -156,7 +156,7 @@ const PlayerHealthBar = ({
 
       <div className="h-4 overflow-hidden rounded bg-gray-700">
         <div
-          className="h-full bg-red-500 transition-all"
+          className="h-full bg-green-500 transition-all"
           style={{
             width:
               `${percentage}%`,

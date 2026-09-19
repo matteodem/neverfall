@@ -1,43 +1,30 @@
 import {
-  Color3,
   Mesh,
   MeshBuilder,
-  StandardMaterial,
-  TransformNode,
 } from "@babylonjs/core";
 
-const WIDTH =
-  1.4;
+import {
+  AdvancedDynamicTexture,
+  Rectangle,
+} from "@babylonjs/gui";
 
-const HEIGHT =
-  0.12;
+const WIDTH = 1.5;
+const HEIGHT = 0.18;
 
 export const createHealthBar = ({
   scene,
   player,
 }) => {
   /*
-   * Root follows player.
+   * Single 3D plane.
+   *
+   * This avoids having separate
+   * background/fill planes fighting
+   * for depth.
    */
-  const root =
-    new TransformNode(
-      "healthBar",
-      scene
-    );
-
-  root.parent =
-    player;
-
-  root.position.y =
-    2.4;
-
-  /*
-   * Background
-   */
-
-  const background =
+  const plane =
     MeshBuilder.CreatePlane(
-      "healthBarBackground",
+      "healthBar",
       {
         width: WIDTH,
         height: HEIGHT,
@@ -45,91 +32,84 @@ export const createHealthBar = ({
       scene
     );
 
-  background.parent =
-    root;
+  plane.parent = player;
 
-  background.billboardMode =
-    Mesh.BILLBOARDMODE_ALL;
-
-  const backgroundMaterial =
-    new StandardMaterial(
-      "healthBarBackgroundMaterial",
-      scene
-    );
-
-  backgroundMaterial.diffuseColor =
-    new Color3(
-      0.05,
-      0.05,
-      0.05
-    );
-
-  backgroundMaterial.emissiveColor =
-    new Color3(
-      0.05,
-      0.05,
-      0.05
-    );
-
-  backgroundMaterial.backFaceCulling =
-    false;
-
-  background.material =
-    backgroundMaterial;
+  plane.position.y = 2.4;
 
   /*
-   * Health fill
+   * Always face camera.
    */
+  plane.billboardMode =
+    Mesh.BILLBOARDMODE_ALL;
 
+  /*
+   * GUI texture rendered onto
+   * this one plane.
+   */
+  const texture =
+    AdvancedDynamicTexture.CreateForMesh(
+      plane,
+      512,
+      64,
+      false
+    );
+
+  /*
+   * Background.
+   */
+  const background =
+    new Rectangle(
+      "healthBackground"
+    );
+
+  background.width = 1;
+  background.height = 1;
+
+  background.background =
+    "#111111";
+
+  background.color =
+    "#333333";
+
+  background.thickness = 2;
+
+  background.cornerRadius = 8;
+
+  texture.addControl(
+    background
+  );
+
+  /*
+   * Green health fill.
+   */
   const fill =
-    MeshBuilder.CreatePlane(
-      "healthBarFill",
-      {
-        width: WIDTH,
-        height:
-          HEIGHT * 0.7,
-      },
-      scene
+    new Rectangle(
+      "healthFill"
     );
 
-  fill.parent =
-    root;
+  fill.height = 0.72;
 
-  fill.position.z =
-    -0.01;
+  fill.width = 1;
 
-  fill.billboardMode =
-    Mesh.BILLBOARDMODE_ALL;
+  fill.background =
+    "#22c55e";
 
-  const fillMaterial =
-    new StandardMaterial(
-      "healthBarFillMaterial",
-      scene
-    );
+  fill.color =
+    "transparent";
 
-  fillMaterial.diffuseColor =
-    new Color3(
-      0.1,
-      0.9,
-      0.2
-    );
+  fill.thickness = 0;
 
-  fillMaterial.emissiveColor =
-    new Color3(
-      0.1,
-      0.9,
-      0.2
-    );
-
-  fillMaterial.backFaceCulling =
-    false;
-
-  fill.material =
-    fillMaterial;
+  fill.cornerRadius = 5;
 
   /*
-   * Update health visually.
+   * Anchor fill to the left.
    */
+  fill.horizontalAlignment =
+    Rectangle.HORIZONTAL_ALIGNMENT_LEFT;
+
+  background.addControl(
+    fill
+  );
 
   const setHealth = (
     health,
@@ -145,34 +125,24 @@ export const createHealthBar = ({
         )
       );
 
-    fill.scaling.x =
-      percentage;
+    /*
+     * GUI width accepts percentages.
+     */
+    fill.width =
+      `${percentage * 100}%`;
 
     /*
-     * Keep left side anchored
-     * instead of shrinking toward
-     * the centre.
+     * Don't disable the whole bar.
+     * At 0 HP simply show empty.
      */
-    fill.position.x =
-      -(WIDTH / 2) *
-      (1 - percentage);
-
-    /*
-     * Hide when dead if desired.
-     */
-    root.setEnabled(
-      health > 0
+    plane.setEnabled(
+      true
     );
   };
 
   const destroy = () => {
-    background.dispose();
-    fill.dispose();
-
-    backgroundMaterial.dispose();
-    fillMaterial.dispose();
-
-    root.dispose();
+    texture.dispose();
+    plane.dispose();
   };
 
   return {

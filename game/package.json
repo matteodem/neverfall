@@ -10,7 +10,7 @@
   "dependencies": {
     "@babel/runtime": "^7.23.5",
     "@babylonjs/core": "^9.27.0",
-    "@babylonjs/gui": "^9.27.0",
+    "@babylonjs/gui": "^9.27.1",
     "@babylonjs/loaders": "^9.27.0",
     "@colyseus/core": "^0.18.14",
     "@colyseus/schema": "^5.0.33",
