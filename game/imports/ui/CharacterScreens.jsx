@@ -1,0 +1,56 @@
+import React from "react";
+
+import {
+  CharacterCreator,
+} from "./CharacterCreator";
+
+import {
+  CharacterOverview,
+} from "./CharacterOverview";
+
+import {
+  useCharacterStore,
+} from "./stores/useCharacterStore";
+
+export const CharacterScreens = ({
+  characters,
+  currentCharacterId,
+  hasCharacters,
+}) => {
+  const screen =
+    useCharacterStore(
+      (state) =>
+        state.screen
+    );
+
+  /*
+   * No characters yet:
+   * always open creator.
+   */
+  if (!hasCharacters) {
+    return (
+      <CharacterCreator />
+    );
+  }
+
+  if (
+    screen ===
+    "creator"
+  ) {
+    return (
+      <CharacterCreator />
+    );
+  }
+
+  return (
+    <CharacterOverview
+      characters={
+        characters
+      }
+
+      currentCharacterId={
+        currentCharacterId
+      }
+    />
+  );
+};

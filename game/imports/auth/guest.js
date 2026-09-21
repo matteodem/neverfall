@@ -33,7 +33,7 @@ const createGuestAccount = () => {
           profile: {
             guest: true,
 
-            isPlaying: true,
+            isPlaying: false,
 
             currentCharacterId:
               "",

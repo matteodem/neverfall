@@ -1,14 +1,37 @@
+import {
+  Meteor,
+} from "meteor/meteor";
+
 import React, {
   useEffect,
   useState,
 } from "react";
 
 import {
-  bootstrapPlayer,
-} from "../auth/bootstrapPlayer";
+  useSubscribe,
+  useTracker,
+} from "meteor/react-meteor-data";
 
-import { Game } from "./Game";
-import { Hud } from "./Hud";
+import {
+  ensureGuestUser,
+} from "../auth/guest";
+
+import {
+  CharacterScreens,
+} from "./CharacterScreens";
+
+import {
+  Characters,
+} from "../api/characters/characters";
+
+import {
+  Game,
+} from "./Game";
+
+import {
+  Hud,
+} from "./Hud";
+
 import {
   LoadingScreen,
 } from "./LoadingScreen";
@@ -30,54 +53,48 @@ export const App = () => {
   );
 
   const [
-    character,
-    setCharacter,
+    authReady,
+    setAuthReady,
   ] = useState(
-    null
+    false
   );
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(
-    true
-  );
+  /*
+   * =====================================================
+   * GUEST AUTH
+   * =====================================================
+   */
 
   useEffect(
     () => {
       let cancelled =
         false;
 
-      const bootstrap =
+      const initialize =
         async () => {
           try {
-            const character =
-              await bootstrapPlayer();
+            await ensureGuestUser();
 
-            if (cancelled) {
+            if (
+              cancelled
+            ) {
               return;
             }
 
-            setCharacter(
-              character
+            setAuthReady(
+              true
             );
           } catch (
             error
           ) {
             console.error(
-              "[Bootstrap]",
+              "[Auth]",
               error
             );
-          } finally {
-            if (!cancelled) {
-              setLoading(
-                false
-              );
-            }
           }
         };
 
-      bootstrap();
+      initialize();
 
       return () => {
         cancelled =
@@ -87,7 +104,70 @@ export const App = () => {
     []
   );
 
-  if (loading) {
+  /*
+   * =====================================================
+   * CHARACTER SUBSCRIPTION
+   * =====================================================
+   */
+
+  const charactersLoading =
+    useSubscribe(
+      "characters.mine"
+    );
+
+  const user =
+    useTracker(
+      () =>
+        Meteor.user(),
+      []
+    );
+
+  const characters =
+    useTracker(
+      () =>
+        Characters.find(
+          {},
+          {
+            sort: {
+              lastPlayedAt:
+                -1,
+            },
+          }
+        ).fetch(),
+      []
+    );
+
+  /*
+   * =====================================================
+   * CURRENT CHARACTER
+   * =====================================================
+   */
+
+  const currentCharacterId =
+    user?.profile
+      ?.currentCharacterId ||
+    "";
+
+  const currentCharacter =
+    characters.find(
+      (
+        character
+      ) =>
+        character._id ===
+        currentCharacterId
+    );
+
+  /*
+   * =====================================================
+   * INITIAL LOADING
+   * =====================================================
+   */
+
+  if (
+    !authReady ||
+    !user ||
+    charactersLoading()
+  ) {
     return (
       <div className="flex h-screen items-center justify-center bg-black text-white">
         Initializing...
@@ -95,19 +175,84 @@ export const App = () => {
     );
   }
 
-  if (!character) {
+  /*
+   * =====================================================
+   * CHARACTER SCREENS
+   * =====================================================
+   *
+   * Not currently playing:
+   *
+   * 0 characters
+   * → Character Creator
+   *
+   * 1+ characters
+   * → Character Overview
+   */
+
+  if (
+    !user.profile
+      ?.isPlaying
+  ) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black text-red-400">
-        Failed to load character.
-      </div>
+      <CharacterScreens
+        characters={
+          characters
+        }
+
+        currentCharacterId={
+          currentCharacterId
+        }
+
+        hasCharacters={
+          characters.length >
+          0
+        }
+      />
     );
   }
+
+  /*
+   * =====================================================
+   * INVALID PLAYING STATE
+   * =====================================================
+   *
+   * This should normally not happen,
+   * but prevents mounting Game without
+   * a valid character.
+   */
+
+  if (
+    !currentCharacter
+  ) {
+    return (
+      <CharacterScreens
+        characters={
+          characters
+        }
+
+        currentCharacterId={
+          currentCharacterId
+        }
+
+        hasCharacters={
+          characters.length >
+          0
+        }
+      />
+    );
+  }
+
+  /*
+   * =====================================================
+   * GAME
+   * =====================================================
+   */
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       <Game
         character={
-          character
+          currentCharacter
         }
 
         setPlayerHealth={

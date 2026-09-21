@@ -9,9 +9,11 @@ The game should have two screens that are visible when `profile.isPlaying` is fa
 * Create CharacterOverview Component that:
   * Displays the characters for the user
     * Sort the list by `lastPlayedAt`
+    * Display the `name`, `species`, `gameClass` and `currentLevel` for each character
+    * Each character entry is a button that can be clicked 
   * Displays a remove button for the selected character
-  * Highlight the character that matches `profile.currentCharacterId` with the id of the character
-  * When clicking on a character it should change the `profile.currentCharacterId`
+  * Highlight the character button that matches `profile.currentCharacterId` with the id of the character
+  * When clicking on the character button it should change the `profile.currentCharacterId`
   * The player character should load the `assetFile` and display the character in the center 
   * Set `profile.isPlaying` to true if the "Join World" Button is pressed (centered + at the bottom of the screen, prominent so that people don't overlook it)
   * If the user has no characters, display a "Create" button at the center of the screen
@@ -28,3 +30,11 @@ The game should have two screens that are visible when `profile.isPlaying` is fa
   * Remove `characters.ensureCurrent` logic as it's not needed anymore
   * Set `profile.isPlaying` false for new guest users
   * Add logic that if `profile.isPlaying` is true it loads the game instantly and if it's false it display the ChracterOverview
+
+### Additional considerations
+
+* Use "zustand" library for state management
+* Find a library that makes the character creation flow easy (each step is a separate screen)
+  * Be sure that it has more than 1k downloads per week
+* Use `useTracker` and `useSubscribe` from the `meteor/react-meteor-data` package
+* Keep the code as DRY as possible

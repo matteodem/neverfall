@@ -5,6 +5,8 @@ import {
 import "./methods/colyseusAuth";
 import "./methods/characters";
 
+import "./publications/characters";
+
 import {
   startColyseus,
 } from "./colyseus";

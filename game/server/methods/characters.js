@@ -10,159 +10,135 @@ import {
   Characters,
 } from "../../imports/api/characters/characters";
 
+const DEFAULT_ASSET =
+  "/models/player.glb";
+
+const normalizeName = (
+  name
+) =>
+  name
+    .trim()
+    .toLowerCase();
+
+const requireUser = (
+  userId
+) => {
+  if (!userId) {
+    throw new Meteor.Error(
+      "not-authorized"
+    );
+  }
+};
+
 Meteor.methods({
-  async "characters.ensureCurrent"() {
-
-    if (!this.userId) {
-      throw new Meteor.Error(
-        "not-authorized"
-      );
-    }
-
-    const user =
-      await Meteor.users.findOneAsync(
-        this.userId
+  async "characters.isNameAvailable"(
+    name
+  ) {
+    const normalized =
+      normalizeName(
+        name || ""
       );
 
-    if (!user) {
-      throw new Meteor.Error(
-        "user-not-found"
-      );
+    if (!normalized) {
+      return false;
     }
 
-    console.log('ensure current')
-
-    console.log({ user, characters: await Characters.find().fetch() })
-
-    /*
-     * ===================================================
-     * 1. TRY CURRENT CHARACTER
-     * ===================================================
-     */
-
-    const currentCharacterId =
-      user.profile
-        ?.currentCharacterId;
-
-    if (
-      currentCharacterId
-    ) {
-      const character =
-        await Characters.findOneAsync({
-          _id:
-            currentCharacterId,
-
-          userId:
-            this.userId,
-        });
-
-      if (character) {
-        await Characters.updateAsync(
-          character._id,
-          {
-            $set: {
-              lastPlayedAt:
-                new Date(),
-            },
-          }
-        );
-
-        /*
-         * Make sure older accounts
-         * also have the new fields.
-         */
-        await Meteor.users.updateAsync(
-          this.userId,
-          {
-            $set: {
-              "profile.currentCharacterId":
-                character.id,
-
-              "profile.isPlaying":
-                true,
-            },
-          }
-        );
-
-        return {
-          ...character,
-
-          lastPlayedAt:
-            new Date(),
-        };
-      }
-    }
-
-    /*
-     * ===================================================
-     * 2. MAYBE USER ALREADY HAS A CHARACTER
-     * ===================================================
-     */
-
-    const existingCharacter =
+    const existing =
       await Characters.findOneAsync({
-        userId:
-          this.userId,
+        nameLower:
+          normalized,
       });
 
-    if (
-      existingCharacter
-    ) {
-      await Characters.updateAsync(
-        existingCharacter._id,
-        {
-          $set: {
-            lastPlayedAt:
-              new Date(),
-          },
-        }
+    return !existing;
+  },
+
+  async "characters.create"({
+    name,
+    gender,
+    species,
+    gameClass,
+  }) {
+    requireUser(
+      this.userId
+    );
+
+    const cleanName =
+      name?.trim();
+
+    if (!cleanName) {
+      throw new Meteor.Error(
+        "invalid-name"
       );
-
-      await Meteor.users.updateAsync(
-        this.userId,
-        {
-          $set: {
-            "profile.currentCharacterId":
-              existingCharacter.id,
-
-            "profile.isPlaying":
-              true,
-          },
-        }
-      );
-
-      return existingCharacter;
     }
 
-    /*
-     * ===================================================
-     * 3. CREATE FIRST CHARACTER
-     * ===================================================
-     */
+    const nameLower =
+      normalizeName(
+        cleanName
+      );
 
-    const characterId =
+    const existing =
+      await Characters.findOneAsync({
+        nameLower,
+      });
+
+    if (existing) {
+      throw new Meteor.Error(
+        "name-taken"
+      );
+    }
+
+    if (
+      ![
+        "male",
+        "female",
+      ].includes(
+        gender
+      )
+    ) {
+      throw new Meteor.Error(
+        "invalid-gender"
+      );
+    }
+
+    if (
+      species !==
+      "human"
+    ) {
+      throw new Meteor.Error(
+        "invalid-species"
+      );
+    }
+
+    if (
+      gameClass !==
+      "warrior"
+    ) {
+      throw new Meteor.Error(
+        "invalid-class"
+      );
+    }
+
+    const id =
       Random.id();
 
-    const shortId =
-      Random.id(6);
-
     const character = {
-      _id:
-        characterId,
-
-      id:
-        characterId,
+      _id: id,
+      id,
 
       userId:
         this.userId,
 
       name:
-        `guest-${shortId}`,
+        cleanName,
+
+      nameLower,
+
+      gender,
 
       species:
         "human",
 
-      gameClass: 
+      gameClass:
         "warrior",
 
       currentLevel:
@@ -172,7 +148,7 @@ Meteor.methods({
         0,
 
       assetFile:
-        "/models/player.glb",
+        DEFAULT_ASSET,
 
       lastPlayedAt:
         new Date(),
@@ -187,14 +163,155 @@ Meteor.methods({
       {
         $set: {
           "profile.currentCharacterId":
-            characterId,
+            id,
 
+          "profile.isPlaying":
+            false,
+        },
+      }
+    );
+
+    return id;
+  },
+
+  async "characters.select"(
+    characterId
+  ) {
+    requireUser(
+      this.userId
+    );
+
+    const character =
+      await Characters.findOneAsync({
+        _id:
+          characterId,
+
+        userId:
+          this.userId,
+      });
+
+    if (!character) {
+      throw new Meteor.Error(
+        "character-not-found"
+      );
+    }
+
+    await Meteor.users.updateAsync(
+      this.userId,
+      {
+        $set: {
+          "profile.currentCharacterId":
+            characterId,
+        },
+      }
+    );
+  },
+
+  async "characters.remove"(
+    characterId
+  ) {
+    requireUser(
+      this.userId
+    );
+
+    const character =
+      await Characters.findOneAsync({
+        _id:
+          characterId,
+
+        userId:
+          this.userId,
+      });
+
+    if (!character) {
+      throw new Meteor.Error(
+        "character-not-found"
+      );
+    }
+
+    await Characters.removeAsync(
+      characterId
+    );
+
+    const nextCharacter =
+      await Characters.findOneAsync(
+        {
+          userId:
+            this.userId,
+        },
+        {
+          sort: {
+            lastPlayedAt:
+              -1,
+          },
+        }
+      );
+
+    await Meteor.users.updateAsync(
+      this.userId,
+      {
+        $set: {
+          "profile.currentCharacterId":
+            nextCharacter?._id ||
+            "",
+        },
+      }
+    );
+  },
+
+  async "characters.joinCurrent"() {
+    requireUser(
+      this.userId
+    );
+
+    const user =
+      await Meteor.users.findOneAsync(
+        this.userId
+      );
+
+    const characterId =
+      user?.profile
+        ?.currentCharacterId;
+
+    if (!characterId) {
+      throw new Meteor.Error(
+        "character-not-selected"
+      );
+    }
+
+    const character =
+      await Characters.findOneAsync({
+        _id:
+          characterId,
+
+        userId:
+          this.userId,
+      });
+
+    if (!character) {
+      throw new Meteor.Error(
+        "character-not-found"
+      );
+    }
+
+    await Characters.updateAsync(
+      characterId,
+      {
+        $set: {
+          lastPlayedAt:
+            new Date(),
+        },
+      }
+    );
+
+    await Meteor.users.updateAsync(
+      this.userId,
+      {
+        $set: {
           "profile.isPlaying":
             true,
         },
       }
     );
-
-    return character;
   },
 });

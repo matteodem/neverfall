@@ -1,4 +1,3 @@
-import { Meteor } from "meteor/meteor";
 import {
   Mongo,
 } from "meteor/mongo";
@@ -12,6 +11,7 @@ import {
   userId: "meteorUserId",
 
   name: "guest-XYZ",
+  nameLower: "guest-xyz",
 
   species: "human",
 
