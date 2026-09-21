@@ -29,6 +29,7 @@ import {
   isMoving,
   updateMovement,
   updateCameraFacing,
+  createJumpController,
 } from "../game/movement";
 
 import {
@@ -144,6 +145,11 @@ export const Game = ({
           animationGroups
         );
 
+      const jump =
+        createJumpController(
+          player
+        );
+
       /*
        * INPUT
        */
@@ -226,6 +232,17 @@ export const Game = ({
 
         if (
           event.code ===
+          "Space"
+        ) {
+          event.preventDefault();
+
+          jump.jump();
+
+          return;
+        }
+
+        if (
+          event.code ===
           "Digit1"
         ) {
           combat?.startAttack();
@@ -295,6 +312,28 @@ export const Game = ({
               input.state
             )
           );
+
+          jump.update(
+            deltaTime
+          );
+
+          if (
+            jump.isJumping()
+          ) {
+            animations.setJumping(
+              true
+            );
+          } else {
+            animations.setJumping(
+              false
+            );
+
+            animations.setRunning(
+              isMoving(
+                input.state
+              )
+            );
+          }
 
           combat.update(
             deltaTime

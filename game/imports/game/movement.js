@@ -4,6 +4,7 @@ import {
 
 import {
   PLAYER,
+  JUMP,
 } from "./config";
 
 import {
@@ -149,4 +150,80 @@ export const updateCameraFacing = ({
       player
     )
   );
+};
+
+export const createJumpController = (
+  player
+) => {
+  let velocityY = 0;
+  let jumping = false;
+
+  const jump = () => {
+    if (jumping) {
+      return;
+    }
+
+    jumping = true;
+
+    velocityY =
+      JUMP.velocity;
+  };
+
+  const update = (
+    deltaTime
+  ) => {
+    if (!jumping) {
+      return;
+    }
+
+    const deltaSeconds =
+      deltaTime / 1000;
+
+    /*
+     * Gravity.
+     */
+    velocityY -=
+      JUMP.gravity *
+      deltaSeconds;
+
+    /*
+     * Move vertically.
+     */
+    player.position.y +=
+      velocityY *
+      deltaSeconds;
+
+    /*
+     * Land.
+     */
+    if (
+      player.position.y <=
+      JUMP.groundY
+    ) {
+      player.position.y =
+        JUMP.groundY;
+
+      velocityY = 0;
+      jumping = false;
+    }
+  };
+
+  const reset = () => {
+    velocityY = 0;
+    jumping = false;
+
+    player.position.y =
+      JUMP.groundY;
+  };
+
+  const isJumping = () => {
+    return jumping;
+  };
+
+  return {
+    jump,
+    update,
+    reset,
+    isJumping,
+  };
 };

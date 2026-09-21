@@ -21,6 +21,12 @@ export const ATTACK = {
   knockback: 0.5,
 };
 
+export const JUMP = {
+  velocity: 6,
+  gravity: 16,
+  groundY: 0,
+};
+
 export const SWORD = {
   position: {
     x: 0,

@@ -1,17 +1,27 @@
 export const createPlayerAnimationController = (
   animationGroups = []
 ) => {
-  const findAnimation = (...names) => {
+  const findAnimation = (
+    ...names
+  ) => {
     const normalizedNames =
-      names.map((name) =>
-        name.toLowerCase()
+      names.map(
+        (name) =>
+          name.toLowerCase()
       );
 
     return animationGroups.find(
-      (animation) =>
-        normalizedNames.includes(
-          animation.name.toLowerCase()
-        )
+      (animation) => {
+        const animationName =
+          animation.name.toLowerCase();
+
+        return normalizedNames.some(
+          (name) =>
+            animationName.includes(
+              name
+            )
+        );
+      }
     );
   };
 
@@ -29,11 +39,85 @@ export const createPlayerAnimationController = (
       "idle"
     );
 
-  let running = false;
+  const jumpAnimation =
+     findAnimation(
+      "jump",
+      "jumping",
+      "jump start",
+      "jump_start",
+      "jumpstart"
+    );
 
-  idleAnimation?.start(
-    true
-  );
+  let running =
+    false;
+
+  let jumping =
+    false;
+
+  let currentAnimation =
+    null;
+
+  const playAnimation = (
+    animation,
+    loop = true
+  ) => {
+    if (
+      !animation ||
+      currentAnimation ===
+        animation
+    ) {
+      return;
+    }
+
+    currentAnimation?.stop();
+
+    currentAnimation =
+      animation;
+
+    animation.start(
+      loop
+    );
+  };
+
+  const playIdle = () => {
+    playAnimation(
+      idleAnimation,
+      true
+    );
+  };
+
+  const updateAnimation = () => {
+    /*
+     * Jump always has priority
+     * over running and idle.
+     */
+
+    if (jumping) {
+      playAnimation(
+        jumpAnimation,
+        false
+      );
+
+      return;
+    }
+
+    if (running) {
+      playAnimation(
+        runAnimation,
+        true
+      );
+
+      return;
+    }
+
+    playIdle();
+  };
+
+  /*
+   * Start idle.
+   */
+
+  playIdle();
 
   const setRunning = (
     shouldRun
@@ -44,31 +128,41 @@ export const createPlayerAnimationController = (
       return;
     }
 
-    running = shouldRun;
+    running =
+      shouldRun;
 
-    if (running) {
-      idleAnimation?.stop();
+    updateAnimation();
+  };
 
-      runAnimation?.start(
-        true
-      );
-
+  const setJumping = (
+    shouldJump
+  ) => {
+    if (
+      shouldJump === jumping
+    ) {
       return;
     }
 
-    runAnimation?.stop();
+    jumping =
+      shouldJump;
 
-    idleAnimation?.start(
-      true
-    );
+    updateAnimation();
   };
 
   return {
     setRunning,
+    setJumping,
 
     destroy() {
-      runAnimation?.stop();
-      idleAnimation?.stop();
+      for (
+        const animation
+        of animationGroups
+      ) {
+        animation.stop();
+      }
+
+      currentAnimation =
+        null;
     },
   };
 };
