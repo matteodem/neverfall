@@ -334,34 +334,6 @@ export class WorldRoom extends Room {
       return;
     }
 
-    /*
-    * Check whether another tab/session
-    * of this user still exists.
-    */
-
-    const stillPlaying =
-      Array.from(
-        this.state.players.values()
-      ).some(
-        (
-          player
-        ) =>
-          player.userId ===
-          leavingPlayer.userId
-      );
-
-    if (!stillPlaying) {
-      await Meteor.users.updateAsync(
-        leavingPlayer.userId,
-        {
-          $set: {
-            "profile.isPlaying":
-              false,
-          },
-        }
-      );
-    }
-
     await Characters.updateAsync(
       leavingPlayer.characterId,
       {

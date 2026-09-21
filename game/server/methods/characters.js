@@ -314,4 +314,22 @@ Meteor.methods({
       }
     );
   },
+
+  "characters.goToCharacterScreen"() {
+    if (!this.userId) {
+      throw new Meteor.Error(
+        "not-authorized"
+      );
+    }
+
+    return Meteor.users.updateAsync(
+      this.userId,
+      {
+        $set: {
+          "profile.isPlaying":
+            false,
+        },
+      }
+    );
+  },
 });

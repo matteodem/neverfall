@@ -1,4 +1,6 @@
-import React from "react";
+import React, {
+  useRef,
+} from "react";
 
 import {
   Meteor,
@@ -18,6 +20,11 @@ export const CharacterOverview = ({
   characters,
   currentCharacterId,
 }) => {
+  const deleteModalRef =
+    useRef(
+      null
+    );
+
   const setScreen =
     useCharacterStore(
       (state) =>
@@ -41,6 +48,22 @@ export const CharacterOverview = ({
       );
     };
 
+  const openDeleteModal =
+    () => {
+      if (!selected) {
+        return;
+      }
+
+      deleteModalRef.current
+        ?.showModal();
+    };
+
+  const closeDeleteModal =
+    () => {
+      deleteModalRef.current
+        ?.close();
+    };
+
   const deleteCharacter =
     async () => {
       if (!selected) {
@@ -51,6 +74,8 @@ export const CharacterOverview = ({
         "characters.remove",
         selected._id
       );
+
+      closeDeleteModal();
     };
 
   const joinWorld =
@@ -62,12 +87,6 @@ export const CharacterOverview = ({
 
   return (
     <div className="relative flex h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-sky-900 text-white">
-      {/*
-       * =================================================
-       * CHARACTER LIST
-       * =================================================
-       */}
-
       <aside className="z-10 w-80 border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
         <h1 className="mb-5 text-2xl font-bold">
           Characters
@@ -134,12 +153,6 @@ export const CharacterOverview = ({
           )}
         </div>
 
-        {/*
-         * =================================================
-         * SIDEBAR ACTIONS
-         * =================================================
-         */}
-
         <div className="mt-6 space-y-2">
           <button
             type="button"
@@ -149,7 +162,7 @@ export const CharacterOverview = ({
                   "creator"
                 )
             }
-            className="btn btn-soft btn-primary w-full"
+            className="btn btn-secondary w-full cursor-pointer"
           >
             Create Character
           </button>
@@ -158,21 +171,15 @@ export const CharacterOverview = ({
             <button
               type="button"
               onClick={
-                deleteCharacter
+                openDeleteModal
               }
-              className="btn btn-error btn-outline w-full"
+              className="btn btn-error btn-outline w-full cursor-pointer"
             >
               Delete
             </button>
           )}
         </div>
       </aside>
-
-      {/*
-       * =================================================
-       * CHARACTER PREVIEW
-       * =================================================
-       */}
 
       <main className="relative flex flex-1 flex-col">
         <div className="flex-1">
@@ -184,12 +191,6 @@ export const CharacterOverview = ({
             />
           )}
         </div>
-
-        {/*
-         * =================================================
-         * CHARACTER INFO
-         * =================================================
-         */}
 
         {selected && (
           <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
@@ -207,12 +208,6 @@ export const CharacterOverview = ({
           </div>
         )}
 
-        {/*
-         * =================================================
-         * JOIN WORLD
-         * =================================================
-         */}
-
         {selected && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
             <button
@@ -220,13 +215,73 @@ export const CharacterOverview = ({
               onClick={
                 joinWorld
               }
-              className="btn btn-primary btn-lg min-w-64 text-lg shadow-xl"
+              className="btn btn-primary btn-lg min-w-64 cursor-pointer text-lg shadow-xl"
             >
               Join World
             </button>
           </div>
         )}
       </main>
+
+      {/*
+       * DELETE CONFIRMATION MODAL
+       */}
+
+      <dialog
+        ref={
+          deleteModalRef
+        }
+        className="modal"
+      >
+        <div className="modal-box text-black">
+          <h3 className="text-lg font-bold">
+            Delete character?
+          </h3>
+
+          <p className="py-4">
+            Are you sure you want to delete{" "}
+            <span className="font-bold">
+              {selected?.name}
+            </span>
+            ?
+          </p>
+
+          <p className="text-sm opacity-60">
+            This action cannot be undone.
+          </p>
+
+          <div className="modal-action">
+            <button
+              type="button"
+              onClick={
+                closeDeleteModal
+              }
+              className="btn cursor-pointer"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={
+                deleteCharacter
+              }
+              className="btn btn-error cursor-pointer"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+
+        <form
+          method="dialog"
+          className="modal-backdrop"
+        >
+          <button>
+            close
+          </button>
+        </form>
+      </dialog>
     </div>
   );
 };
