@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useRef,
+  useState,
 } from "react";
 
 import {
@@ -23,6 +24,13 @@ export const CharacterPreview = ({
       null
     );
 
+  const [
+    loading,
+    setLoading,
+  ] = useState(
+    true
+  );
+
   useEffect(
     () => {
       const canvas =
@@ -35,11 +43,9 @@ export const CharacterPreview = ({
         return;
       }
 
-      /*
-       * =================================================
-       * ENGINE
-       * =================================================
-       */
+      setLoading(
+        true
+      );
 
       const engine =
         new Engine(
@@ -63,17 +69,7 @@ export const CharacterPreview = ({
       );
 
       /*
-       * =================================================
        * CAMERA
-       * =================================================
-       *
-       * Important:
-       *
-       * We intentionally DO NOT use
-       * camera.attachControl().
-       *
-       * Mouse input rotates the character,
-       * not the camera.
        */
 
       const camera =
@@ -96,9 +92,7 @@ export const CharacterPreview = ({
         );
 
       /*
-       * =================================================
        * LIGHT
-       * =================================================
        */
 
       const light =
@@ -118,9 +112,7 @@ export const CharacterPreview = ({
         1.3;
 
       /*
-       * =================================================
        * CHARACTER ROOT
-       * =================================================
        */
 
       const characterRoot =
@@ -130,77 +122,83 @@ export const CharacterPreview = ({
         );
 
       /*
-       * =================================================
        * LOAD CHARACTER
-       * =================================================
        */
 
       const load =
         async () => {
-          const slash =
-            assetFile.lastIndexOf(
-              "/"
-            );
+          try {
+            const slash =
+              assetFile.lastIndexOf(
+                "/"
+              );
 
-          const rootUrl =
-            assetFile.slice(
-              0,
-              slash + 1
-            );
+            const rootUrl =
+              assetFile.slice(
+                0,
+                slash + 1
+              );
 
-          const filename =
-            assetFile.slice(
-              slash + 1
-            );
+            const filename =
+              assetFile.slice(
+                slash + 1
+              );
 
-          const result =
-            await SceneLoader.ImportMeshAsync(
-              "",
-              rootUrl,
-              filename,
-              scene
-            );
+            const result =
+              await SceneLoader.ImportMeshAsync(
+                "",
+                rootUrl,
+                filename,
+                scene
+              );
 
-          /*
-           * Parent only top-level
-           * imported meshes.
-           */
-          for (
-            const mesh
-            of result.meshes
-          ) {
-            if (!mesh.parent) {
-              mesh.parent =
-                characterRoot;
+            for (
+              const mesh
+              of result.meshes
+            ) {
+              if (!mesh.parent) {
+                mesh.parent =
+                  characterRoot;
+              }
             }
-          }
 
-          /*
-           * Start idle animation.
-           */
-          const idle =
-            result.animationGroups.find(
-              (
-                animation
-              ) =>
-                animation.name
-                  .toLowerCase()
-                  .includes(
-                    "idle"
-                  )
+            const idle =
+              result.animationGroups.find(
+                (
+                  animation
+                ) =>
+                  animation.name
+                    .toLowerCase()
+                    .includes(
+                      "idle"
+                    )
+              );
+
+            idle?.start(
+              true
             );
 
-          idle?.start(
-            true
-          );
+            setLoading(
+              false
+            );
+          } catch (
+            error
+          ) {
+            console.error(
+              "[CharacterPreview]",
+              error
+            );
+
+            setLoading(
+              false
+            );
+          }
         };
 
       load();
 
       /*
-       * =================================================
        * CHARACTER ROTATION
-       * =================================================
        */
 
       let dragging =
@@ -215,13 +213,6 @@ export const CharacterPreview = ({
       const pointerDown = (
         event
       ) => {
-        /*
-         * Allow both:
-         *
-         * 0 = left mouse
-         * 2 = right mouse
-         */
-
         if (
           event.button !== 0 &&
           event.button !== 2
@@ -270,10 +261,6 @@ export const CharacterPreview = ({
         );
       };
 
-      /*
-       * Disable browser context menu
-       * during right click.
-       */
       const contextMenu = (
         event
       ) => {
@@ -306,9 +293,7 @@ export const CharacterPreview = ({
       );
 
       /*
-       * =================================================
        * RENDER
-       * =================================================
        */
 
       engine.runRenderLoop(
@@ -326,12 +311,6 @@ export const CharacterPreview = ({
         "resize",
         resize
       );
-
-      /*
-       * =================================================
-       * CLEANUP
-       * =================================================
-       */
 
       return () => {
         canvas.removeEventListener(
@@ -374,11 +353,21 @@ export const CharacterPreview = ({
   );
 
   return (
-    <canvas
-      ref={
-        canvasRef
-      }
-      className="h-full w-full cursor-grab outline-none active:cursor-grabbing"
-    />
+    <div className="relative h-full w-full">
+      <canvas
+        ref={
+          canvasRef
+        }
+        className="h-full w-full cursor-grab outline-none active:cursor-grabbing"
+      />
+
+      {loading && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-medium text-white/70">
+            Loading character...
+          </span>
+        </div>
+      )}
+    </div>
   );
 };

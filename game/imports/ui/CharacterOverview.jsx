@@ -4,6 +4,8 @@ import {
   Meteor,
 } from "meteor/meteor";
 
+import startCase from "lodash.startcase";
+
 import {
   CharacterPreview,
 } from "./CharacterPreview";
@@ -96,7 +98,7 @@ export const CharacterOverview = ({
                     "btn h-auto min-h-0 w-full cursor-pointer justify-start px-4 py-3 text-left normal-case",
                     active
                       ? "btn-primary"
-                      : "btn-ghost bg-black/20 hover:bg-white/10",
+                      : "btn-outline text-white hover:text-black",
                   ].join(
                     " "
                   )}
@@ -110,13 +112,13 @@ export const CharacterOverview = ({
 
                     <div className="mt-1 text-xs font-normal opacity-70">
                       {
-                        character.species
+                        startCase(character.species)
                       }
 
                       {" · "}
 
                       {
-                        character.gameClass
+                        startCase(character.gameClass)
                       }
 
                       {" · Level "}
@@ -147,7 +149,7 @@ export const CharacterOverview = ({
                   "creator"
                 )
             }
-            className="btn btn-primary w-full"
+            className="btn btn-soft btn-primary w-full"
           >
             Create Character
           </button>
@@ -196,9 +198,9 @@ export const CharacterOverview = ({
             </div>
 
             <div className="mt-1 text-sm text-blue-100/70">
-              {selected.species}
+              {startCase(selected.species)}
               {" · "}
-              {selected.gameClass}
+              {startCase(selected.gameClass)}
               {" · Level "}
               {selected.currentLevel}
             </div>

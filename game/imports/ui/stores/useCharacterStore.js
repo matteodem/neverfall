@@ -4,7 +4,7 @@ import {
 
 const INITIAL_CREATOR = {
   gender:
-    null,
+    "female",
 
   species:
     "human",

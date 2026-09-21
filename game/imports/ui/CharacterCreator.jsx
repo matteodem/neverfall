@@ -40,17 +40,33 @@ const Navigation = () => {
   } =
     useWizard();
 
+  const setScreen =
+    useCharacterStore(
+      (state) =>
+        state.setScreen
+    );
+
+  const handleBack =
+    () => {
+      if (isFirstStep) {
+        setScreen(
+          "overview"
+        );
+
+        return;
+      }
+
+      previousStep();
+    };
+
   return (
     <div className="flex justify-between">
       <button
         type="button"
-        disabled={
-          isFirstStep
-        }
         onClick={
-          previousStep
+          handleBack
         }
-        className="rounded border border-white/20 px-5 py-2 disabled:opacity-30"
+        className="btn btn-secondary cursor-pointer"
       >
         Back
       </button>
@@ -61,7 +77,7 @@ const Navigation = () => {
           onClick={
             nextStep
           }
-          className="rounded bg-blue-600 px-5 py-2 font-bold"
+          className="btn btn-primary cursor-pointer"
         >
           Next
         </button>
@@ -73,81 +89,77 @@ const Navigation = () => {
 const GenderStep = () => {
   const creator =
     useCharacterStore(
-      (
-        state
-      ) =>
+      (state) =>
         state.creator
     );
 
   const setCreatorField =
     useCharacterStore(
-      (
-        state
-      ) =>
+      (state) =>
         state.setCreatorField
     );
 
   return (
     <Screen title="Gender">
       <div className="flex gap-4">
-        {[
-          "male",
-          "female",
-        ].map(
-          (
-            gender
-          ) => (
-            <button
-              key={
-                gender
-              }
-              type="button"
-              onClick={
-                () =>
-                  setCreatorField(
-                    "gender",
-                    gender
-                  )
-              }
-              className={[
-                "rounded border px-8 py-5 capitalize",
-                creator.gender ===
-                gender
-                  ? "border-green-400 bg-green-400/10"
-                  : "border-white/20",
-              ].join(
-                " "
-              )}
-            >
-              {gender}
-            </button>
-          )
-        )}
+        <button
+          type="button"
+          disabled
+          className="btn btn-disabled cursor-not-allowed px-8 py-5"
+        >
+          Male
+        </button>
+
+        <button
+          type="button"
+          onClick={
+            () =>
+              setCreatorField(
+                "gender",
+                "female"
+              )
+          }
+          className={[
+            "btn cursor-pointer px-8 py-5",
+            creator.gender ===
+            "female"
+              ? "btn-primary"
+              : "btn-outline",
+          ].join(
+            " "
+          )}
+        >
+          Female
+        </button>
       </div>
     </Screen>
   );
 };
 
 const AppearanceStep =
-  () => (
-    <Screen title="Appearance">
-      <div className="rounded border border-white/10 bg-white/5 px-8 py-6 text-white/50">
-        Work In Progress
-      </div>
-    </Screen>
-  );
+  () => {
+    return (
+      <Screen title="Appearance">
+        <div className="rounded border border-white/10 bg-white/5 px-8 py-6 text-white/50">
+          Work In Progress
+        </div>
+      </Screen>
+    );
+  };
 
 const SpeciesStep =
-  () => (
-    <Screen title="Species">
-      <button
-        type="button"
-        className="rounded border border-green-400 bg-green-400/10 px-8 py-5"
-      >
-        Human
-      </button>
-    </Screen>
-  );
+  () => {
+    return (
+      <Screen title="Species">
+        <button
+          type="button"
+          className="btn btn-primary cursor-pointer px-8 py-5"
+        >
+          Human
+        </button>
+      </Screen>
+    );
+  };
 
 const ClassStep = () => {
   return (
@@ -155,7 +167,7 @@ const ClassStep = () => {
       <div className="grid grid-cols-3 gap-4">
         <button
           type="button"
-          className="rounded border border-green-400 bg-green-400/10 px-8 py-5"
+          className="btn btn-primary cursor-pointer px-8 py-5"
         >
           Warrior
         </button>
@@ -163,7 +175,7 @@ const ClassStep = () => {
         <button
           type="button"
           disabled
-          className="rounded border border-white/10 px-8 py-5 opacity-30"
+          className="btn btn-disabled cursor-not-allowed px-8 py-5"
         >
           Ranger
         </button>
@@ -171,7 +183,7 @@ const ClassStep = () => {
         <button
           type="button"
           disabled
-          className="rounded border border-white/10 px-8 py-5 opacity-30"
+          className="btn btn-disabled cursor-not-allowed px-8 py-5"
         >
           Elementalist
         </button>
@@ -185,17 +197,13 @@ const NameStep = ({
 }) => {
   const creator =
     useCharacterStore(
-      (
-        state
-      ) =>
+      (state) =>
         state.creator
     );
 
   const setCreatorField =
     useCharacterStore(
-      (
-        state
-      ) =>
+      (state) =>
         state.setCreatorField
     );
 
@@ -330,7 +338,7 @@ const NameStep = ({
                 )
             }
             placeholder="Character name"
-            className="w-full rounded border border-white/20 bg-black/30 px-4 py-3 pr-12 outline-none focus:border-white/50"
+            className="input input-bordered w-full pr-12 text-black placeholder:text-gray-500"
           />
 
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
@@ -384,7 +392,7 @@ const NameStep = ({
           onClick={
             create
           }
-          className="mt-8 w-full rounded bg-green-600 px-6 py-3 text-lg font-bold disabled:cursor-not-allowed disabled:opacity-30"
+          className="btn btn-success mt-8 w-full cursor-pointer text-lg disabled:cursor-not-allowed"
         >
           {creating
             ? "Creating..."
@@ -399,17 +407,13 @@ export const CharacterCreator =
   () => {
     const setScreen =
       useCharacterStore(
-        (
-          state
-        ) =>
+        (state) =>
           state.setScreen
       );
 
     const resetCreator =
       useCharacterStore(
-        (
-          state
-        ) =>
+        (state) =>
           state.resetCreator
       );
 
