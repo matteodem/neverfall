@@ -9,6 +9,9 @@ import {
 
 import { Game } from "./Game";
 import { Hud } from "./Hud";
+import {
+  LoadingScreen,
+} from "./LoadingScreen";
 
 export const App = () => {
   const [
@@ -87,7 +90,7 @@ export const App = () => {
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-black text-white">
-        Loading...
+        Initializing...
       </div>
     );
   }
@@ -125,6 +128,8 @@ export const App = () => {
           healCooldownUntil
         }
       />
+
+      <LoadingScreen />
     </div>
   );
 };

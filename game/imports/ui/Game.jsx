@@ -40,6 +40,14 @@ import {
   createPlayerAnimationController,
 } from "../game/animation";
 
+import {
+  createLoadingScreen,
+} from "../game/loadingScreen";
+
+import {
+  useLoadingStore,
+} from "./stores/useLoadingStore";
+
 export const Game = ({
   character,
 
@@ -73,6 +81,19 @@ export const Game = ({
           canvas,
           true
         );
+
+      engine.loadingScreen =
+        createLoadingScreen();
+
+      engine.displayLoadingUI();
+
+      requestAnimationFrame(
+        () => {
+          useLoadingStore
+            .getState()
+            .setProgress(15);
+        }
+      );
 
       /*
        * SCENE
@@ -113,6 +134,12 @@ export const Game = ({
           }
         );
 
+      useLoadingStore
+        .getState()
+        .setProgress(
+          55
+        );
+
       multiplayer =
         await createMultiplayer({
           scene,
@@ -131,6 +158,12 @@ export const Game = ({
               );
             },
         });
+
+      useLoadingStore
+        .getState()
+        .setProgress(
+          85
+        );
 
       if (disposed) {
         return;
@@ -280,6 +313,14 @@ export const Game = ({
         "resize",
         handleResize
       );
+
+      useLoadingStore
+        .getState()
+        .setProgress(
+          100
+        );
+
+      engine.hideLoadingUI();
 
       /*
        * GAME LOOP
