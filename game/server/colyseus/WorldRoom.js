@@ -36,6 +36,9 @@ const ENEMY = {
   attackCooldown: 1000,
 
   respawnDelay: 2000,
+
+  wanderRadius: 3,
+  wanderWait: 1500,
 };
 
 const HEAL_AMOUNT =
@@ -494,6 +497,12 @@ export class WorldRoom extends Room {
 
         nextAttackAt:
           0,
+
+        wanderTarget:
+          null,
+
+        nextWanderAt:
+          0,
       }
     );
   }
@@ -547,6 +556,9 @@ export class WorldRoom extends Room {
     runtime.targetSessionId =
       sessionId;
 
+    runtime.wanderTarget =
+      null;
+
     enemy.health =
       Math.max(
         0,
@@ -587,6 +599,113 @@ export class WorldRoom extends Room {
    * =====================================================
    */
 
+  pickWanderTarget() {
+    const angle =
+      Math.random() *
+      Math.PI *
+      2;
+
+    const distance =
+      Math.random() *
+      ENEMY.wanderRadius;
+
+    return {
+      x:
+        ENEMY_SPAWN.x +
+        Math.cos(angle) *
+        distance,
+
+      z:
+        ENEMY_SPAWN.z +
+        Math.sin(angle) *
+        distance,
+    };
+  }
+
+  updateEnemyWander(
+    enemy,
+    runtime,
+    deltaTime
+  ) {
+    const now =
+      Date.now();
+
+    /*
+    * No target yet.
+    */
+    if (
+      !runtime.wanderTarget
+    ) {
+      if (
+        now <
+        runtime.nextWanderAt
+      ) {
+        return;
+      }
+
+      runtime.wanderTarget =
+        this.pickWanderTarget();
+    }
+
+    const dx =
+      runtime.wanderTarget.x -
+      enemy.x;
+
+    const dz =
+      runtime.wanderTarget.z -
+      enemy.z;
+
+    const distance =
+      Math.sqrt(
+        dx * dx +
+        dz * dz
+      );
+
+    /*
+    * Reached destination.
+    */
+    if (
+      distance < 0.15
+    ) {
+      runtime.wanderTarget =
+        null;
+
+      runtime.nextWanderAt =
+        now +
+        ENEMY.wanderWait;
+
+      return;
+    }
+
+    enemy.rotationY =
+      Math.atan2(
+        dx,
+        dz
+      );
+
+    const movement =
+      ENEMY.speed *
+      0.5 *
+      (
+        deltaTime /
+        1000
+      );
+
+    enemy.x +=
+      (
+        dx /
+        distance
+      ) *
+      movement;
+
+    enemy.z +=
+      (
+        dz /
+        distance
+      ) *
+      movement;
+  }
+
   updateEnemy(
     deltaTime
   ) {
@@ -600,14 +719,26 @@ export class WorldRoom extends Room {
         ENEMY_ID
       );
 
-    /*
-     * No enemy or no aggro:
-     * do absolutely nothing.
-     */
     if (
       !enemy ||
-      !runtime?.targetSessionId
+      !runtime
     ) {
+      return;
+    }
+
+    /*
+    * No aggro:
+    * wander around spawn.
+    */
+    if (
+      !runtime.targetSessionId
+    ) {
+      this.updateEnemyWander(
+        enemy,
+        runtime,
+        deltaTime
+      );
+
       return;
     }
 
