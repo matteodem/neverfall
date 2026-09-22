@@ -8,24 +8,64 @@ import {
 } from "./stores/useHudStore";
 
 import {
+  useActionBarStore,
+} from "./stores/useActionBarStore";
+
+import {
   DeathOverlay,
 } from "./DeathOverlay";
+
 import {
   HelpModal,
 } from "./components/modals/HelpModal";
-import { InventoryModal } from "./components/modals/InventoryModal";
-import { Icon } from "./components/Icon";
-import { SettingsModal } from "./components/modals/SettingsModal";
+
+import {
+  InventoryModal,
+} from "./components/modals/InventoryModal";
+
+import {
+  SettingsModal,
+} from "./components/modals/SettingsModal";
+
+import {
+  Icon,
+} from "./components/Icon";
+
 import {
   XpBar,
 } from "./components/XpBar";
 
+
+const HEAL_COOLDOWN =
+  15000;
+
+
 const ACTION_SLOTS = [
-  { key: "1", icon: 'sword' },
-  { key: "2" },
-  { key: "3" },
-  { key: "4", icon: 'healthCapsule' },
+  {
+    key: "1",
+    code: "Digit1",
+    icon: "sword",
+  },
+
+  {
+    key: "2",
+    code: "Digit2",
+  },
+
+  {
+    key: "3",
+    code: "Digit3",
+  },
+
+  {
+    key: "4",
+    code: "Digit4",
+    icon: "healthCapsule",
+    cooldown:
+      HEAL_COOLDOWN,
+  },
 ];
+
 
 const HUD_BUTTONS = [
   {
@@ -33,17 +73,20 @@ const HUD_BUTTONS = [
     icon: "gear",
     label: "Settings",
   },
+
   {
     id: "inventory",
     icon: "backpack",
     label: "Inventory",
   },
+
   {
     id: "help",
     icon: "question",
     label: "Help",
   },
 ];
+
 
 const CooldownOverlay = ({
   until,
@@ -66,32 +109,38 @@ const CooldownOverlay = ({
   useEffect(
     () => {
       if (!until) {
-        setProgress(0);
-        setSeconds(0);
+        setProgress(
+          0
+        );
+
+        setSeconds(
+          0
+        );
 
         return;
       }
 
-      const update = () => {
-        const remaining =
-          Math.max(
-            0,
-            until -
-              Date.now()
+      const update =
+        () => {
+          const remaining =
+            Math.max(
+              0,
+              until -
+                Date.now()
+            );
+
+          setProgress(
+            remaining /
+              duration
           );
 
-        setProgress(
-          remaining /
-            duration
-        );
-
-        setSeconds(
-          Math.ceil(
-            remaining /
-              1000
-          )
-        );
-      };
+          setSeconds(
+            Math.ceil(
+              remaining /
+                1000
+            )
+          );
+        };
 
       update();
 
@@ -101,10 +150,11 @@ const CooldownOverlay = ({
           100
         );
 
-      return () =>
+      return () => {
         clearInterval(
           interval
         );
+      };
     },
     [
       until,
@@ -120,7 +170,7 @@ const CooldownOverlay = ({
 
   return (
     <div
-      className="pointer-events-none absolute inset-0 flex items-center justify-center rounded bg-black/40"
+      className="pointer-events-none absolute inset-0 flex items-center justify-center rounded"
       style={{
         backgroundImage:
           `conic-gradient(
@@ -136,6 +186,7 @@ const CooldownOverlay = ({
     </div>
   );
 };
+
 
 const MenuButtons = () => {
   const openModal =
@@ -154,21 +205,34 @@ const MenuButtons = () => {
             label,
           }) => (
             <button
-              key={id}
-              className="btn btn-circle"
-              title={label}
-              onClick={() =>
-                openModal(id)
+              key={
+                id
               }
+              type="button"
+              title={
+                label
+              }
+              onClick={
+                () =>
+                  openModal(
+                    id
+                  )
+              }
+              className="btn btn-circle cursor-pointer"
             >
-              <Icon icon={icon} />
+              <Icon
+                icon={
+                  icon
+                }
+              />
             </button>
           )
         )}
-      </div> 
+      </div>
     </div>
   );
 };
+
 
 const PlayerHealthBar = ({
   health,
@@ -182,19 +246,25 @@ const PlayerHealthBar = ({
         (
           health /
           maxHealth
-        ) * 100
+        ) *
+          100
       )
     );
 
   return (
-    <div className="absolute bottom-14 left-1/2 w-72 -translate-x-1/2 rounded bg-black/70 p-2 text-white">
+    <div className="w-72 rounded bg-black/70 p-2 text-white">
       <div className="mb-1 flex justify-between text-sm">
         <span>
           Health
         </span>
 
         <span>
-          {parseInt(health, 10)} / {maxHealth}
+          {parseInt(
+            health,
+            10
+          )}{" "}
+          /{" "}
+          {maxHealth}
         </span>
       </div>
 
@@ -211,44 +281,102 @@ const PlayerHealthBar = ({
   );
 };
 
+
+const ActionSlot = ({
+  slot,
+  healCooldownUntil,
+  onTrigger,
+}) => {
+  const cooldownUntil =
+    slot.code ===
+    "Digit4"
+      ? healCooldownUntil
+      : 0;
+
+  return (
+    <button
+      type="button"
+      onClick={
+        () =>
+          onTrigger(
+            slot.code
+          )
+      }
+      className="relative flex h-14 w-14 cursor-pointer flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white transition hover:bg-black/90 active:scale-95"
+      title={
+        `Skill ${slot.key}`
+      }
+    >
+      <span className="absolute right-[5px] top-[2px] text-sm font-bold">
+        {slot.key}
+      </span>
+
+      {slot.icon && (
+        <Icon
+          icon={
+            slot.icon
+          }
+          className="h-5 w-5"
+        />
+      )}
+
+      {slot.cooldown && (
+        <CooldownOverlay
+          until={
+            cooldownUntil
+          }
+          duration={
+            slot.cooldown
+          }
+        />
+      )}
+    </button>
+  );
+};
+
+
 const ActionBar = ({
   healCooldownUntil,
 }) => {
+  const triggerSkill =
+    useActionBarStore(
+      (state) =>
+        state.triggerSkill
+    );
+
   return (
-    <div className="absolute bottom-30 left-1/2 flex -translate-x-1/2 gap-2">
-      {ACTION_SLOTS.map((slot) => (
-        <div
-          key={slot.key}
-          className="flex relative h-14 w-14 flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white"
-        >
-          <span className="text-sm font-bold absolute right-[5px] top-[2px]">
-            {slot.key}
-          </span>
-
-          {slot.icon && <Icon icon={slot.icon} className="w-5 h-5" />}
-
-          {slot.key === "4" && (
-            <CooldownOverlay
-              until={
-                healCooldownUntil
-              }
-              duration={
-                15000
-              }
-            />
-          )}
-        </div>
-      ))}
+    <div className="flex gap-2">
+      {ACTION_SLOTS.map(
+        (
+          slot
+        ) => (
+          <ActionSlot
+            key={
+              slot.code
+            }
+            slot={
+              slot
+            }
+            healCooldownUntil={
+              healCooldownUntil
+            }
+            onTrigger={
+              triggerSkill
+            }
+          />
+        )
+      )}
     </div>
   );
 };
+
 
 const BottomHud = ({
   playerHealth,
   healCooldownUntil,
 }) => {
   return (
-    <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
       <ActionBar
         healCooldownUntil={
           healCooldownUntil
@@ -269,12 +397,14 @@ const BottomHud = ({
   );
 };
 
+
 export const Hud = ({
   playerHealth,
   healCooldownUntil,
 }) => {
   const isDead =
-    playerHealth.health <= 0;
+    playerHealth.health <=
+    0;
 
   return (
     <>
@@ -284,7 +414,6 @@ export const Hud = ({
         playerHealth={
           playerHealth
         }
-
         healCooldownUntil={
           healCooldownUntil
         }
@@ -295,7 +424,9 @@ export const Hud = ({
       )}
 
       <HelpModal />
+
       <InventoryModal />
+
       <SettingsModal />
     </>
   );

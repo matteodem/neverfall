@@ -4,13 +4,17 @@ import React, {
 } from "react";
 
 import {
-  createMultiplayer,
-} from "../game/multiplayer";
-
-import {
   Engine,
   Scene,
 } from "@babylonjs/core";
+
+import {
+  useActionBarStore,
+} from "./stores/useActionBarStore";
+
+import {
+  createMultiplayer,
+} from "../game/multiplayer";
 
 import {
   createWorld,
@@ -48,6 +52,7 @@ import {
   useLoadingStore,
 } from "./stores/useLoadingStore";
 
+
 export const Game = ({
   character,
 
@@ -56,378 +61,634 @@ export const Game = ({
   setHealCooldownUntil,
 }) => {
   const canvasRef =
-    useRef(null);
+    useRef(
+      null
+    );
 
-  useEffect(() => {
-    let engine = null;
-    let scene = null;
-    let input = null;
-    let animations = null;
-    let combat = null;
-    let multiplayer = null;
+  const setSkillHandler =
+    useActionBarStore(
+      (state) =>
+        state.setSkillHandler
+    );
 
-    let disposed = false;
+  useEffect(
+    () => {
+      let engine =
+        null;
 
-    const init = async () => {
-      const canvas =
-        canvasRef.current;
+      let scene =
+        null;
 
-      /*
-       * ENGINE
-       */
+      let input =
+        null;
 
-      engine =
-        new Engine(
-          canvas,
-          true
-        );
+      let animations =
+        null;
 
-      engine.loadingScreen =
-        createLoadingScreen();
+      let combat =
+        null;
 
-      engine.displayLoadingUI();
+      let multiplayer =
+        null;
 
-      requestAnimationFrame(
-        () => {
-          useLoadingStore
-            .getState()
-            .setProgress(15);
-        }
-      );
+      let disposed =
+        false;
 
-      /*
-       * SCENE
-       */
 
-      scene =
-        new Scene(
-          engine
-        );
+      const init =
+        async () => {
+          const canvas =
+            canvasRef.current;
 
-      scene.clearColor.set(
-        0.05,
-        0.08,
-        0.12,
-        1
-      );
-
-      /*
-       * WORLD
-       */
-
-      const {
-        player,
-        sword,
-        swordPivot,
-        swordTip,
-        camera,
-        animationGroups,
-      } =
-        await createWorld(
-          scene,
-          {
-            assetFile:
-              character.assetFile,
-
-            name:
-              character.name,
-          }
-        );
-
-      useLoadingStore
-        .getState()
-        .setProgress(
-          55
-        );
-
-      multiplayer =
-        await createMultiplayer({
-          scene,
-          player,
-
-          onLocalHealthChange:
-            setPlayerHealth,
-
-          onHealCooldown:
-            (
-              duration
-            ) => {
-              setHealCooldownUntil(
-                Date.now() +
-                  duration
-              );
-            },
-        });
-
-      useLoadingStore
-        .getState()
-        .setProgress(
-          85
-        );
-
-      if (disposed) {
-        return;
-      }
-
-      /*
-       * PLAYER ANIMATIONS
-       */
-
-      animations =
-        createPlayerAnimationController(
-          animationGroups
-        );
-
-      const jump =
-        createJumpController(
-          player
-        );
-
-      /*
-       * INPUT
-       */
-
-      input =
-        createInput(
-          canvas
-        );
-
-      /*
-       * COMBAT
-       */
-
-      combat =
-        createCombat({
-          scene,
-          swordPivot,
-          swordTip,
-        });
-
-      /*
-       * CAMERA
-       */
-
-      const handlePointerMove = (
-        event
-      ) => {
-        if (
-          !input.state.leftMouseDown &&
-          !input.state.rightMouseDown
-        ) {
-          return;
-        }
-
-        rotateCamera(
-          camera,
-          event.movementX,
-          event.movementY
-        );
-      };
-
-      input.on(
-        canvas,
-        "pointermove",
-        handlePointerMove
-      );
-
-      /*
-       * CAMERA ZOOM
-       */
-
-      const handleWheel = (
-        event
-      ) => {
-        event.preventDefault();
-
-        zoomCamera(
-          camera,
-          event.deltaY
-        );
-      };
-
-      input.on(
-        canvas,
-        "wheel",
-        handleWheel,
-        {
-          passive: false,
-        }
-      );
-
-      const handleSkill = (
-        event
-      ) => {
-        if (
-          event.repeat
-        ) {
-          return;
-        }
-
-        if (
-          event.code ===
-          "Space"
-        ) {
-          event.preventDefault();
-
-          jump.jump();
-
-          return;
-        }
-
-        if (
-          event.code ===
-          "Digit1"
-        ) {
-          const attacked =
-            combat?.startAttack();
-
-          if (!attacked) {
+          if (!canvas) {
             return;
           }
 
-          multiplayer?.sendAttack();
-
-          return;
-        }
-
-        if (
-          event.code ===
-          "Digit4"
-        ) {
-          multiplayer?.sendHeal();
-        }
-      };
-
-      input.on(
-        window,
-        "keydown",
-        handleSkill
-      );
-
-      /*
-       * RESIZE
-       */
-
-      const handleResize =
-        () => {
-          engine.resize();
-        };
-
-      input.on(
-        window,
-        "resize",
-        handleResize
-      );
-
-      useLoadingStore
-        .getState()
-        .setProgress(
-          100
-        );
-
-      engine.hideLoadingUI();
-
-      /*
-       * GAME LOOP
-       */
-
-      engine.runRenderLoop(
-        () => {
-          const deltaTime =
-            engine.getDeltaTime();
 
           /*
-          * Local player.
-          */
+           * =====================================================
+           * ENGINE
+           * =====================================================
+           */
 
-          updateMovement({
-            deltaTime,
-            input: input.state,
-            camera,
-            player,
-          });
-
-          updateCameraFacing({
-            input: input.state,
-            camera,
-            player,
-          });
-
-          animations.setRunning(
-            isMoving(
-              input.state
-            )
-          );
-
-          jump.update(
-            deltaTime
-          );
-
-          if (
-            jump.isJumping()
-          ) {
-            animations.setJumping(
+          engine =
+            new Engine(
+              canvas,
               true
             );
-          } else {
-            animations.setJumping(
-              false
-            );
 
-            animations.setRunning(
-              isMoving(
-                input.state
-              )
-            );
-          }
+          engine.loadingScreen =
+            createLoadingScreen();
 
-          combat.update(
-            deltaTime
+          engine.displayLoadingUI();
+
+          requestAnimationFrame(
+            () => {
+              useLoadingStore
+                .getState()
+                .setProgress(
+                  15
+                );
+            }
           );
+
 
           /*
-          * Multiplayer.
-          */
+           * =====================================================
+           * SCENE
+           * =====================================================
+           */
 
-          multiplayer?.syncLocalPlayer(
-            player
-          );
+          scene =
+            new Scene(
+              engine
+            );
 
-          multiplayer?.sendMovement(
+
+          /*
+           * =====================================================
+           * WORLD
+           * =====================================================
+           */
+
+          const {
             player,
-            deltaTime
+            swordPivot,
+            swordTip,
+            camera,
+            animationGroups,
+          } =
+            await createWorld(
+              scene,
+              {
+                assetFile:
+                  character.assetFile,
+
+                name:
+                  character.name,
+              }
+            );
+
+          if (disposed) {
+            return;
+          }
+
+          useLoadingStore
+            .getState()
+            .setProgress(
+              55
+            );
+
+
+          /*
+           * =====================================================
+           * MULTIPLAYER
+           * =====================================================
+           */
+
+          multiplayer =
+            await createMultiplayer({
+              scene,
+
+              player,
+
+              onLocalHealthChange:
+                setPlayerHealth,
+
+              onHealCooldown:
+                (
+                  duration
+                ) => {
+                  setHealCooldownUntil(
+                    Date.now() +
+                      duration
+                  );
+                },
+            });
+
+          if (disposed) {
+            multiplayer?.destroy();
+
+            return;
+          }
+
+          useLoadingStore
+            .getState()
+            .setProgress(
+              85
+            );
+
+
+          /*
+           * =====================================================
+           * PLAYER ANIMATIONS
+           * =====================================================
+           */
+
+          animations =
+            createPlayerAnimationController(
+              animationGroups
+            );
+
+
+          /*
+           * =====================================================
+           * MOVEMENT / JUMP
+           * =====================================================
+           */
+
+          const jump =
+            createJumpController(
+              player
+            );
+
+
+          /*
+           * =====================================================
+           * INPUT
+           * =====================================================
+           */
+
+          input =
+            createInput(
+              canvas
+            );
+
+
+          /*
+           * =====================================================
+           * COMBAT
+           * =====================================================
+           */
+
+          combat =
+            createCombat({
+              scene,
+
+              swordPivot,
+
+              swordTip,
+            });
+
+
+          /*
+           * =====================================================
+           * SKILLS
+           * =====================================================
+           *
+           * Keyboard and HUD buttons both
+           * use this exact same dispatcher.
+           */
+
+          const SKILL_HANDLERS = {
+            Digit1() {
+              const attacked =
+                combat
+                  ?.startAttack();
+
+              if (!attacked) {
+                return;
+              }
+
+              multiplayer
+                ?.sendAttack();
+            },
+
+            Digit4() {
+              multiplayer
+                ?.sendHeal();
+            },
+          };
+
+
+          const executeSkill =
+            (
+              code
+            ) => {
+              SKILL_HANDLERS[
+                code
+              ]?.();
+            };
+
+
+          /*
+           * Make skills available to
+           * the React HUD via Zustand.
+           */
+
+          setSkillHandler(
+            executeSkill
           );
 
-          multiplayer?.update(
-            deltaTime
+
+          /*
+           * =====================================================
+           * CAMERA ROTATION
+           * =====================================================
+           */
+
+          const handlePointerMove =
+            (
+              event
+            ) => {
+              if (
+                !input.state
+                  .leftMouseDown &&
+                !input.state
+                  .rightMouseDown
+              ) {
+                return;
+              }
+
+              rotateCamera(
+                camera,
+
+                event.movementX,
+
+                event.movementY
+              );
+            };
+
+
+          input.on(
+            canvas,
+
+            "pointermove",
+
+            handlePointerMove
           );
 
-          scene.render();
+
+          /*
+           * =====================================================
+           * CAMERA ZOOM
+           * =====================================================
+           */
+
+          const handleWheel =
+            (
+              event
+            ) => {
+              event.preventDefault();
+
+              zoomCamera(
+                camera,
+
+                event.deltaY
+              );
+            };
+
+
+          input.on(
+            canvas,
+
+            "wheel",
+
+            handleWheel,
+
+            {
+              passive:
+                false,
+            }
+          );
+
+
+          /*
+           * =====================================================
+           * KEYBOARD
+           * =====================================================
+           */
+
+          const handleKeyDown =
+            (
+              event
+            ) => {
+              if (
+                event.repeat
+              ) {
+                return;
+              }
+
+
+              /*
+               * Jump remains a movement
+               * action rather than an
+               * Action Bar skill.
+               */
+
+              if (
+                event.code ===
+                "Space"
+              ) {
+                event.preventDefault();
+
+                jump.jump();
+
+                return;
+              }
+
+
+              /*
+               * All Digit skills use
+               * Zustand's dispatcher.
+               *
+               * This means keyboard and
+               * HUD clicks behave exactly
+               * the same.
+               */
+
+              if (
+                event.code
+                  .startsWith(
+                    "Digit"
+                  )
+              ) {
+                useActionBarStore
+                  .getState()
+                  .triggerSkill(
+                    event.code
+                  );
+              }
+            };
+
+
+          input.on(
+            window,
+
+            "keydown",
+
+            handleKeyDown
+          );
+
+
+          /*
+           * =====================================================
+           * RESIZE
+           * =====================================================
+           */
+
+          const handleResize =
+            () => {
+              engine.resize();
+            };
+
+
+          input.on(
+            window,
+
+            "resize",
+
+            handleResize
+          );
+
+
+          /*
+           * =====================================================
+           * LOADING COMPLETE
+           * =====================================================
+           */
+
+          useLoadingStore
+            .getState()
+            .setProgress(
+              100
+            );
+
+          engine.hideLoadingUI();
+
+
+          /*
+           * =====================================================
+           * GAME LOOP
+           * =====================================================
+           */
+
+          engine.runRenderLoop(
+            () => {
+              const deltaTime =
+                engine
+                  .getDeltaTime();
+
+
+              /*
+               * ---------------------
+               * LOCAL MOVEMENT
+               * ---------------------
+               */
+
+              updateMovement({
+                deltaTime,
+
+                input:
+                  input.state,
+
+                camera,
+
+                player,
+              });
+
+
+              updateCameraFacing({
+                input:
+                  input.state,
+
+                camera,
+
+                player,
+              });
+
+
+              /*
+               * ---------------------
+               * JUMP
+               * ---------------------
+               */
+
+              jump.update(
+                deltaTime
+              );
+
+
+              /*
+               * ---------------------
+               * ANIMATIONS
+               * ---------------------
+               */
+
+              if (
+                jump.isJumping()
+              ) {
+                animations
+                  .setJumping(
+                    true
+                  );
+              } else {
+                animations
+                  .setJumping(
+                    false
+                  );
+
+                animations
+                  .setRunning(
+                    isMoving(
+                      input.state
+                    )
+                  );
+              }
+
+
+              /*
+               * ---------------------
+               * COMBAT
+               * ---------------------
+               */
+
+              combat.update(
+                deltaTime
+              );
+
+
+              /*
+               * ---------------------
+               * MULTIPLAYER
+               * ---------------------
+               */
+
+              multiplayer
+                ?.syncLocalPlayer(
+                  player
+                );
+
+              multiplayer
+                ?.sendMovement(
+                  player,
+
+                  deltaTime
+                );
+
+              multiplayer
+                ?.update(
+                  deltaTime
+                );
+
+
+              /*
+               * ---------------------
+               * RENDER
+               * ---------------------
+               */
+
+              scene.render();
+            }
+          );
+        };
+
+
+      init().catch(
+        (
+          error
+        ) => {
+          console.error(
+            "[Game] Failed to initialize:",
+            error
+          );
+
+          engine
+            ?.hideLoadingUI();
         }
       );
-    };
 
-    init();
 
-    return () => {
-      disposed = true;
+      /*
+       * =====================================================
+       * CLEANUP
+       * =====================================================
+       */
 
-      multiplayer?.destroy();
+      return () => {
+        disposed =
+          true;
 
-      combat?.destroy();
-      animations?.destroy();
-      input?.destroy();
+        /*
+         * Disable HUD skill buttons
+         * before destroying the game.
+         */
 
-      engine?.stopRenderLoop();
+        setSkillHandler(
+          null
+        );
 
-      scene?.dispose();
-      engine?.dispose();
-    };
-  }, []);
+        multiplayer
+          ?.destroy();
+
+        combat
+          ?.destroy();
+
+        animations
+          ?.destroy();
+
+        input
+          ?.destroy();
+
+        engine
+          ?.stopRenderLoop();
+
+        scene
+          ?.dispose();
+
+        engine
+          ?.dispose();
+      };
+    },
+    []
+  );
+
 
   return (
     <canvas
-      ref={canvasRef}
+      ref={
+        canvasRef
+      }
       className="block h-full w-full touch-none"
     />
   );
