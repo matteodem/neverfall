@@ -6,6 +6,7 @@ import {
   HemisphericLight,
   MeshBuilder,
   SceneLoader,
+  StandardMaterial,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
@@ -25,6 +26,10 @@ import {
 import {
   createNameplate,
 } from "./nameplate";
+
+import {
+  createForestArea,
+} from "./environment/createForestArea";
 
 const findRightHandBone = (
   skeleton
@@ -93,22 +98,28 @@ export const createWorld =
     MeshBuilder.CreateGround(
       "ground",
       {
-        width: 40,
-        height: 40,
+        width: 500,
+        height: 500,
       },
       scene
     );
 
-  ground.material =
-    createMaterial(
+  const groundMaterial =
+    new StandardMaterial(
       "groundMaterial",
-      new Color3(
-        0.12,
-        0.25,
-        0.15
-      ),
       scene
     );
+
+  groundMaterial.diffuseColor =
+    Color3.FromHexString(
+      "#4B6B3C"
+    );
+
+  groundMaterial.specularColor =
+    Color3.Black();
+
+  ground.material =
+    groundMaterial;
 
   /*
  * PLAYER ROOT
@@ -352,6 +363,25 @@ export const createWorld =
   swordTip.isVisible =
     false;
 
+  const eastNorthForest =
+    createForestArea({
+      scene,
+
+      center:
+        new Vector3(
+          35,
+          0,
+          35
+        ),
+
+      size: 50,
+
+      treeCount: 80,
+      rockCount: 25,
+      bushCount: 40,
+      logCount: 12,
+    });
+
   /*
    * CAMERA
    */
@@ -370,5 +400,7 @@ export const createWorld =
     camera,
     animationGroups,
     nameplate,
+    forest:
+      eastNorthForest,
   };
 };

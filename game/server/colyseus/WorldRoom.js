@@ -22,14 +22,49 @@ import {
   addXpToProgress,
 } from "../../imports/game/xp";
 
-const ENEMY_ID =
-  "training-enemy";
 
-const ENEMY_SPAWN = {
-  x: 0,
-  y: 0,
-  z: 5,
-};
+/*
+ * =====================================================
+ * CONFIG
+ * =====================================================
+ */
+
+const BOAR_SPAWNS = [
+  {
+    id: "boar-1",
+    x: 20,
+    y: 0,
+    z: 20,
+  },
+
+  {
+    id: "boar-2",
+    x: 30,
+    y: 0,
+    z: 25,
+  },
+
+  {
+    id: "boar-3",
+    x: 42,
+    y: 0,
+    z: 32,
+  },
+
+  {
+    id: "boar-4",
+    x: 25,
+    y: 0,
+    z: 45,
+  },
+
+  {
+    id: "boar-5",
+    x: 48,
+    y: 0,
+    z: 48,
+  },
+];
 
 const ENEMY = {
   health: 100,
@@ -41,17 +76,30 @@ const ENEMY = {
   speed: 2,
 
   attackDamage: 20,
+
   attackRange: 1.8,
-  attackCooldown: 1000,
 
-  respawnDelay: 2000,
+  attackCooldown:
+    1000,
 
-  wanderRadius: 3,
-  wanderWait: 1500,
+  respawnDelay:
+    2000,
+
+  wanderRadius:
+    3,
+
+  wanderWait:
+    1500,
+};
+
+const PLAYER_ATTACK = {
+  damage: 25,
+
+  range: 2.5,
 };
 
 const HEAL_AMOUNT =
-  50;
+  30;
 
 const HEAL_COOLDOWN =
   15000;
@@ -59,21 +107,37 @@ const HEAL_COOLDOWN =
 const PLAYER_RESPAWN_DELAY =
   2000;
 
-export class WorldRoom extends Room {
+
+/*
+ * =====================================================
+ * WORLD ROOM
+ * =====================================================
+ */
+
+export class WorldRoom
+  extends Room {
   state =
     new WorldState();
 
   /*
-   * Runtime-only enemy data.
+   * Runtime-only data.
    *
-   * This does not need to be
-   * synchronized to clients.
+   * This is intentionally not
+   * synchronized through Colyseus.
    */
+
   enemyRuntime =
     new Map();
 
   playerRuntime =
     new Map();
+
+
+  /*
+   * =====================================================
+   * AUTH
+   * =====================================================
+   */
 
   static async onAuth(
     token
@@ -116,21 +180,37 @@ export class WorldRoom extends Room {
     }
   }
 
+
+  /*
+   * =====================================================
+   * ROOM
+   * =====================================================
+   */
+
   onCreate() {
-    this.spawnEnemy();
+    for (
+      const spawn
+      of BOAR_SPAWNS
+    ) {
+      this.spawnEnemy(
+        spawn
+      );
+    }
 
     /*
-     * Server-side enemy AI.
+     * Server-side AI update.
      */
+
     this.setTimestep(
       (deltaTime) => {
-        this.updateEnemy(
+        this.updateEnemies(
           deltaTime
         );
       },
       50
     );
   }
+
 
   /*
    * =====================================================
@@ -153,9 +233,15 @@ export class WorldRoom extends Room {
       }
 
       if (
-        !Number.isFinite(data.x) ||
-        !Number.isFinite(data.y) ||
-        !Number.isFinite(data.z) ||
+        !Number.isFinite(
+          data.x
+        ) ||
+        !Number.isFinite(
+          data.y
+        ) ||
+        !Number.isFinite(
+          data.z
+        ) ||
         !Number.isFinite(
           data.rotationY
         )
@@ -163,13 +249,19 @@ export class WorldRoom extends Room {
         return;
       }
 
-      player.x = data.x;
-      player.y = data.y;
-      player.z = data.z;
+      player.x =
+        data.x;
+
+      player.y =
+        data.y;
+
+      player.z =
+        data.z;
 
       player.rotationY =
         data.rotationY;
     },
+
 
     heal: (
       client
@@ -212,16 +304,19 @@ export class WorldRoom extends Room {
       player.health =
         Math.min(
           player.maxHealth,
-          player.health + 30
+          player.health +
+            HEAL_AMOUNT
         );
 
       runtime.healAvailableAt =
-        now + 15000;
+        now +
+        HEAL_COOLDOWN;
 
       client.send(
         "healCooldown",
         {
-          duration: 15000,
+          duration:
+            HEAL_COOLDOWN,
         }
       );
 
@@ -234,13 +329,27 @@ export class WorldRoom extends Room {
       );
     },
 
+
     attack: (
       client
     ) => {
+      const player =
+        this.state.players.get(
+          client.sessionId
+        );
+
+      if (
+        !player ||
+        player.health <= 0
+      ) {
+        return;
+      }
+
       /*
-       * Visual sword attack for
-       * other players.
+       * Tell other clients to
+       * play the sword animation.
        */
+
       this.broadcast(
         "attack",
         {
@@ -248,86 +357,28 @@ export class WorldRoom extends Room {
             client.sessionId,
         },
         {
-          except: client,
+          except:
+            client,
         }
       );
 
       /*
-       * Actual damage is decided
-       * server-side.
+       * Actual hit detection
+       * remains server-side.
        */
+
       this.attackEnemy(
         client.sessionId
       );
     },
   };
 
+
   /*
    * =====================================================
    * PLAYERS
    * =====================================================
    */
-
-  async awardXp(
-    characterId,
-    amount
-  ) {
-    const character =
-      await Characters.findOneAsync(
-        characterId
-      );
-
-    if (!character) {
-      return;
-    }
-
-    const progress =
-      addXpToProgress({
-        currentLevel:
-          character.currentLevel,
-
-        currentXp:
-          character.currentXp,
-
-        gainedXp:
-          amount,
-      });
-
-    await Characters.updateAsync(
-      characterId,
-      {
-        $set: {
-          currentLevel:
-            progress.currentLevel,
-
-          currentXp:
-            progress.currentXp,
-        },
-      }
-    );
-
-    /*
-    * Update online Colyseus player
-    * immediately as well.
-    */
-    for (
-      const player
-      of this.state.players.values()
-    ) {
-      if (
-        player.characterId !==
-        characterId
-      ) {
-        continue;
-      }
-
-      player.currentLevel =
-        progress.currentLevel;
-
-      player.currentXp =
-        progress.currentXp;
-    }
-  }
 
   async onJoin(
     client,
@@ -369,13 +420,19 @@ export class WorldRoom extends Room {
           0,
 
         x: 0,
+
         y: 0,
+
         z: 0,
 
-        rotationY: 0,
+        rotationY:
+          0,
 
-        health: 100,
-        maxHealth: 100,
+        health:
+          100,
+
+        maxHealth:
+          100,
       });
 
     this.state.players.set(
@@ -391,6 +448,11 @@ export class WorldRoom extends Room {
       }
     );
 
+    /*
+     * Explicitly joining the world
+     * means the user is playing.
+     */
+
     await Meteor.users.updateAsync(
       auth.userId,
       {
@@ -401,6 +463,7 @@ export class WorldRoom extends Room {
       }
     );
   }
+
 
   async onLeave(
     client
@@ -413,6 +476,31 @@ export class WorldRoom extends Room {
     this.state.players.delete(
       client.sessionId
     );
+
+    this.playerRuntime.delete(
+      client.sessionId
+    );
+
+    /*
+     * Remove this player from
+     * enemy aggro targets.
+     */
+
+    for (
+      const runtime
+      of this.enemyRuntime.values()
+    ) {
+      if (
+        runtime.targetSessionId ===
+        client.sessionId
+      ) {
+        runtime.targetSessionId =
+          null;
+
+        runtime.nextAttackAt =
+          0;
+      }
+    }
 
     if (!leavingPlayer) {
       return;
@@ -429,10 +517,23 @@ export class WorldRoom extends Room {
     );
 
     /*
-    * Your existing enemy aggro
-    * cleanup can stay below this.
-    */
+     * IMPORTANT:
+     *
+     * Do not set profile.isPlaying
+     * to false here.
+     *
+     * Reloading/closing the browser
+     * should keep the character in
+     * playing mode.
+     */
   }
+
+
+  /*
+   * =====================================================
+   * PLAYER HEALTH
+   * =====================================================
+   */
 
   damagePlayer(
     sessionId,
@@ -463,10 +564,6 @@ export class WorldRoom extends Room {
       return;
     }
 
-    /*
-     * Respawn player.
-     */
-
     this.clock.setTimeout(
       () => {
         const currentPlayer =
@@ -489,49 +586,121 @@ export class WorldRoom extends Room {
     );
   }
 
+
   respawnPlayer(
     player
   ) {
-    player.x = 0;
-    player.y = 0;
-    player.z = 0;
+    player.x =
+      0;
 
-    player.rotationY = 0;
+    player.y =
+      0;
+
+    player.z =
+      0;
+
+    player.rotationY =
+      0;
 
     player.health =
       player.maxHealth;
   }
 
+
   /*
    * =====================================================
-   * ENEMY
+   * XP
    * =====================================================
    */
 
-  spawnEnemy() {
-    /*
-     * Don't spawn two.
-     */
-    if (
-      this.state.enemies.has(
-        ENEMY_ID
-      )
-    ) {
+  async awardXp(
+    characterId,
+    amount
+  ) {
+    const character =
+      await Characters.findOneAsync(
+        characterId
+      );
+
+    if (!character) {
       return;
     }
 
+    const progress =
+      addXpToProgress({
+        currentLevel:
+          character.currentLevel ??
+          1,
+
+        currentXp:
+          character.currentXp ??
+          0,
+
+        gainedXp:
+          amount,
+      });
+
+    await Characters.updateAsync(
+      characterId,
+      {
+        $set: {
+          currentLevel:
+            progress.currentLevel,
+
+          currentXp:
+            progress.currentXp,
+        },
+      }
+    );
+
+    /*
+     * Mirror progression into
+     * every online instance of
+     * this character.
+     */
+
+    for (
+      const player
+      of this.state.players.values()
+    ) {
+      if (
+        player.characterId !==
+        characterId
+      ) {
+        continue;
+      }
+
+      player.currentLevel =
+        progress.currentLevel;
+
+      player.currentXp =
+        progress.currentXp;
+    }
+  }
+
+
+  /*
+   * =====================================================
+   * ENEMY SPAWNING
+   * =====================================================
+   */
+
+  spawnEnemy(
+    spawn
+  ) {
     const enemy =
       new EnemyState({
         x:
-          ENEMY_SPAWN.x,
+          spawn.x,
 
         y:
-          ENEMY_SPAWN.y,
+          spawn.y,
 
         z:
-          ENEMY_SPAWN.z,
+          spawn.z,
 
-        rotationY: Math.PI,
+        rotationY:
+          Math.PI,
 
         health:
           ENEMY.health,
@@ -541,13 +710,21 @@ export class WorldRoom extends Room {
       });
 
     this.state.enemies.set(
-      ENEMY_ID,
+      spawn.id,
       enemy
     );
 
     this.enemyRuntime.set(
-      ENEMY_ID,
+      spawn.id,
       {
+        /*
+         * Original spawn point.
+         * Used for respawn +
+         * wandering.
+         */
+
+        spawn,
+
         targetSessionId:
           null,
 
@@ -560,11 +737,23 @@ export class WorldRoom extends Room {
         nextWanderAt:
           0,
 
+        /*
+         * Unique character IDs
+         * that damaged this enemy.
+         */
+
         contributors:
           new Set(),
       }
     );
   }
+
+
+  /*
+   * =====================================================
+   * PLAYER -> ENEMY COMBAT
+   * =====================================================
+   */
 
   attackEnemy(
     sessionId
@@ -574,43 +763,41 @@ export class WorldRoom extends Room {
         sessionId
       );
 
-    const enemy =
-      this.state.enemies.get(
-        ENEMY_ID
-      );
-
     if (
       !player ||
-      !enemy ||
-      enemy.health <= 0
+      player.health <= 0
     ) {
       return;
     }
 
-    const distance =
-      this.getDistance(
+    const target =
+      this.findClosestEnemy(
         player,
-        enemy
+        PLAYER_ATTACK.range
       );
 
-    /*
-     * Same approximate range
-     * as our sword attack.
-     */
-    if (
-      distance > 2.5
-    ) {
+    if (!target) {
       return;
     }
+
+    const {
+      enemyId,
+      enemy,
+    } = target;
 
     const runtime =
       this.enemyRuntime.get(
-        ENEMY_ID
+        enemyId
       );
 
     if (!runtime) {
       return;
     }
+
+    /*
+     * Enemy becomes aggressive
+     * towards this player.
+     */
 
     runtime.targetSessionId =
       sessionId;
@@ -619,9 +806,10 @@ export class WorldRoom extends Room {
       null;
 
     /*
-    * Remember everyone who
-    * participated in the fight.
-    */
+     * Every unique participant
+     * receives XP when it dies.
+     */
+
     if (
       player.characterId
     ) {
@@ -633,43 +821,104 @@ export class WorldRoom extends Room {
     enemy.health =
       Math.max(
         0,
-        enemy.health - 25
+        enemy.health -
+          PLAYER_ATTACK.damage
       );
 
     if (
       enemy.health <= 0
     ) {
-      this.killEnemy();
+      this.killEnemy(
+        enemyId
+      );
     }
   }
 
-  killEnemy() {
+
+  findClosestEnemy(
+    player,
+    maxDistance
+  ) {
+    let closest =
+      null;
+
+    let closestDistance =
+      Infinity;
+
+    for (
+      const [
+        enemyId,
+        enemy,
+      ]
+      of this.state.enemies.entries()
+    ) {
+      const distance =
+        this.getHorizontalDistance(
+          player,
+          enemy
+        );
+
+      if (
+        distance >
+        maxDistance
+      ) {
+        continue;
+      }
+
+      if (
+        distance >=
+        closestDistance
+      ) {
+        continue;
+      }
+
+      closestDistance =
+        distance;
+
+      closest = {
+        enemyId,
+        enemy,
+      };
+    }
+
+    return closest;
+  }
+
+
+  killEnemy(
+    enemyId
+  ) {
     const runtime =
       this.enemyRuntime.get(
-        ENEMY_ID
+        enemyId
       );
 
-    const contributors =
-      [
-        ...(
-          runtime
-            ?.contributors ||
-          []
-        ),
-      ];
+    if (!runtime) {
+      return;
+    }
+
+    const {
+      spawn,
+      contributors,
+    } = runtime;
+
+    /*
+     * Remove dead enemy.
+     */
 
     this.state.enemies.delete(
-      ENEMY_ID
+      enemyId
     );
 
     this.enemyRuntime.delete(
-      ENEMY_ID
+      enemyId
     );
 
     /*
-    * Reward everyone who
-    * participated.
-    */
+     * Award every participating
+     * character the full reward.
+     */
+
     for (
       const characterId
       of contributors
@@ -677,16 +926,31 @@ export class WorldRoom extends Room {
       this.awardXp(
         characterId,
         ENEMY.xpReward
+      ).catch(
+        (error) => {
+          console.error(
+            "[XP] Failed to award XP:",
+            error
+          );
+        }
       );
     }
 
+    /*
+     * Respawn the same Boar at
+     * its original spawn.
+     */
+
     this.clock.setTimeout(
       () => {
-        this.spawnEnemy();
+        this.spawnEnemy(
+          spawn
+        );
       },
       ENEMY.respawnDelay
     );
   }
+
 
   /*
    * =====================================================
@@ -694,28 +958,188 @@ export class WorldRoom extends Room {
    * =====================================================
    */
 
-  pickWanderTarget() {
-    const angle =
-      Math.random() *
-      Math.PI *
-      2;
+  updateEnemies(
+    deltaTime
+  ) {
+    for (
+      const [
+        enemyId,
+        enemy,
+      ]
+      of this.state.enemies.entries()
+    ) {
+      const runtime =
+        this.enemyRuntime.get(
+          enemyId
+        );
+
+      if (!runtime) {
+        continue;
+      }
+
+      this.updateEnemy(
+        enemyId,
+        enemy,
+        runtime,
+        deltaTime
+      );
+    }
+  }
+
+
+  updateEnemy(
+    enemyId,
+    enemy,
+    runtime,
+    deltaTime
+  ) {
+    /*
+     * No aggro:
+     * wander around this enemy's
+     * individual spawn position.
+     */
+
+    if (
+      !runtime.targetSessionId
+    ) {
+      this.updateEnemyWander(
+        enemy,
+        runtime,
+        deltaTime
+      );
+
+      return;
+    }
+
+    const target =
+      this.state.players.get(
+        runtime.targetSessionId
+      );
+
+    /*
+     * Target disconnected or died.
+     */
+
+    if (
+      !target ||
+      target.health <= 0
+    ) {
+      runtime.targetSessionId =
+        null;
+
+      runtime.nextAttackAt =
+        0;
+
+      return;
+    }
+
+    const dx =
+      target.x -
+      enemy.x;
+
+    const dz =
+      target.z -
+      enemy.z;
 
     const distance =
-      Math.random() *
-      ENEMY.wanderRadius;
+      Math.sqrt(
+        dx * dx +
+        dz * dz
+      );
 
-    return {
-      x:
-        ENEMY_SPAWN.x +
-        Math.cos(angle) *
-        distance,
+    /*
+     * Face target.
+     */
 
-      z:
-        ENEMY_SPAWN.z +
-        Math.sin(angle) *
-        distance,
-    };
+    enemy.rotationY =
+      Math.atan2(
+        dx,
+        dz
+      );
+
+    /*
+     * Chase player until
+     * melee range.
+     */
+
+    if (
+      distance >
+      ENEMY.attackRange
+    ) {
+      const safeDistance =
+        Math.max(
+          distance,
+          0.001
+        );
+
+      const movement =
+        ENEMY.speed *
+        (
+          deltaTime /
+          1000
+        );
+
+      enemy.x +=
+        (
+          dx /
+          safeDistance
+        ) *
+        movement;
+
+      enemy.z +=
+        (
+          dz /
+          safeDistance
+        ) *
+        movement;
+
+      return;
+    }
+
+    /*
+     * Melee attack.
+     */
+
+    const now =
+      Date.now();
+
+    if (
+      now <
+      runtime.nextAttackAt
+    ) {
+      return;
+    }
+
+    runtime.nextAttackAt =
+      now +
+      ENEMY.attackCooldown;
+
+    /*
+     * IMPORTANT:
+     *
+     * Use this specific enemyId.
+     * There is no ENEMY_ID anymore.
+     */
+
+    this.broadcast(
+      "enemyAttack",
+      {
+        enemyId,
+      }
+    );
+
+    this.damagePlayer(
+      runtime.targetSessionId,
+      ENEMY.attackDamage
+    );
   }
+
+
+  /*
+   * =====================================================
+   * ENEMY WANDERING
+   * =====================================================
+   */
 
   updateEnemyWander(
     enemy,
@@ -725,9 +1149,6 @@ export class WorldRoom extends Room {
     const now =
       Date.now();
 
-    /*
-    * No target yet.
-    */
     if (
       !runtime.wanderTarget
     ) {
@@ -739,7 +1160,9 @@ export class WorldRoom extends Room {
       }
 
       runtime.wanderTarget =
-        this.pickWanderTarget();
+        this.pickWanderTarget(
+          runtime.spawn
+        );
     }
 
     const dx =
@@ -757,8 +1180,9 @@ export class WorldRoom extends Room {
       );
 
     /*
-    * Reached destination.
-    */
+     * Destination reached.
+     */
+
     if (
       distance < 0.15
     ) {
@@ -786,174 +1210,86 @@ export class WorldRoom extends Room {
         1000
       );
 
+    const safeDistance =
+      Math.max(
+        distance,
+        0.001
+      );
+
     enemy.x +=
       (
         dx /
-        distance
+        safeDistance
       ) *
       movement;
 
     enemy.z +=
       (
         dz /
-        distance
+        safeDistance
       ) *
       movement;
   }
 
-  updateEnemy(
-    deltaTime
+
+  pickWanderTarget(
+    spawn
   ) {
-    const enemy =
-      this.state.enemies.get(
-        ENEMY_ID
-      );
-
-    const runtime =
-      this.enemyRuntime.get(
-        ENEMY_ID
-      );
-
-    if (
-      !enemy ||
-      !runtime
-    ) {
-      return;
-    }
+    const angle =
+      Math.random() *
+      Math.PI *
+      2;
 
     /*
-    * No aggro:
-    * wander around spawn.
-    */
-    if (
-      !runtime.targetSessionId
-    ) {
-      this.updateEnemyWander(
-        enemy,
-        runtime,
-        deltaTime
-      );
-
-      return;
-    }
-
-    const target =
-      this.state.players.get(
-        runtime.targetSessionId
-      );
-
-    /*
-     * Target left or died.
+     * sqrt gives a nicer random
+     * distribution throughout the
+     * entire circle.
      */
-    if (
-      !target ||
-      target.health <= 0
-    ) {
-      runtime.targetSessionId =
-        null;
-
-      return;
-    }
-
-    const dx =
-      target.x -
-      enemy.x;
-
-    const dz =
-      target.z -
-      enemy.z;
 
     const distance =
       Math.sqrt(
-        dx * dx +
-        dz * dz
-      );
+        Math.random()
+      ) *
+      ENEMY.wanderRadius;
 
-    /*
-     * Face player.
-     */
-    enemy.rotationY =
-      Math.atan2(
-        dx,
-        dz
-      );
+    return {
+      x:
+        spawn.x +
+        Math.cos(
+          angle
+        ) *
+        distance,
 
-    /*
-     * Chase until melee range.
-     */
-    if (
-      distance >
-      ENEMY.attackRange
-    ) {
-      const length =
-        Math.max(
-          distance,
-          0.001
-        );
-
-      const movement =
-        ENEMY.speed *
-        (deltaTime / 1000);
-
-      enemy.x +=
-        (dx / length) *
-        movement;
-
-      enemy.z +=
-        (dz / length) *
-        movement;
-
-      return;
-    }
-
-    /*
-     * Melee attack.
-     */
-
-    const now =
-      Date.now();
-
-    if (
-      now <
-      runtime.nextAttackAt
-    ) {
-      return;
-    }
-
-    runtime.nextAttackAt =
-      now +
-      ENEMY.attackCooldown;
-
-    this.broadcast(
-      "enemyAttack",
-      {
-        enemyId:
-          ENEMY_ID,
-      }
-    );
-
-    this.damagePlayer(
-      runtime.targetSessionId,
-      ENEMY.attackDamage
-    );
+      z:
+        spawn.z +
+        Math.sin(
+          angle
+        ) *
+        distance,
+    };
   }
 
-  getDistance(
+
+  /*
+   * =====================================================
+   * HELPERS
+   * =====================================================
+   */
+
+  getHorizontalDistance(
     a,
     b
   ) {
     const dx =
-      a.x - b.x;
-
-    const dy =
-      a.y - b.y;
+      a.x -
+      b.x;
 
     const dz =
-      a.z - b.z;
+      a.z -
+      b.z;
 
     return Math.sqrt(
       dx * dx +
-      dy * dy +
       dz * dz
     );
   }
