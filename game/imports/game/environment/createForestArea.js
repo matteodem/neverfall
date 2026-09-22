@@ -50,6 +50,75 @@ const createMaterial = (
   return material;
 };
 
+const distanceToSegment = (
+  point,
+  start,
+  end
+) => {
+  const vx =
+    end.x -
+    start.x;
+
+  const vz =
+    end.z -
+    start.z;
+
+  const wx =
+    point.x -
+    start.x;
+
+  const wz =
+    point.z -
+    start.z;
+
+  const lengthSquared =
+    vx * vx +
+    vz * vz;
+
+  if (
+    lengthSquared === 0
+  ) {
+    return Math.sqrt(
+      wx * wx +
+      wz * wz
+    );
+  }
+
+  const t =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        (
+          wx * vx +
+          wz * vz
+        ) /
+          lengthSquared
+      )
+    );
+
+  const closestX =
+    start.x +
+    vx * t;
+
+  const closestZ =
+    start.z +
+    vz * t;
+
+  const dx =
+    point.x -
+    closestX;
+
+  const dz =
+    point.z -
+    closestZ;
+
+  return Math.sqrt(
+    dx * dx +
+    dz * dz
+  );
+};
+
 const applyLowPolyLook = (
   mesh
 ) => {
@@ -105,14 +174,11 @@ const createForestPosition = ({
   center,
   halfSize,
   clearing,
+  path,
 }) => {
-  /*
-   * Try several times to find
-   * a position outside the clearing.
-   */
   for (
     let attempt = 0;
-    attempt < 20;
+    attempt < 30;
     attempt += 1
   ) {
     const position =
@@ -121,20 +187,30 @@ const createForestPosition = ({
         halfSize
       );
 
-    if (
-      !isInsideArea(
+    const insideClearing =
+      isInsideArea(
         position,
         clearing.center,
         clearing.radius
-      )
+      );
+
+    const insidePath =
+      path &&
+      distanceToSegment(
+        position,
+        path.start,
+        path.end
+      ) <
+        path.width;
+
+    if (
+      !insideClearing &&
+      !insidePath
     ) {
       return position;
     }
   }
 
-  /*
-   * Fallback.
-   */
   return createScatterPosition(
     center,
     halfSize
@@ -512,29 +588,32 @@ export const createForestArea =
   ({
     scene,
 
-    center = new Vector3(
-      18,
-      0,
-      18
-    ),
+    center =
+      new Vector3(
+        0,
+        0,
+        0
+      ),
 
-    size = 20,
+    size = 50,
 
-    treeCount = 26,
-    rockCount = 10,
-    bushCount = 14,
-    logCount = 5,
+    treeCount = 80,
+    rockCount = 25,
+    bushCount = 40,
+    logCount = 12,
 
     clearing = {
       center:
         new Vector3(
-          18,
           0,
-          18
+          0,
+          0
         ),
 
       radius: 8,
     },
+
+    path = null,
   } = {}) => {
     const root =
       new TransformNode(
@@ -603,6 +682,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            path,
           }),
         materials,
       });
@@ -621,6 +701,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            path,
           }),
         materials,
       });
@@ -639,6 +720,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            path,
           }),
         materials,
       });
@@ -657,6 +739,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            path,
           }),
         materials,
       });

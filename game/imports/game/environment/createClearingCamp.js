@@ -400,9 +400,64 @@ const createCampfire = ({
   fireLight.range =
     14;
 
+  let flickerTime =
+    0;
+
+  const flickerObserver =
+    scene.onBeforeRenderObservable.add(
+      () => {
+        const deltaTime =
+          scene
+            .getEngine()
+            .getDeltaTime();
+
+        flickerTime +=
+          deltaTime;
+
+        const slowFlicker =
+          Math.sin(
+            flickerTime *
+              0.008
+          ) *
+          0.12;
+
+        const fastFlicker =
+          Math.sin(
+            flickerTime *
+              0.021
+          ) *
+          0.06;
+
+        fireLight.intensity =
+          0.8 +
+          slowFlicker +
+          fastFlicker;
+
+        flame.scaling.y =
+          1.25 +
+          slowFlicker *
+            0.5;
+      }
+    );
+
   return {
-    root: fireRoot,
-    light: fireLight,
+    root:
+      fireRoot,
+
+    light:
+      fireLight,
+
+    destroy() {
+      scene
+        .onBeforeRenderObservable
+        .remove(
+          flickerObserver
+        );
+
+      fireLight.dispose();
+
+      fireRoot.dispose();
+    },
   };
 };
 
