@@ -102,7 +102,7 @@ const ENEMY = {
 };
 
 const HEAL_AMOUNT =
-  50;
+  40;
 
 const HEAL_COOLDOWN =
   15000;
@@ -432,14 +432,8 @@ export class WorldRoom
       );
     }
 
-    const user =
-      await Meteor.users.findOneAsync(
-        auth.userId
-      );
-
     const appearance =
-      user?.profile
-        ?.appearance || {};
+      character.appearance || {};
 
     const player =
       new PlayerState({

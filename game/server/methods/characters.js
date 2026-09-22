@@ -106,43 +106,27 @@ const normalizeAppearance = (
 const validateAppearance = (
   appearance
 ) => {
-  if (
-    !VALID_APPEARANCE.gender.includes(
-      appearance.gender
+  for (
+    const [
+      key,
+      values,
+    ]
+    of Object.entries(
+      VALID_APPEARANCE
     )
   ) {
-    throw new Meteor.Error(
-      "invalid-gender"
-    );
-  }
+    if (
+      values.includes(
+        appearance[
+          key
+        ]
+      )
+    ) {
+      continue;
+    }
 
-  if (
-    !VALID_APPEARANCE.skinTone.includes(
-      appearance.skinTone
-    )
-  ) {
     throw new Meteor.Error(
-      "invalid-skin-tone"
-    );
-  }
-
-  if (
-    !VALID_APPEARANCE.bodyType.includes(
-      appearance.bodyType
-    )
-  ) {
-    throw new Meteor.Error(
-      "invalid-body-type"
-    );
-  }
-
-  if (
-    !VALID_APPEARANCE.head.includes(
-      appearance.head
-    )
-  ) {
-    throw new Meteor.Error(
-      "invalid-head"
+      `invalid-${key}`
     );
   }
 };
@@ -181,11 +165,6 @@ Meteor.methods({
       this.userId
     );
 
-
-    /*
-     * NAME
-     */
-
     const cleanName =
       name?.trim();
 
@@ -211,11 +190,6 @@ Meteor.methods({
       );
     }
 
-
-    /*
-     * SPECIES
-     */
-
     if (
       species !==
       "human"
@@ -224,11 +198,6 @@ Meteor.methods({
         "invalid-species"
       );
     }
-
-
-    /*
-     * CLASS
-     */
 
     if (
       gameClass !==
@@ -239,11 +208,6 @@ Meteor.methods({
       );
     }
 
-
-    /*
-     * APPEARANCE
-     */
-
     const normalizedAppearance =
       normalizeAppearance(
         appearance
@@ -253,15 +217,10 @@ Meteor.methods({
       normalizedAppearance
     );
 
-
-    /*
-     * CHARACTER
-     */
-
     const id =
       Random.id();
 
-    const character = {
+    await Characters.insertAsync({
       _id:
         id,
 
@@ -281,6 +240,9 @@ Meteor.methods({
       gameClass:
         "warrior",
 
+      appearance:
+        normalizedAppearance,
+
       currentLevel:
         1,
 
@@ -289,34 +251,29 @@ Meteor.methods({
 
       lastPlayedAt:
         new Date(),
-    };
-
-
-    await Characters.insertAsync(
-      character
-    );
-
-
-    /*
-     * USER PROFILE
-     */
+    });
 
     await Meteor.users.updateAsync(
       this.userId,
       {
         $set: {
-          "profile.appearance":
-            normalizedAppearance,
-
           "profile.currentCharacterId":
             id,
 
           "profile.isPlaying":
             false,
         },
+
+        /*
+         * Removes the old architecture
+         * if it exists on this user.
+         */
+        $unset: {
+          "profile.appearance":
+            "",
+        },
       }
     );
-
 
     return id;
   },
@@ -382,7 +339,6 @@ Meteor.methods({
       characterId
     );
 
-
     const nextCharacter =
       await Characters.findOneAsync(
         {
@@ -396,7 +352,6 @@ Meteor.methods({
           },
         }
       );
-
 
     await Meteor.users.updateAsync(
       this.userId,
@@ -431,7 +386,6 @@ Meteor.methods({
       );
     }
 
-
     const character =
       await Characters.findOneAsync({
         _id:
@@ -447,7 +401,6 @@ Meteor.methods({
       );
     }
 
-
     await Characters.updateAsync(
       characterId,
       {
@@ -457,7 +410,6 @@ Meteor.methods({
         },
       }
     );
-
 
     await Meteor.users.updateAsync(
       this.userId,

@@ -51,7 +51,6 @@ import {
 
 export const Game = ({
   character,
-  appearance,
 
   setPlayerHealth,
   setHealCooldownUntil,
@@ -160,7 +159,8 @@ export const Game = ({
             await createWorld(
               scene,
               {
-                appearance,
+                appearance:
+                  character.appearance,
 
                 name:
                   character.name,

@@ -20,7 +20,6 @@ import {
 export const CharacterOverview = ({
   characters,
   currentCharacterId,
-  appearance,
 }) => {
   const deleteModalRef =
     useRef(
@@ -202,7 +201,7 @@ export const CharacterOverview = ({
           {selected && (
             <CharacterPreview
               appearance={
-                appearance
+                selected.appearance
               }
             />
           )}

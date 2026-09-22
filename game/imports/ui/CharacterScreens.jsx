@@ -12,11 +12,11 @@ import {
   useCharacterStore,
 } from "./stores/useCharacterStore";
 
+
 export const CharacterScreens = ({
   characters,
   currentCharacterId,
   hasCharacters,
-  appearance,
 }) => {
   const screen =
     useCharacterStore(
@@ -24,10 +24,6 @@ export const CharacterScreens = ({
         state.screen
     );
 
-  /*
-   * No characters yet:
-   * always open creator.
-   */
   if (!hasCharacters) {
     return (
       <CharacterCreator />
@@ -48,13 +44,8 @@ export const CharacterScreens = ({
       characters={
         characters
       }
-
       currentCharacterId={
         currentCharacterId
-      }
-
-      appearance={
-        appearance
       }
     />
   );
