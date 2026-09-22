@@ -402,15 +402,15 @@ export const createWorld =
   swordTip.isVisible =
     false;
 
-  const eastNorthForest =
+  const forest =
     createForestArea({
       scene,
 
       center:
         new Vector3(
-          35,
           0,
-          35
+          0,
+          0
         ),
 
       size: 50,
@@ -419,6 +419,17 @@ export const createWorld =
       rockCount: 25,
       bushCount: 40,
       logCount: 12,
+
+      clearing: {
+        center:
+          new Vector3(
+            0,
+            0,
+            0
+          ),
+
+        radius: 8,
+      },
     });
 
   const mountainRing =
@@ -458,7 +469,6 @@ export const createWorld =
     animationGroups,
     nameplate,
     mountainRing,
-    forest:
-      eastNorthForest,
+    forest,
   };
 };

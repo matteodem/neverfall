@@ -79,6 +79,68 @@ const createScatterPosition =
     );
   };
 
+const isInsideArea = (
+  position,
+  center,
+  radius
+) => {
+  const dx =
+    position.x -
+    center.x;
+
+  const dz =
+    position.z -
+    center.z;
+
+  return (
+    Math.sqrt(
+      dx * dx +
+      dz * dz
+    ) <
+    radius
+  );
+};
+
+const createForestPosition = ({
+  center,
+  halfSize,
+  clearing,
+}) => {
+  /*
+   * Try several times to find
+   * a position outside the clearing.
+   */
+  for (
+    let attempt = 0;
+    attempt < 20;
+    attempt += 1
+  ) {
+    const position =
+      createScatterPosition(
+        center,
+        halfSize
+      );
+
+    if (
+      !isInsideArea(
+        position,
+        clearing.center,
+        clearing.radius
+      )
+    ) {
+      return position;
+    }
+  }
+
+  /*
+   * Fallback.
+   */
+  return createScatterPosition(
+    center,
+    halfSize
+  );
+};
+
 const createPineTree = ({
   scene,
   parent,
@@ -449,16 +511,30 @@ const createForestFloor = ({
 export const createForestArea =
   ({
     scene,
+
     center = new Vector3(
       18,
       0,
       18
     ),
+
     size = 20,
+
     treeCount = 26,
     rockCount = 10,
     bushCount = 14,
     logCount = 5,
+
+    clearing = {
+      center:
+        new Vector3(
+          18,
+          0,
+          18
+        ),
+
+      radius: 8,
+    },
   } = {}) => {
     const root =
       new TransformNode(
@@ -523,10 +599,11 @@ export const createForestArea =
         scene,
         parent: root,
         position:
-          createScatterPosition(
+          createForestPosition({
             center,
-            halfSize
-          ),
+            halfSize,
+            clearing,
+          }),
         materials,
       });
     }
@@ -540,10 +617,11 @@ export const createForestArea =
         scene,
         parent: root,
         position:
-          createScatterPosition(
+          createForestPosition({
             center,
-            halfSize
-          ),
+            halfSize,
+            clearing,
+          }),
         materials,
       });
     }
@@ -557,10 +635,11 @@ export const createForestArea =
         scene,
         parent: root,
         position:
-          createScatterPosition(
+          createForestPosition({
             center,
-            halfSize
-          ),
+            halfSize,
+            clearing,
+          }),
         materials,
       });
     }
@@ -574,10 +653,11 @@ export const createForestArea =
         scene,
         parent: root,
         position:
-          createScatterPosition(
+          createForestPosition({
             center,
-            halfSize
-          ),
+            halfSize,
+            clearing,
+          }),
         materials,
       });
     }
