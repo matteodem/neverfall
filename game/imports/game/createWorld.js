@@ -16,6 +16,10 @@ import {
 } from "./environment/createMountainRing";
 
 import {
+  createClearingCamp,
+} from "./environment/createClearingCamp";
+
+import {
   SWORD,
 } from "./config";
 
@@ -450,6 +454,18 @@ export const createWorld =
       jitter: 6,
     });
 
+  const clearingCamp =
+    createClearingCamp({
+      scene,
+
+      center:
+        new Vector3(
+          2,
+          0,
+          3.5
+        ),
+    });
+
   /*
    * CAMERA
    */
@@ -470,5 +486,6 @@ export const createWorld =
     nameplate,
     mountainRing,
     forest,
+    camp: clearingCamp,
   };
 };
