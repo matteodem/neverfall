@@ -17,6 +17,10 @@ import {
 } from "../auth/guest";
 
 import {
+  usePlayerProgressStore,
+} from "./stores/usePlayerProgressStore";
+
+import {
   CharacterScreens,
 } from "./CharacterScreens";
 
@@ -58,6 +62,12 @@ export const App = () => {
   ] = useState(
     false
   );
+
+  const setProgress =
+    usePlayerProgressStore(
+      (state) =>
+        state.setProgress
+    );
 
   /*
    * =====================================================
@@ -156,6 +166,35 @@ export const App = () => {
         character._id ===
         currentCharacterId
     );
+
+  useEffect(
+    () => {
+      if (
+        !currentCharacter
+      ) {
+        return;
+      }
+
+      setProgress({
+        currentLevel:
+          currentCharacter.currentLevel ??
+          1,
+
+        currentXp:
+          currentCharacter.currentXp ??
+          0,
+      });
+    },
+    [
+      currentCharacter
+        ?.currentLevel,
+
+      currentCharacter
+        ?.currentXp,
+
+      setProgress,
+    ]
+  );
 
   /*
    * =====================================================

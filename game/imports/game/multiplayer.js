@@ -502,7 +502,8 @@ const createRemotePlayer =
   async (
     scene,
     sessionId,
-    name
+    name,
+    currentLevel
   ) => {
     const root =
       new TransformNode(
@@ -516,13 +517,31 @@ const createRemotePlayer =
         player: root,
       });
 
+    const getNameplateText =
+      (
+        playerName,
+        level
+      ) =>
+        `${playerName} (Level ${level})`;
+
     const nameplate =
       createNameplate({
         scene,
-        player: root,
-        name,
-        color: "#4ade80",
-        y: -0.4,
+
+        player:
+          root,
+
+        name:
+          getNameplateText(
+            name,
+            currentLevel
+          ),
+
+        color:
+          "#4ade80",
+
+        y:
+          -0.4,
       });
 
     /*
@@ -676,6 +695,17 @@ const createRemotePlayer =
       movingUntil:
         0,
 
+      setLevel(
+        level
+      ) {
+        nameplate.setName(
+          getNameplateText(
+            name,
+            level
+          )
+        );
+      },
+
       setAlive(alive) {
         root.setEnabled(
           alive
@@ -824,7 +854,8 @@ export const createMultiplayer = async ({
         await createRemotePlayer(
           scene,
           sessionId,
-          playerState.name
+          playerState.name,
+          playerState.currentLevel
         );
 
       if (
@@ -919,6 +950,16 @@ export const createMultiplayer = async ({
           entity.healthBar.setHealth(
             playerState.health,
             playerState.maxHealth
+          );
+        }
+      );
+
+      callbacks.listen(
+        playerState,
+        "currentLevel",
+        () => {
+          entity.setLevel(
+            playerState.currentLevel
           );
         }
       );

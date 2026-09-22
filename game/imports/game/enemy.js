@@ -8,6 +8,10 @@ import {
   createHealthBar,
 } from "./healthBar";
 
+import {
+  createNameplate,
+} from "./nameplate";
+
 const IDLE = {
   from: 0,
   to: 29,
@@ -253,6 +257,23 @@ export const createEnemy = async ({
     state.maxHealth
   );
 
+  const nameplate =
+    createNameplate({
+      scene,
+
+      player:
+        root,
+
+      name:
+        "Boar (Level 1)",
+
+      color:
+        "#fca5a5",
+
+      y:
+        -0.45,
+    });
+
   /*
    * =====================================================
    * INITIAL NETWORK STATE
@@ -316,6 +337,8 @@ export const createEnemy = async ({
       healthBar.destroy();
 
       animationGroup.stop();
+
+      nameplate.destroy();
 
       /*
        * Dispose imported GLB meshes.

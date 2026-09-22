@@ -18,6 +18,10 @@ import {
   Characters,
 } from "../../imports/api/characters/characters";
 
+import {
+  addXpToProgress,
+} from "../../imports/game/xp";
+
 const ENEMY_ID =
   "training-enemy";
 
@@ -29,6 +33,11 @@ const ENEMY_SPAWN = {
 
 const ENEMY = {
   health: 100,
+
+  level: 1,
+
+  xpReward: 20,
+
   speed: 2,
 
   attackDamage: 20,
@@ -259,21 +268,105 @@ export class WorldRoom extends Room {
    * =====================================================
    */
 
+  async awardXp(
+    characterId,
+    amount
+  ) {
+    const character =
+      await Characters.findOneAsync(
+        characterId
+      );
+
+    if (!character) {
+      return;
+    }
+
+    const progress =
+      addXpToProgress({
+        currentLevel:
+          character.currentLevel,
+
+        currentXp:
+          character.currentXp,
+
+        gainedXp:
+          amount,
+      });
+
+    await Characters.updateAsync(
+      characterId,
+      {
+        $set: {
+          currentLevel:
+            progress.currentLevel,
+
+          currentXp:
+            progress.currentXp,
+        },
+      }
+    );
+
+    /*
+    * Update online Colyseus player
+    * immediately as well.
+    */
+    for (
+      const player
+      of this.state.players.values()
+    ) {
+      if (
+        player.characterId !==
+        characterId
+      ) {
+        continue;
+      }
+
+      player.currentLevel =
+        progress.currentLevel;
+
+      player.currentXp =
+        progress.currentXp;
+    }
+  }
+
   async onJoin(
     client,
     options,
     auth
   ) {
+    const character =
+      await Characters.findOneAsync({
+        _id:
+          auth.characterId,
+
+        userId:
+          auth.userId,
+      });
+
+    if (!character) {
+      throw new Error(
+        "Character not found"
+      );
+    }
+
     const player =
       new PlayerState({
         userId:
           auth.userId,
 
         characterId:
-          auth.characterId,
+          character._id,
 
         name:
-          auth.characterName,
+          character.name,
+
+        currentLevel:
+          character.currentLevel ??
+          1,
+
+        currentXp:
+          character.currentXp ??
+          0,
 
         x: 0,
         y: 0,
@@ -285,13 +378,6 @@ export class WorldRoom extends Room {
         maxHealth: 100,
       });
 
-    /*
-    * sessionId remains the
-    * network entity key.
-    *
-    * characterId is the persistent
-    * MMORPG identity.
-    */
     this.state.players.set(
       client.sessionId,
       player
@@ -300,7 +386,8 @@ export class WorldRoom extends Room {
     this.playerRuntime.set(
       client.sessionId,
       {
-        healAvailableAt: 0,
+        healAvailableAt:
+          0,
       }
     );
 
@@ -310,9 +397,6 @@ export class WorldRoom extends Room {
         $set: {
           "profile.isPlaying":
             true,
-
-          "profile.currentCharacterId":
-            auth.characterId,
         },
       }
     );
@@ -475,6 +559,9 @@ export class WorldRoom extends Room {
 
         nextWanderAt:
           0,
+
+        contributors:
+          new Set(),
       }
     );
   }
@@ -521,15 +608,27 @@ export class WorldRoom extends Room {
         ENEMY_ID
       );
 
-    /*
-     * Enemy only aggroes after
-     * somebody attacks it.
-     */
+    if (!runtime) {
+      return;
+    }
+
     runtime.targetSessionId =
       sessionId;
 
     runtime.wanderTarget =
       null;
+
+    /*
+    * Remember everyone who
+    * participated in the fight.
+    */
+    if (
+      player.characterId
+    ) {
+      runtime.contributors.add(
+        player.characterId
+      );
+    }
 
     enemy.health =
       Math.max(
@@ -545,6 +644,20 @@ export class WorldRoom extends Room {
   }
 
   killEnemy() {
+    const runtime =
+      this.enemyRuntime.get(
+        ENEMY_ID
+      );
+
+    const contributors =
+      [
+        ...(
+          runtime
+            ?.contributors ||
+          []
+        ),
+      ];
+
     this.state.enemies.delete(
       ENEMY_ID
     );
@@ -554,9 +667,19 @@ export class WorldRoom extends Room {
     );
 
     /*
-     * Colyseus clock automatically
-     * belongs to this room.
-     */
+    * Reward everyone who
+    * participated.
+    */
+    for (
+      const characterId
+      of contributors
+    ) {
+      this.awardXp(
+        characterId,
+        ENEMY.xpReward
+      );
+    }
+
     this.clock.setTimeout(
       () => {
         this.spawnEnemy();

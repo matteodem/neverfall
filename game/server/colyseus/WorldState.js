@@ -32,6 +32,16 @@ export const PlayerState =
 
       maxHealth:
         t.number().default(100),
+
+      currentLevel:
+        t.number().default(
+          1
+        ),
+
+      currentXp:
+        t.number().default(
+          0
+        ),
     },
     "PlayerState"
   );

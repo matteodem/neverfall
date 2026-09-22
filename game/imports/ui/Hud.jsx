@@ -16,6 +16,9 @@ import {
 import { InventoryModal } from "./components/modals/InventoryModal";
 import { Icon } from "./components/Icon";
 import { SettingsModal } from "./components/modals/SettingsModal";
+import {
+  XpBar,
+} from "./components/XpBar";
 
 const ACTION_SLOTS = [
   { key: "1", icon: 'sword' },
@@ -184,7 +187,7 @@ const PlayerHealthBar = ({
     );
 
   return (
-    <div className="absolute bottom-2 left-1/2 w-72 -translate-x-1/2 rounded bg-black/70 p-2 text-white">
+    <div className="absolute bottom-14 left-1/2 w-72 -translate-x-1/2 rounded bg-black/70 p-2 text-white">
       <div className="mb-1 flex justify-between text-sm">
         <span>
           Health
@@ -212,7 +215,7 @@ const ActionBar = ({
   healCooldownUntil,
 }) => {
   return (
-    <div className="absolute bottom-20 left-1/2 flex -translate-x-1/2 gap-2">
+    <div className="absolute bottom-30 left-1/2 flex -translate-x-1/2 gap-2">
       {ACTION_SLOTS.map((slot) => (
         <div
           key={slot.key}
@@ -245,7 +248,7 @@ const BottomHud = ({
   healCooldownUntil,
 }) => {
   return (
-    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+    <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
       <ActionBar
         healCooldownUntil={
           healCooldownUntil
@@ -260,6 +263,8 @@ const BottomHud = ({
           playerHealth.maxHealth
         }
       />
+
+      <XpBar />
     </div>
   );
 };
