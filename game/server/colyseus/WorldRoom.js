@@ -33,6 +33,11 @@ import {
  * =====================================================
  */
 
+const PLAYER_REGEN = {
+  delay: 5000,
+  percentPerSecond: 0.05,
+};
+
 const BOAR_SPAWNS = [
   {
     id: "boar-1",
@@ -202,6 +207,10 @@ export class WorldRoom
     this.setTimestep(
       (deltaTime) => {
         this.updateEnemies(
+          deltaTime
+        );
+
+        this.updatePlayerRegeneration(
           deltaTime
         );
       },
@@ -387,6 +396,22 @@ export class WorldRoom
    * =====================================================
    */
 
+  markPlayerInCombat(
+    sessionId
+  ) {
+    const runtime =
+      this.playerRuntime.get(
+        sessionId
+      );
+
+    if (!runtime) {
+      return;
+    }
+
+    runtime.lastCombatAt =
+      Date.now();
+  }
+
   async onJoin(
     client,
     options,
@@ -454,6 +479,9 @@ export class WorldRoom
           0,
 
         attackAvailableAt:
+          0,
+
+        lastCombatAt:
           0,
       }
     );
@@ -545,6 +573,67 @@ export class WorldRoom
    * =====================================================
    */
 
+  updatePlayerRegeneration(
+    deltaTime
+  ) {
+    const now =
+      Date.now();
+
+    for (
+      const [
+        sessionId,
+        player,
+      ]
+      of this.state.players.entries()
+    ) {
+      if (
+        player.health <= 0 ||
+        player.health >=
+          player.maxHealth
+      ) {
+        continue;
+      }
+
+      const runtime =
+        this.playerRuntime.get(
+          sessionId
+        );
+
+      if (!runtime) {
+        continue;
+      }
+
+      const timeSinceCombat =
+        now -
+        runtime.lastCombatAt;
+
+      if (
+        timeSinceCombat <
+        PLAYER_REGEN.delay
+      ) {
+        continue;
+      }
+
+      const healthPerSecond =
+        player.maxHealth *
+        PLAYER_REGEN.percentPerSecond;
+
+      const healthThisTick =
+        healthPerSecond *
+        (
+          deltaTime /
+          1000
+        );
+
+      player.health =
+        Math.min(
+          player.maxHealth,
+          player.health +
+            healthThisTick
+        );
+    }
+  }
+
   damagePlayer(
     sessionId,
     damage
@@ -560,6 +649,10 @@ export class WorldRoom
     ) {
       return;
     }
+
+    this.markPlayerInCombat(
+      sessionId
+    );
 
     player.health =
       Math.max(
@@ -803,6 +896,10 @@ export class WorldRoom
     if (!runtime) {
       return;
     }
+    
+    this.markPlayerInCombat(
+      sessionId
+    );
 
     /*
      * Enemy becomes aggressive

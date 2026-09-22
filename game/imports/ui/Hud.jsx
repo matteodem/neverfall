@@ -194,7 +194,7 @@ const PlayerHealthBar = ({
         </span>
 
         <span>
-          {health} / {maxHealth}
+          {parseInt(health, 10)} / {maxHealth}
         </span>
       </div>
 
