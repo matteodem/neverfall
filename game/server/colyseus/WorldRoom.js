@@ -26,6 +26,10 @@ import {
   addXpToProgress,
 } from "../../imports/game/xp";
 
+import {
+  BOAR_HUNT_QUEST,
+} from "../../imports/game/quests";
+
 
 /*
  * =====================================================
@@ -84,7 +88,7 @@ const ENEMY = {
 
   speed: 2,
 
-  attackDamage: 20,
+  attackDamage: 10,
 
   attackRange: 1.8,
 
@@ -134,6 +138,54 @@ export class WorldRoom
 
   playerRuntime =
     new Map();
+
+  advanceBoarQuest(
+    characterId
+  ) {
+    let player =
+      null;
+
+    this.state.players.forEach(
+      (
+        currentPlayer
+      ) => {
+        if (
+          currentPlayer.characterId ===
+          characterId
+        ) {
+          player =
+            currentPlayer;
+        }
+      }
+    );
+
+    if (!player) {
+      return false;
+    }
+
+    player.boarQuestKills +=
+      1;
+
+
+    if (
+      player.boarQuestKills <
+      BOAR_HUNT_QUEST.target
+    ) {
+      return false;
+    }
+
+
+    /*
+    * Repeatable:
+    * immediately start again.
+    */
+
+    player.boarQuestKills =
+      0;
+
+
+    return true;
+  }
 
 
   /*
@@ -740,15 +792,16 @@ export class WorldRoom
     amount
   ) {
     const character =
-      await Characters.findOneAsync(
-        characterId
-      );
+      await Characters.findOneAsync({
+        _id:
+          characterId,
+      });
 
     if (!character) {
       return;
     }
 
-    const progress =
+    const result =
       addXpToProgress({
         currentLevel:
           character.currentLevel ??
@@ -767,39 +820,33 @@ export class WorldRoom
       {
         $set: {
           currentLevel:
-            progress.currentLevel,
+            result.currentLevel,
 
           currentXp:
-            progress.currentXp,
+            result.currentXp,
         },
       }
     );
 
-    /*
-     * Mirror progression into
-     * every online instance of
-     * this character.
-     */
+    this.state.players.forEach(
+      (
+        player
+      ) => {
+        if (
+          player.characterId !==
+          characterId
+        ) {
+          return;
+        }
 
-    for (
-      const player
-      of this.state.players.values()
-    ) {
-      if (
-        player.characterId !==
-        characterId
-      ) {
-        continue;
+        player.currentLevel =
+          result.currentLevel;
+
+        player.currentXp =
+          result.currentXp;
       }
-
-      player.currentLevel =
-        progress.currentLevel;
-
-      player.currentXp =
-        progress.currentXp;
-    }
+    );
   }
-
 
   /*
    * =====================================================
@@ -1060,6 +1107,21 @@ export class WorldRoom
           );
         }
       );
+      
+      const questCompleted =
+        this.advanceBoarQuest(
+          characterId
+        );
+
+
+      if (
+        questCompleted
+      ) {
+        this.awardXp(
+          characterId,
+          BOAR_HUNT_QUEST.rewardXp
+        );
+      }
     }
 
     /*

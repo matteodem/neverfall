@@ -35,6 +35,10 @@ import {
   XpBar,
 } from "./components/XpBar";
 
+import {
+  QuestTracker,
+} from "./components/QuestTracker";
+
 
 const HEAL_COOLDOWN =
   15000;
@@ -409,6 +413,10 @@ export const Hud = ({
   return (
     <>
       <MenuButtons />
+
+      <div className="absolute right-10 top-5">
+        <QuestTracker />
+      </div>
 
       <BottomHud
         playerHealth={

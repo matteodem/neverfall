@@ -62,6 +62,9 @@ export const PlayerState =
         t.string().default(
           "head1"
         ),
+
+      boarQuestKills:
+        t.number().default(0),
     },
     "PlayerState"
   );

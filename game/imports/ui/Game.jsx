@@ -48,6 +48,9 @@ import {
   useLoadingStore,
 } from "./stores/useLoadingStore";
 
+import {
+  useQuestStore,
+} from "./stores/useQuestStore";
 
 export const Game = ({
   character,
@@ -64,6 +67,14 @@ export const Game = ({
     useActionBarStore(
       (state) =>
         state.setSkillHandler
+    );
+
+  const setBoarKills =
+    useQuestStore(
+      (
+        state
+      ) =>
+        state.setBoarKills
     );
 
   useEffect(
@@ -192,6 +203,9 @@ export const Game = ({
 
               onLocalHealthChange:
                 setPlayerHealth,
+
+              onBoarQuestChange:
+                setBoarKills,
 
               onHealCooldown:
                 (

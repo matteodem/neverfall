@@ -680,6 +680,7 @@ export const createMultiplayer =
     player,
     onLocalHealthChange,
     onHealCooldown,
+    onBoarQuestChange,
   }) => {
     await ensureGuestUser();
 
@@ -761,6 +762,20 @@ export const createMultiplayer =
           localPlayerState =
             playerState;
 
+
+          onBoarQuestChange?.(
+            playerState.boarQuestKills
+          );
+
+          callbacks.listen(
+            playerState,
+            "boarQuestKills",
+            () => {
+              onBoarQuestChange?.(
+                playerState.boarQuestKills
+              );
+            }
+          );  
 
           onLocalHealthChange?.({
             health:
