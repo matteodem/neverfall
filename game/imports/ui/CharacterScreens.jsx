@@ -16,6 +16,7 @@ export const CharacterScreens = ({
   characters,
   currentCharacterId,
   hasCharacters,
+  appearance,
 }) => {
   const screen =
     useCharacterStore(
@@ -50,6 +51,10 @@ export const CharacterScreens = ({
 
       currentCharacterId={
         currentCharacterId
+      }
+
+      appearance={
+        appearance
       }
     />
   );

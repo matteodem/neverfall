@@ -432,6 +432,15 @@ export class WorldRoom
       );
     }
 
+    const user =
+      await Meteor.users.findOneAsync(
+        auth.userId
+      );
+
+    const appearance =
+      user?.profile
+        ?.appearance || {};
+
     const player =
       new PlayerState({
         userId:
@@ -465,6 +474,22 @@ export class WorldRoom
 
         maxHealth:
           100,
+
+        gender:
+          appearance.gender ||
+          "female",
+
+        skinTone:
+          appearance.skinTone ||
+          "medium",
+
+        bodyType:
+          appearance.bodyType ||
+          "medium",
+
+        head:
+          appearance.head ||
+          "head1",
       });
 
     this.state.players.set(

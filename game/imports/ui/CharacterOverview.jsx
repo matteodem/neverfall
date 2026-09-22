@@ -16,14 +16,17 @@ import {
   useCharacterStore,
 } from "./stores/useCharacterStore";
 
+
 export const CharacterOverview = ({
   characters,
   currentCharacterId,
+  appearance,
 }) => {
   const deleteModalRef =
     useRef(
       null
     );
+
 
   const setScreen =
     useCharacterStore(
@@ -31,12 +34,14 @@ export const CharacterOverview = ({
         state.setScreen
     );
 
+
   const selected =
     characters.find(
       (character) =>
         character._id ===
         currentCharacterId
     );
+
 
   const selectCharacter =
     async (
@@ -48,6 +53,7 @@ export const CharacterOverview = ({
       );
     };
 
+
   const openDeleteModal =
     () => {
       if (!selected) {
@@ -58,11 +64,13 @@ export const CharacterOverview = ({
         ?.showModal();
     };
 
+
   const closeDeleteModal =
     () => {
       deleteModalRef.current
         ?.close();
     };
+
 
   const deleteCharacter =
     async () => {
@@ -78,12 +86,14 @@ export const CharacterOverview = ({
       closeDeleteModal();
     };
 
+
   const joinWorld =
     async () => {
       await Meteor.callAsync(
         "characters.joinCurrent"
       );
     };
+
 
   return (
     <div className="relative flex h-screen overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-sky-900 text-white">
@@ -115,6 +125,7 @@ export const CharacterOverview = ({
                   }
                   className={[
                     "btn h-auto min-h-0 w-full cursor-pointer justify-start px-4 py-3 text-left normal-case",
+
                     active
                       ? "btn-primary"
                       : "btn-outline text-white hover:text-black",
@@ -131,13 +142,17 @@ export const CharacterOverview = ({
 
                     <div className="mt-1 text-xs font-normal opacity-70">
                       {
-                        startCase(character.species)
+                        startCase(
+                          character.species
+                        )
                       }
 
                       {" · "}
 
                       {
-                        startCase(character.gameClass)
+                        startCase(
+                          character.gameClass
+                        )
                       }
 
                       {" · Level "}
@@ -181,32 +196,51 @@ export const CharacterOverview = ({
         </div>
       </aside>
 
+
       <main className="relative flex flex-1 flex-col">
         <div className="flex-1">
           {selected && (
             <CharacterPreview
-              assetFile={
-                selected.assetFile
+              appearance={
+                appearance
               }
             />
           )}
         </div>
 
+
         {selected && (
           <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
             <div className="text-2xl font-bold drop-shadow-lg">
-              {selected.name}
+              {
+                selected.name
+              }
             </div>
 
             <div className="mt-1 text-sm text-blue-100/70">
-              {startCase(selected.species)}
+              {
+                startCase(
+                  selected.species
+                )
+              }
+
               {" · "}
-              {startCase(selected.gameClass)}
+
+              {
+                startCase(
+                  selected.gameClass
+                )
+              }
+
               {" · Level "}
-              {selected.currentLevel}
+
+              {
+                selected.currentLevel
+              }
             </div>
           </div>
         )}
+
 
         {selected && (
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
@@ -222,6 +256,7 @@ export const CharacterOverview = ({
           </div>
         )}
       </main>
+
 
       {/*
        * DELETE CONFIRMATION MODAL
@@ -240,9 +275,13 @@ export const CharacterOverview = ({
 
           <p className="py-4">
             Are you sure you want to delete{" "}
+
             <span className="font-bold">
-              {selected?.name}
+              {
+                selected?.name
+              }
             </span>
+
             ?
           </p>
 

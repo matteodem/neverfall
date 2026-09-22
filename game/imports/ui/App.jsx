@@ -246,6 +246,11 @@ export const App = () => {
           characters.length >
           0
         }
+
+        appearance={
+          user?.profile
+            ?.appearance
+        }
       />
     );
   }
@@ -277,6 +282,11 @@ export const App = () => {
           characters.length >
           0
         }
+
+        appearance={
+          user?.profile
+            ?.appearance
+        }
       />
     );
   }
@@ -292,6 +302,11 @@ export const App = () => {
       <Game
         character={
           currentCharacter
+        }
+
+        appearance={
+          user.profile
+            ?.appearance
         }
 
         setPlayerHealth={

@@ -2,9 +2,19 @@ import {
   create,
 } from "zustand";
 
+
 const INITIAL_CREATOR = {
   gender:
     "female",
+
+  skinTone:
+    "medium",
+
+  bodyType:
+    "medium",
+
+  head:
+    "head1",
 
   species:
     "human",
@@ -15,6 +25,7 @@ const INITIAL_CREATOR = {
   name:
     "",
 };
+
 
 export const useCharacterStore =
   create(
@@ -39,7 +50,9 @@ export const useCharacterStore =
         value
       ) {
         set(
-          (state) => ({
+          (
+            state
+          ) => ({
             creator: {
               ...state.creator,
 

@@ -12,6 +12,14 @@ import {
 } from "@babylonjs/core";
 
 import {
+  createLowPolyCharacter,
+} from "./character/createLowPolyCharacter";
+
+import {
+  createCharacterAnimationController,
+} from "./character/createCharacterAnimationController";
+
+import {
   createMountainRing,
 } from "./environment/createMountainRing";
 
@@ -28,10 +36,6 @@ import {
 } from "./config";
 
 import {
-  createMaterial,
-} from "./materials";
-
-import {
   createGameCamera,
 } from "./camera";
 
@@ -43,392 +47,343 @@ import {
   createForestArea,
 } from "./environment/createForestArea";
 
-const findRightHandBone = (
-  skeleton
-) => {
-  if (!skeleton) {
-    return null;
-  }
-
-  return skeleton.bones.find(
-    (bone) => {
-      const name =
-        bone.name.toLowerCase();
-
-      return (
-        name.includes("righthand") ||
-        name.includes("right_hand") ||
-        name.includes("hand_r")
-      );
-    }
-  );
-};
 
 export const createWorld =
   async (
     scene,
     {
-      assetFile,
+      appearance,
       name,
     }
   ) => {
+    /*
+     * =====================================================
+     * SKY / FOG
+     * =====================================================
+     */
 
-  scene.clearColor =
-    Color3.FromHexString(
-      "#FFF4D6"
-    ).toColor4();
+    scene.clearColor =
+      Color3.FromHexString(
+        "#FFF4D6"
+      ).toColor4();
 
-  scene.fogMode =
-    3;
+    scene.fogMode =
+      3;
 
-  scene.fogColor =
-    Color3.FromHexString(
-      "#FFF4D6"
-    );
+    scene.fogColor =
+      Color3.FromHexString(
+        "#FFF4D6"
+      );
 
-  scene.fogStart = 80;
-  scene.fogEnd = 220;
+    scene.fogStart =
+      80;
 
-  /*
-  * LIGHTS
-  */
-
-  const ambient =
-    new HemisphericLight(
-      "ambient",
-      new Vector3(
-        0,
-        1,
-        0
-      ),
-      scene
-    );
-
-  ambient.intensity =
-    0.9;
-
-  ambient.diffuse =
-    Color3.FromHexString(
-      "#FFF4D6"
-    );
-
-  ambient.groundColor =
-    Color3.FromHexString(
-      "#B9A86E"
-    );
+    scene.fogEnd =
+      220;
 
 
-  const sun =
-    new DirectionalLight(
-      "sun",
-      new Vector3(
-        -1,
-        -2,
-        1
-      ),
-      scene
-    );
+    /*
+     * =====================================================
+     * LIGHTS
+     * =====================================================
+     */
 
-  sun.intensity =
-    0.85;
+    const ambient =
+      new HemisphericLight(
+        "ambient",
+        new Vector3(
+          0,
+          1,
+          0
+        ),
+        scene
+      );
 
-  sun.diffuse =
-    Color3.FromHexString(
-      "#FFE6A3"
-    );
+    ambient.intensity =
+      0.9;
 
-  /*
-   * GROUND
-   */
+    ambient.diffuse =
+      Color3.FromHexString(
+        "#FFF4D6"
+      );
 
-  const ground =
-    MeshBuilder.CreateGround(
-      "ground",
-      {
-        width: 500,
-        height: 500,
-      },
-      scene
-    );
+    ambient.groundColor =
+      Color3.FromHexString(
+        "#B9A86E"
+      );
 
-  const groundMaterial =
-    new StandardMaterial(
-      "groundMaterial",
-      scene
-    );
 
-  groundMaterial.diffuseColor =
-    Color3.FromHexString(
-      "#4B6B3C"
-    );
+    const sun =
+      new DirectionalLight(
+        "sun",
+        new Vector3(
+          -1,
+          -2,
+          1
+        ),
+        scene
+      );
 
-  groundMaterial.specularColor =
-    Color3.Black();
+    sun.intensity =
+      0.85;
 
-  ground.material =
-    groundMaterial;
+    sun.diffuse =
+      Color3.FromHexString(
+        "#FFE6A3"
+      );
 
-  /*
- * PLAYER ROOT
- */
 
-  const player = new TransformNode(
-    "player",
-    scene
-  );
+    /*
+     * =====================================================
+     * GROUND
+     * =====================================================
+     */
 
-  player.position.set(
-    0,
-    0,
-    0
-  );
+    const ground =
+      MeshBuilder.CreateGround(
+        "ground",
+        {
+          width:
+            500,
 
-  /*
-  * PLAYER MODEL
-  */
+          height:
+            500,
+        },
+        scene
+      );
 
-  const lastSlash =
-  assetFile.lastIndexOf(
-    "/"
-    );
+    const groundMaterial =
+      new StandardMaterial(
+        "groundMaterial",
+        scene
+      );
 
-  const rootUrl =
-    assetFile.slice(
+    groundMaterial.diffuseColor =
+      Color3.FromHexString(
+        "#4B6B3C"
+      );
+
+    groundMaterial.specularColor =
+      Color3.Black();
+
+    ground.material =
+      groundMaterial;
+
+
+    /*
+     * =====================================================
+     * PLAYER
+     * =====================================================
+     */
+
+    const character =
+      createLowPolyCharacter({
+        scene,
+        appearance,
+      });
+
+    const player =
+      character.root;
+
+    player.position.set(
       0,
-      lastSlash + 1
+      0,
+      0
     );
 
-  const fileName =
-    assetFile.slice(
-      lastSlash + 1
-    );
-
-  const result =
-    await SceneLoader.ImportMeshAsync(
-      "",
-      rootUrl,
-      fileName,
-      scene
-    );
-
-  const playerModel =
-    result.meshes[0];
-
-  playerModel.parent =
-    player;
-
-  const skeleton =
-    result.skeletons[0];
-
-  const skinnedMesh =
-    result.meshes.find(
-      (mesh) =>
-        mesh.skeleton === skeleton
-    );
-
-  
-  const animationGroups =
-    result.animationGroups;
-
-  const nameplate =
-    createNameplate({
-      scene,
-
-      player,
-
-      name,
-
-      color:
-        "white",
-
-      y:
-        -0.4,
-    });
-
-  /*
-   * SWORD
-   */
-
-  const swordResult =
-    await SceneLoader.ImportMeshAsync(
-      "",
-      "/models/",
-      "sword.glb",
-      scene
-    );
-
-  const sword =
-    swordResult.meshes[0];
-
-  /*
-  * Pivot between hand and sword.
-  *
-  * We animate this instead of
-  * rotating the imported sword directly.
-  */
-  const swordPivot =
-    new TransformNode(
-      "swordPivot",
-      scene
-    );
-
-  const swordGrip =
-    new TransformNode(
-      "swordGrip",
-      scene
-    );
-  
-  const rightHandBone =
-    findRightHandBone(
-      skeleton
-    );
-
-  if (
-    rightHandBone &&
-    skinnedMesh
-  ) {
-    /*
-    * Attack pivot follows the hand.
-    */
-    swordPivot.attachToBone(
-      rightHandBone,
-      skinnedMesh
-    );
 
     /*
-    * Small attack pivot offset.
-    *
-    * The pivot stays near the hand,
-    * but slightly behind it so the swing
-    * gets a larger arc without detaching
-    * the sword.
-    */
+     * =====================================================
+     * PLAYER ANIMATIONS
+     * =====================================================
+     */
+
+    const animations =
+      createCharacterAnimationController(
+        character
+      );
+
+
+    /*
+     * =====================================================
+     * NAMEPLATE
+     * =====================================================
+     */
+
+    const nameplate =
+      createNameplate({
+        scene,
+
+        player,
+
+        name,
+
+        color:
+          "white",
+
+        y:
+          -0.4,
+      });
+
+
+    /*
+     * =====================================================
+     * SWORD
+     * =====================================================
+     *
+     * Sword still uses the existing GLB.
+     * The player itself no longer does.
+     */
+
+    const swordResult =
+      await SceneLoader.ImportMeshAsync(
+        "",
+        "/models/",
+        "sword.glb",
+        scene
+      );
+
+    const sword =
+      swordResult.meshes[0];
+
+
+    /*
+     * Attack pivot.
+     *
+     * Combat rotates this node.
+     */
+
+    const swordPivot =
+      new TransformNode(
+        "swordPivot",
+        scene
+      );
+
+
+    /*
+     * Grip stores the normal
+     * position / rotation from config.
+     */
+
+    const swordGrip =
+      new TransformNode(
+        "swordGrip",
+        scene
+      );
+
+
+    /*
+     * The procedural character has
+     * no skeleton/bones.
+     *
+     * Attach the weapon directly to
+     * the right arm pivot instead.
+     */
+
+    swordPivot.parent =
+      character.parts
+        .rightArmPivot;
+
+
+    /*
+     * rightArmPivot is at the shoulder.
+     *
+     * Move swordPivot downward towards
+     * the character's hand.
+     */
+
     swordPivot.position.set(
       0,
-      -0.05,
-      -0.15
+      -0.9,
+      0
     );
 
-    /*
-    * Grip is underneath the attack pivot.
-    */
+
     swordGrip.parent =
       swordPivot;
 
-    /*
-    * Actual sword is underneath the grip.
-    */
     sword.parent =
       swordGrip;
 
-    console.log(
-      "Sword attached to:",
-      rightHandBone.name
-    );
-  } else {
-    console.warn(
-      "Could not attach sword to right hand."
+
+    /*
+     * Existing weapon config.
+     */
+
+    swordGrip.position.set(
+      SWORD.position.x,
+      SWORD.position.y,
+      SWORD.position.z
     );
 
-    if (skeleton) {
-      console.log(
-        skeleton.bones.map(
-          (bone) =>
-            bone.name
-        )
+    swordGrip.rotation.set(
+      SWORD.rotation.x,
+      SWORD.rotation.y,
+      SWORD.rotation.z
+    );
+
+    sword.scaling.setAll(
+      SWORD.scale
+    );
+
+
+    /*
+     * Sword imported root should
+     * not have an additional offset.
+     */
+
+    sword.position.set(
+      0,
+      0,
+      0
+    );
+
+    sword.rotation.set(
+      0,
+      0,
+      0
+    );
+
+
+    /*
+     * =====================================================
+     * SWORD TIP
+     * =====================================================
+     */
+
+    const swordTip =
+      MeshBuilder.CreateSphere(
+        "swordTip",
+        {
+          diameter:
+            0.03,
+        },
+        scene
       );
-    }
-  }
 
-  /*
-  * Position / rotation of the weapon
-  * relative to the player's hand.
-  */
-  swordGrip.position.set(
-    SWORD.position.x,
-    SWORD.position.y,
-    SWORD.position.z
-  );
+    swordTip.parent =
+      sword;
 
-  swordGrip.rotation.set(
-    SWORD.rotation.x,
-    SWORD.rotation.y,
-    SWORD.rotation.z
-  );
-
-  sword.scaling.setAll(
-    SWORD.scale
-  );
-
-  /*
-  * Keep sword itself close to the hand.
-  *
-  * Do NOT use a large offset here,
-  * otherwise the weapon looks detached.
-  */
-  sword.position.set(
-    0,
-    0,
-    0
-  );
-
-  sword.rotation.set(
-    0,
-    0,
-    0
-  );
-
-  const swordTip =
-    MeshBuilder.CreateSphere(
-      "swordTip",
-      {
-        diameter: 0.03,
-      },
-      scene
+    swordTip.position.set(
+      0,
+      1.2,
+      0
     );
 
-  swordTip.parent =
-    sword;
+    swordTip.isVisible =
+      false;
 
-  /*
-  * IMPORTANT:
-  *
-  * This position is relative to the sword.
-  * You may have to tweak Y depending on
-  * the sword model.
-  */
-  swordTip.position.set(
-    0,
-    1.2,
-    0
-  );
 
-  /*
-  * Invisible, but still exists
-  * as a TrailMesh target.
-  */
-  swordTip.isVisible =
-    false;
+    /*
+     * =====================================================
+     * FOREST
+     * =====================================================
+     */
 
-  const forest =
-    createForestArea({
-      scene,
+    const forest =
+      createForestArea({
+        scene,
 
-      center:
-        new Vector3(
-          0,
-          0,
-          0
-        ),
-
-      size: 50,
-
-      treeCount: 80,
-      rockCount: 25,
-      bushCount: 40,
-      logCount: 12,
-
-      clearing: {
         center:
           new Vector3(
             0,
@@ -436,10 +391,111 @@ export const createWorld =
             0
           ),
 
-        radius: 8,
-      },
+        size:
+          50,
 
-      path: {
+        treeCount:
+          80,
+
+        rockCount:
+          25,
+
+        bushCount:
+          40,
+
+        logCount:
+          12,
+
+        clearing: {
+          center:
+            new Vector3(
+              0,
+              0,
+              0
+            ),
+
+          radius:
+            8,
+        },
+
+        path: {
+          start:
+            new Vector3(
+              4,
+              0,
+              3
+            ),
+
+          end:
+            new Vector3(
+              0,
+              0,
+              25
+            ),
+
+          width:
+            2.5,
+        },
+      });
+
+
+    /*
+     * =====================================================
+     * MOUNTAINS
+     * =====================================================
+     */
+
+    const mountainRing =
+      createMountainRing({
+        scene,
+
+        center:
+          new Vector3(
+            0,
+            0,
+            0
+          ),
+
+        size:
+          280,
+
+        spacing:
+          22,
+
+        jitter:
+          6,
+      });
+
+
+    /*
+     * =====================================================
+     * CAMP
+     * =====================================================
+     */
+
+    const clearingCamp =
+      createClearingCamp({
+        scene,
+
+        center:
+          new Vector3(
+            2,
+            0,
+            3.5
+          ),
+      });
+
+
+    /*
+     * =====================================================
+     * FOREST PATH
+     * =====================================================
+     */
+
+    const forestPath =
+      createForestPath({
+        scene,
+
         start:
           new Vector3(
             4,
@@ -454,82 +510,55 @@ export const createWorld =
             25
           ),
 
-        width: 2.5,
-      },
-    });
+        width:
+          3,
+      });
 
-  const mountainRing =
-    createMountainRing({
-      scene,
 
-      center:
-        new Vector3(
-          0,
-          0,
-          0
-        ),
+    /*
+     * =====================================================
+     * CAMERA
+     * =====================================================
+     */
 
-      size: 280,
+    const camera =
+      createGameCamera(
+        scene,
+        player
+      );
 
-      spacing: 22,
 
-      jitter: 6,
-    });
+    /*
+     * =====================================================
+     * RESULT
+     * =====================================================
+     */
 
-  const clearingCamp =
-    createClearingCamp({
-      scene,
+    return {
+      player,
 
-      center:
-        new Vector3(
-          2,
-          0,
-          3.5
-        ),
-    });
+      character,
 
-  const forestPath =
-    createForestPath({
-      scene,
+      animations,
 
-      start:
-        new Vector3(
-          4,
-          0,
-          3
-        ),
+      sword,
 
-      end:
-        new Vector3(
-          0,
-          0,
-          25
-        ),
+      swordPivot,
 
-      width: 3,
-    });
+      swordTip,
 
-  /*
-   * CAMERA
-   */
+      camera,
 
-  const camera =
-    createGameCamera(
-      scene,
-      player
-    );
+      nameplate,
 
-  return {
-    player,
-    sword,
-    swordPivot,
-    swordTip,
-    camera,
-    animationGroups,
-    nameplate,
-    mountainRing,
-    forest,
-    camp: clearingCamp,
-    path: forestPath,
+      mountainRing,
+
+      forest,
+
+      camp:
+        clearingCamp,
+
+      path:
+        forestPath,
+    };
   };
-};

@@ -6,6 +6,16 @@ import {
 } from "@colyseus/sdk";
 
 import {
+  Color3,
+  MeshBuilder,
+  SceneLoader,
+  StandardMaterial,
+  TrailMesh,
+  TransformNode,
+  Vector3,
+} from "@babylonjs/core";
+
+import {
   Meteor,
 } from "meteor/meteor";
 
@@ -30,14 +40,12 @@ import {
 } from "./nameplate";
 
 import {
-  Color3,
-  MeshBuilder,
-  SceneLoader,
-  StandardMaterial,
-  TrailMesh,
-  TransformNode,
-  Vector3,
-} from "@babylonjs/core";
+  createLowPolyCharacter,
+} from "./character/createLowPolyCharacter";
+
+import {
+  createCharacterAnimationController,
+} from "./character/createCharacterAnimationController";
 
 const SERVER_URL =
   "ws://localhost:2567";
@@ -505,12 +513,6 @@ const createRemotePlayer =
     name,
     currentLevel
   ) => {
-    const root =
-      new TransformNode(
-        `remote-player-${sessionId}`,
-        scene
-      );
-
     const healthBar =
       createHealthBar({
         scene,
@@ -547,12 +549,31 @@ const createRemotePlayer =
     /*
      * PLAYER MODEL
      */
-    const playerResult =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "player.glb",
-        scene
+    const character =
+      createLowPolyCharacter({
+        scene,
+
+        appearance: {
+          gender:
+            playerState.gender,
+
+          skinTone:
+            playerState.skinTone,
+
+          bodyType:
+            playerState.bodyType,
+
+          head:
+            playerState.head,
+        },
+      });
+
+    const root =
+      character.root;
+
+    const animations =
+      createCharacterAnimationController(
+        character
       );
 
     const model =
@@ -569,11 +590,6 @@ const createRemotePlayer =
         (mesh) =>
           mesh.skeleton ===
           skeleton
-      );
-
-    const animations =
-      createAnimationController(
-        playerResult.animationGroups
       );
 
     /*
@@ -1371,6 +1387,10 @@ export const createMultiplayer = async ({
             entity.movingUntil
         );
       }
+
+      entity.animations.update(
+        deltaTime
+      );
 
       /*
        * REMOTE ATTACK
