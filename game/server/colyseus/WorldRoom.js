@@ -36,7 +36,7 @@ const ENEMY = {
 
   level: 1,
 
-  xpReward: 20,
+  xpReward: 100,
 
   speed: 2,
 
