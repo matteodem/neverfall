@@ -12,6 +12,10 @@ import {
 } from "@babylonjs/core";
 
 import {
+  createMountainRing,
+} from "./environment/createMountainRing";
+
+import {
   SWORD,
 } from "./config";
 
@@ -60,9 +64,26 @@ export const createWorld =
       name,
     }
   ) => {
+
+  scene.clearColor =
+    Color3.FromHexString(
+      "#FFF4D6"
+    ).toColor4();
+
+  scene.fogMode =
+    3;
+
+  scene.fogColor =
+    Color3.FromHexString(
+      "#FFF4D6"
+    );
+
+  scene.fogStart = 80;
+  scene.fogEnd = 220;
+
   /*
-   * LIGHTS
-   */
+  * LIGHTS
+  */
 
   const ambient =
     new HemisphericLight(
@@ -75,7 +96,19 @@ export const createWorld =
       scene
     );
 
-  ambient.intensity = 0.8;
+  ambient.intensity =
+    0.9;
+
+  ambient.diffuse =
+    Color3.FromHexString(
+      "#FFF4D6"
+    );
+
+  ambient.groundColor =
+    Color3.FromHexString(
+      "#B9A86E"
+    );
+
 
   const sun =
     new DirectionalLight(
@@ -88,7 +121,13 @@ export const createWorld =
       scene
     );
 
-  sun.intensity = 0.6;
+  sun.intensity =
+    0.85;
+
+  sun.diffuse =
+    Color3.FromHexString(
+      "#FFE6A3"
+    );
 
   /*
    * GROUND
@@ -382,6 +421,24 @@ export const createWorld =
       logCount: 12,
     });
 
+  const mountainRing =
+    createMountainRing({
+      scene,
+
+      center:
+        new Vector3(
+          0,
+          0,
+          0
+        ),
+
+      size: 280,
+
+      spacing: 22,
+
+      jitter: 6,
+    });
+
   /*
    * CAMERA
    */
@@ -400,6 +457,7 @@ export const createWorld =
     camera,
     animationGroups,
     nameplate,
+    mountainRing,
     forest:
       eastNorthForest,
   };
