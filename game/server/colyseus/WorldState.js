@@ -42,6 +42,26 @@ export const PlayerState =
         t.number().default(
           0
         ),
+      
+      gender:
+        t.string().default(
+          "female"
+        ),
+
+      skinTone:
+        t.string().default(
+          "medium"
+        ),
+
+      bodyType:
+        t.string().default(
+          "medium"
+        ),
+
+      head:
+        t.string().default(
+          "head1"
+        ),
     },
     "PlayerState"
   );

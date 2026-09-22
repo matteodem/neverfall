@@ -21,6 +21,14 @@ export const HelpModal = () => {
         </ul>
       </div>
 
+      <p className="mt-2 text-lg font-bold">
+        Current Version
+      </p>
+
+      <div className="mt-2">
+        v0.1
+      </div>
+
       <p className="mt-5 text-lg font-bold">
         How To Support This Project
       </p>

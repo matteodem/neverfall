@@ -41,10 +41,6 @@ import {
 } from "../game/combat";
 
 import {
-  createPlayerAnimationController,
-} from "../game/animation";
-
-import {
   createLoadingScreen,
 } from "../game/loadingScreen";
 
@@ -57,7 +53,6 @@ export const Game = ({
   character,
 
   setPlayerHealth,
-
   setHealCooldownUntil,
 }) => {
   const canvasRef =
@@ -153,16 +148,19 @@ export const Game = ({
 
           const {
             player,
+
             swordPivot,
             swordTip,
+
             camera,
-            animationGroups,
+
+            animations,
           } =
             await createWorld(
               scene,
               {
-                assetFile:
-                  character.assetFile,
+                appearance:
+                  character.appearance,
 
                 name:
                   character.name,
@@ -217,19 +215,6 @@ export const Game = ({
             .setProgress(
               85
             );
-
-
-          /*
-           * =====================================================
-           * PLAYER ANIMATIONS
-           * =====================================================
-           */
-
-          animations =
-            createPlayerAnimationController(
-              animationGroups
-            );
-
 
           /*
            * =====================================================
@@ -558,23 +543,24 @@ export const Game = ({
               if (
                 jump.isJumping()
               ) {
-                animations
-                  .setJumping(
-                    true
-                  );
+                animations.setJumping(
+                  true
+                );
               } else {
-                animations
-                  .setJumping(
-                    false
-                  );
+                animations.setJumping(
+                  false
+                );
 
-                animations
-                  .setRunning(
-                    isMoving(
-                      input.state
-                    )
-                  );
+                animations.setRunning(
+                  isMoving(
+                    input.state
+                  )
+                );
               }
+
+              animations.update(
+                deltaTime
+              );
 
 
               /*

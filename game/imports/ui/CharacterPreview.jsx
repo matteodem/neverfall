@@ -9,15 +9,20 @@ import {
   Engine,
   HemisphericLight,
   Scene,
-  SceneLoader,
-  TransformNode,
   Vector3,
 } from "@babylonjs/core";
 
-import "@babylonjs/loaders/glTF";
+import {
+  createLowPolyCharacter,
+} from "../game/character/createLowPolyCharacter";
+
+import {
+  createCharacterAnimationController,
+} from "../game/character/createCharacterAnimationController";
+
 
 export const CharacterPreview = ({
-  assetFile,
+  appearance,
 }) => {
   const canvasRef =
     useRef(
@@ -31,30 +36,44 @@ export const CharacterPreview = ({
     true
   );
 
+
   useEffect(
     () => {
       const canvas =
         canvasRef.current;
 
-      if (
-        !canvas ||
-        !assetFile
-      ) {
+      if (!canvas) {
         return;
       }
+
 
       setLoading(
         true
       );
+
+
+      /*
+       * =====================================================
+       * ENGINE
+       * =====================================================
+       */
 
       const engine =
         new Engine(
           canvas,
           true,
           {
-            alpha: true,
+            alpha:
+              true,
           }
         );
+
+
+      /*
+       * =====================================================
+       * SCENE
+       * =====================================================
+       */
 
       const scene =
         new Scene(
@@ -68,8 +87,11 @@ export const CharacterPreview = ({
         0
       );
 
+
       /*
+       * =====================================================
        * CAMERA
+       * =====================================================
        */
 
       const camera =
@@ -80,11 +102,11 @@ export const CharacterPreview = ({
 
           Math.PI / 2.3,
 
-          4,
+          5.5,
 
           new Vector3(
             0,
-            1,
+            1.3,
             0
           ),
 
@@ -92,7 +114,24 @@ export const CharacterPreview = ({
         );
 
       /*
+       * We intentionally don't call
+       * camera.attachControl().
+       *
+       * Dragging rotates the character,
+       * not the camera.
+       */
+
+      camera.lowerRadiusLimit =
+        5.5;
+
+      camera.upperRadiusLimit =
+        5.5;
+
+
+      /*
+       * =====================================================
        * LIGHT
+       * =====================================================
        */
 
       const light =
@@ -111,94 +150,48 @@ export const CharacterPreview = ({
       light.intensity =
         1.3;
 
+
       /*
-       * CHARACTER ROOT
+       * =====================================================
+       * CHARACTER
+       * =====================================================
        */
+
+      const character =
+        createLowPolyCharacter({
+          scene,
+
+          appearance,
+        });
 
       const characterRoot =
-        new TransformNode(
-          "characterPreviewRoot",
-          scene
-        );
+        character.root;
+
 
       /*
-       * LOAD CHARACTER
+       * =====================================================
+       * IDLE ANIMATION
+       * =====================================================
        */
 
-      const load =
-        async () => {
-          try {
-            const slash =
-              assetFile.lastIndexOf(
-                "/"
-              );
+      const animations =
+        createCharacterAnimationController(
+          character
+        );
 
-            const rootUrl =
-              assetFile.slice(
-                0,
-                slash + 1
-              );
+      animations.setRunning(
+        false
+      );
 
-            const filename =
-              assetFile.slice(
-                slash + 1
-              );
+      animations.setJumping(
+        false
+      );
 
-            const result =
-              await SceneLoader.ImportMeshAsync(
-                "",
-                rootUrl,
-                filename,
-                scene
-              );
-
-            for (
-              const mesh
-              of result.meshes
-            ) {
-              if (!mesh.parent) {
-                mesh.parent =
-                  characterRoot;
-              }
-            }
-
-            const idle =
-              result.animationGroups.find(
-                (
-                  animation
-                ) =>
-                  animation.name
-                    .toLowerCase()
-                    .includes(
-                      "idle"
-                    )
-              );
-
-            idle?.start(
-              true
-            );
-
-            setLoading(
-              false
-            );
-          } catch (
-            error
-          ) {
-            console.error(
-              "[CharacterPreview]",
-              error
-            );
-
-            setLoading(
-              false
-            );
-          }
-        };
-
-      load();
 
       /*
+       * =====================================================
        * CHARACTER ROTATION
+       * =====================================================
        */
 
       let dragging =
@@ -210,62 +203,77 @@ export const CharacterPreview = ({
       const ROTATION_SPEED =
         0.01;
 
-      const pointerDown = (
-        event
-      ) => {
-        if (
-          event.button !== 0 &&
-          event.button !== 2
-        ) {
-          return;
-        }
 
-        dragging =
-          true;
+      const pointerDown =
+        (
+          event
+        ) => {
+          if (
+            event.button !==
+              0 &&
+            event.button !==
+              2
+          ) {
+            return;
+          }
 
-        previousX =
-          event.clientX;
+          dragging =
+            true;
 
-        canvas.setPointerCapture?.(
-          event.pointerId
-        );
-      };
+          previousX =
+            event.clientX;
 
-      const pointerMove = (
-        event
-      ) => {
-        if (!dragging) {
-          return;
-        }
+          canvas
+            .setPointerCapture
+            ?.(
+              event.pointerId
+            );
+        };
 
-        const deltaX =
-          event.clientX -
-          previousX;
 
-        previousX =
-          event.clientX;
+      const pointerMove =
+        (
+          event
+        ) => {
+          if (!dragging) {
+            return;
+          }
 
-        characterRoot.rotation.y +=
-          deltaX *
-          ROTATION_SPEED;
-      };
+          const deltaX =
+            event.clientX -
+            previousX;
 
-      const pointerUp = (
-        event
-      ) => {
-        dragging =
-          false;
+          previousX =
+            event.clientX;
 
-        canvas.releasePointerCapture?.(
-          event.pointerId
-        );
-      };
+          characterRoot.rotation.y +=
+            deltaX *
+            ROTATION_SPEED;
+        };
 
-      const contextMenu = (
-        event
-      ) => {
-        event.preventDefault();
-      };
+
+      const pointerUp =
+        (
+          event
+        ) => {
+          dragging =
+            false;
+
+          canvas
+            .releasePointerCapture
+            ?.(
+              event.pointerId
+            );
+        };
+
+
+      const contextMenu =
+        (
+          event
+        ) => {
+          event.preventDefault();
+        };
+
 
       canvas.addEventListener(
         "pointerdown",
@@ -292,25 +300,55 @@ export const CharacterPreview = ({
         contextMenu
       );
 
+
       /*
+       * =====================================================
        * RENDER
+       * =====================================================
        */
+
+      setLoading(
+        false
+      );
+
 
       engine.runRenderLoop(
         () => {
+          const deltaTime =
+            engine.getDeltaTime();
+
+          animations.update(
+            deltaTime
+          );
+
           scene.render();
         }
       );
+
+
+      /*
+       * =====================================================
+       * RESIZE
+       * =====================================================
+       */
 
       const resize =
         () => {
           engine.resize();
         };
 
+
       window.addEventListener(
         "resize",
         resize
       );
+
+
+      /*
+       * =====================================================
+       * CLEANUP
+       * =====================================================
+       */
 
       return () => {
         canvas.removeEventListener(
@@ -343,14 +381,26 @@ export const CharacterPreview = ({
           resize
         );
 
+        animations.destroy();
+
         scene.dispose();
+
         engine.dispose();
       };
     },
+
+    /*
+     * Rebuild preview whenever
+     * appearance changes.
+     */
     [
-      assetFile,
+      appearance?.gender,
+      appearance?.skinTone,
+      appearance?.bodyType,
+      appearance?.head,
     ]
   );
+
 
   return (
     <div className="relative h-full w-full">

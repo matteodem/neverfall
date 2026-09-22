@@ -10,15 +10,64 @@ import {
   Characters,
 } from "../../imports/api/characters/characters";
 
-const DEFAULT_ASSET =
-  "/models/player.glb";
+
+const VALID_APPEARANCE = {
+  gender: [
+    "female",
+    "male",
+  ],
+
+  skinTone: [
+    "light",
+    "fair",
+    "medium",
+    "tan",
+    "brown",
+    "dark",
+  ],
+
+  bodyType: [
+    "slim",
+    "medium",
+    "large",
+  ],
+
+  head: [
+    "head1",
+    "head2",
+    "head3",
+    "head4",
+    "head5",
+  ],
+};
+
+
+const DEFAULT_APPEARANCE = {
+  gender:
+    "female",
+
+  skinTone:
+    "medium",
+
+  bodyType:
+    "medium",
+
+  head:
+    "head1",
+};
+
 
 const normalizeName = (
   name
-) =>
-  name
-    .trim()
-    .toLowerCase();
+) => {
+  return (
+    name
+      ?.trim()
+      .toLowerCase() ||
+    ""
+  );
+};
+
 
 const requireUser = (
   userId
@@ -30,13 +79,66 @@ const requireUser = (
   }
 };
 
+
+const normalizeAppearance = (
+  appearance
+) => {
+  return {
+    gender:
+      appearance?.gender ||
+      DEFAULT_APPEARANCE.gender,
+
+    skinTone:
+      appearance?.skinTone ||
+      DEFAULT_APPEARANCE.skinTone,
+
+    bodyType:
+      appearance?.bodyType ||
+      DEFAULT_APPEARANCE.bodyType,
+
+    head:
+      appearance?.head ||
+      DEFAULT_APPEARANCE.head,
+  };
+};
+
+
+const validateAppearance = (
+  appearance
+) => {
+  for (
+    const [
+      key,
+      values,
+    ]
+    of Object.entries(
+      VALID_APPEARANCE
+    )
+  ) {
+    if (
+      values.includes(
+        appearance[
+          key
+        ]
+      )
+    ) {
+      continue;
+    }
+
+    throw new Meteor.Error(
+      `invalid-${key}`
+    );
+  }
+};
+
+
 Meteor.methods({
   async "characters.isNameAvailable"(
     name
   ) {
     const normalized =
       normalizeName(
-        name || ""
+        name
       );
 
     if (!normalized) {
@@ -52,11 +154,12 @@ Meteor.methods({
     return !existing;
   },
 
+
   async "characters.create"({
     name,
-    gender,
     species,
     gameClass,
+    appearance,
   }) {
     requireUser(
       this.userId
@@ -88,19 +191,6 @@ Meteor.methods({
     }
 
     if (
-      ![
-        "male",
-        "female",
-      ].includes(
-        gender
-      )
-    ) {
-      throw new Meteor.Error(
-        "invalid-gender"
-      );
-    }
-
-    if (
       species !==
       "human"
     ) {
@@ -118,11 +208,22 @@ Meteor.methods({
       );
     }
 
+    const normalizedAppearance =
+      normalizeAppearance(
+        appearance
+      );
+
+    validateAppearance(
+      normalizedAppearance
+    );
+
     const id =
       Random.id();
 
-    const character = {
-      _id: id,
+    await Characters.insertAsync({
+      _id:
+        id,
+
       id,
 
       userId:
@@ -133,13 +234,14 @@ Meteor.methods({
 
       nameLower,
 
-      gender,
-
       species:
         "human",
 
       gameClass:
         "warrior",
+
+      appearance:
+        normalizedAppearance,
 
       currentLevel:
         1,
@@ -147,16 +249,9 @@ Meteor.methods({
       currentXp:
         0,
 
-      assetFile:
-        DEFAULT_ASSET,
-
       lastPlayedAt:
         new Date(),
-    };
-
-    await Characters.insertAsync(
-      character
-    );
+    });
 
     await Meteor.users.updateAsync(
       this.userId,
@@ -168,11 +263,21 @@ Meteor.methods({
           "profile.isPlaying":
             false,
         },
+
+        /*
+         * Removes the old architecture
+         * if it exists on this user.
+         */
+        $unset: {
+          "profile.appearance":
+            "",
+        },
       }
     );
 
     return id;
   },
+
 
   async "characters.select"(
     characterId
@@ -206,6 +311,7 @@ Meteor.methods({
       }
     );
   },
+
 
   async "characters.remove"(
     characterId
@@ -258,6 +364,7 @@ Meteor.methods({
       }
     );
   },
+
 
   async "characters.joinCurrent"() {
     requireUser(
@@ -315,14 +422,13 @@ Meteor.methods({
     );
   },
 
-  "characters.goToCharacterScreen"() {
-    if (!this.userId) {
-      throw new Meteor.Error(
-        "not-authorized"
-      );
-    }
 
-    return Meteor.users.updateAsync(
+  async "characters.goToCharacterScreen"() {
+    requireUser(
+      this.userId
+    );
+
+    await Meteor.users.updateAsync(
       this.userId,
       {
         $set: {

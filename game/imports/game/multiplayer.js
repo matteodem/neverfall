@@ -6,6 +6,16 @@ import {
 } from "@colyseus/sdk";
 
 import {
+  Color3,
+  MeshBuilder,
+  SceneLoader,
+  StandardMaterial,
+  TrailMesh,
+  TransformNode,
+  Vector3,
+} from "@babylonjs/core";
+
+import {
   Meteor,
 } from "meteor/meteor";
 
@@ -30,14 +40,13 @@ import {
 } from "./nameplate";
 
 import {
-  Color3,
-  MeshBuilder,
-  SceneLoader,
-  StandardMaterial,
-  TrailMesh,
-  TransformNode,
-  Vector3,
-} from "@babylonjs/core";
+  createLowPolyCharacter,
+} from "./character/createLowPolyCharacter";
+
+import {
+  createCharacterAnimationController,
+} from "./character/createCharacterAnimationController";
+
 
 const SERVER_URL =
   "ws://localhost:2567";
@@ -54,57 +63,12 @@ const RUN_TIMEOUT =
 const JUMP_THRESHOLD =
   0.05;
 
+
 /*
  * =========================================================
  * HELPERS
  * =========================================================
  */
-
-const findAnimation = (
-  animationGroups,
-  names
-) => {
-  const searchNames =
-    names.map(
-      (name) =>
-        name.toLowerCase()
-    );
-
-  return animationGroups.find(
-    (animation) => {
-      const animationName =
-        animation.name.toLowerCase();
-
-      return searchNames.some(
-        (name) =>
-          animationName.includes(
-            name
-          )
-      );
-    }
-  );
-};
-
-const findRightHandBone = (
-  skeleton
-) => {
-  if (!skeleton) {
-    return null;
-  }
-
-  return skeleton.bones.find(
-    (bone) => {
-      const name =
-        bone.name.toLowerCase();
-
-      return (
-        name.includes("righthand") ||
-        name.includes("right_hand") ||
-        name.includes("hand_r")
-      );
-    }
-  );
-};
 
 const normalizeAngle = (
   angle
@@ -126,6 +90,7 @@ const normalizeAngle = (
   return angle;
 };
 
+
 const lerp = (
   from,
   to,
@@ -138,155 +103,6 @@ const lerp = (
   );
 };
 
-/*
- * =========================================================
- * REMOTE PLAYER ANIMATION CONTROLLER
- * =========================================================
- */
-
-const createAnimationController = (
-  animationGroups
-) => {
-  const idle =
-    findAnimation(
-      animationGroups,
-      ["idle"]
-    );
-
-  const run =
-    findAnimation(
-      animationGroups,
-      ["run", "running"]
-    );
-
-  const jump =
-    findAnimation(
-      animationGroups,
-      [
-        "jump",
-        "jumping",
-        "jump start",
-        "jump_start",
-        "jumpstart",
-      ]
-    );
-
-  console.log(
-    "[Remote Player] Animations:",
-    animationGroups.map(
-      (animation) =>
-        animation.name
-    )
-  );
-
-  console.log(
-    "[Remote Player] Jump animation:",
-    jump?.name
-  );
-
-  let running = false;
-  let jumping = false;
-  let currentAnimation = null;
-
-  const play = (
-    animation,
-    loop = true
-  ) => {
-    if (
-      !animation ||
-      currentAnimation ===
-        animation
-    ) {
-      return;
-    }
-
-    currentAnimation?.stop();
-
-    currentAnimation =
-      animation;
-
-    animation.start(
-      loop
-    );
-  };
-
-  const updateAnimation = () => {
-    /*
-     * Jump has priority over
-     * run and idle.
-     */
-    if (jumping) {
-      play(
-        jump,
-        false
-      );
-
-      return;
-    }
-
-    if (running) {
-      play(
-        run,
-        true
-      );
-
-      return;
-    }
-
-    play(
-      idle,
-      true
-    );
-  };
-
-  updateAnimation();
-
-  return {
-    setRunning(
-      shouldRun
-    ) {
-      if (
-        running ===
-        shouldRun
-      ) {
-        return;
-      }
-
-      running =
-        shouldRun;
-
-      updateAnimation();
-    },
-
-    setJumping(
-      shouldJump
-    ) {
-      if (
-        jumping ===
-        shouldJump
-      ) {
-        return;
-      }
-
-      jumping =
-        shouldJump;
-
-      updateAnimation();
-    },
-
-    destroy() {
-      for (
-        const animation
-        of animationGroups
-      ) {
-        animation.stop();
-      }
-
-      currentAnimation =
-        null;
-    },
-  };
-};
 
 /*
  * =========================================================
@@ -299,14 +115,18 @@ const createRemoteCombat = ({
   swordPivot,
   swordTip,
 }) => {
-  let attacking = false;
-  let progress = 0;
+  let attacking =
+    false;
+
+  let progress =
+    0;
 
   const duration =
     500;
 
   const defaultRotation =
     swordPivot.rotation.clone();
+
 
   const trail =
     new TrailMesh(
@@ -317,6 +137,7 @@ const createRemoteCombat = ({
       20,
       true
     );
+
 
   const trailMaterial =
     new StandardMaterial(
@@ -341,149 +162,197 @@ const createRemoteCombat = ({
     false
   );
 
+
   const startAttack =
     () => {
       if (attacking) {
         return;
       }
 
-      attacking = true;
-      progress = 0;
+      attacking =
+        true;
+
+      progress =
+        0;
     };
 
-  const update = (
-    deltaTime
-  ) => {
-    if (!attacking) {
-      return;
-    }
 
-    progress +=
-      deltaTime /
-      duration;
+  const update =
+    (
+      deltaTime
+    ) => {
+      if (!attacking) {
+        return;
+      }
 
-    /*
-     * WINDUP
-     */
-    if (progress < 0.25) {
+      progress +=
+        deltaTime /
+        duration;
+
+
+      /*
+       * WINDUP
+       */
+
+      if (
+        progress <
+        0.25
+      ) {
+        const t =
+          progress /
+          0.25;
+
+        swordPivot.rotation.x =
+          lerp(
+            defaultRotation.x,
+            defaultRotation.x -
+              0.9,
+            t
+          );
+
+        swordPivot.rotation.y =
+          lerp(
+            defaultRotation.y,
+            defaultRotation.y +
+              0.65,
+            t
+          );
+
+        swordPivot.rotation.z =
+          lerp(
+            defaultRotation.z,
+            defaultRotation.z -
+              0.35,
+            t
+          );
+
+        trail.setEnabled(
+          false
+        );
+
+        return;
+      }
+
+
+      /*
+       * SLASH
+       */
+
+      if (
+        progress <
+        0.65
+      ) {
+        const t =
+          (
+            progress -
+            0.25
+          ) /
+          0.4;
+
+        trail.setEnabled(
+          true
+        );
+
+        swordPivot.rotation.x =
+          lerp(
+            defaultRotation.x -
+              0.9,
+            defaultRotation.x +
+              1.15,
+            t
+          );
+
+        swordPivot.rotation.y =
+          lerp(
+            defaultRotation.y +
+              0.65,
+            defaultRotation.y -
+              0.55,
+            t
+          );
+
+        swordPivot.rotation.z =
+          lerp(
+            defaultRotation.z -
+              0.35,
+            defaultRotation.z +
+              0.25,
+            t
+          );
+
+        return;
+      }
+
+
+      /*
+       * RECOVERY
+       */
+
       const t =
-        progress / 0.25;
+        (
+          progress -
+          0.65
+        ) /
+        0.35;
+
+      trail.setEnabled(
+        false
+      );
 
       swordPivot.rotation.x =
         lerp(
+          defaultRotation.x +
+            1.15,
           defaultRotation.x,
-          defaultRotation.x - 0.9,
           t
         );
 
       swordPivot.rotation.y =
         lerp(
+          defaultRotation.y -
+            0.55,
           defaultRotation.y,
-          defaultRotation.y + 0.65,
           t
         );
 
       swordPivot.rotation.z =
         lerp(
+          defaultRotation.z +
+            0.25,
           defaultRotation.z,
-          defaultRotation.z - 0.35,
           t
         );
 
-      trail.setEnabled(
-        false
-      );
 
-      return;
-    }
+      if (
+        progress >=
+        1
+      ) {
+        attacking =
+          false;
 
-    /*
-     * SLASH
-     */
-    if (progress < 0.65) {
-      const t =
-        (progress - 0.25) /
-        0.4;
+        progress =
+          0;
 
-      trail.setEnabled(
-        true
-      );
+        swordPivot.rotation
+          .copyFrom(
+            defaultRotation
+          );
 
-      swordPivot.rotation.x =
-        lerp(
-          defaultRotation.x - 0.9,
-          defaultRotation.x + 1.15,
-          t
+        trail.setEnabled(
+          false
         );
+      }
+    };
 
-      swordPivot.rotation.y =
-        lerp(
-          defaultRotation.y + 0.65,
-          defaultRotation.y - 0.55,
-          t
-        );
-
-      swordPivot.rotation.z =
-        lerp(
-          defaultRotation.z - 0.35,
-          defaultRotation.z + 0.25,
-          t
-        );
-
-      return;
-    }
-
-    /*
-     * RECOVERY
-     */
-    const t =
-      (progress - 0.65) /
-      0.35;
-
-    trail.setEnabled(
-      false
-    );
-
-    swordPivot.rotation.x =
-      lerp(
-        defaultRotation.x + 1.15,
-        defaultRotation.x,
-        t
-      );
-
-    swordPivot.rotation.y =
-      lerp(
-        defaultRotation.y - 0.55,
-        defaultRotation.y,
-        t
-      );
-
-    swordPivot.rotation.z =
-      lerp(
-        defaultRotation.z + 0.25,
-        defaultRotation.z,
-        t
-      );
-
-    if (progress >= 1) {
-      attacking = false;
-      progress = 0;
-
-      swordPivot.rotation.copyFrom(
-        defaultRotation
-      );
-
-      trail.setEnabled(
-        false
-      );
-    }
-  };
 
   const destroy =
     () => {
       trail.dispose();
+
       trailMaterial.dispose();
     };
+
 
   return {
     startAttack,
@@ -491,6 +360,7 @@ const createRemoteCombat = ({
     destroy,
   };
 };
+
 
 /*
  * =========================================================
@@ -502,27 +372,58 @@ const createRemotePlayer =
   async (
     scene,
     sessionId,
-    name,
-    currentLevel
+    playerState
   ) => {
+    /*
+     * PLAYER
+     */
+
+    const character =
+      createLowPolyCharacter({
+        scene,
+
+        appearance: {
+          gender:
+            playerState.gender ||
+            "female",
+
+          skinTone:
+            playerState.skinTone ||
+            "medium",
+
+          bodyType:
+            playerState.bodyType ||
+            "medium",
+
+          head:
+            playerState.head ||
+            "head1",
+        },
+      });
+
+
     const root =
-      new TransformNode(
-        `remote-player-${sessionId}`,
-        scene
+      character.root;
+
+
+    const animations =
+      createCharacterAnimationController(
+        character
       );
 
-    const healthBar =
-      createHealthBar({
-        scene,
-        player: root,
-      });
+
+    /*
+     * NAMEPLATE
+     */
 
     const getNameplateText =
       (
         playerName,
         level
-      ) =>
-        `${playerName} (Level ${level})`;
+      ) => {
+        return `${playerName} (Level ${level})`;
+      };
+
 
     const nameplate =
       createNameplate({
@@ -533,8 +434,8 @@ const createRemotePlayer =
 
         name:
           getNameplateText(
-            name,
-            currentLevel
+            playerState.name,
+            playerState.currentLevel
           ),
 
         color:
@@ -544,41 +445,24 @@ const createRemotePlayer =
           -0.4,
       });
 
+
     /*
-     * PLAYER MODEL
+     * HEALTH BAR
      */
-    const playerResult =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "player.glb",
-        scene
-      );
 
-    const model =
-      playerResult.meshes[0];
+    const healthBar =
+      createHealthBar({
+        scene,
 
-    model.parent =
-      root;
+        player:
+          root,
+      });
 
-    const skeleton =
-      playerResult.skeletons[0];
-
-    const skinnedMesh =
-      playerResult.meshes.find(
-        (mesh) =>
-          mesh.skeleton ===
-          skeleton
-      );
-
-    const animations =
-      createAnimationController(
-        playerResult.animationGroups
-      );
 
     /*
      * SWORD
      */
+
     const swordResult =
       await SceneLoader.ImportMeshAsync(
         "",
@@ -587,8 +471,12 @@ const createRemotePlayer =
         scene
       );
 
+
     const sword =
-      swordResult.meshes[0];
+      swordResult.meshes[
+        0
+      ];
+
 
     const swordPivot =
       new TransformNode(
@@ -596,42 +484,46 @@ const createRemotePlayer =
         scene
       );
 
+
     const swordGrip =
       new TransformNode(
         `remote-sword-grip-${sessionId}`,
         scene
       );
 
-    const rightHandBone =
-      findRightHandBone(
-        skeleton
-      );
 
-    if (
-      rightHandBone &&
-      skinnedMesh
-    ) {
-      swordPivot.attachToBone(
-        rightHandBone,
-        skinnedMesh
-      );
+    /*
+     * The procedural character has
+     * no skeleton anymore.
+     *
+     * Attach the sword directly to
+     * the right arm pivot.
+     */
 
-      swordGrip.parent =
-        swordPivot;
+    swordPivot.parent =
+      character.parts
+        .rightArmPivot;
 
-      sword.parent =
-        swordGrip;
-    } else {
-      console.warn(
-        "Remote sword could not find right hand bone."
-      );
-    }
+    swordPivot.position.set(
+      0,
+      -0.9,
+      0
+    );
+
+
+    swordGrip.parent =
+      swordPivot;
+
+    sword.parent =
+      swordGrip;
+
 
     swordGrip.rotation.set(
       Math.PI / 2,
       0,
       0
     );
+
 
     sword.scaling.setAll(
       0.7
@@ -643,17 +535,21 @@ const createRemotePlayer =
       0
     );
 
+
     /*
      * SWORD TIP
      */
+
     const swordTip =
       MeshBuilder.CreateSphere(
         `remote-sword-tip-${sessionId}`,
         {
-          diameter: 0.03,
+          diameter:
+            0.03,
         },
         scene
       );
+
 
     swordTip.parent =
       sword;
@@ -667,6 +563,11 @@ const createRemotePlayer =
     swordTip.isVisible =
       false;
 
+
+    /*
+     * COMBAT
+     */
+
     const combat =
       createRemoteCombat({
         scene,
@@ -674,17 +575,22 @@ const createRemotePlayer =
         swordTip,
       });
 
+
     return {
       root,
-      model,
+      character,
+
       nameplate,
+      healthBar,
+
       sword,
       swordPivot,
       swordGrip,
       swordTip,
-      healthBar,
+
       animations,
       combat,
+
 
       targetPosition:
         Vector3.Zero(),
@@ -695,35 +601,39 @@ const createRemotePlayer =
       movingUntil:
         0,
 
+
       setLevel(
         level
       ) {
         nameplate.setName(
           getNameplateText(
-            name,
+            playerState.name,
             level
           )
         );
       },
 
-      setAlive(alive) {
+
+      setAlive(
+        alive
+      ) {
         root.setEnabled(
           alive
         );
 
-        swordPivot?.setEnabled(
+        swordPivot.setEnabled(
           alive
         );
 
-        swordGrip?.setEnabled(
+        swordGrip.setEnabled(
           alive
         );
 
-        sword?.setEnabled(
+        sword.setEnabled(
           alive
         );
 
-        swordTip?.setEnabled(
+        swordTip.setEnabled(
           alive
         );
 
@@ -732,21 +642,31 @@ const createRemotePlayer =
         );
       },
 
+
       destroy() {
         animations.destroy();
+
         combat.destroy();
+
         nameplate.destroy();
+
         healthBar.destroy();
 
-        swordTip?.dispose();
-        sword?.dispose();
-        swordGrip?.dispose();
-        swordPivot?.dispose();
+
+        swordTip.dispose();
+
+        sword.dispose();
+
+        swordGrip.dispose();
+
+        swordPivot.dispose();
+
 
         root.dispose();
       },
     };
   };
+
 
 /*
  * =========================================================
@@ -754,723 +674,1004 @@ const createRemotePlayer =
  * =========================================================
  */
 
-export const createMultiplayer = async ({
-  scene,
-  player,
-  onLocalHealthChange,
-  onHealCooldown,
-}) => {
-  await ensureGuestUser();
+export const createMultiplayer =
+  async ({
+    scene,
+    player,
+    onLocalHealthChange,
+    onHealCooldown,
+  }) => {
+    await ensureGuestUser();
 
-  const userId =
-    Meteor.userId();
 
-  console.log(
-    "[Meteor] userId:",
-    userId
-  );
+    const userId =
+      Meteor.userId();
 
-  const authToken =
-    await Meteor.callAsync(
-      "colyseus.authToken"
+
+    console.log(
+      "[Meteor] userId:",
+      userId
     );
 
-  const client =
-    new Client(
-      SERVER_URL
-    );
 
-  client.auth.token =
-    authToken;
+    const authToken =
+      await Meteor.callAsync(
+        "colyseus.authToken"
+      );
 
-  const room =
-    await client.joinOrCreate(
-      "world"
-    );
 
-  const callbacks =
-    Callbacks.get(
-      room
-    );
+    const client =
+      new Client(
+        SERVER_URL
+      );
 
-  const remotePlayers =
-    new Map();
 
-  const enemies =
-    new Map();
+    client.auth.token =
+      authToken;
 
-  let localPlayerState =
-    null;
 
-  const removedPlayers =
-    new Set();
+    const room =
+      await client.joinOrCreate(
+        "world"
+      );
 
-  /*
-   * PLAYER JOIN
-   */
-  callbacks.onAdd(
-    "players",
-    async (
-      playerState,
-      sessionId
-    ) => {
-      if (
-        sessionId ===
-        room.sessionId
-      ) {
-        localPlayerState =
-          playerState;
 
-        onLocalHealthChange?.({
-          health:
-            playerState.health,
+    const callbacks =
+      Callbacks.get(
+        room
+      );
 
-          maxHealth:
-            playerState.maxHealth,
-        });
+
+    const remotePlayers =
+      new Map();
+
+
+    const enemies =
+      new Map();
+
+
+    let localPlayerState =
+      null;
+
+
+    const removedPlayers =
+      new Set();
+
+
+    /*
+     * =========================================================
+     * PLAYER JOIN
+     * =========================================================
+     */
+
+    callbacks.onAdd(
+      "players",
+      async (
+        playerState,
+        sessionId
+      ) => {
+        /*
+         * LOCAL PLAYER
+         */
+
+        if (
+          sessionId ===
+          room.sessionId
+        ) {
+          localPlayerState =
+            playerState;
+
+
+          onLocalHealthChange?.({
+            health:
+              playerState.health,
+
+            maxHealth:
+              playerState.maxHealth,
+          });
+
+
+          callbacks.listen(
+            playerState,
+            "health",
+            () => {
+              onLocalHealthChange?.({
+                health:
+                  playerState.health,
+
+                maxHealth:
+                  playerState.maxHealth,
+              });
+            }
+          );
+
+
+          callbacks.listen(
+            playerState,
+            "maxHealth",
+            () => {
+              onLocalHealthChange?.({
+                health:
+                  playerState.health,
+
+                maxHealth:
+                  playerState.maxHealth,
+              });
+            }
+          );
+
+
+          return;
+        }
+
+
+        /*
+         * REMOTE PLAYER
+         */
+
+        removedPlayers.delete(
+          sessionId
+        );
+
+
+        const entity =
+          await createRemotePlayer(
+            scene,
+            sessionId,
+            playerState
+          );
+
+
+        /*
+         * Player may have left while
+         * sword.glb was loading.
+         */
+
+        if (
+          removedPlayers.has(
+            sessionId
+          )
+        ) {
+          entity.destroy();
+
+          return;
+        }
+
+
+        entity.root.position.set(
+          playerState.x,
+          playerState.y,
+          playerState.z
+        );
+
+
+        entity.root.rotation.y =
+          playerState.rotationY;
+
+
+        entity.targetPosition.set(
+          playerState.x,
+          playerState.y,
+          playerState.z
+        );
+
+
+        entity.targetRotationY =
+          playerState.rotationY;
+
+
+        entity.healthBar.setHealth(
+          playerState.health,
+          playerState.maxHealth
+        );
+
+
+        entity.setAlive(
+          playerState.health >
+            0
+        );
+
+
+        remotePlayers.set(
+          sessionId,
+          entity
+        );
+
+
+        /*
+         * HEALTH
+         */
 
         callbacks.listen(
           playerState,
           "health",
           () => {
-            onLocalHealthChange?.({
-              health:
-                playerState.health,
+            const alive =
+              playerState.health >
+              0;
 
-              maxHealth:
-                playerState.maxHealth,
-            });
-          }
-        );
 
-        return;
-      }
+            entity.healthBar.setHealth(
+              playerState.health,
+              playerState.maxHealth
+            );
 
-      removedPlayers.delete(
-        sessionId
-      );
 
-      const entity =
-        await createRemotePlayer(
-          scene,
-          sessionId,
-          playerState.name,
-          playerState.currentLevel
-        );
+            if (!alive) {
+              entity.setAlive(
+                false
+              );
 
-      if (
-        removedPlayers.has(
-          sessionId
-        )
-      ) {
-        entity.destroy();
-        return;
-      }
+              return;
+            }
 
-      entity.root.position.set(
-        playerState.x,
-        playerState.y,
-        playerState.z
-      );
 
-      entity.root.rotation.y =
-        playerState.rotationY;
+            /*
+             * On respawn, snap the
+             * remote player back to
+             * the server position.
+             */
 
-      entity.targetPosition.set(
-        playerState.x,
-        playerState.y,
-        playerState.z
-      );
+            entity.root.position.set(
+              playerState.x,
+              playerState.y,
+              playerState.z
+            );
 
-      entity.targetRotationY =
-        playerState.rotationY;
 
-      entity.healthBar.setHealth(
-        playerState.health,
-        playerState.maxHealth
-      );
+            entity.targetPosition.set(
+              playerState.x,
+              playerState.y,
+              playerState.z
+            );
 
-      entity.setAlive(
-        playerState.health > 0
-      );
 
-      remotePlayers.set(
-        sessionId,
-        entity
-      );
+            entity.root.rotation.y =
+              playerState.rotationY;
 
-      callbacks.listen(
-        playerState,
-        "health",
-        () => {
-          const alive =
-            playerState.health > 0;
 
-          entity.healthBar.setHealth(
-            playerState.health,
-            playerState.maxHealth
-          );
+            entity.targetRotationY =
+              playerState.rotationY;
 
-          if (!alive) {
+
             entity.setAlive(
-              false
+              true
+            );
+          }
+        );
+
+
+        callbacks.listen(
+          playerState,
+          "maxHealth",
+          () => {
+            entity.healthBar.setHealth(
+              playerState.health,
+              playerState.maxHealth
+            );
+          }
+        );
+
+
+        /*
+         * LEVEL
+         */
+
+        callbacks.listen(
+          playerState,
+          "currentLevel",
+          () => {
+            entity.setLevel(
+              playerState.currentLevel
+            );
+          }
+        );
+
+
+        /*
+         * MOVEMENT
+         */
+
+        callbacks.onChange(
+          playerState,
+          () => {
+            const remote =
+              remotePlayers.get(
+                sessionId
+              );
+
+
+            if (!remote) {
+              return;
+            }
+
+
+            /*
+             * Only horizontal movement
+             * triggers running.
+             *
+             * Y is used for jumping.
+             */
+
+            const horizontalPositionChanged =
+              Math.abs(
+                remote
+                  .targetPosition
+                  .x -
+                  playerState.x
+              ) >
+                0.001 ||
+              Math.abs(
+                remote
+                  .targetPosition
+                  .z -
+                  playerState.z
+              ) >
+                0.001;
+
+
+            remote.targetPosition.set(
+              playerState.x,
+              playerState.y,
+              playerState.z
             );
 
-            return;
+
+            remote.targetRotationY =
+              playerState.rotationY;
+
+
+            if (
+              horizontalPositionChanged
+            ) {
+              remote.movingUntil =
+                performance.now() +
+                RUN_TIMEOUT;
+            }
           }
+        );
+      }
+    );
 
-          entity.root.position.set(
-            playerState.x,
-            playerState.y,
-            playerState.z
-          );
 
-          entity.targetPosition.set(
-            playerState.x,
-            playerState.y,
-            playerState.z
-          );
+    /*
+     * =========================================================
+     * PLAYER LEAVE
+     * =========================================================
+     */
 
-          entity.root.rotation.y =
-            playerState.rotationY;
-
-          entity.targetRotationY =
-            playerState.rotationY;
-
-          entity.setAlive(
-            true
-          );
-        }
-      );
-
-      callbacks.listen(
-        playerState,
-        "maxHealth",
-        () => {
-          entity.healthBar.setHealth(
-            playerState.health,
-            playerState.maxHealth
-          );
-        }
-      );
-
-      callbacks.listen(
-        playerState,
-        "currentLevel",
-        () => {
-          entity.setLevel(
-            playerState.currentLevel
-          );
-        }
-      );
-
-      callbacks.onChange(
-        playerState,
-        () => {
-          const remote =
-            remotePlayers.get(
-              sessionId
-            );
-
-          if (!remote) {
-            return;
-          }
-
-          /*
-           * Only X/Z movement starts
-           * the Run animation.
-           *
-           * Y movement is jumping.
-           */
-          const horizontalPositionChanged =
-            Math.abs(
-              remote.targetPosition.x -
-                playerState.x
-            ) > 0.001 ||
-            Math.abs(
-              remote.targetPosition.z -
-                playerState.z
-            ) > 0.001;
-
-          remote.targetPosition.set(
-            playerState.x,
-            playerState.y,
-            playerState.z
-          );
-
-          remote.targetRotationY =
-            playerState.rotationY;
-
-          if (
-            horizontalPositionChanged
-          ) {
-            remote.movingUntil =
-              performance.now() +
-              RUN_TIMEOUT;
-          }
-        }
-      );
-    }
-  );
-
-  /*
-   * PLAYER LEAVE
-   */
-  callbacks.onRemove(
-    "players",
-    (
-      _playerState,
-      sessionId
-    ) => {
-      removedPlayers.add(
+    callbacks.onRemove(
+      "players",
+      (
+        _playerState,
         sessionId
-      );
-
-      const entity =
-        remotePlayers.get(
+      ) => {
+        removedPlayers.add(
           sessionId
         );
 
-      if (!entity) {
-        return;
-      }
 
-      entity.destroy();
+        const entity =
+          remotePlayers.get(
+            sessionId
+          );
 
-      remotePlayers.delete(
-        sessionId
-      );
-    }
-  );
 
-  room.onMessage(
-    "healCooldown",
-    ({
-      duration,
-    }) => {
-      onHealCooldown?.(
-        duration
-      );
-    }
-  );
+        if (!entity) {
+          return;
+        }
 
-  /*
-   * REMOTE ATTACK
-   */
-  room.onMessage(
-    "attack",
-    ({
-      sessionId,
-    }) => {
-      const entity =
-        remotePlayers.get(
+
+        entity.destroy();
+
+
+        remotePlayers.delete(
           sessionId
         );
-
-      if (!entity) {
-        return;
       }
+    );
 
-      entity.combat.startAttack();
-    }
-  );
 
-  room.onMessage(
-    "enemyAttack",
-    ({
-      enemyId,
-    }) => {
-      const enemy =
-        enemies.get(
-          enemyId
+    /*
+     * =========================================================
+     * HEAL COOLDOWN
+     * =========================================================
+     */
+
+    room.onMessage(
+      "healCooldown",
+      ({
+        duration,
+      }) => {
+        onHealCooldown?.(
+          duration
         );
-
-      if (!enemy) {
-        return;
       }
+    );
 
-      enemy.animations.attack();
-    }
-  );
 
-  room.onMessage(
-    "playerHeal",
-    ({
-      sessionId,
-    }) => {
-      if (
-        sessionId ===
-        room.sessionId
-      ) {
+    /*
+     * =========================================================
+     * REMOTE ATTACK
+     * =========================================================
+     */
+
+    room.onMessage(
+      "attack",
+      ({
+        sessionId,
+      }) => {
+        const entity =
+          remotePlayers.get(
+            sessionId
+          );
+
+
+        if (!entity) {
+          return;
+        }
+
+
+        entity.combat
+          .startAttack();
+      }
+    );
+
+
+    /*
+     * =========================================================
+     * ENEMY ATTACK
+     * =========================================================
+     */
+
+    room.onMessage(
+      "enemyAttack",
+      ({
+        enemyId,
+      }) => {
+        const enemy =
+          enemies.get(
+            enemyId
+          );
+
+
+        if (!enemy) {
+          return;
+        }
+
+
+        enemy.animations
+          .attack();
+      }
+    );
+
+
+    /*
+     * =========================================================
+     * PLAYER HEAL EFFECT
+     * =========================================================
+     */
+
+    room.onMessage(
+      "playerHeal",
+      ({
+        sessionId,
+      }) => {
+        /*
+         * LOCAL
+         */
+
+        if (
+          sessionId ===
+          room.sessionId
+        ) {
+          playHealEffect({
+            scene,
+            player,
+          });
+
+          return;
+        }
+
+
+        /*
+         * REMOTE
+         */
+
+        const entity =
+          remotePlayers.get(
+            sessionId
+          );
+
+
+        if (!entity) {
+          return;
+        }
+
+
         playHealEffect({
           scene,
-          player,
+
+          player:
+            entity.root,
         });
-
-        return;
       }
+    );
 
-      const entity =
-        remotePlayers.get(
-          sessionId
-        );
-
-      if (!entity) {
-        return;
-      }
-
-      playHealEffect({
-        scene,
-        player:
-          entity.root,
-      });
-    }
-  );
-
-  /*
-   * LOCAL MOVEMENT SEND
-   */
-  let sendAccumulator =
-    0;
-
-  const syncLocalPlayer = (
-    player
-  ) => {
-    if (!localPlayerState) {
-      return;
-    }
 
     /*
-     * Detect server-side respawn.
+     * =========================================================
+     * LOCAL PLAYER SYNC
+     * =========================================================
      */
-    if (
-      localPlayerState.health ===
-        localPlayerState.maxHealth &&
-      Math.abs(
-        localPlayerState.x
-      ) < 0.001 &&
-      Math.abs(
-        localPlayerState.z
-      ) < 0.001 &&
+
+    let sendAccumulator =
+      0;
+
+
+    const syncLocalPlayer =
       (
-        Math.abs(
-          player.position.x
-        ) > 1 ||
-        Math.abs(
-          player.position.z
-        ) > 1
-      )
-    ) {
-      player.position.set(
-        localPlayerState.x,
-        localPlayerState.y,
-        localPlayerState.z
-      );
-
-      player.rotation.y =
-        localPlayerState.rotationY;
-    }
-  };
-
-  /*
-   * =========================================================
-   * ENEMIES
-   * =========================================================
-   */
-
-  callbacks.onAdd(
-    "enemies",
-    async (
-      enemyState,
-      enemyId
-    ) => {
-      const enemy =
-        await createEnemy({
-          scene,
-
-          state:
-            enemyState,
-
-          id:
-            enemyId,
-        });
-
-      if (
-        !room.state.enemies.has(
-          enemyId
-        )
-      ) {
-        enemy.destroy();
-        return;
-      }
-
-      enemies.set(
-        enemyId,
-        enemy
-      );
-
-      callbacks.onChange(
-        enemyState,
-        () => {
-          enemy.targetPosition.set(
-            enemyState.x,
-            enemyState.y,
-            enemyState.z
-          );
-
-          enemy.setTargetRotation(
-            enemyState.rotationY
-          );
+        localPlayer
+      ) => {
+        if (
+          !localPlayerState
+        ) {
+          return;
         }
-      );
 
-      callbacks.listen(
-        enemyState,
-        "health",
-        () => {
-          enemy.setHealth(
-            enemyState.health,
-            enemyState.maxHealth
+
+        /*
+         * Detect server-side
+         * respawn.
+         */
+
+        if (
+          localPlayerState.health ===
+            localPlayerState.maxHealth &&
+
+          Math.abs(
+            localPlayerState.x
+          ) <
+            0.001 &&
+
+          Math.abs(
+            localPlayerState.z
+          ) <
+            0.001 &&
+
+          (
+            Math.abs(
+              localPlayer.position.x
+            ) >
+              1 ||
+
+            Math.abs(
+              localPlayer.position.z
+            ) >
+              1
+          )
+        ) {
+          localPlayer.position.set(
+            localPlayerState.x,
+            localPlayerState.y,
+            localPlayerState.z
           );
+
+
+          localPlayer.rotation.y =
+            localPlayerState.rotationY;
         }
-      );
+      };
 
-      callbacks.listen(
-        enemyState,
-        "maxHealth",
-        () => {
-          enemy.setHealth(
-            enemyState.health,
-            enemyState.maxHealth
-          );
-        }
-      );
-    }
-  );
-
-  callbacks.onRemove(
-    "enemies",
-    (
-      _enemyState,
-      enemyId
-    ) => {
-      const enemy =
-        enemies.get(
-          enemyId
-        );
-
-      if (!enemy) {
-        return;
-      }
-
-      enemy.destroy();
-
-      enemies.delete(
-        enemyId
-      );
-    }
-  );
-
-  const sendMovement = (
-    player,
-    deltaTime
-  ) => {
-    sendAccumulator +=
-      deltaTime;
-
-    if (
-      sendAccumulator <
-      SEND_INTERVAL
-    ) {
-      return;
-    }
-
-    sendAccumulator = 0;
-
-    room.send(
-      "move",
-      {
-        x:
-          player.position.x,
-
-        y:
-          player.position.y,
-
-        z:
-          player.position.z,
-
-        rotationY:
-          player.rotation.y,
-      }
-    );
-  };
-
-  /*
-   * REMOTE UPDATE
-   */
-  const update = (
-    deltaTime
-  ) => {
-    const smoothing =
-      1 -
-      Math.exp(
-        -REMOTE_SMOOTHING *
-          deltaTime /
-          1000
-      );
-
-    const now =
-      performance.now();
-
-    for (
-      const entity
-      of remotePlayers.values()
-    ) {
-      /*
-       * POSITION
-       */
-      Vector3.LerpToRef(
-        entity.root.position,
-        entity.targetPosition,
-        smoothing,
-        entity.root.position
-      );
-
-      /*
-       * ROTATION
-       */
-      const angleDifference =
-        normalizeAngle(
-          entity.targetRotationY -
-            entity.root.rotation.y
-        );
-
-      entity.root.rotation.y +=
-        angleDifference *
-        smoothing;
-
-      /*
-       * JUMP / RUN / IDLE
-       *
-       * Y is already synchronized
-       * through Colyseus.
-       */
-      const isJumping =
-        entity.targetPosition.y >
-          JUMP_THRESHOLD ||
-        entity.root.position.y >
-          JUMP_THRESHOLD;
-
-      entity.animations.setJumping(
-        isJumping
-      );
-
-      if (!isJumping) {
-        entity.animations.setRunning(
-          now <
-            entity.movingUntil
-        );
-      }
-
-      /*
-       * REMOTE ATTACK
-       */
-      entity.combat.update(
-        deltaTime
-      );
-    }
 
     /*
+     * =========================================================
      * ENEMIES
+     * =========================================================
      */
-    for (
-      const enemy
-      of enemies.values()
-    ) {
-      const distance =
-        Vector3.Distance(
-          enemy.root.position,
-          enemy.targetPosition
+
+    callbacks.onAdd(
+      "enemies",
+      async (
+        enemyState,
+        enemyId
+      ) => {
+        const enemy =
+          await createEnemy({
+            scene,
+
+            state:
+              enemyState,
+
+            id:
+              enemyId,
+          });
+
+
+        /*
+         * Enemy may have been
+         * removed while loading.
+         */
+
+        if (
+          !room.state.enemies.has(
+            enemyId
+          )
+        ) {
+          enemy.destroy();
+
+          return;
+        }
+
+
+        enemies.set(
+          enemyId,
+          enemy
         );
 
-      Vector3.LerpToRef(
-        enemy.root.position,
-        enemy.targetPosition,
-        smoothing,
-        enemy.root.position
-      );
 
-      const difference =
-        normalizeAngle(
-          enemy.getTargetRotation() -
-            enemy.root.rotation.y
+        /*
+         * MOVEMENT
+         */
+
+        callbacks.onChange(
+          enemyState,
+          () => {
+            enemy.targetPosition.set(
+              enemyState.x,
+              enemyState.y,
+              enemyState.z
+            );
+
+
+            enemy.setTargetRotation(
+              enemyState.rotationY
+            );
+          }
         );
 
-      enemy.root.rotation.y +=
-        difference *
-        smoothing;
 
-      if (
-        distance > 0.03
-      ) {
-        enemy.animations.walk();
-      } else {
-        enemy.animations.idle();
+        /*
+         * HEALTH
+         */
+
+        callbacks.listen(
+          enemyState,
+          "health",
+          () => {
+            enemy.setHealth(
+              enemyState.health,
+              enemyState.maxHealth
+            );
+          }
+        );
+
+
+        callbacks.listen(
+          enemyState,
+          "maxHealth",
+          () => {
+            enemy.setHealth(
+              enemyState.health,
+              enemyState.maxHealth
+            );
+          }
+        );
       }
-    }
-  };
-
-  /*
-   * SEND ATTACK
-   */
-  const sendAttack =
-    () => {
-      room.send(
-        "attack"
-      );
-    };
-
-  const sendHeal = () => {
-    room.send(
-      "heal"
     );
-  };
 
-  /*
-   * CLEANUP
-   */
-  const destroy =
-    async () => {
-      for (
-        const entity
-        of remotePlayers.values()
-      ) {
-        entity.destroy();
-      }
 
-      remotePlayers.clear();
+    callbacks.onRemove(
+      "enemies",
+      (
+        _enemyState,
+        enemyId
+      ) => {
+        const enemy =
+          enemies.get(
+            enemyId
+          );
 
-      for (
-        const enemy
-        of enemies.values()
-      ) {
+
+        if (!enemy) {
+          return;
+        }
+
+
         enemy.destroy();
+
+
+        enemies.delete(
+          enemyId
+        );
       }
+    );
 
-      enemies.clear();
 
-      await room.leave();
+    /*
+     * =========================================================
+     * SEND MOVEMENT
+     * =========================================================
+     */
+
+    const sendMovement =
+      (
+        localPlayer,
+        deltaTime
+      ) => {
+        sendAccumulator +=
+          deltaTime;
+
+
+        if (
+          sendAccumulator <
+          SEND_INTERVAL
+        ) {
+          return;
+        }
+
+
+        sendAccumulator =
+          0;
+
+
+        room.send(
+          "move",
+          {
+            x:
+              localPlayer
+                .position.x,
+
+            y:
+              localPlayer
+                .position.y,
+
+            z:
+              localPlayer
+                .position.z,
+
+            rotationY:
+              localPlayer
+                .rotation.y,
+          }
+        );
+      };
+
+
+    /*
+     * =========================================================
+     * REMOTE UPDATE
+     * =========================================================
+     */
+
+    const update =
+      (
+        deltaTime
+      ) => {
+        const smoothing =
+          1 -
+          Math.exp(
+            -REMOTE_SMOOTHING *
+              deltaTime /
+              1000
+          );
+
+
+        const now =
+          performance.now();
+
+
+        /*
+         * REMOTE PLAYERS
+         */
+
+        for (
+          const entity
+          of remotePlayers.values()
+        ) {
+          /*
+           * POSITION
+           */
+
+          Vector3.LerpToRef(
+            entity.root.position,
+            entity.targetPosition,
+            smoothing,
+            entity.root.position
+          );
+
+
+          /*
+           * ROTATION
+           */
+
+          const angleDifference =
+            normalizeAngle(
+              entity
+                .targetRotationY -
+                entity.root
+                  .rotation.y
+            );
+
+
+          entity.root.rotation.y +=
+            angleDifference *
+            smoothing;
+
+
+          /*
+           * JUMP
+           */
+
+          const isJumping =
+            entity.targetPosition.y >
+              JUMP_THRESHOLD ||
+            entity.root.position.y >
+              JUMP_THRESHOLD;
+
+
+          entity.animations
+            .setJumping(
+              isJumping
+            );
+
+
+          /*
+           * RUN / IDLE
+           */
+
+          entity.animations
+            .setRunning(
+              !isJumping &&
+              now <
+                entity.movingUntil
+            );
+
+
+          /*
+           * Procedural animations
+           * require an update every
+           * frame.
+           */
+
+          entity.animations.update(
+            deltaTime
+          );
+
+
+          /*
+           * REMOTE ATTACK
+           */
+
+          entity.combat.update(
+            deltaTime
+          );
+        }
+
+
+        /*
+         * ENEMIES
+         */
+
+        for (
+          const enemy
+          of enemies.values()
+        ) {
+          const distance =
+            Vector3.Distance(
+              enemy.root.position,
+              enemy.targetPosition
+            );
+
+
+          Vector3.LerpToRef(
+            enemy.root.position,
+            enemy.targetPosition,
+            smoothing,
+            enemy.root.position
+          );
+
+
+          const difference =
+            normalizeAngle(
+              enemy
+                .getTargetRotation() -
+                enemy.root
+                  .rotation.y
+            );
+
+
+          enemy.root.rotation.y +=
+            difference *
+            smoothing;
+
+
+          if (
+            distance >
+            0.03
+          ) {
+            enemy.animations
+              .walk();
+          } else {
+            enemy.animations
+              .idle();
+          }
+        }
+      };
+
+
+    /*
+     * =========================================================
+     * SEND ATTACK
+     * =========================================================
+     */
+
+    const sendAttack =
+      () => {
+        room.send(
+          "attack"
+        );
+      };
+
+
+    /*
+     * =========================================================
+     * SEND HEAL
+     * =========================================================
+     */
+
+    const sendHeal =
+      () => {
+        room.send(
+          "heal"
+        );
+      };
+
+
+    /*
+     * =========================================================
+     * CLEANUP
+     * =========================================================
+     */
+
+    const destroy =
+      async () => {
+        for (
+          const entity
+          of remotePlayers.values()
+        ) {
+          entity.destroy();
+        }
+
+
+        remotePlayers.clear();
+
+
+        for (
+          const enemy
+          of enemies.values()
+        ) {
+          enemy.destroy();
+        }
+
+
+        enemies.clear();
+
+
+        await room.leave();
+      };
+
+
+    return {
+      room,
+
+      sendMovement,
+      sendAttack,
+      sendHeal,
+
+      syncLocalPlayer,
+
+      update,
+      destroy,
     };
-
-  return {
-    room,
-
-    sendMovement,
-    sendAttack,
-    sendHeal,
-
-    syncLocalPlayer,
-    update,
-    destroy,
   };
-};

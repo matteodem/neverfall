@@ -102,7 +102,7 @@ const ENEMY = {
 };
 
 const HEAL_AMOUNT =
-  50;
+  40;
 
 const HEAL_COOLDOWN =
   15000;
@@ -432,6 +432,9 @@ export class WorldRoom
       );
     }
 
+    const appearance =
+      character.appearance || {};
+
     const player =
       new PlayerState({
         userId:
@@ -465,6 +468,22 @@ export class WorldRoom
 
         maxHealth:
           100,
+
+        gender:
+          appearance.gender ||
+          "female",
+
+        skinTone:
+          appearance.skinTone ||
+          "medium",
+
+        bodyType:
+          appearance.bodyType ||
+          "medium",
+
+        head:
+          appearance.head ||
+          "head1",
       });
 
     this.state.players.set(
