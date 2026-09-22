@@ -43,6 +43,9 @@ export const createCombat = ({
   let attackProgress =
     0;
 
+  let attackAvailableAt =
+    0;
+
   /*
    * =====================================================
    * ORIGINAL SWORD ROTATION
@@ -104,17 +107,30 @@ export const createCombat = ({
    * =====================================================
    */
 
-  const startAttack = () => {
-    if (attacking) {
-      return;
-    }
+  const startAttack =
+    () => {
+      const now =
+        Date.now();
 
-    attacking =
-      true;
+      if (
+        now <
+        attackAvailableAt
+      ) {
+        return false;
+      }
 
-    attackProgress =
-      0;
-  };
+      attackAvailableAt =
+        now +
+        ATTACK.cooldown;
+
+      attacking =
+        true;
+
+      attackProgress =
+        0;
+
+      return true;
+    };
 
   /*
    * =====================================================

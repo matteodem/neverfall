@@ -19,6 +19,7 @@ export const ATTACK = {
   duration: 500,
   range: 2.5,
   knockback: 0.5,
+  cooldown: 1000,
 };
 
 export const JUMP = {

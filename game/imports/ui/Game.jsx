@@ -278,7 +278,12 @@ export const Game = ({
           event.code ===
           "Digit1"
         ) {
-          combat?.startAttack();
+          const attacked =
+            combat?.startAttack();
+
+          if (!attacked) {
+            return;
+          }
 
           multiplayer?.sendAttack();
 

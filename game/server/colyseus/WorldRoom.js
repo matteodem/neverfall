@@ -15,6 +15,10 @@ import {
 } from "./WorldState";
 
 import {
+  ATTACK,
+} from "../../imports/game/config";
+
+import {
   Characters,
 } from "../../imports/api/characters/characters";
 
@@ -92,14 +96,8 @@ const ENEMY = {
     1500,
 };
 
-const PLAYER_ATTACK = {
-  damage: 25,
-
-  range: 2.5,
-};
-
 const HEAL_AMOUNT =
-  30;
+  50;
 
 const HEAL_COOLDOWN =
   15000;
@@ -329,7 +327,6 @@ export class WorldRoom
       );
     },
 
-
     attack: (
       client
     ) => {
@@ -338,17 +335,32 @@ export class WorldRoom
           client.sessionId
         );
 
+      const runtime =
+        this.playerRuntime.get(
+          client.sessionId
+        );
+
       if (
         !player ||
+        !runtime ||
         player.health <= 0
       ) {
         return;
       }
 
-      /*
-       * Tell other clients to
-       * play the sword animation.
-       */
+      const now =
+        Date.now();
+
+      if (
+        now <
+        runtime.attackAvailableAt
+      ) {
+        return;
+      }
+
+      runtime.attackAvailableAt =
+        now +
+        ATTACK.cooldown;
 
       this.broadcast(
         "attack",
@@ -361,11 +373,6 @@ export class WorldRoom
             client,
         }
       );
-
-      /*
-       * Actual hit detection
-       * remains server-side.
-       */
 
       this.attackEnemy(
         client.sessionId
@@ -444,6 +451,9 @@ export class WorldRoom
       client.sessionId,
       {
         healAvailableAt:
+          0,
+
+        attackAvailableAt:
           0,
       }
     );
@@ -773,7 +783,7 @@ export class WorldRoom
     const target =
       this.findClosestEnemy(
         player,
-        PLAYER_ATTACK.range
+        ATTACK.range
       );
 
     if (!target) {
@@ -822,7 +832,7 @@ export class WorldRoom
       Math.max(
         0,
         enemy.health -
-          PLAYER_ATTACK.damage
+          ATTACK.damage
       );
 
     if (
