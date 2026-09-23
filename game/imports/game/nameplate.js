@@ -70,7 +70,7 @@ export const createNameplate = ({
     color;
 
   text.fontSize =
-    34;
+    44;
 
   text.fontWeight =
     "bold";
