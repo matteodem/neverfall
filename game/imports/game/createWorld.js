@@ -28,10 +28,6 @@ import {
 } from "./environment/createClearingCamp";
 
 import {
-  createForestPath,
-} from "./environment/createForestPath";
-
-import {
   SWORD,
 } from "./config";
 
@@ -402,25 +398,6 @@ export const createWorld =
           radius:
             8,
         },
-
-        path: {
-          start:
-            new Vector3(
-              4,
-              0,
-              3
-            ),
-
-          end:
-            new Vector3(
-              0,
-              0,
-              25
-            ),
-
-          width:
-            2.5,
-        },
       });
 
 
@@ -473,35 +450,6 @@ export const createWorld =
 
     /*
      * =====================================================
-     * FOREST PATH
-     * =====================================================
-     */
-
-    const forestPath =
-      createForestPath({
-        scene,
-
-        start:
-          new Vector3(
-            4,
-            0,
-            3
-          ),
-
-        end:
-          new Vector3(
-            0,
-            0,
-            25
-          ),
-
-        width:
-          3,
-      });
-
-
-    /*
-     * =====================================================
      * CAMERA
      * =====================================================
      */
@@ -542,8 +490,5 @@ export const createWorld =
 
       camp:
         clearingCamp,
-
-      path:
-        forestPath,
     };
   };
