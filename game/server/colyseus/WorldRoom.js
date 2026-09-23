@@ -1313,6 +1313,9 @@ export class WorldRoom
       "enemyAttack",
       {
         enemyId,
+
+        targetSessionId:
+          runtime.targetSessionId,
       }
     );
 

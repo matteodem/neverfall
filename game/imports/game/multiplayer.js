@@ -47,6 +47,9 @@ import {
   createCharacterAnimationController,
 } from "./character/createCharacterAnimationController";
 
+import {
+  useCombatStore,
+} from "../ui/stores/useCombatStore";
 
 const SERVER_URL =
   "ws://localhost:2567";
@@ -1143,20 +1146,40 @@ export const createMultiplayer =
       "enemyAttack",
       ({
         enemyId,
+        targetSessionId,
       }) => {
+        /*
+        * Play the attack animation
+        * for everybody.
+        */
+
         const enemy =
           enemies.get(
             enemyId
           );
 
 
-        if (!enemy) {
+        if (enemy) {
+          enemy.animations.attack();
+        }
+
+
+        /*
+        * Only show combat feedback
+        * if THIS client is the target.
+        */
+
+        if (
+          targetSessionId !==
+          room.sessionId
+        ) {
           return;
         }
 
 
-        enemy.animations
-          .attack();
+        useCombatStore
+          .getState()
+          .triggerCombat();
       }
     );
 

@@ -39,6 +39,9 @@ import {
   QuestTracker,
 } from "./components/QuestTracker";
 
+import {
+  CombatBorder,
+} from "./components/CombatBorder";
 
 const HEAL_COOLDOWN =
   15000;
@@ -380,7 +383,7 @@ const BottomHud = ({
   healCooldownUntil,
 }) => {
   return (
-    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2">
+    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 z-[10000]">
       <ActionBar
         healCooldownUntil={
           healCooldownUntil
@@ -412,6 +415,8 @@ export const Hud = ({
 
   return (
     <>
+      <CombatBorder />
+      
       <MenuButtons />
 
       <div className="absolute right-10 top-5">
