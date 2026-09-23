@@ -16,7 +16,7 @@ const BASE_HEAL_AMOUNT =
   40;
 
 const HEAL_PER_LEVEL =
-  20;
+  15;
 
 
 const normalizeLevel = (
