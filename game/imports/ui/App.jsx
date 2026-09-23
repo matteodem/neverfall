@@ -40,14 +40,19 @@ import {
   LoadingScreen,
 } from "./LoadingScreen";
 
+
 export const App = () => {
   const [
     playerHealth,
     setPlayerHealth,
   ] = useState({
-    health: 100,
-    maxHealth: 100,
+    health:
+      100,
+
+    maxHealth:
+      100,
   });
+
 
   const [
     healCooldownUntil,
@@ -56,6 +61,7 @@ export const App = () => {
     0
   );
 
+
   const [
     authReady,
     setAuthReady,
@@ -63,11 +69,30 @@ export const App = () => {
     false
   );
 
+
+  /*
+   * =====================================================
+   * PLAYER PROGRESS
+   * =====================================================
+   */
+
+  const currentLevel =
+    usePlayerProgressStore(
+      (
+        state
+      ) =>
+        state.currentLevel
+    );
+
+
   const setProgress =
     usePlayerProgressStore(
-      (state) =>
+      (
+        state
+      ) =>
         state.setProgress
     );
+
 
   /*
    * =====================================================
@@ -80,16 +105,19 @@ export const App = () => {
       let cancelled =
         false;
 
+
       const initialize =
         async () => {
           try {
             await ensureGuestUser();
+
 
             if (
               cancelled
             ) {
               return;
             }
+
 
             setAuthReady(
               true
@@ -104,7 +132,9 @@ export const App = () => {
           }
         };
 
+
       initialize();
+
 
       return () => {
         cancelled =
@@ -113,6 +143,7 @@ export const App = () => {
     },
     []
   );
+
 
   /*
    * =====================================================
@@ -125,12 +156,14 @@ export const App = () => {
       "characters.mine"
     );
 
+
   const user =
     useTracker(
       () =>
         Meteor.user(),
       []
     );
+
 
   const characters =
     useTracker(
@@ -147,6 +180,7 @@ export const App = () => {
       []
     );
 
+
   /*
    * =====================================================
    * CURRENT CHARACTER
@@ -158,6 +192,7 @@ export const App = () => {
       ?.currentCharacterId ||
     "";
 
+
   const currentCharacter =
     characters.find(
       (
@@ -167,6 +202,12 @@ export const App = () => {
         currentCharacterId
     );
 
+
+  /*
+   * Keep Zustand progress
+   * synchronized with the
+   * current character.
+   */
   useEffect(
     () => {
       if (
@@ -174,6 +215,7 @@ export const App = () => {
       ) {
         return;
       }
+
 
       setProgress({
         currentLevel:
@@ -196,6 +238,7 @@ export const App = () => {
     ]
   );
 
+
   /*
    * =====================================================
    * INITIAL LOADING
@@ -208,11 +251,23 @@ export const App = () => {
     charactersLoading()
   ) {
     return (
-      <div className="flex h-screen items-center justify-center bg-black text-white">
+      <div
+        className="
+          flex
+          h-screen
+
+          items-center
+          justify-center
+
+          bg-black
+          text-white
+        "
+      >
         Initializing...
       </div>
     );
   }
+
 
   /*
    * =====================================================
@@ -237,11 +292,9 @@ export const App = () => {
         characters={
           characters
         }
-
         currentCharacterId={
           currentCharacterId
         }
-
         hasCharacters={
           characters.length >
           0
@@ -250,14 +303,14 @@ export const App = () => {
     );
   }
 
+
   /*
    * =====================================================
    * INVALID PLAYING STATE
    * =====================================================
    *
-   * This should normally not happen,
-   * but prevents mounting Game without
-   * a valid character.
+   * Prevent Game from mounting
+   * without a valid character.
    */
 
   if (
@@ -268,11 +321,9 @@ export const App = () => {
         characters={
           characters
         }
-
         currentCharacterId={
           currentCharacterId
         }
-
         hasCharacters={
           characters.length >
           0
@@ -281,6 +332,7 @@ export const App = () => {
     );
   }
 
+
   /*
    * =====================================================
    * GAME
@@ -288,30 +340,42 @@ export const App = () => {
    */
 
   return (
-    <div className="relative h-screen w-screen overflow-hidden bg-black">
+    <div
+      className="
+        relative
+        h-screen
+        w-screen
+
+        overflow-hidden
+
+        bg-black
+      "
+    >
       <Game
         character={
           currentCharacter
         }
-
         setPlayerHealth={
           setPlayerHealth
         }
-
         setHealCooldownUntil={
           setHealCooldownUntil
         }
       />
 
+
       <Hud
+        currentLevel={
+          currentLevel
+        }
         playerHealth={
           playerHealth
         }
-
         healCooldownUntil={
           healCooldownUntil
         }
       />
+
 
       <LoadingScreen />
     </div>

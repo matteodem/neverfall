@@ -47,74 +47,99 @@ import {
   LevelUpOverlay,
 } from "./components/LevelUpOverlay";
 
-
-const ATTACK_DAMAGE =
-  25;
-
-
-const HEAL_AMOUNT =
-  40;
+import {
+  getPlayerStats,
+} from "../game/playerStats";
 
 
 const HEAL_COOLDOWN =
   15000;
 
 
-const ACTION_SLOTS = [
-  {
-    key:
-      "1",
+/*
+ * =========================================================
+ * ACTION SLOTS
+ * =========================================================
+ *
+ * Damage is derived from the
+ * player's current level.
+ *
+ * This keeps the tooltip in sync
+ * with the actual player stat
+ * calculation.
+ */
 
-    code:
-      "Digit1",
+const getActionSlots = (
+  currentLevel
+) => {
+  const playerStats =
+    getPlayerStats(
+      currentLevel
+    );
 
-    icon:
-      "sword",
 
-    tooltip:
-      `Attack enemy (Causes ${ATTACK_DAMAGE} damage)`,
-  },
+  return [
+    {
+      key:
+        "1",
 
-  {
-    key:
-      "2",
+      code:
+        "Digit1",
 
-    code:
-      "Digit2",
+      icon:
+        "sword",
 
-    tooltip:
-      "No ability assigned",
-  },
+      tooltip:
+        `Attack enemy (Causes ${playerStats.damage} damage)`,
+    },
 
-  {
-    key:
-      "3",
+    {
+      key:
+        "2",
 
-    code:
-      "Digit3",
+      code:
+        "Digit2",
 
-    tooltip:
-      "No ability assigned",
-  },
+      tooltip:
+        "No ability assigned",
+    },
 
-  {
-    key:
-      "4",
+    {
+      key:
+        "3",
 
-    code:
-      "Digit4",
+      code:
+        "Digit3",
 
-    icon:
-      "healthCapsule",
+      tooltip:
+        "No ability assigned",
+    },
 
-    tooltip:
-      `Heal yourself for ${HEAL_AMOUNT} HP`,
+    {
+      key:
+        "4",
 
-    cooldown:
-      HEAL_COOLDOWN,
-  },
-];
+      code:
+        "Digit4",
 
+      icon:
+        "healthCapsule",
+
+      tooltip:
+        `Heal yourself for ${playerStats.healAmount} HP`,
+
+      cooldown:
+        HEAL_COOLDOWN,
+    },
+  ];
+};
+
+
+/*
+ * =========================================================
+ * HUD BUTTONS
+ * =========================================================
+ */
 
 const HUD_BUTTONS = [
   {
@@ -151,6 +176,12 @@ const HUD_BUTTONS = [
   },
 ];
 
+
+/*
+ * =========================================================
+ * COOLDOWN OVERLAY
+ * =========================================================
+ */
 
 const CooldownOverlay = ({
   until,
@@ -290,6 +321,12 @@ const CooldownOverlay = ({
 };
 
 
+/*
+ * =========================================================
+ * MENU BUTTONS
+ * =========================================================
+ */
+
 const MenuButtons =
   () => {
     const openModal =
@@ -363,6 +400,12 @@ const MenuButtons =
     );
   };
 
+
+/*
+ * =========================================================
+ * PLAYER HEALTH BAR
+ * =========================================================
+ */
 
 const PlayerHealthBar = ({
   health,
@@ -451,6 +494,12 @@ const PlayerHealthBar = ({
   );
 };
 
+
+/*
+ * =========================================================
+ * ACTION SLOT
+ * =========================================================
+ */
 
 const ActionSlot = ({
   slot,
@@ -554,7 +603,14 @@ const ActionSlot = ({
 };
 
 
+/*
+ * =========================================================
+ * ACTION BAR
+ * =========================================================
+ */
+
 const ActionBar = ({
+  currentLevel,
   healCooldownUntil,
 }) => {
   const triggerSkill =
@@ -566,6 +622,12 @@ const ActionBar = ({
     );
 
 
+  const actionSlots =
+    getActionSlots(
+      currentLevel
+    );
+
+
   return (
     <div
       className="
@@ -573,7 +635,7 @@ const ActionBar = ({
         gap-2
       "
     >
-      {ACTION_SLOTS.map(
+      {actionSlots.map(
         (
           slot
         ) => (
@@ -598,7 +660,14 @@ const ActionBar = ({
 };
 
 
+/*
+ * =========================================================
+ * BOTTOM HUD
+ * =========================================================
+ */
+
 const BottomHud = ({
+  currentLevel,
   playerHealth,
   healCooldownUntil,
 }) => {
@@ -618,6 +687,9 @@ const BottomHud = ({
       "
     >
       <ActionBar
+        currentLevel={
+          currentLevel
+        }
         healCooldownUntil={
           healCooldownUntil
         }
@@ -640,7 +712,14 @@ const BottomHud = ({
 };
 
 
+/*
+ * =========================================================
+ * HUD
+ * =========================================================
+ */
+
 export const Hud = ({
+  currentLevel = 1,
   playerHealth,
   healCooldownUntil,
 }) => {
@@ -672,6 +751,9 @@ export const Hud = ({
 
 
       <BottomHud
+        currentLevel={
+          currentLevel
+        }
         playerHealth={
           playerHealth
         }

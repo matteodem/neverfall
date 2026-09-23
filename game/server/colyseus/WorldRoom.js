@@ -30,6 +30,10 @@ import {
   BOAR_HUNT_QUEST,
 } from "../../imports/game/quests";
 
+import {
+  getPlayerStats,
+} from "../../imports/game/playerStats";
+
 
 /*
  * =====================================================
@@ -38,59 +42,105 @@ import {
  */
 
 const PLAYER_REGEN = {
-  delay: 5000,
-  percentPerSecond: 0.05,
+  delay:
+    5000,
+
+  percentPerSecond:
+    0.05,
 };
+
 
 const BOAR_SPAWNS = [
   {
-    id: "boar-1",
-    x: -20,
-    y: 0,
-    z: 16,
+    id:
+      "boar-1",
+
+    x:
+      -20,
+
+    y:
+      0,
+
+    z:
+      16,
   },
 
   {
-    id: "boar-2",
-    x: 19,
-    y: 0,
-    z: 18,
+    id:
+      "boar-2",
+
+    x:
+      19,
+
+    y:
+      0,
+
+    z:
+      18,
   },
 
   {
-    id: "boar-3",
-    x: -19,
-    y: 0,
-    z: -17,
+    id:
+      "boar-3",
+
+    x:
+      -19,
+
+    y:
+      0,
+
+    z:
+      -17,
   },
 
   {
-    id: "boar-4",
-    x: 20,
-    y: 0,
-    z: -15,
+    id:
+      "boar-4",
+
+    x:
+      20,
+
+    y:
+      0,
+
+    z:
+      -15,
   },
 
   {
-    id: "boar-5",
-    x: 22,
-    y: 0,
-    z: 2,
+    id:
+      "boar-5",
+
+    x:
+      22,
+
+    y:
+      0,
+
+    z:
+      2,
   },
 ];
 
+
 const ENEMY = {
-  health: 100,
+  health:
+    100,
 
-  level: 1,
+  level:
+    1,
 
-  xpReward: 20,
+  xpReward:
+    20,
 
-  speed: 2,
+  speed:
+    2,
 
-  attackDamage: 10,
+  attackDamage:
+    10,
 
-  attackRange: 1.8,
+  attackRange:
+    1.8,
 
   attackCooldown:
     1000,
@@ -105,11 +155,9 @@ const ENEMY = {
     1500,
 };
 
-const HEAL_AMOUNT =
-  40;
-
 const HEAL_COOLDOWN =
   15000;
+
 
 const PLAYER_RESPAWN_DELAY =
   2000;
@@ -126,6 +174,7 @@ export class WorldRoom
   state =
     new WorldState();
 
+
   /*
    * Runtime-only data.
    *
@@ -136,8 +185,16 @@ export class WorldRoom
   enemyRuntime =
     new Map();
 
+
   playerRuntime =
     new Map();
+
+
+  /*
+   * =====================================================
+   * QUESTS
+   * =====================================================
+   */
 
   advanceBoarQuest(
     characterId
@@ -196,6 +253,7 @@ export class WorldRoom
         .COLYSEUS_AUTH_SECRET ||
       "neverfall-development-secret";
 
+
     try {
       const payload =
         jwt.verify(
@@ -207,12 +265,14 @@ export class WorldRoom
           }
         );
 
+
       if (
         !payload.userId ||
         !payload.characterId
       ) {
         return false;
       }
+
 
       return {
         userId:
@@ -246,15 +306,19 @@ export class WorldRoom
       );
     }
 
+
     /*
      * Server-side AI update.
      */
 
     this.setTimestep(
-      (deltaTime) => {
+      (
+        deltaTime
+      ) => {
         this.updateEnemies(
           deltaTime
         );
+
 
         this.updatePlayerRegeneration(
           deltaTime
@@ -281,9 +345,13 @@ export class WorldRoom
           client.sessionId
         );
 
-      if (!player) {
+
+      if (
+        !player
+      ) {
         return;
       }
+
 
       if (
         !Number.isFinite(
@@ -302,14 +370,18 @@ export class WorldRoom
         return;
       }
 
+
       player.x =
         data.x;
+
 
       player.y =
         data.y;
 
+
       player.z =
         data.z;
+
 
       player.rotationY =
         data.rotationY;
@@ -324,21 +396,26 @@ export class WorldRoom
           client.sessionId
         );
 
+
       const runtime =
         this.playerRuntime.get(
           client.sessionId
         );
 
+
       if (
         !player ||
         !runtime ||
-        player.health <= 0
+        player.health <=
+          0
       ) {
         return;
       }
 
+
       const now =
         Date.now();
+
 
       if (
         now <
@@ -347,6 +424,7 @@ export class WorldRoom
         return;
       }
 
+
       if (
         player.health >=
         player.maxHealth
@@ -354,16 +432,24 @@ export class WorldRoom
         return;
       }
 
+      const stats =
+        getPlayerStats(
+          player.currentLevel
+        );
+
+
       player.health =
         Math.min(
           player.maxHealth,
           player.health +
-            HEAL_AMOUNT
+            stats.healAmount
         );
+
 
       runtime.healAvailableAt =
         now +
         HEAL_COOLDOWN;
+
 
       client.send(
         "healCooldown",
@@ -372,6 +458,7 @@ export class WorldRoom
             HEAL_COOLDOWN,
         }
       );
+
 
       this.broadcast(
         "playerHeal",
@@ -382,6 +469,7 @@ export class WorldRoom
       );
     },
 
+
     attack: async (
       client
     ) => {
@@ -390,21 +478,26 @@ export class WorldRoom
           client.sessionId
         );
 
+
       const runtime =
         this.playerRuntime.get(
           client.sessionId
         );
 
+
       if (
         !player ||
         !runtime ||
-        player.health <= 0
+        player.health <=
+          0
       ) {
         return;
       }
 
+
       const now =
         Date.now();
+
 
       if (
         now <
@@ -413,9 +506,11 @@ export class WorldRoom
         return;
       }
 
+
       runtime.attackAvailableAt =
         now +
         ATTACK.cooldown;
+
 
       this.broadcast(
         "attack",
@@ -428,6 +523,7 @@ export class WorldRoom
             client,
         }
       );
+
 
       await this.attackEnemy(
         client.sessionId
@@ -450,13 +546,18 @@ export class WorldRoom
         sessionId
       );
 
-    if (!runtime) {
+
+    if (
+      !runtime
+    ) {
       return;
     }
+
 
     runtime.lastCombatAt =
       Date.now();
   }
+
 
   async onJoin(
     client,
@@ -472,14 +573,31 @@ export class WorldRoom
           auth.userId,
       });
 
-    if (!character) {
+
+    if (
+      !character
+    ) {
       throw new Error(
         "Character not found"
       );
     }
 
+
     const appearance =
-      character.appearance || {};
+      character.appearance ||
+      {};
+
+
+    const currentLevel =
+      character.currentLevel ??
+      1;
+
+
+    const stats =
+      getPlayerStats(
+        currentLevel
+      );
+
 
     const player =
       new PlayerState({
@@ -492,28 +610,29 @@ export class WorldRoom
         name:
           character.name,
 
-        currentLevel:
-          character.currentLevel ??
-          1,
+        currentLevel,
 
         currentXp:
           character.currentXp ??
           0,
 
-        x: 0,
+        x:
+          0,
 
-        y: 0,
+        y:
+          0,
 
-        z: 0,
+        z:
+          0,
 
         rotationY:
           0,
 
         health:
-          100,
+          stats.maxHealth,
 
         maxHealth:
-          100,
+          stats.maxHealth,
 
         gender:
           appearance.gender ||
@@ -532,10 +651,12 @@ export class WorldRoom
           "head1",
       });
 
+
     this.state.players.set(
       client.sessionId,
       player
     );
+
 
     this.playerRuntime.set(
       client.sessionId,
@@ -550,6 +671,7 @@ export class WorldRoom
           0,
       }
     );
+
 
     /*
      * Explicitly joining the world
@@ -576,13 +698,16 @@ export class WorldRoom
         client.sessionId
       );
 
+
     this.state.players.delete(
       client.sessionId
     );
 
+
     this.playerRuntime.delete(
       client.sessionId
     );
+
 
     /*
      * Remove this player from
@@ -600,14 +725,19 @@ export class WorldRoom
         runtime.targetSessionId =
           null;
 
+
         runtime.nextAttackAt =
           0;
       }
     }
 
-    if (!leavingPlayer) {
+
+    if (
+      !leavingPlayer
+    ) {
       return;
     }
+
 
     await Characters.updateAsync(
       leavingPlayer.characterId,
@@ -618,6 +748,7 @@ export class WorldRoom
         },
       }
     );
+
 
     /*
      * IMPORTANT:
@@ -644,6 +775,7 @@ export class WorldRoom
     const now =
       Date.now();
 
+
     for (
       const [
         sessionId,
@@ -652,25 +784,32 @@ export class WorldRoom
       of this.state.players.entries()
     ) {
       if (
-        player.health <= 0 ||
+        player.health <=
+          0 ||
         player.health >=
           player.maxHealth
       ) {
         continue;
       }
 
+
       const runtime =
         this.playerRuntime.get(
           sessionId
         );
 
-      if (!runtime) {
+
+      if (
+        !runtime
+      ) {
         continue;
       }
+
 
       const timeSinceCombat =
         now -
         runtime.lastCombatAt;
+
 
       if (
         timeSinceCombat <
@@ -679,9 +818,11 @@ export class WorldRoom
         continue;
       }
 
+
       const healthPerSecond =
         player.maxHealth *
         PLAYER_REGEN.percentPerSecond;
+
 
       const healthThisTick =
         healthPerSecond *
@@ -689,6 +830,7 @@ export class WorldRoom
           deltaTime /
           1000
         );
+
 
       player.health =
         Math.min(
@@ -699,6 +841,7 @@ export class WorldRoom
     }
   }
 
+
   damagePlayer(
     sessionId,
     damage
@@ -708,16 +851,20 @@ export class WorldRoom
         sessionId
       );
 
+
     if (
       !player ||
-      player.health <= 0
+      player.health <=
+        0
     ) {
       return;
     }
 
+
     this.markPlayerInCombat(
       sessionId
     );
+
 
     player.health =
       Math.max(
@@ -726,11 +873,14 @@ export class WorldRoom
           damage
       );
 
+
     if (
-      player.health > 0
+      player.health >
+      0
     ) {
       return;
     }
+
 
     this.clock.setTimeout(
       () => {
@@ -739,12 +889,15 @@ export class WorldRoom
             sessionId
           );
 
+
         if (
           !currentPlayer ||
-          currentPlayer.health > 0
+          currentPlayer.health >
+            0
         ) {
           return;
         }
+
 
         this.respawnPlayer(
           currentPlayer
@@ -761,14 +914,18 @@ export class WorldRoom
     player.x =
       0;
 
+
     player.y =
       0;
+
 
     player.z =
       0;
 
+
     player.rotationY =
       0;
+
 
     player.health =
       player.maxHealth;
@@ -786,61 +943,112 @@ export class WorldRoom
     amount
   ) {
     const character =
-      await Characters.findOneAsync({
-        _id:
-          characterId,
-      });
+      await Characters.findOneAsync(
+        characterId
+      );
 
-    if (!character) {
+
+    if (
+      !character
+    ) {
       return;
     }
 
-    const result =
+
+    const previousLevel =
+      character.currentLevel ??
+      1;
+
+
+    const progress =
       addXpToProgress({
         currentLevel:
-          character.currentLevel ??
-          1,
+          previousLevel,
 
         currentXp:
-          character.currentXp ??
-          0,
+          character.currentXp,
 
         gainedXp:
           amount,
       });
+
+
+    const leveledUp =
+      progress.currentLevel >
+      previousLevel;
+
 
     await Characters.updateAsync(
       characterId,
       {
         $set: {
           currentLevel:
-            result.currentLevel,
+            progress.currentLevel,
 
           currentXp:
-            result.currentXp,
+            progress.currentXp,
         },
       }
     );
 
-    this.state.players.forEach(
-      (
-        player
-      ) => {
-        if (
-          player.characterId !==
-          characterId
-        ) {
-          return;
-        }
 
-        player.currentLevel =
-          result.currentLevel;
+    /*
+     * Update online Colyseus
+     * player immediately.
+     */
 
-        player.currentXp =
-          result.currentXp;
+    for (
+      const player
+      of this.state.players.values()
+    ) {
+      if (
+        player.characterId !==
+        characterId
+      ) {
+        continue;
       }
-    );
+
+
+      player.currentLevel =
+        progress.currentLevel;
+
+
+      player.currentXp =
+        progress.currentXp;
+
+
+      /*
+       * Only update HP when
+       * an actual level-up
+       * happened.
+       */
+
+      if (
+        leveledUp
+      ) {
+        const stats =
+          getPlayerStats(
+            progress.currentLevel
+          );
+
+
+        player.maxHealth =
+          stats.maxHealth;
+
+
+        /*
+         * MVP behavior:
+         *
+         * Level-up completely
+         * restores health.
+         */
+
+        player.health =
+          stats.maxHealth;
+      }
+    }
   }
+
 
   /*
    * =====================================================
@@ -872,10 +1080,12 @@ export class WorldRoom
           ENEMY.health,
       });
 
+
     this.state.enemies.set(
       spawn.id,
       enemy
     );
+
 
     this.enemyRuntime.set(
       spawn.id,
@@ -926,12 +1136,15 @@ export class WorldRoom
         sessionId
       );
 
+
     if (
       !player ||
-      player.health <= 0
+      player.health <=
+        0
     ) {
       return;
     }
+
 
     const target =
       this.findClosestEnemy(
@@ -939,27 +1152,37 @@ export class WorldRoom
         ATTACK.range
       );
 
-    if (!target) {
+
+    if (
+      !target
+    ) {
       return;
     }
+
 
     const {
       enemyId,
       enemy,
     } = target;
 
+
     const runtime =
       this.enemyRuntime.get(
         enemyId
       );
 
-    if (!runtime) {
+
+    if (
+      !runtime
+    ) {
       return;
     }
-    
+
+
     this.markPlayerInCombat(
       sessionId
     );
+
 
     /*
      * Enemy becomes aggressive
@@ -969,8 +1192,10 @@ export class WorldRoom
     runtime.targetSessionId =
       sessionId;
 
+
     runtime.wanderTarget =
       null;
+
 
     /*
      * Every unique participant
@@ -985,15 +1210,32 @@ export class WorldRoom
       );
     }
 
+
+    /*
+     * Damage is derived from the
+     * player's current level.
+     *
+     * Never trust damage sent
+     * from the client.
+     */
+
+    const stats =
+      getPlayerStats(
+        player.currentLevel
+      );
+
+
     enemy.health =
       Math.max(
         0,
         enemy.health -
-          ATTACK.damage
+          stats.damage
       );
 
+
     if (
-      enemy.health <= 0
+      enemy.health <=
+      0
     ) {
       await this.killEnemy(
         enemyId
@@ -1009,8 +1251,10 @@ export class WorldRoom
     let closest =
       null;
 
+
     let closestDistance =
       Infinity;
+
 
     for (
       const [
@@ -1025,12 +1269,14 @@ export class WorldRoom
           enemy
         );
 
+
       if (
         distance >
         maxDistance
       ) {
         continue;
       }
+
 
       if (
         distance >=
@@ -1039,14 +1285,17 @@ export class WorldRoom
         continue;
       }
 
+
       closestDistance =
         distance;
+
 
       closest = {
         enemyId,
         enemy,
       };
     }
+
 
     return closest;
   }
@@ -1060,14 +1309,19 @@ export class WorldRoom
         enemyId
       );
 
-    if (!runtime) {
+
+    if (
+      !runtime
+    ) {
       return;
     }
+
 
     const {
       spawn,
       contributors,
     } = runtime;
+
 
     /*
      * Remove dead enemy.
@@ -1077,9 +1331,11 @@ export class WorldRoom
       enemyId
     );
 
+
     this.enemyRuntime.delete(
       enemyId
     );
+
 
     /*
      * Award every participating
@@ -1111,6 +1367,7 @@ export class WorldRoom
         );
       }
     }
+
 
     /*
      * Respawn the same Boar at
@@ -1149,9 +1406,13 @@ export class WorldRoom
           enemyId
         );
 
-      if (!runtime) {
+
+      if (
+        !runtime
+      ) {
         continue;
       }
+
 
       this.updateEnemy(
         enemyId,
@@ -1184,13 +1445,16 @@ export class WorldRoom
         deltaTime
       );
 
+
       return;
     }
+
 
     const target =
       this.state.players.get(
         runtime.targetSessionId
       );
+
 
     /*
      * Target disconnected or died.
@@ -1198,30 +1462,37 @@ export class WorldRoom
 
     if (
       !target ||
-      target.health <= 0
+      target.health <=
+        0
     ) {
       runtime.targetSessionId =
         null;
 
+
       runtime.nextAttackAt =
         0;
 
+
       return;
     }
+
 
     const dx =
       target.x -
       enemy.x;
 
+
     const dz =
       target.z -
       enemy.z;
+
 
     const distance =
       Math.sqrt(
         dx * dx +
         dz * dz
       );
+
 
     /*
      * Face target.
@@ -1232,6 +1503,7 @@ export class WorldRoom
         dx,
         dz
       );
+
 
     /*
      * Chase player until
@@ -1248,12 +1520,14 @@ export class WorldRoom
           0.001
         );
 
+
       const movement =
         ENEMY.speed *
         (
           deltaTime /
           1000
         );
+
 
       enemy.x +=
         (
@@ -1262,6 +1536,7 @@ export class WorldRoom
         ) *
         movement;
 
+
       enemy.z +=
         (
           dz /
@@ -1269,8 +1544,10 @@ export class WorldRoom
         ) *
         movement;
 
+
       return;
     }
+
 
     /*
      * Melee attack.
@@ -1279,6 +1556,7 @@ export class WorldRoom
     const now =
       Date.now();
 
+
     if (
       now <
       runtime.nextAttackAt
@@ -1286,9 +1564,11 @@ export class WorldRoom
       return;
     }
 
+
     runtime.nextAttackAt =
       now +
       ENEMY.attackCooldown;
+
 
     /*
      * IMPORTANT:
@@ -1306,6 +1586,7 @@ export class WorldRoom
           runtime.targetSessionId,
       }
     );
+
 
     this.damagePlayer(
       runtime.targetSessionId,
@@ -1328,6 +1609,7 @@ export class WorldRoom
     const now =
       Date.now();
 
+
     if (
       !runtime.wanderTarget
     ) {
@@ -1338,19 +1620,23 @@ export class WorldRoom
         return;
       }
 
+
       runtime.wanderTarget =
         this.pickWanderTarget(
           runtime.spawn
         );
     }
 
+
     const dx =
       runtime.wanderTarget.x -
       enemy.x;
 
+
     const dz =
       runtime.wanderTarget.z -
       enemy.z;
+
 
     const distance =
       Math.sqrt(
@@ -1358,28 +1644,34 @@ export class WorldRoom
         dz * dz
       );
 
+
     /*
      * Destination reached.
      */
 
     if (
-      distance < 0.15
+      distance <
+      0.15
     ) {
       runtime.wanderTarget =
         null;
+
 
       runtime.nextWanderAt =
         now +
         ENEMY.wanderWait;
 
+
       return;
     }
+
 
     enemy.rotationY =
       Math.atan2(
         dx,
         dz
       );
+
 
     const movement =
       ENEMY.speed *
@@ -1389,11 +1681,13 @@ export class WorldRoom
         1000
       );
 
+
     const safeDistance =
       Math.max(
         distance,
         0.001
       );
+
 
     enemy.x +=
       (
@@ -1401,6 +1695,7 @@ export class WorldRoom
         safeDistance
       ) *
       movement;
+
 
     enemy.z +=
       (
@@ -1419,6 +1714,7 @@ export class WorldRoom
       Math.PI *
       2;
 
+
     /*
      * sqrt gives a nicer random
      * distribution throughout the
@@ -1430,6 +1726,7 @@ export class WorldRoom
         Math.random()
       ) *
       ENEMY.wanderRadius;
+
 
     return {
       x:
@@ -1463,9 +1760,11 @@ export class WorldRoom
       a.x -
       b.x;
 
+
     const dz =
       a.z -
       b.z;
+
 
     return Math.sqrt(
       dx * dx +
