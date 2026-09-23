@@ -72,7 +72,7 @@ const ACTION_SLOTS = [
       "sword",
 
     tooltip:
-      `Attack enemy (Cause ${ATTACK_DAMAGE} damage)`,
+      `Attack enemy (Causes ${ATTACK_DAMAGE} damage)`,
   },
 
   {
