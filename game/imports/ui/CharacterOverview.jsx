@@ -16,11 +16,17 @@ import {
   useCharacterStore,
 } from "./stores/useCharacterStore";
 
+const MAX_CHARACTERS =
+  5;
 
 export const CharacterOverview = ({
   characters,
   currentCharacterId,
 }) => {
+  const canCreateCharacter =
+    characters.length <
+    MAX_CHARACTERS;
+
   const deleteModalRef =
     useRef(
       null
@@ -168,18 +174,44 @@ export const CharacterOverview = ({
         </div>
 
         <div className="mt-6 space-y-2">
-          <button
-            type="button"
-            onClick={
-              () =>
-                setScreen(
-                  "creator"
-                )
+          <div
+            className={
+              canCreateCharacter
+                ? ""
+                : "cursor-not-allowed"
             }
-            className="btn btn-secondary w-full cursor-pointer"
           >
-            Create Character
-          </button>
+            <div className="mb-2 text-center text-xs text-white/50">
+              {characters.length}
+              {" / "}
+              {MAX_CHARACTERS}
+              {" characters"}
+            </div>
+
+            <button
+              type="button"
+              disabled={
+                !canCreateCharacter
+              }
+              onClick={
+                () =>
+                  setScreen(
+                    "creator"
+                  )
+              }
+              className={[
+                "btn btn-secondary w-full",
+
+                canCreateCharacter
+                  ? "cursor-pointer"
+                  : "pointer-events-none opacity-50 btn-outline text-white hover:text-black",
+              ].join(
+                " "
+              )}
+            >
+              Create Character
+            </button>
+          </div>
 
           {selected && (
             <button

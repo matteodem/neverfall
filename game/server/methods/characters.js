@@ -10,6 +10,8 @@ import {
   Characters,
 } from "../../imports/api/characters/characters";
 
+const MAX_CHARACTERS =
+  5;
 
 const VALID_APPEARANCE = {
   gender: [
@@ -164,6 +166,22 @@ Meteor.methods({
     requireUser(
       this.userId
     );
+
+    const characterCount =
+      await Characters.find({
+        userId:
+          this.userId,
+      }).countAsync();
+
+    if (
+      characterCount >=
+      MAX_CHARACTERS
+    ) {
+      throw new Meteor.Error(
+        "character-limit-reached",
+        `You can only create ${MAX_CHARACTERS} characters.`
+      );
+    }
 
     const cleanName =
       name?.trim();
