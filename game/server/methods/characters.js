@@ -439,3 +439,10 @@ Meteor.methods({
     );
   },
 });
+
+/* 
+
+Characters.removeAsync({})
+Meteor.users.removeAsync({})
+
+*/

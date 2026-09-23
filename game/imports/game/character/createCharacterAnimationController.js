@@ -1,3 +1,7 @@
+import {
+  CHARACTER_SCALE,
+} from "./createLowPolyCharacter";
+
 export const createCharacterAnimationController =
   ({
     root,
@@ -117,11 +121,14 @@ export const createCharacterAnimationController =
         resetLimbs();
 
         root.scaling.y =
-          1 +
-          Math.sin(
-            time * 2
-          ) *
-          0.008;
+          CHARACTER_SCALE *
+          (
+            1 +
+            Math.sin(
+              time * 2
+            ) *
+              0.008
+          );
       };
 
 
@@ -130,7 +137,7 @@ export const createCharacterAnimationController =
         resetLimbs();
 
         root.scaling.y =
-          1;
+          CHARACTER_SCALE;
       };
 
 

@@ -5,6 +5,8 @@ import {
   TransformNode,
 } from "@babylonjs/core";
 
+export const CHARACTER_SCALE =
+  0.8;
 
 const SKIN_TONES = {
   light:
@@ -202,6 +204,9 @@ export const createLowPolyCharacter =
         scene
       );
 
+    root.scaling.setAll(
+      CHARACTER_SCALE
+    );
 
     const skinMaterial =
       createMaterial(

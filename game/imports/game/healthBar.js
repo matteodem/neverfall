@@ -19,7 +19,7 @@ export const createHealthBar = ({
   scene,
   player,
   color = "#22c55e",
-  y = 2.4,
+  y = 3.2,
 }) => {
   const plane =
     MeshBuilder.CreatePlane(
