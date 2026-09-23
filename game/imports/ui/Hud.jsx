@@ -47,31 +47,69 @@ import {
   LevelUpOverlay,
 } from "./components/LevelUpOverlay";
 
+
+const ATTACK_DAMAGE =
+  25;
+
+
+const HEAL_AMOUNT =
+  40;
+
+
 const HEAL_COOLDOWN =
   15000;
 
 
 const ACTION_SLOTS = [
   {
-    key: "1",
-    code: "Digit1",
-    icon: "sword",
+    key:
+      "1",
+
+    code:
+      "Digit1",
+
+    icon:
+      "sword",
+
+    tooltip:
+      `Attack enemy (Cause ${ATTACK_DAMAGE} damage)`,
   },
 
   {
-    key: "2",
-    code: "Digit2",
+    key:
+      "2",
+
+    code:
+      "Digit2",
+
+    tooltip:
+      "No ability assigned",
   },
 
   {
-    key: "3",
-    code: "Digit3",
+    key:
+      "3",
+
+    code:
+      "Digit3",
+
+    tooltip:
+      "No ability assigned",
   },
 
   {
-    key: "4",
-    code: "Digit4",
-    icon: "healthCapsule",
+    key:
+      "4",
+
+    code:
+      "Digit4",
+
+    icon:
+      "healthCapsule",
+
+    tooltip:
+      `Heal yourself for ${HEAL_AMOUNT} HP`,
+
     cooldown:
       HEAL_COOLDOWN,
   },
@@ -80,21 +118,36 @@ const ACTION_SLOTS = [
 
 const HUD_BUTTONS = [
   {
-    id: "settings",
-    icon: "gear",
-    label: "Settings",
+    id:
+      "settings",
+
+    icon:
+      "gear",
+
+    label:
+      "Settings",
   },
 
   {
-    id: "inventory",
-    icon: "backpack",
-    label: "Inventory",
+    id:
+      "inventory",
+
+    icon:
+      "backpack",
+
+    label:
+      "Inventory",
   },
 
   {
-    id: "help",
-    icon: "question",
-    label: "Help",
+    id:
+      "help",
+
+    icon:
+      "question",
+
+    label:
+      "Help",
   },
 ];
 
@@ -110,12 +163,14 @@ const CooldownOverlay = ({
     0
   );
 
+
   const [
     seconds,
     setSeconds,
   ] = useState(
     0
   );
+
 
   useEffect(
     () => {
@@ -124,12 +179,15 @@ const CooldownOverlay = ({
           0
         );
 
+
         setSeconds(
           0
         );
 
+
         return;
       }
+
 
       const update =
         () => {
@@ -140,10 +198,12 @@ const CooldownOverlay = ({
                 Date.now()
             );
 
+
           setProgress(
             remaining /
               duration
           );
+
 
           setSeconds(
             Math.ceil(
@@ -153,13 +213,16 @@ const CooldownOverlay = ({
           );
         };
 
+
       update();
+
 
       const interval =
         setInterval(
           update,
           100
         );
+
 
       return () => {
         clearInterval(
@@ -173,15 +236,28 @@ const CooldownOverlay = ({
     ]
   );
 
+
   if (
-    progress <= 0
+    progress <=
+    0
   ) {
     return null;
   }
 
+
   return (
     <div
-      className="pointer-events-none absolute inset-0 flex items-center justify-center rounded"
+      className="
+        pointer-events-none
+        absolute
+        inset-0
+
+        flex
+        items-center
+        justify-center
+
+        rounded
+      "
       style={{
         backgroundImage:
           `conic-gradient(
@@ -191,7 +267,22 @@ const CooldownOverlay = ({
           )`,
       }}
     >
-      <span className="rounded bg-black/70 px-1.5 py-0.5 text-sm font-bold text-cyan-300 shadow">
+      <span
+        className="
+          rounded
+
+          bg-black/70
+
+          px-1.5
+          py-0.5
+
+          text-sm
+          font-bold
+          text-cyan-300
+
+          shadow
+        "
+      >
         {seconds}
       </span>
     </div>
@@ -199,50 +290,78 @@ const CooldownOverlay = ({
 };
 
 
-const MenuButtons = () => {
-  const openModal =
-    useHudStore(
-      (state) =>
-        state.openModal
-    );
+const MenuButtons =
+  () => {
+    const openModal =
+      useHudStore(
+        (
+          state
+        ) =>
+          state.openModal
+      );
 
-  return (
-    <div className="absolute left-4 top-4 rounded-lg bg-black/70 px-4 py-3 text-white">
-      <div className="flex gap-4">
-        {HUD_BUTTONS.map(
-          ({
-            id,
-            icon,
-            label,
-          }) => (
-            <button
-              key={
-                id
-              }
-              type="button"
-              title={
-                label
-              }
-              onClick={
-                () =>
-                  openModal(
-                    id
-                  )
-              }
-              className="btn btn-circle cursor-pointer"
-            >
-              <Icon
-                icon={
-                  icon
+
+    return (
+      <div
+        className="
+          absolute
+          left-4
+          top-4
+
+          rounded-lg
+
+          bg-black/70
+
+          px-4
+          py-3
+
+          text-white
+        "
+      >
+        <div
+          className="
+            flex
+            gap-4
+          "
+        >
+          {HUD_BUTTONS.map(
+            ({
+              id,
+              icon,
+              label,
+            }) => (
+              <button
+                key={
+                  id
                 }
-              />
-            </button>
-          )
-        )}
+                type="button"
+                title={
+                  label
+                }
+                onClick={
+                  () =>
+                    openModal(
+                      id
+                    )
+                }
+                className="
+                  btn
+                  btn-circle
+                  cursor-pointer
+                "
+              >
+                <Icon
+                  icon={
+                    icon
+                  }
+                />
+              </button>
+            )
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
 
 const PlayerHealthBar = ({
@@ -262,12 +381,35 @@ const PlayerHealthBar = ({
       )
     );
 
+
   return (
-    <div className="w-72 rounded bg-black/70 p-2 text-white">
-      <div className="mb-1 flex justify-between text-sm">
+    <div
+      className="
+        w-72
+
+        rounded
+
+        bg-black/70
+
+        p-2
+
+        text-white
+      "
+    >
+      <div
+        className="
+          mb-1
+
+          flex
+          justify-between
+
+          text-sm
+        "
+      >
         <span>
           Health
         </span>
+
 
         <span>
           {parseInt(
@@ -279,9 +421,26 @@ const PlayerHealthBar = ({
         </span>
       </div>
 
-      <div className="h-4 overflow-hidden rounded bg-gray-700">
+
+      <div
+        className="
+          h-4
+
+          overflow-hidden
+
+          rounded
+
+          bg-gray-700
+        "
+      >
         <div
-          className="h-full bg-green-500 transition-all"
+          className="
+            h-full
+
+            bg-green-500
+
+            transition-all
+          "
           style={{
             width:
               `${percentage}%`,
@@ -304,44 +463,93 @@ const ActionSlot = ({
       ? healCooldownUntil
       : 0;
 
+
   return (
-    <button
-      type="button"
-      onClick={
-        () =>
-          onTrigger(
-            slot.code
-          )
-      }
-      className="relative flex h-14 w-14 cursor-pointer flex-col items-center justify-center rounded border border-white/20 bg-black/70 text-white transition hover:bg-black/90 active:scale-95"
-      title={
-        `Skill ${slot.key}`
+    <div
+      className="
+        tooltip
+        tooltip-top
+      "
+      data-tip={
+        slot.tooltip
       }
     >
-      <span className="absolute right-[5px] top-[2px] text-sm font-bold">
-        {slot.key}
-      </span>
+      <button
+        type="button"
+        onClick={
+          () =>
+            onTrigger(
+              slot.code
+            )
+        }
+        className="
+          relative
 
-      {slot.icon && (
-        <Icon
-          icon={
-            slot.icon
-          }
-          className="h-5 w-5"
-        />
-      )}
+          flex
+          h-14
+          w-14
 
-      {slot.cooldown && (
-        <CooldownOverlay
-          until={
-            cooldownUntil
-          }
-          duration={
-            slot.cooldown
-          }
-        />
-      )}
-    </button>
+          cursor-pointer
+
+          flex-col
+          items-center
+          justify-center
+
+          rounded
+
+          border
+          border-white/20
+
+          bg-black/70
+
+          text-white
+
+          transition
+
+          hover:bg-black/90
+
+          active:scale-95
+        "
+      >
+        <span
+          className="
+            absolute
+            right-[5px]
+            top-[2px]
+
+            text-sm
+            font-bold
+          "
+        >
+          {slot.key}
+        </span>
+
+
+        {slot.icon && (
+          <Icon
+            icon={
+              slot.icon
+            }
+            className="
+              h-5
+              w-5
+            "
+          />
+        )}
+
+
+        {slot.cooldown && (
+          <CooldownOverlay
+            until={
+              cooldownUntil
+            }
+            duration={
+              slot.cooldown
+            }
+          />
+        )}
+      </button>
+    </div>
   );
 };
 
@@ -351,12 +559,20 @@ const ActionBar = ({
 }) => {
   const triggerSkill =
     useActionBarStore(
-      (state) =>
+      (
+        state
+      ) =>
         state.triggerSkill
     );
 
+
   return (
-    <div className="flex gap-2">
+    <div
+      className="
+        flex
+        gap-2
+      "
+    >
       {ACTION_SLOTS.map(
         (
           slot
@@ -387,12 +603,26 @@ const BottomHud = ({
   healCooldownUntil,
 }) => {
   return (
-    <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 z-[10000]">
+    <div
+      className="
+        absolute
+        bottom-6
+        left-1/2
+        z-[10000]
+
+        flex
+        -translate-x-1/2
+        flex-col
+        items-center
+        gap-2
+      "
+    >
       <ActionBar
         healCooldownUntil={
           healCooldownUntil
         }
       />
+
 
       <PlayerHealthBar
         health={
@@ -402,6 +632,7 @@ const BottomHud = ({
           playerHealth.maxHealth
         }
       />
+
 
       <XpBar />
     </div>
@@ -417,17 +648,28 @@ export const Hud = ({
     playerHealth.health <=
     0;
 
+
   return (
     <>
       <CombatBorder />
 
+
       <LevelUpOverlay />
-      
+
+
       <MenuButtons />
 
-      <div className="absolute right-10 top-5">
+
+      <div
+        className="
+          absolute
+          right-10
+          top-5
+        "
+      >
         <QuestTracker />
       </div>
+
 
       <BottomHud
         playerHealth={
@@ -438,13 +680,17 @@ export const Hud = ({
         }
       />
 
+
       {isDead && (
         <DeathOverlay />
       )}
 
+
       <HelpModal />
 
+
       <InventoryModal />
+
 
       <SettingsModal />
     </>

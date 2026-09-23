@@ -22,6 +22,11 @@ export const ATTACK = {
   cooldown: 500,
 };
 
+export const HEAL = {
+  amount: 40,
+  cooldown: 15000,
+};
+
 export const JUMP = {
   velocity: 6,
   gravity: 16,
