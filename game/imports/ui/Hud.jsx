@@ -52,10 +52,6 @@ import {
 } from "../game/playerStats";
 
 
-const HEAL_AMOUNT =
-  40;
-
-
 const HEAL_COOLDOWN =
   15000;
 
@@ -130,7 +126,7 @@ const getActionSlots = (
         "healthCapsule",
 
       tooltip:
-        `Heal yourself for ${HEAL_AMOUNT} HP`,
+        `Heal yourself for ${playerStats.healAmount} HP`,
 
       cooldown:
         HEAL_COOLDOWN,

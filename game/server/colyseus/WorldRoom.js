@@ -155,11 +155,6 @@ const ENEMY = {
     1500,
 };
 
-
-const HEAL_AMOUNT =
-  40;
-
-
 const HEAL_COOLDOWN =
   15000;
 
@@ -437,12 +432,17 @@ export class WorldRoom
         return;
       }
 
+      const stats =
+        getPlayerStats(
+          player.currentLevel
+        );
+
 
       player.health =
         Math.min(
           player.maxHealth,
           player.health +
-            HEAL_AMOUNT
+            stats.healAmount
         );
 
 

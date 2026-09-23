@@ -4,11 +4,19 @@ const BASE_MAX_HEALTH =
 const HEALTH_PER_LEVEL =
   25;
 
+
 const BASE_DAMAGE =
   25;
 
 const DAMAGE_PER_LEVEL =
   10;
+
+
+const BASE_HEAL_AMOUNT =
+  40;
+
+const HEAL_PER_LEVEL =
+  20;
 
 
 const normalizeLevel = (
@@ -56,5 +64,10 @@ export const getPlayerStats = (
       BASE_DAMAGE +
       levelsGained *
         DAMAGE_PER_LEVEL,
+
+    healAmount:
+      BASE_HEAL_AMOUNT +
+      levelsGained *
+        HEAL_PER_LEVEL,
   };
 };
