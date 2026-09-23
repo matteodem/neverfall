@@ -15,7 +15,6 @@ export const CAMERA = {
 };
 
 export const ATTACK = {
-  damage: 25,
   duration: 500,
   range: 2.5,
   knockback: 0.5,
