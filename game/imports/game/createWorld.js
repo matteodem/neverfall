@@ -391,21 +391,6 @@ export const createWorld =
             0
           ),
 
-        size:
-          50,
-
-        treeCount:
-          80,
-
-        rockCount:
-          25,
-
-        bushCount:
-          40,
-
-        logCount:
-          12,
-
         clearing: {
           center:
             new Vector3(

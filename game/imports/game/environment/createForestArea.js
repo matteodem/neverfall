@@ -6,6 +6,7 @@ import {
   Vector3,
 } from "@babylonjs/core";
 
+
 const randomBetween = (
   min,
   max
@@ -13,9 +14,13 @@ const randomBetween = (
   return (
     min +
     Math.random() *
-      (max - min)
+      (
+        max -
+        min
+      )
   );
 };
+
 
 const createMaterial = (
   scene,
@@ -29,26 +34,35 @@ const createMaterial = (
       scene
     );
 
+
   const color =
     Color3.FromHexString(
       hex
     );
 
+
   material.diffuseColor =
     color;
+
 
   material.specularColor =
     Color3.Black();
 
-  if (emissive > 0) {
+
+  if (
+    emissive >
+    0
+  ) {
     material.emissiveColor =
       color.scale(
         emissive
       );
   }
 
+
   return material;
 };
+
 
 const distanceToSegment = (
   point,
@@ -59,30 +73,41 @@ const distanceToSegment = (
     end.x -
     start.x;
 
+
   const vz =
     end.z -
     start.z;
+
 
   const wx =
     point.x -
     start.x;
 
+
   const wz =
     point.z -
     start.z;
 
+
   const lengthSquared =
-    vx * vx +
-    vz * vz;
+    vx *
+      vx +
+    vz *
+      vz;
+
 
   if (
-    lengthSquared === 0
+    lengthSquared ===
+    0
   ) {
     return Math.sqrt(
-      wx * wx +
-      wz * wz
+      wx *
+        wx +
+      wz *
+        wz
     );
   }
+
 
   const t =
     Math.max(
@@ -90,43 +115,57 @@ const distanceToSegment = (
       Math.min(
         1,
         (
-          wx * vx +
-          wz * vz
+          wx *
+            vx +
+          wz *
+            vz
         ) /
           lengthSquared
       )
     );
 
+
   const closestX =
     start.x +
-    vx * t;
+    vx *
+      t;
+
 
   const closestZ =
     start.z +
-    vz * t;
+    vz *
+      t;
+
 
   const dx =
     point.x -
     closestX;
 
+
   const dz =
     point.z -
     closestZ;
 
+
   return Math.sqrt(
-    dx * dx +
-    dz * dz
+    dx *
+      dx +
+    dz *
+      dz
   );
 };
+
 
 const applyLowPolyLook = (
   mesh
 ) => {
   mesh.convertToFlatShadedMesh();
 
+
   mesh.receiveShadows =
     true;
 };
+
 
 const createScatterPosition =
   (
@@ -139,7 +178,9 @@ const createScatterPosition =
           -halfSize,
           halfSize
         ),
+
       center.y,
+
       center.z +
         randomBetween(
           -halfSize,
@@ -147,6 +188,7 @@ const createScatterPosition =
         )
     );
   };
+
 
 const isInsideArea = (
   position,
@@ -157,18 +199,23 @@ const isInsideArea = (
     position.x -
     center.x;
 
+
   const dz =
     position.z -
     center.z;
 
+
   return (
     Math.sqrt(
-      dx * dx +
-      dz * dz
+      dx *
+        dx +
+      dz *
+        dz
     ) <
     radius
   );
 };
+
 
 const createForestPosition = ({
   center,
@@ -178,8 +225,10 @@ const createForestPosition = ({
 }) => {
   for (
     let attempt = 0;
-    attempt < 30;
-    attempt += 1
+    attempt <
+    30;
+    attempt +=
+      1
   ) {
     const position =
       createScatterPosition(
@@ -187,12 +236,14 @@ const createForestPosition = ({
         halfSize
       );
 
+
     const insideClearing =
       isInsideArea(
         position,
         clearing.center,
         clearing.radius
       );
+
 
     const insidePath =
       path &&
@@ -203,6 +254,7 @@ const createForestPosition = ({
       ) <
         path.width;
 
+
     if (
       !insideClearing &&
       !insidePath
@@ -211,11 +263,13 @@ const createForestPosition = ({
     }
   }
 
+
   return createScatterPosition(
     center,
     halfSize
   );
 };
+
 
 const createPineTree = ({
   scene,
@@ -229,18 +283,23 @@ const createPineTree = ({
       scene
     );
 
+
   root.parent =
     parent;
+
 
   root.position.copyFrom(
     position
   );
 
+
   root.rotation.y =
     randomBetween(
       0,
-      Math.PI * 2
+      Math.PI *
+        2
     );
+
 
   const treeScale =
     randomBetween(
@@ -248,9 +307,11 @@ const createPineTree = ({
       1.25
     );
 
+
   root.scaling.setAll(
     treeScale
   );
+
 
   const trunk =
     MeshBuilder.CreateCylinder(
@@ -261,112 +322,151 @@ const createPineTree = ({
             2.6,
             3.6
           ),
+
         diameterTop:
           0.18,
+
         diameterBottom:
           0.32,
+
         tessellation:
           6,
       },
       scene
     );
 
+
   trunk.parent =
     root;
+
 
   trunk.position.y =
     1.3;
 
+
   trunk.material =
     materials.trunk;
+
 
   applyLowPolyLook(
     trunk
   );
 
+
   const leaf1 =
     MeshBuilder.CreateCylinder(
       "treeLeaf1",
       {
-        height: 2.2,
-        diameterTop: 0,
+        height:
+          2.2,
+
+        diameterTop:
+          0,
+
         diameterBottom:
           2.1,
+
         tessellation:
           6,
       },
       scene
     );
 
+
   leaf1.parent =
     root;
+
 
   leaf1.position.y =
     2.8;
 
+
   leaf1.material =
     materials.leaves;
+
 
   applyLowPolyLook(
     leaf1
   );
 
+
   const leaf2 =
     MeshBuilder.CreateCylinder(
       "treeLeaf2",
       {
-        height: 1.8,
-        diameterTop: 0,
+        height:
+          1.8,
+
+        diameterTop:
+          0,
+
         diameterBottom:
           1.7,
+
         tessellation:
           6,
       },
       scene
     );
 
+
   leaf2.parent =
     root;
+
 
   leaf2.position.y =
     3.55;
 
+
   leaf2.material =
     materials.leaves;
+
 
   applyLowPolyLook(
     leaf2
   );
 
+
   const leaf3 =
     MeshBuilder.CreateCylinder(
       "treeLeaf3",
       {
-        height: 1.4,
-        diameterTop: 0,
+        height:
+          1.4,
+
+        diameterTop:
+          0,
+
         diameterBottom:
           1.2,
+
         tessellation:
           6,
       },
       scene
     );
 
+
   leaf3.parent =
     root;
+
 
   leaf3.position.y =
     4.15;
 
+
   leaf3.material =
     materials.leaves;
+
 
   applyLowPolyLook(
     leaf3
   );
 
+
   return root;
 };
+
 
 const createRock = ({
   scene,
@@ -378,7 +478,9 @@ const createRock = ({
     MeshBuilder.CreatePolyhedron(
       "rock",
       {
-        type: 1,
+        type:
+          1,
+
         size:
           randomBetween(
             0.5,
@@ -388,55 +490,68 @@ const createRock = ({
       scene
     );
 
+
   rock.parent =
     parent;
+
 
   rock.position.copyFrom(
     position
   );
 
+
   rock.position.y =
     0.25;
+
 
   rock.rotation.set(
     randomBetween(
       0,
       Math.PI
     ),
+
     randomBetween(
       0,
       Math.PI
     ),
+
     randomBetween(
       0,
       Math.PI
     )
   );
+
 
   rock.scaling.set(
     randomBetween(
       0.7,
       1.4
     ),
+
     randomBetween(
       0.5,
       1
     ),
+
     randomBetween(
       0.7,
       1.3
     )
   );
 
+
   rock.material =
     materials.rock;
+
 
   applyLowPolyLook(
     rock
   );
 
+
   return rock;
 };
+
 
 const createBush = ({
   scene,
@@ -453,45 +568,57 @@ const createBush = ({
             0.7,
             1.2
           ),
-        segments: 5,
+
+        segments:
+          5,
       },
       scene
     );
 
+
   bush.parent =
     parent;
+
 
   bush.position.copyFrom(
     position
   );
 
+
   bush.position.y =
     0.35;
+
 
   bush.scaling.set(
     randomBetween(
       1,
       1.4
     ),
+
     randomBetween(
       0.6,
       1
     ),
+
     randomBetween(
       1,
       1.4
     )
   );
 
+
   bush.material =
     materials.bush;
+
 
   applyLowPolyLook(
     bush
   );
 
+
   return bush;
 };
+
 
 const createLog = ({
   scene,
@@ -508,45 +635,58 @@ const createLog = ({
             1.4,
             2.4
           ),
+
         diameter:
           randomBetween(
             0.22,
             0.34
           ),
+
         tessellation:
           6,
       },
       scene
     );
 
+
   log.parent =
     parent;
+
 
   log.position.copyFrom(
     position
   );
 
+
   log.position.y =
     0.18;
 
+
   log.rotation.z =
-    Math.PI / 2;
+    Math.PI /
+    2;
+
 
   log.rotation.y =
     randomBetween(
       0,
-      Math.PI * 2
+      Math.PI *
+        2
     );
+
 
   log.material =
     materials.trunk;
+
 
   applyLowPolyLook(
     log
   );
 
+
   return log;
 };
+
 
 const createForestFloor = ({
   scene,
@@ -559,30 +699,40 @@ const createForestFloor = ({
     MeshBuilder.CreateGround(
       "forestFloor",
       {
-        width: size,
-        height: size,
+        width:
+          size,
+
+        height:
+          size,
       },
       scene
     );
 
+
   floor.parent =
     parent;
+
 
   floor.position.copyFrom(
     center
   );
 
+
   floor.position.y =
     0.02;
+
 
   floor.material =
     materials.forestFloor;
 
+
   floor.receiveShadows =
     true;
 
+
   return floor;
 };
+
 
 export const createForestArea =
   ({
@@ -595,12 +745,36 @@ export const createForestArea =
         0
       ),
 
-    size = 50,
+    /*
+     * Bigger starter forest.
+     *
+     * Old:
+     * 50 x 50
+     *
+     * New:
+     * 120 x 120
+     */
+    size =
+      120,
 
-    treeCount = 80,
-    rockCount = 25,
-    bushCount = 40,
-    logCount = 12,
+    /*
+     * Increase decoration,
+     * but not proportional to
+     * the complete area increase
+     * to keep browser performance
+     * reasonable.
+     */
+    treeCount =
+      180,
+
+    rockCount =
+      45,
+
+    bushCount =
+      90,
+
+    logCount =
+      24,
 
     clearing = {
       center:
@@ -610,16 +784,19 @@ export const createForestArea =
           0
         ),
 
-      radius: 8,
+      radius:
+        8,
     },
 
-    path = null,
+    path =
+      null,
   } = {}) => {
     const root =
       new TransformNode(
         "eastNorthForest",
         scene
       );
+
 
     const materials = {
       trunk:
@@ -658,25 +835,43 @@ export const createForestArea =
         ),
     };
 
+
     createForestFloor({
       scene,
-      parent: root,
+
+      parent:
+        root,
+
       center,
+
       size,
+
       materials,
     });
 
+
     const halfSize =
-      size / 2;
+      size /
+      2;
+
+
+    /*
+     * TREES
+     */
 
     for (
       let i = 0;
-      i < treeCount;
-      i += 1
+      i <
+      treeCount;
+      i +=
+        1
     ) {
       createPineTree({
         scene,
-        parent: root,
+
+        parent:
+          root,
+
         position:
           createForestPosition({
             center,
@@ -684,18 +879,29 @@ export const createForestArea =
             clearing,
             path,
           }),
+
         materials,
       });
     }
 
+
+    /*
+     * ROCKS
+     */
+
     for (
       let i = 0;
-      i < rockCount;
-      i += 1
+      i <
+      rockCount;
+      i +=
+        1
     ) {
       createRock({
         scene,
-        parent: root,
+
+        parent:
+          root,
+
         position:
           createForestPosition({
             center,
@@ -703,18 +909,29 @@ export const createForestArea =
             clearing,
             path,
           }),
+
         materials,
       });
     }
 
+
+    /*
+     * BUSHES
+     */
+
     for (
       let i = 0;
-      i < bushCount;
-      i += 1
+      i <
+      bushCount;
+      i +=
+        1
     ) {
       createBush({
         scene,
-        parent: root,
+
+        parent:
+          root,
+
         position:
           createForestPosition({
             center,
@@ -722,18 +939,29 @@ export const createForestArea =
             clearing,
             path,
           }),
+
         materials,
       });
     }
 
+
+    /*
+     * FALLEN LOGS
+     */
+
     for (
       let i = 0;
-      i < logCount;
-      i += 1
+      i <
+      logCount;
+      i +=
+        1
     ) {
       createLog({
         scene,
-        parent: root,
+
+        parent:
+          root,
+
         position:
           createForestPosition({
             center,
@@ -741,9 +969,11 @@ export const createForestArea =
             clearing,
             path,
           }),
+
         materials,
       });
     }
+
 
     return root;
   };
