@@ -6,6 +6,7 @@ import React, {
 
 import {
   ArcRotateCamera,
+  DirectionalLight,
   Engine,
   HemisphericLight,
   Scene,
@@ -147,8 +148,22 @@ export const CharacterPreview = ({
           scene
         );
 
+      const frontLight =
+        new DirectionalLight(
+          "previewFrontLight",
+          new Vector3(
+            0,
+            -0.5,
+            1
+          ),
+          scene
+        );
+
       light.intensity =
-        1.3;
+        2.0;
+
+      frontLight.intensity =
+        1.6;
 
 
       /*
