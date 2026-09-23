@@ -142,49 +142,43 @@ export class WorldRoom
   advanceBoarQuest(
     characterId
   ) {
-    let player =
-      null;
-
-    this.state.players.forEach(
-      (
-        currentPlayer
-      ) => {
-        if (
-          currentPlayer.characterId ===
-          characterId
-        ) {
-          player =
-            currentPlayer;
-        }
-      }
-    );
-
-    if (!player) {
-      return false;
-    }
-
-    player.boarQuestKills +=
-      1;
-
-
-    if (
-      player.boarQuestKills <
-      BOAR_HUNT_QUEST.target
+    for (
+      const player
+      of this.state.players.values()
     ) {
-      return false;
+      if (
+        player.characterId !==
+        characterId
+      ) {
+        continue;
+      }
+
+
+      player.boarQuestKills =
+        (
+          player.boarQuestKills ??
+          0
+        ) +
+        1;
+
+
+      if (
+        player.boarQuestKills <
+        BOAR_HUNT_QUEST.target
+      ) {
+        return false;
+      }
+
+
+      player.boarQuestKills =
+        0;
+
+
+      return true;
     }
 
 
-    /*
-    * Repeatable:
-    * immediately start again.
-    */
-
-    player.boarQuestKills =
-      0;
-
-
-    return true;
+    return false;
   }
 
 
@@ -388,7 +382,7 @@ export class WorldRoom
       );
     },
 
-    attack: (
+    attack: async (
       client
     ) => {
       const player =
@@ -435,7 +429,7 @@ export class WorldRoom
         }
       );
 
-      this.attackEnemy(
+      await this.attackEnemy(
         client.sessionId
       );
     },
@@ -924,7 +918,7 @@ export class WorldRoom
    * =====================================================
    */
 
-  attackEnemy(
+  async attackEnemy(
     sessionId
   ) {
     const player =
@@ -1001,7 +995,7 @@ export class WorldRoom
     if (
       enemy.health <= 0
     ) {
-      this.killEnemy(
+      await this.killEnemy(
         enemyId
       );
     }
@@ -1058,7 +1052,7 @@ export class WorldRoom
   }
 
 
-  killEnemy(
+  async killEnemy(
     enemyId
   ) {
     const runtime =
@@ -1096,28 +1090,22 @@ export class WorldRoom
       const characterId
       of contributors
     ) {
-      this.awardXp(
+      await this.awardXp(
         characterId,
         ENEMY.xpReward
-      ).catch(
-        (error) => {
-          console.error(
-            "[XP] Failed to award XP:",
-            error
-          );
-        }
       );
-      
-      const questCompleted =
+
+
+      const completed =
         this.advanceBoarQuest(
           characterId
         );
 
 
       if (
-        questCompleted
+        completed
       ) {
-        this.awardXp(
+        await this.awardXp(
           characterId,
           BOAR_HUNT_QUEST.rewardXp
         );

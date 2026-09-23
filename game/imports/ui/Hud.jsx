@@ -43,6 +43,10 @@ import {
   CombatBorder,
 } from "./components/CombatBorder";
 
+import {
+  LevelUpOverlay,
+} from "./components/LevelUpOverlay";
+
 const HEAL_COOLDOWN =
   15000;
 
@@ -416,6 +420,8 @@ export const Hud = ({
   return (
     <>
       <CombatBorder />
+
+      <LevelUpOverlay />
       
       <MenuButtons />
 

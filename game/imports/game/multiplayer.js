@@ -51,17 +51,26 @@ import {
   useCombatStore,
 } from "../ui/stores/useCombatStore";
 
+import {
+  useLevelUpStore,
+} from "../ui/stores/useLevelUpStore";
+
+
 const SERVER_URL =
   "ws://localhost:2567";
+
 
 const SEND_INTERVAL =
   50;
 
+
 const REMOTE_SMOOTHING =
   12;
 
+
 const RUN_TIMEOUT =
   150;
+
 
 const JUMP_THRESHOLD =
   0.05;
@@ -73,38 +82,49 @@ const JUMP_THRESHOLD =
  * =========================================================
  */
 
-const normalizeAngle = (
-  angle
-) => {
-  while (
-    angle > Math.PI
-  ) {
-    angle -=
-      Math.PI * 2;
-  }
-
-  while (
-    angle < -Math.PI
-  ) {
-    angle +=
-      Math.PI * 2;
-  }
-
-  return angle;
-};
+const normalizeAngle =
+  (
+    angle
+  ) => {
+    while (
+      angle >
+      Math.PI
+    ) {
+      angle -=
+        Math.PI *
+        2;
+    }
 
 
-const lerp = (
-  from,
-  to,
-  progress
-) => {
-  return (
-    from +
-    (to - from) *
-      progress
-  );
-};
+    while (
+      angle <
+      -Math.PI
+    ) {
+      angle +=
+        Math.PI *
+        2;
+    }
+
+
+    return angle;
+  };
+
+
+const lerp =
+  (
+    from,
+    to,
+    progress
+  ) => {
+    return (
+      from +
+      (
+        to -
+        from
+      ) *
+        progress
+    );
+  };
 
 
 /*
@@ -113,256 +133,292 @@ const lerp = (
  * =========================================================
  */
 
-const createRemoteCombat = ({
-  scene,
-  swordPivot,
-  swordTip,
-}) => {
-  let attacking =
-    false;
-
-  let progress =
-    0;
-
-  const duration =
-    500;
-
-  const defaultRotation =
-    swordPivot.rotation.clone();
+const createRemoteCombat =
+  ({
+    scene,
+    swordPivot,
+    swordTip,
+  }) => {
+    let attacking =
+      false;
 
 
-  const trail =
-    new TrailMesh(
-      "remoteSwordTrail",
-      swordTip,
-      scene,
-      0.12,
-      20,
-      true
-    );
+    let progress =
+      0;
 
 
-  const trailMaterial =
-    new StandardMaterial(
-      "remoteSwordTrailMaterial",
-      scene
-    );
-
-  trailMaterial.emissiveColor =
-    new Color3(
-      0.75,
-      0.9,
-      1
-    );
-
-  trailMaterial.alpha =
-    0.65;
-
-  trail.material =
-    trailMaterial;
-
-  trail.setEnabled(
-    false
-  );
+    const duration =
+      500;
 
 
-  const startAttack =
-    () => {
-      if (attacking) {
-        return;
-      }
-
-      attacking =
-        true;
-
-      progress =
-        0;
-    };
+    const defaultRotation =
+      swordPivot
+        .rotation
+        .clone();
 
 
-  const update =
-    (
-      deltaTime
-    ) => {
-      if (!attacking) {
-        return;
-      }
-
-      progress +=
-        deltaTime /
-        duration;
-
-
-      /*
-       * WINDUP
-       */
-
-      if (
-        progress <
-        0.25
-      ) {
-        const t =
-          progress /
-          0.25;
-
-        swordPivot.rotation.x =
-          lerp(
-            defaultRotation.x,
-            defaultRotation.x -
-              0.9,
-            t
-          );
-
-        swordPivot.rotation.y =
-          lerp(
-            defaultRotation.y,
-            defaultRotation.y +
-              0.65,
-            t
-          );
-
-        swordPivot.rotation.z =
-          lerp(
-            defaultRotation.z,
-            defaultRotation.z -
-              0.35,
-            t
-          );
-
-        trail.setEnabled(
-          false
-        );
-
-        return;
-      }
-
-
-      /*
-       * SLASH
-       */
-
-      if (
-        progress <
-        0.65
-      ) {
-        const t =
-          (
-            progress -
-            0.25
-          ) /
-          0.4;
-
-        trail.setEnabled(
-          true
-        );
-
-        swordPivot.rotation.x =
-          lerp(
-            defaultRotation.x -
-              0.9,
-            defaultRotation.x +
-              1.15,
-            t
-          );
-
-        swordPivot.rotation.y =
-          lerp(
-            defaultRotation.y +
-              0.65,
-            defaultRotation.y -
-              0.55,
-            t
-          );
-
-        swordPivot.rotation.z =
-          lerp(
-            defaultRotation.z -
-              0.35,
-            defaultRotation.z +
-              0.25,
-            t
-          );
-
-        return;
-      }
-
-
-      /*
-       * RECOVERY
-       */
-
-      const t =
-        (
-          progress -
-          0.65
-        ) /
-        0.35;
-
-      trail.setEnabled(
-        false
+    const trail =
+      new TrailMesh(
+        "remoteSwordTrail",
+        swordTip,
+        scene,
+        0.12,
+        20,
+        true
       );
 
-      swordPivot.rotation.x =
-        lerp(
-          defaultRotation.x +
-            1.15,
-          defaultRotation.x,
-          t
-        );
 
-      swordPivot.rotation.y =
-        lerp(
-          defaultRotation.y -
-            0.55,
-          defaultRotation.y,
-          t
-        );
-
-      swordPivot.rotation.z =
-        lerp(
-          defaultRotation.z +
-            0.25,
-          defaultRotation.z,
-          t
-        );
+    const trailMaterial =
+      new StandardMaterial(
+        "remoteSwordTrailMaterial",
+        scene
+      );
 
 
-      if (
-        progress >=
+    trailMaterial.emissiveColor =
+      new Color3(
+        0.75,
+        0.9,
         1
-      ) {
+      );
+
+
+    trailMaterial.alpha =
+      0.65;
+
+
+    trail.material =
+      trailMaterial;
+
+
+    trail.setEnabled(
+      false
+    );
+
+
+    const startAttack =
+      () => {
+        if (
+          attacking
+        ) {
+          return;
+        }
+
+
         attacking =
-          false;
+          true;
+
 
         progress =
           0;
+      };
 
-        swordPivot.rotation
-          .copyFrom(
-            defaultRotation
+
+    const update =
+      (
+        deltaTime
+      ) => {
+        if (
+          !attacking
+        ) {
+          return;
+        }
+
+
+        progress +=
+          deltaTime /
+          duration;
+
+
+        /*
+         * WINDUP
+         */
+
+        if (
+          progress <
+          0.25
+        ) {
+          const t =
+            progress /
+            0.25;
+
+
+          swordPivot.rotation.x =
+            lerp(
+              defaultRotation.x,
+              defaultRotation.x -
+                0.9,
+              t
+            );
+
+
+          swordPivot.rotation.y =
+            lerp(
+              defaultRotation.y,
+              defaultRotation.y +
+                0.65,
+              t
+            );
+
+
+          swordPivot.rotation.z =
+            lerp(
+              defaultRotation.z,
+              defaultRotation.z -
+                0.35,
+              t
+            );
+
+
+          trail.setEnabled(
+            false
           );
+
+
+          return;
+        }
+
+
+        /*
+         * SLASH
+         */
+
+        if (
+          progress <
+          0.65
+        ) {
+          const t =
+            (
+              progress -
+              0.25
+            ) /
+            0.4;
+
+
+          trail.setEnabled(
+            true
+          );
+
+
+          swordPivot.rotation.x =
+            lerp(
+              defaultRotation.x -
+                0.9,
+              defaultRotation.x +
+                1.15,
+              t
+            );
+
+
+          swordPivot.rotation.y =
+            lerp(
+              defaultRotation.y +
+                0.65,
+              defaultRotation.y -
+                0.55,
+              t
+            );
+
+
+          swordPivot.rotation.z =
+            lerp(
+              defaultRotation.z -
+                0.35,
+              defaultRotation.z +
+                0.25,
+              t
+            );
+
+
+          return;
+        }
+
+
+        /*
+         * RECOVERY
+         */
+
+        const t =
+          (
+            progress -
+            0.65
+          ) /
+          0.35;
+
 
         trail.setEnabled(
           false
         );
-      }
+
+
+        swordPivot.rotation.x =
+          lerp(
+            defaultRotation.x +
+              1.15,
+            defaultRotation.x,
+            t
+          );
+
+
+        swordPivot.rotation.y =
+          lerp(
+            defaultRotation.y -
+              0.55,
+            defaultRotation.y,
+            t
+          );
+
+
+        swordPivot.rotation.z =
+          lerp(
+            defaultRotation.z +
+              0.25,
+            defaultRotation.z,
+            t
+          );
+
+
+        if (
+          progress >=
+          1
+        ) {
+          attacking =
+            false;
+
+
+          progress =
+            0;
+
+
+          swordPivot
+            .rotation
+            .copyFrom(
+              defaultRotation
+            );
+
+
+          trail.setEnabled(
+            false
+          );
+        }
+      };
+
+
+    const destroy =
+      () => {
+        trail.dispose();
+
+
+        trailMaterial.dispose();
+      };
+
+
+    return {
+      startAttack,
+      update,
+      destroy,
     };
-
-
-  const destroy =
-    () => {
-      trail.dispose();
-
-      trailMaterial.dispose();
-    };
-
-
-  return {
-    startAttack,
-    update,
-    destroy,
   };
-};
 
 
 /*
@@ -507,6 +563,7 @@ const createRemotePlayer =
       character.parts
         .rightArmPivot;
 
+
     swordPivot.position.set(
       0,
       -0.9,
@@ -517,12 +574,14 @@ const createRemotePlayer =
     swordGrip.parent =
       swordPivot;
 
+
     sword.parent =
       swordGrip;
 
 
     swordGrip.rotation.set(
-      Math.PI / 2,
+      Math.PI /
+        2,
       0,
       0
     );
@@ -531,6 +590,7 @@ const createRemotePlayer =
     sword.scaling.setAll(
       0.7
     );
+
 
     sword.position.set(
       0,
@@ -557,11 +617,13 @@ const createRemotePlayer =
     swordTip.parent =
       sword;
 
+
     swordTip.position.set(
       0,
       1.2,
       0
     );
+
 
     swordTip.isVisible =
       false;
@@ -594,7 +656,6 @@ const createRemotePlayer =
       animations,
       combat,
 
-
       targetPosition:
         Vector3.Zero(),
 
@@ -624,21 +685,26 @@ const createRemotePlayer =
           alive
         );
 
+
         swordPivot.setEnabled(
           alive
         );
+
 
         swordGrip.setEnabled(
           alive
         );
 
+
         sword.setEnabled(
           alive
         );
 
+
         swordTip.setEnabled(
           alive
         );
+
 
         healthBar.setVisible(
           alive
@@ -649,18 +715,24 @@ const createRemotePlayer =
       destroy() {
         animations.destroy();
 
+
         combat.destroy();
 
+
         nameplate.destroy();
+
 
         healthBar.destroy();
 
 
         swordTip.dispose();
 
+
         sword.dispose();
 
+
         swordGrip.dispose();
+
 
         swordPivot.dispose();
 
@@ -766,19 +838,65 @@ export const createMultiplayer =
             playerState;
 
 
+          /*
+           * BOAR HUNT QUEST
+           */
+
           onBoarQuestChange?.(
-            playerState.boarQuestKills
+            playerState.boarQuestKills ??
+            0
           );
+
 
           callbacks.listen(
             playerState,
             "boarQuestKills",
             () => {
               onBoarQuestChange?.(
-                playerState.boarQuestKills
+                playerState.boarQuestKills ??
+                0
               );
             }
-          );  
+          );
+
+
+          /*
+           * LEVEL UP
+           */
+
+          let previousLevel =
+            playerState.currentLevel;
+
+
+          callbacks.listen(
+            playerState,
+            "currentLevel",
+            () => {
+              const newLevel =
+                playerState.currentLevel;
+
+
+              if (
+                newLevel >
+                previousLevel
+              ) {
+                useLevelUpStore
+                  .getState()
+                  .showLevelUp(
+                    newLevel
+                  );
+              }
+
+
+              previousLevel =
+                newLevel;
+            }
+          );
+
+
+          /*
+           * LOCAL HEALTH
+           */
 
           onLocalHealthChange?.({
             health:
@@ -792,21 +910,6 @@ export const createMultiplayer =
           callbacks.listen(
             playerState,
             "health",
-            () => {
-              onLocalHealthChange?.({
-                health:
-                  playerState.health,
-
-                maxHealth:
-                  playerState.maxHealth,
-              });
-            }
-          );
-
-
-          callbacks.listen(
-            playerState,
-            "maxHealth",
             () => {
               onLocalHealthChange?.({
                 health:
@@ -851,6 +954,7 @@ export const createMultiplayer =
           )
         ) {
           entity.destroy();
+
 
           return;
         }
@@ -915,10 +1019,13 @@ export const createMultiplayer =
             );
 
 
-            if (!alive) {
+            if (
+              !alive
+            ) {
               entity.setAlive(
                 false
               );
+
 
               return;
             }
@@ -999,7 +1106,9 @@ export const createMultiplayer =
               );
 
 
-            if (!remote) {
+            if (
+              !remote
+            ) {
               return;
             }
 
@@ -1075,7 +1184,9 @@ export const createMultiplayer =
           );
 
 
-        if (!entity) {
+        if (
+          !entity
+        ) {
           return;
         }
 
@@ -1125,7 +1236,9 @@ export const createMultiplayer =
           );
 
 
-        if (!entity) {
+        if (
+          !entity
+        ) {
           return;
         }
 
@@ -1149,9 +1262,9 @@ export const createMultiplayer =
         targetSessionId,
       }) => {
         /*
-        * Play the attack animation
-        * for everybody.
-        */
+         * Play attack animation
+         * for everybody.
+         */
 
         const enemy =
           enemies.get(
@@ -1159,15 +1272,18 @@ export const createMultiplayer =
           );
 
 
-        if (enemy) {
-          enemy.animations.attack();
+        if (
+          enemy
+        ) {
+          enemy.animations
+            .attack();
         }
 
 
         /*
-        * Only show combat feedback
-        * if THIS client is the target.
-        */
+         * Only show combat feedback
+         * if THIS client is the target.
+         */
 
         if (
           targetSessionId !==
@@ -1208,6 +1324,7 @@ export const createMultiplayer =
             player,
           });
 
+
           return;
         }
 
@@ -1222,7 +1339,9 @@ export const createMultiplayer =
           );
 
 
-        if (!entity) {
+        if (
+          !entity
+        ) {
           return;
         }
 
@@ -1338,6 +1457,7 @@ export const createMultiplayer =
         ) {
           enemy.destroy();
 
+
           return;
         }
 
@@ -1411,7 +1531,9 @@ export const createMultiplayer =
           );
 
 
-        if (!enemy) {
+        if (
+          !enemy
+        ) {
           return;
         }
 
@@ -1458,19 +1580,23 @@ export const createMultiplayer =
           {
             x:
               localPlayer
-                .position.x,
+                .position
+                .x,
 
             y:
               localPlayer
-                .position.y,
+                .position
+                .y,
 
             z:
               localPlayer
-                .position.z,
+                .position
+                .z,
 
             rotationY:
               localPlayer
-                .rotation.y,
+                .rotation
+                .y,
           }
         );
       };
@@ -1572,18 +1698,20 @@ export const createMultiplayer =
            * frame.
            */
 
-          entity.animations.update(
-            deltaTime
-          );
+          entity.animations
+            .update(
+              deltaTime
+            );
 
 
           /*
            * REMOTE ATTACK
            */
 
-          entity.combat.update(
-            deltaTime
-          );
+          entity.combat
+            .update(
+              deltaTime
+            );
         }
 
 
@@ -1674,6 +1802,11 @@ export const createMultiplayer =
 
     const destroy =
       async () => {
+        useCombatStore
+          .getState()
+          .resetCombat();
+
+
         for (
           const entity
           of remotePlayers.values()

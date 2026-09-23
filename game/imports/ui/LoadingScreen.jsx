@@ -23,7 +23,7 @@ export const LoadingScreen =
     }
 
     return (
-      <div className="absolute inset-0 z-[10001] flex items-center justify-center bg-black">
+      <div className="absolute inset-0 z-[30000] flex items-center justify-center bg-black">
         <div className="w-80">
           <div className="mb-3 text-center text-sm text-white">
             Loading Game...
