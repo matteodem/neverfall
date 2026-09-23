@@ -31,6 +31,16 @@ export const createHealthBar = ({
       scene
     );
 
+  plane.renderingGroupId =
+    2;
+
+  scene.setRenderingAutoClearDepthStencil(
+    2,
+    true,
+    true,
+    true
+  );
+
   plane.parent =
     player;
 
