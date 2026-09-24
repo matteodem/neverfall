@@ -24,8 +24,6 @@ The goal is to create a lightweight online RPG that runs directly in the browser
 - 🌲 Procedurally created environments
 - 💾 Persistent character progression
 
----
-
 ## 🛠️ Tech Stack
 
 Heroes of Neverfall is built with:
@@ -38,8 +36,6 @@ Heroes of Neverfall is built with:
 - **Zustand** — client-side state management
 - **Tailwind CSS** — UI styling
 - **DaisyUI** — reusable UI components
-
----
 
 ## 🎮 Gameplay
 
@@ -55,8 +51,6 @@ The current gameplay loop is intentionally simple:
 8. Become stronger
 
 The MVP focuses on getting this core loop working and stable before adding larger systems such as advanced combat, equipment, dungeons, crafting, trading, and additional world content.
-
----
 
 ## 🚀 How to Run
 
@@ -78,8 +72,6 @@ The application should then be available at:
 http://localhost:3000
 ```
 
----
-
 ## 🧪 Development Status
 
 Heroes of Neverfall is currently in active development.
@@ -87,8 +79,6 @@ Heroes of Neverfall is currently in active development.
 The current focus is on completing and stabilizing the first playable MVP before expanding the game with additional content, systems, and visual improvements.
 
 Some assets and visuals are temporary and are expected to be replaced as development continues.
-
----
 
 ## 🗺️ Planned Features
 
@@ -106,7 +96,6 @@ Future ideas include:
 - 🎨 Improved character models and animations
 - 📜 More quests and progression systems
 
----
 
 ## ❤️ Support the Project
 
@@ -114,7 +103,6 @@ If you enjoy the project and want to support its development, you can support me
 
 Support is completely optional and helps me continue working on Neverfall and future projects.
 
----
 
 ## 🤝 Contributing
 
@@ -122,7 +110,6 @@ The project is still in an early stage, so the architecture and systems may chan
 
 If you are experimenting with the project, feel free to explore the codebase, report issues, or suggest ideas.
 
----
 
 ## ⚠️ Disclaimer
 
