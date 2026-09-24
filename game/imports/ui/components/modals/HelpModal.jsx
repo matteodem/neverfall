@@ -34,12 +34,12 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        Feel free to support me: <br />
+        Like Neverfall? Feel free to support me: <br />
 
         <div className="flex gap-4">
-          <a className="btn mt-2 btn-soft btn-primary" href="">Patreon</a>
-          <a className="btn mt-2 btn-soft btn-secondary" href="">Buy Me a Coffee</a>
-          <a className="btn mt-2 btn-soft btn-secondary" href="">Github Repository</a>
+          <a target="_blank" className="btn mt-2 btn-soft btn-primary" href="https://patreon.com/MatteoDeMicheli">Patreon</a>
+          {/* <a target="_blank" className="btn mt-2 btn-soft btn-secondary" href="">Buy Me a Coffee</a>*/}
+          <a target="_blank" className="btn mt-2 btn-soft btn-secondary" href="https://github.com/matteodem/neverfall">Github Repository</a>
         </div>       
       </div>
     </HudModal>
