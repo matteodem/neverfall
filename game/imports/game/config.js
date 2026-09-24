@@ -29,7 +29,7 @@ export const HEAL = {
 export const JUMP = {
   velocity: 6,
   gravity: 16,
-  groundY: 0.9,
+  groundY: 0,
 };
 
 export const SWORD = {

@@ -219,14 +219,9 @@ export const createWorld =
 
     player.position.set(
       0,
-      0.9,
+      0,
       0
     );
-
-
-    /*
-    * Keep the collider active but invisible.
-    */
 
     player.visibility =
       0;
@@ -239,8 +234,11 @@ export const createWorld =
 
 
     /*
-    * Babylon uses an ellipsoid for
-    * moveWithCollisions().
+    * Player position represents
+    * the position of his feet.
+    *
+    * The collision ellipsoid itself
+    * is shifted upwards around the body.
     */
 
     player.ellipsoid =
@@ -253,14 +251,14 @@ export const createWorld =
     player.ellipsoidOffset =
       new Vector3(
         0,
-        0,
+        0.9,
         0
       );
 
 
     /*
-    * Attach the visual KayKit character
-    * to the gameplay collider.
+    * KayKit root also uses the
+    * player's foot position.
     */
 
     character.root.parent =
@@ -268,7 +266,7 @@ export const createWorld =
 
     character.root.position.set(
       0,
-      -0.9,
+      0,
       0
     );
 
@@ -320,7 +318,7 @@ export const createWorld =
           "white",
 
         y:
-          -1.3,
+          -0.4,
       });
 
 
