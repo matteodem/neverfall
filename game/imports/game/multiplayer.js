@@ -40,12 +40,12 @@ import {
 } from "./nameplate";
 
 import {
-  createLowPolyCharacter,
-} from "./character/createLowPolyCharacter";
+  createKayKitCharacter,
+} from "./character/createKayKitCharacter";
 
 import {
-  createCharacterAnimationController,
-} from "./character/createCharacterAnimationController";
+  createKayKitAnimationController,
+} from "./character/createKayKitAnimationController";
 
 import {
   useCombatStore,
@@ -438,7 +438,7 @@ const createRemotePlayer =
      */
 
     const character =
-      createLowPolyCharacter({
+      await createKayKitCharacter({
         scene,
 
         appearance: {
@@ -466,7 +466,7 @@ const createRemotePlayer =
 
 
     const animations =
-      createCharacterAnimationController(
+      createKayKitAnimationController(
         character
       );
 
@@ -560,13 +560,11 @@ const createRemotePlayer =
      */
 
     swordPivot.parent =
-      character.parts
-        .rightArmPivot;
-
+      character.weaponAnchor;
 
     swordPivot.position.set(
       0,
-      -0.9,
+      0,
       0
     );
 

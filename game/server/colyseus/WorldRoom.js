@@ -146,7 +146,7 @@ const ENEMY = {
     1000,
 
   respawnDelay:
-    2000,
+    5000,
 
   wanderRadius:
     3,

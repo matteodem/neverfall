@@ -12,14 +12,6 @@ import {
 } from "@babylonjs/core";
 
 import {
-  createLowPolyCharacter,
-} from "./character/createLowPolyCharacter";
-
-import {
-  createCharacterAnimationController,
-} from "./character/createCharacterAnimationController";
-
-import {
   createMountainRing,
 } from "./environment/createMountainRing";
 
@@ -43,6 +35,13 @@ import {
   createForestArea,
 } from "./environment/createForestArea";
 
+import {
+  createKayKitCharacter,
+} from "./character/createKayKitCharacter";
+
+import {
+  createKayKitAnimationController,
+} from "./character/createKayKitAnimationController";
 
 export const createWorld =
   async (
@@ -52,6 +51,7 @@ export const createWorld =
       name,
     }
   ) => {
+
     /*
      * =====================================================
      * SKY / FOG
@@ -173,7 +173,7 @@ export const createWorld =
      */
 
     const character =
-      createLowPolyCharacter({
+      await createKayKitCharacter({
         scene,
         appearance,
       });
@@ -195,7 +195,7 @@ export const createWorld =
      */
 
     const animations =
-      createCharacterAnimationController(
+      createKayKitAnimationController(
         character
       );
 
@@ -268,29 +268,12 @@ export const createWorld =
       );
 
 
-    /*
-     * The procedural character has
-     * no skeleton/bones.
-     *
-     * Attach the weapon directly to
-     * the right arm pivot instead.
-     */
-
     swordPivot.parent =
-      character.parts
-        .rightArmPivot;
-
-
-    /*
-     * rightArmPivot is at the shoulder.
-     *
-     * Move swordPivot downward towards
-     * the character's hand.
-     */
+      character.weaponAnchor;
 
     swordPivot.position.set(
       0,
-      -0.9,
+      0,
       0
     );
 

@@ -1,0 +1,560 @@
+import {
+  Color3,
+  SceneLoader,
+  TransformNode,
+} from "@babylonjs/core";
+
+import "@babylonjs/loaders/glTF";
+
+
+const KAYKIT_ROOT =
+  "/models/characters/kaykit/";
+
+
+const SKIN_TONES = {
+  light:
+    "#F1C7A5",
+
+  fair:
+    "#E5B08A",
+
+  medium:
+    "#C68662",
+
+  tan:
+    "#A96F4C",
+
+  brown:
+    "#7B4F35",
+
+  dark:
+    "#4A2D22",
+};
+
+
+const BODY_TYPES = {
+  slim: {
+    x: 0.9,
+    z: 0.9,
+  },
+
+  medium: {
+    x: 1,
+    z: 1,
+  },
+
+  large: {
+    x: 1.1,
+    z: 1.1,
+  },
+};
+
+
+/*
+ * Only the visible head mesh
+ * should receive the selected
+ * skin tone.
+ *
+ * Helmet and visor stay untouched.
+ */
+
+const SKIN_MESHES = [
+  "Knight_Head",
+];
+
+
+const applySkinTone =
+  (
+    knight,
+    skinTone
+  ) => {
+    const color =
+      Color3.FromHexString(
+        SKIN_TONES[
+          skinTone
+        ] ||
+          SKIN_TONES.medium
+      );
+
+
+    knight.meshes.forEach(
+      (
+        mesh
+      ) => {
+        if (
+          !SKIN_MESHES.includes(
+            mesh.name
+          ) ||
+          !mesh.material
+        ) {
+          return;
+        }
+
+
+        /*
+         * All Knight meshes share
+         * the same base material.
+         *
+         * Clone it first so changing
+         * the head doesn't recolor
+         * the armor or other meshes.
+         */
+
+        const material =
+          mesh.material.clone(
+            `${mesh.name}-skinMaterial`
+          );
+
+
+        /*
+         * KayKit GLBs use a glTF
+         * material, usually PBR.
+         */
+
+        if (
+          "albedoColor"
+          in material
+        ) {
+          material.albedoColor =
+            color;
+        } else if (
+          "diffuseColor"
+          in material
+        ) {
+          material.diffuseColor =
+            color;
+        }
+
+
+        mesh.material =
+          material;
+      }
+    );
+  };
+
+
+const findTargetByName =
+  (
+    result,
+    name
+  ) => {
+    const transformNode =
+      result.transformNodes?.find(
+        (
+          node
+        ) =>
+          node.name ===
+          name
+      );
+
+
+    if (
+      transformNode
+    ) {
+      return transformNode;
+    }
+
+
+    const mesh =
+      result.meshes?.find(
+        (
+          item
+        ) =>
+          item.name ===
+          name
+      );
+
+
+    if (
+      mesh
+    ) {
+      return mesh;
+    }
+
+
+    for (
+      const skeleton
+      of result.skeletons ||
+      []
+    ) {
+      const bone =
+        skeleton.bones.find(
+          (
+            item
+          ) =>
+            item.name ===
+            name
+        );
+
+
+      if (
+        bone
+      ) {
+        return (
+          bone.getTransformNode?.() ||
+          bone
+        );
+      }
+    }
+
+
+    return null;
+  };
+
+
+const disposeMannequinMeshes =
+  (
+    result
+  ) => {
+    result.meshes.forEach(
+      (
+        mesh
+      ) => {
+        if (
+          mesh.name ===
+          "__root__"
+        ) {
+          return;
+        }
+
+
+        mesh.isVisible =
+          false;
+
+        mesh.isPickable =
+          false;
+      }
+    );
+  };
+
+
+const cloneAnimations =
+  ({
+    source,
+    target,
+    prefix,
+  }) => {
+    return source.animationGroups.map(
+      (
+        animationGroup
+      ) => {
+        return animationGroup.clone(
+          `${prefix}_${animationGroup.name}`,
+
+          (
+            oldTarget
+          ) => {
+            if (
+              !oldTarget?.name
+            ) {
+              return null;
+            }
+
+
+            return findTargetByName(
+              target,
+              oldTarget.name
+            );
+          }
+        );
+      }
+    );
+  };
+
+
+const createWeaponAnchor =
+  ({
+    scene,
+    knight,
+  }) => {
+    const skeleton =
+      knight.skeletons[0];
+
+
+    const handSlotBone =
+      skeleton?.bones.find(
+        (
+          bone
+        ) =>
+          bone.name ===
+          "handslot.r"
+      );
+
+
+    if (
+      !handSlotBone
+    ) {
+      throw new Error(
+        "[KayKit] handslot.r bone not found."
+      );
+    }
+
+
+    const handSlotNode =
+      handSlotBone
+        .getTransformNode?.();
+
+
+    if (
+      !handSlotNode
+    ) {
+      throw new Error(
+        "[KayKit] handslot.r has no linked TransformNode."
+      );
+    }
+
+
+    const weaponAnchor =
+      new TransformNode(
+        "weaponAnchor",
+        scene
+      );
+
+
+    weaponAnchor.parent =
+      handSlotNode;
+
+
+    return weaponAnchor;
+  };
+
+
+export const createKayKitCharacter =
+  async ({
+    scene,
+    appearance = {},
+  }) => {
+
+    /*
+     * =====================================================
+     * KNIGHT
+     * =====================================================
+     */
+
+    const knight =
+      await SceneLoader.ImportMeshAsync(
+        "",
+        KAYKIT_ROOT,
+        "knight/Knight.glb",
+        scene
+      );
+
+
+    const skinTone =
+      appearance.skinTone ||
+      "medium";
+
+
+    const bodyType =
+      appearance.bodyType ||
+      "medium";
+
+
+    /*
+     * Only recolor the head.
+     */
+
+    applySkinTone(
+      knight,
+      skinTone
+    );
+
+
+    /*
+     * =====================================================
+     * ROOT
+     * =====================================================
+     */
+
+    const root =
+      new TransformNode(
+        "characterRoot",
+        scene
+      );
+
+
+    const knightRoot =
+      knight.meshes.find(
+        (
+          mesh
+        ) =>
+          mesh.name ===
+          "__root__"
+      );
+
+
+    if (
+      knightRoot
+    ) {
+      knightRoot.parent =
+        root;
+    }
+
+
+    /*
+     * =====================================================
+     * BODY TYPE
+     * =====================================================
+     *
+     * Keep Y unchanged so all
+     * characters remain the same
+     * height.
+     */
+
+    const bodyScale =
+      BODY_TYPES[
+        bodyType
+      ] ||
+      BODY_TYPES.medium;
+
+
+    root.scaling.set(
+      bodyScale.x,
+      1,
+      bodyScale.z
+    );
+
+
+    /*
+     * =====================================================
+     * ANIMATION SOURCES
+     * =====================================================
+     */
+
+    const movement =
+      await SceneLoader.ImportMeshAsync(
+        "",
+        KAYKIT_ROOT,
+        "animations/Rig_Medium_MovementBasic.glb",
+        scene
+      );
+
+
+    const general =
+      await SceneLoader.ImportMeshAsync(
+        "",
+        KAYKIT_ROOT,
+        "animations/Rig_Medium_General.glb",
+        scene
+      );
+
+
+    disposeMannequinMeshes(
+      movement
+    );
+
+
+    disposeMannequinMeshes(
+      general
+    );
+
+
+    /*
+     * =====================================================
+     * RETARGET ANIMATIONS
+     * =====================================================
+     */
+
+    const movementAnimations =
+      cloneAnimations({
+        source:
+          movement,
+
+        target:
+          knight,
+
+        prefix:
+          "Knight",
+      });
+
+
+    const generalAnimations =
+      cloneAnimations({
+        source:
+          general,
+
+        target:
+          knight,
+
+        prefix:
+          "Knight",
+      });
+
+
+    movement.animationGroups.forEach(
+      (
+        animation
+      ) =>
+        animation.stop()
+    );
+
+
+    general.animationGroups.forEach(
+      (
+        animation
+      ) =>
+        animation.stop()
+    );
+
+
+    const animations =
+      [
+        ...movementAnimations,
+        ...generalAnimations,
+      ];
+
+
+    /*
+     * =====================================================
+     * WEAPON SLOT
+     * =====================================================
+     */
+
+    const weaponAnchor =
+      createWeaponAnchor({
+        scene,
+        knight,
+      });
+
+
+    /*
+     * =====================================================
+     * RESULT
+     * =====================================================
+     */
+
+    return {
+      root,
+
+      meshes:
+        knight.meshes,
+
+      skeleton:
+        knight.skeletons[0],
+
+      animations,
+
+      weaponAnchor,
+
+      appearance: {
+        /*
+         * Gender and head stay in
+         * the data model for now,
+         * but aren't customizable
+         * in the current creator.
+         */
+
+        gender:
+          appearance.gender ||
+          "male",
+
+        skinTone,
+
+        bodyType,
+
+        head:
+          appearance.head ||
+          "head1",
+      },
+    };
+  };
