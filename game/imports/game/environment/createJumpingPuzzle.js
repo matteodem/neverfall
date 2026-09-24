@@ -206,7 +206,7 @@ export const createJumpingPuzzle =
               16.5,
 
             center.y +
-              7.6,
+              6.8,
 
             center.z +
               16.5

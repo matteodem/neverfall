@@ -198,16 +198,90 @@ export const createJumpController = (
     false;
 
 
+  const moveVertical =
+    (
+      distance
+    ) => {
+      const beforeY =
+        player.position.y;
+
+
+      player.moveWithCollisions(
+        new Vector3(
+          0,
+          distance,
+          0
+        )
+      );
+
+
+      return (
+        player.position.y -
+        beforeY
+      );
+    };
+
+
+  const isStandingOnSurface =
+    () => {
+      const probeDistance =
+        -0.08;
+
+
+      const movedY =
+        moveVertical(
+          probeDistance
+        );
+
+
+      /*
+       * If Babylon prevented most
+       * of the downward probe,
+       * there is a solid surface
+       * directly below the player.
+       */
+
+      const standing =
+        Math.abs(
+          movedY
+        ) <
+        Math.abs(
+          probeDistance
+        ) *
+          0.5;
+
+
+      /*
+       * If the probe actually moved
+       * the player slightly down,
+       * restore the original position.
+       */
+
+      if (
+        !standing
+      ) {
+        player.position.y -=
+          movedY;
+      }
+
+
+      return standing;
+    };
+
+
   const jump =
     () => {
       if (
-        jumping
+        jumping ||
+        !isStandingOnSurface()
       ) {
         return;
       }
 
+
       jumping =
         true;
+
 
       velocityY =
         JUMP.velocity;
@@ -218,19 +292,44 @@ export const createJumpController = (
     (
       deltaTime
     ) => {
-      if (
-        !jumping
-      ) {
-        return;
-      }
-
       const deltaSeconds =
         deltaTime /
         1000;
 
 
       /*
-       * Gravity
+       * =====================================================
+       * START FALLING
+       * =====================================================
+       *
+       * If the player walks off a
+       * block/platform, gravity starts
+       * automatically.
+       */
+
+      if (
+        !jumping &&
+        !isStandingOnSurface()
+      ) {
+        jumping =
+          true;
+
+        velocityY =
+          0;
+      }
+
+
+      if (
+        !jumping
+      ) {
+        return;
+      }
+
+
+      /*
+       * =====================================================
+       * GRAVITY
+       * =====================================================
        */
 
       velocityY -=
@@ -238,41 +337,21 @@ export const createJumpController = (
         deltaSeconds;
 
 
-      /*
-       * Vertical movement.
-       *
-       * moveWithCollisions()
-       * allows landing on puzzle
-       * blocks instead of moving
-       * straight through them.
-       */
-
-      const beforeY =
-        player.position.y;
-
-
-      player.moveWithCollisions(
-        new Vector3(
-          0,
-          velocityY *
-            deltaSeconds,
-          0
-        )
-      );
+      const requestedMovement =
+        velocityY *
+        deltaSeconds;
 
 
       const movedY =
-        player.position.y -
-        beforeY;
+        moveVertical(
+          requestedMovement
+        );
 
 
       /*
-       * Detect landing on an object.
-       *
-       * If we're falling but Babylon
-       * prevented us from moving the
-       * requested distance downward,
-       * something solid is underneath.
+       * =====================================================
+       * LANDING
+       * =====================================================
        */
 
       if (
@@ -282,8 +361,7 @@ export const createJumpController = (
           movedY
         ) <
           Math.abs(
-            velocityY *
-              deltaSeconds
+            requestedMovement
           ) *
             0.5
       ) {
@@ -298,7 +376,9 @@ export const createJumpController = (
 
 
       /*
-       * Ground fallback.
+       * =====================================================
+       * WORLD GROUND FALLBACK
+       * =====================================================
        */
 
       if (
