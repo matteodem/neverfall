@@ -61,19 +61,22 @@ const BODY_TYPES = [
 ];
 
 
-const HEADS = [
-  "head1",
-  "head2",
-  "head3",
-  "head4",
-  "head5",
-];
+/*
+ * Gender and head customization
+ * are intentionally disabled
+ * for the current KayKit character.
+ *
+ * We still persist defaults when
+ * creating the character so the
+ * existing data model remains
+ * backwards compatible.
+ */
 
+const DEFAULT_GENDER =
+  "male";
 
-const GENDERS = [
-  "female",
-  "male",
-];
+const DEFAULT_HEAD =
+  "head1";
 
 
 const Screen = ({
@@ -169,7 +172,7 @@ const AppearanceStep =
 
     const appearance = {
       gender:
-        creator.gender,
+        DEFAULT_GENDER,
 
       skinTone:
         creator.skinTone,
@@ -178,7 +181,7 @@ const AppearanceStep =
         creator.bodyType,
 
       head:
-        creator.head,
+        DEFAULT_HEAD,
     };
 
 
@@ -189,6 +192,7 @@ const AppearanceStep =
         </h2>
 
         <div className="grid min-h-[440px] grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+
           {/*
            * ==========================================
            * APPEARANCE SETTINGS
@@ -196,53 +200,24 @@ const AppearanceStep =
            */}
 
           <div className="space-y-8">
+
             {/*
+             * ==========================================
              * GENDER
+             * ==========================================
+             *
+             * Disabled for now.
+             *
+             * KayKit Knight currently has no separate
+             * male/female model variants wired into
+             * the character creator.
              */}
 
-            <div>
-              <h3 className="mb-3 font-bold">
-                Gender
-              </h3>
-
-              <div className="flex gap-2">
-                {GENDERS.map(
-                  (
-                    gender
-                  ) => (
-                    <button
-                      key={
-                        gender
-                      }
-                      type="button"
-                      onClick={
-                        () =>
-                          setCreatorField(
-                            "gender",
-                            gender
-                          )
-                      }
-                      className={[
-                        "btn cursor-pointer capitalize",
-
-                        creator.gender ===
-                        gender
-                          ? "btn-primary"
-                          : "btn-outline text-white hover:text-black",
-                      ].join(
-                        " "
-                      )}
-                    >
-                      {gender}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-
 
             {/*
+             * ==========================================
              * SKIN TONE
+             * ==========================================
              */}
 
             <div>
@@ -263,6 +238,9 @@ const AppearanceStep =
                       title={
                         skin.id
                       }
+                      aria-label={
+                        `Skin tone ${skin.id}`
+                      }
                       onClick={
                         () =>
                           setCreatorField(
@@ -271,7 +249,7 @@ const AppearanceStep =
                           )
                       }
                       className={[
-                        "h-10 w-10 cursor-pointer rounded-full border-4",
+                        "h-10 w-10 cursor-pointer rounded-full border-4 transition",
 
                         creator.skinTone ===
                         skin.id
@@ -292,7 +270,9 @@ const AppearanceStep =
 
 
             {/*
+             * ==========================================
              * BODY TYPE
+             * ==========================================
              */}
 
             <div>
@@ -337,48 +317,16 @@ const AppearanceStep =
 
 
             {/*
+             * ==========================================
              * HEAD
+             * ==========================================
+             *
+             * Disabled for now.
+             *
+             * The current KayKit Knight only exposes
+             * one head mesh, so the old five-head
+             * selector does not currently make sense.
              */}
-
-            <div>
-              <h3 className="mb-3 font-bold">
-                Head
-              </h3>
-
-              <div className="flex flex-wrap gap-2">
-                {HEADS.map(
-                  (
-                    head
-                  ) => (
-                    <button
-                      key={
-                        head
-                      }
-                      type="button"
-                      onClick={
-                        () =>
-                          setCreatorField(
-                            "head",
-                            head
-                          )
-                      }
-                      className={[
-                        "btn cursor-pointer",
-
-                        creator.head ===
-                        head
-                          ? "btn-primary"
-                          : "btn-outline text-white hover:text-black",
-                      ].join(
-                        " "
-                      )}
-                    >
-                      {head}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
           </div>
 
 
@@ -430,7 +378,7 @@ const ClassStep =
           <div>
             <button
               type="button"
-              className="btn btn-primary cursor-pointer px-8 py-5 w-full"
+              className="btn btn-primary w-full cursor-pointer px-8 py-5"
             >
               Warrior
             </button>
@@ -440,7 +388,7 @@ const ClassStep =
             <button
               type="button"
               disabled
-              className="btn pointer-events-none px-8 py-5 w-full"
+              className="btn pointer-events-none w-full px-8 py-5"
             >
               Ranger
             </button>
@@ -450,7 +398,7 @@ const ClassStep =
             <button
               type="button"
               disabled
-              className="btn pointer-events-none px-8 py-5 w-full"
+              className="btn pointer-events-none w-full px-8 py-5"
             >
               Elementalist
             </button>
@@ -509,7 +457,9 @@ const NameStep = ({
       const name =
         creator.name.trim();
 
-      if (!name) {
+      if (
+        !name
+      ) {
         setAvailable(
           null
         );
@@ -562,7 +512,7 @@ const NameStep = ({
     async () => {
       if (
         !available ||
-        !creator.gender
+        creating
       ) {
         return;
       }
@@ -587,8 +537,14 @@ const NameStep = ({
               creator.gameClass,
 
             appearance: {
+              /*
+               * Gender/head stay in the
+               * document for compatibility,
+               * but aren't customizable yet.
+               */
+
               gender:
-                creator.gender,
+                DEFAULT_GENDER,
 
               skinTone:
                 creator.skinTone,
@@ -597,10 +553,11 @@ const NameStep = ({
                 creator.bodyType,
 
               head:
-                creator.head,
+                DEFAULT_HEAD,
             },
           }
         );
+
 
         onCreated();
       } finally {
@@ -679,7 +636,6 @@ const NameStep = ({
           type="button"
           disabled={
             !available ||
-            !creator.gender ||
             creating
           }
           onClick={
@@ -730,7 +686,6 @@ export const CharacterCreator =
               <Navigation />
             }
           >
-
             <SpeciesStep />
 
             <ClassStep />

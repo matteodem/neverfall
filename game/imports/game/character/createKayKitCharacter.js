@@ -1,4 +1,5 @@
 import {
+  Color3,
   SceneLoader,
   TransformNode,
 } from "@babylonjs/core";
@@ -10,6 +11,128 @@ const KAYKIT_ROOT =
   "/models/characters/kaykit/";
 
 
+const SKIN_TONES = {
+  light:
+    "#F1C7A5",
+
+  fair:
+    "#E5B08A",
+
+  medium:
+    "#C68662",
+
+  tan:
+    "#A96F4C",
+
+  brown:
+    "#7B4F35",
+
+  dark:
+    "#4A2D22",
+};
+
+
+const BODY_TYPES = {
+  slim: {
+    x: 0.9,
+    z: 0.9,
+  },
+
+  medium: {
+    x: 1,
+    z: 1,
+  },
+
+  large: {
+    x: 1.1,
+    z: 1.1,
+  },
+};
+
+
+/*
+ * Only the visible head mesh
+ * should receive the selected
+ * skin tone.
+ *
+ * Helmet and visor stay untouched.
+ */
+
+const SKIN_MESHES = [
+  "Knight_Head",
+];
+
+
+const applySkinTone =
+  (
+    knight,
+    skinTone
+  ) => {
+    const color =
+      Color3.FromHexString(
+        SKIN_TONES[
+          skinTone
+        ] ||
+          SKIN_TONES.medium
+      );
+
+
+    knight.meshes.forEach(
+      (
+        mesh
+      ) => {
+        if (
+          !SKIN_MESHES.includes(
+            mesh.name
+          ) ||
+          !mesh.material
+        ) {
+          return;
+        }
+
+
+        /*
+         * All Knight meshes share
+         * the same base material.
+         *
+         * Clone it first so changing
+         * the head doesn't recolor
+         * the armor or other meshes.
+         */
+
+        const material =
+          mesh.material.clone(
+            `${mesh.name}-skinMaterial`
+          );
+
+
+        /*
+         * KayKit GLBs use a glTF
+         * material, usually PBR.
+         */
+
+        if (
+          "albedoColor"
+          in material
+        ) {
+          material.albedoColor =
+            color;
+        } else if (
+          "diffuseColor"
+          in material
+        ) {
+          material.diffuseColor =
+            color;
+        }
+
+
+        mesh.material =
+          material;
+      }
+    );
+  };
+
+
 const findTargetByName =
   (
     result,
@@ -17,10 +140,13 @@ const findTargetByName =
   ) => {
     const transformNode =
       result.transformNodes?.find(
-        (node) =>
+        (
+          node
+        ) =>
           node.name ===
           name
       );
+
 
     if (
       transformNode
@@ -31,10 +157,13 @@ const findTargetByName =
 
     const mesh =
       result.meshes?.find(
-        (item) =>
+        (
+          item
+        ) =>
           item.name ===
           name
       );
+
 
     if (
       mesh
@@ -45,14 +174,18 @@ const findTargetByName =
 
     for (
       const skeleton
-      of result.skeletons || []
+      of result.skeletons ||
+      []
     ) {
       const bone =
         skeleton.bones.find(
-          (item) =>
+          (
+            item
+          ) =>
             item.name ===
             name
         );
+
 
       if (
         bone
@@ -74,13 +207,16 @@ const disposeMannequinMeshes =
     result
   ) => {
     result.meshes.forEach(
-      (mesh) => {
+      (
+        mesh
+      ) => {
         if (
           mesh.name ===
           "__root__"
         ) {
           return;
         }
+
 
         mesh.isVisible =
           false;
@@ -114,6 +250,7 @@ const cloneAnimations =
               return null;
             }
 
+
             return findTargetByName(
               target,
               oldTarget.name
@@ -133,12 +270,16 @@ const createWeaponAnchor =
     const skeleton =
       knight.skeletons[0];
 
+
     const handSlotBone =
       skeleton?.bones.find(
-        (bone) =>
+        (
+          bone
+        ) =>
           bone.name ===
           "handslot.r"
       );
+
 
     if (
       !handSlotBone
@@ -169,6 +310,7 @@ const createWeaponAnchor =
         scene
       );
 
+
     weaponAnchor.parent =
       handSlotNode;
 
@@ -182,6 +324,7 @@ export const createKayKitCharacter =
     scene,
     appearance = {},
   }) => {
+
     /*
      * =====================================================
      * KNIGHT
@@ -197,6 +340,32 @@ export const createKayKitCharacter =
       );
 
 
+    const skinTone =
+      appearance.skinTone ||
+      "medium";
+
+
+    const bodyType =
+      appearance.bodyType ||
+      "medium";
+
+
+    /*
+     * Only recolor the head.
+     */
+
+    applySkinTone(
+      knight,
+      skinTone
+    );
+
+
+    /*
+     * =====================================================
+     * ROOT
+     * =====================================================
+     */
+
     const root =
       new TransformNode(
         "characterRoot",
@@ -206,7 +375,9 @@ export const createKayKitCharacter =
 
     const knightRoot =
       knight.meshes.find(
-        (mesh) =>
+        (
+          mesh
+        ) =>
           mesh.name ===
           "__root__"
       );
@@ -218,6 +389,30 @@ export const createKayKitCharacter =
       knightRoot.parent =
         root;
     }
+
+
+    /*
+     * =====================================================
+     * BODY TYPE
+     * =====================================================
+     *
+     * Keep Y unchanged so all
+     * characters remain the same
+     * height.
+     */
+
+    const bodyScale =
+      BODY_TYPES[
+        bodyType
+      ] ||
+      BODY_TYPES.medium;
+
+
+    root.scaling.set(
+      bodyScale.x,
+      1,
+      bodyScale.z
+    );
 
 
     /*
@@ -247,6 +442,7 @@ export const createKayKitCharacter =
     disposeMannequinMeshes(
       movement
     );
+
 
     disposeMannequinMeshes(
       general
@@ -286,13 +482,17 @@ export const createKayKitCharacter =
 
 
     movement.animationGroups.forEach(
-      (animation) =>
+      (
+        animation
+      ) =>
         animation.stop()
     );
 
 
     general.animationGroups.forEach(
-      (animation) =>
+      (
+        animation
+      ) =>
         animation.stop()
     );
 
@@ -317,6 +517,12 @@ export const createKayKitCharacter =
       });
 
 
+    /*
+     * =====================================================
+     * RESULT
+     * =====================================================
+     */
+
     return {
       root,
 
@@ -331,17 +537,20 @@ export const createKayKitCharacter =
       weaponAnchor,
 
       appearance: {
+        /*
+         * Gender and head stay in
+         * the data model for now,
+         * but aren't customizable
+         * in the current creator.
+         */
+
         gender:
           appearance.gender ||
-          "female",
+          "male",
 
-        skinTone:
-          appearance.skinTone ||
-          "medium",
+        skinTone,
 
-        bodyType:
-          appearance.bodyType ||
-          "medium",
+        bodyType,
 
         head:
           appearance.head ||
