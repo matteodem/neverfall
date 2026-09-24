@@ -12,12 +12,14 @@ import {
   getCameraRight,
 } from "./camera";
 
+
 export const faceDirection = (
   player,
   direction
 ) => {
   if (
-    direction.lengthSquared() === 0
+    direction.lengthSquared() ===
+    0
   ) {
     return;
   }
@@ -28,6 +30,7 @@ export const faceDirection = (
       direction.z
     );
 };
+
 
 const getMovementDirection = ({
   keys,
@@ -49,25 +52,33 @@ const getMovementDirection = ({
       player
     );
 
-  if (keys.w) {
+  if (
+    keys.w
+  ) {
     movement.addInPlace(
       forward
     );
   }
 
-  if (keys.s) {
+  if (
+    keys.s
+  ) {
     movement.subtractInPlace(
       forward
     );
   }
 
-  if (keys.d) {
+  if (
+    keys.d
+  ) {
     movement.addInPlace(
       right
     );
   }
 
-  if (keys.a) {
+  if (
+    keys.a
+  ) {
     movement.subtractInPlace(
       right
     );
@@ -75,6 +86,7 @@ const getMovementDirection = ({
 
   return movement;
 };
+
 
 export const isMoving = (
   input
@@ -87,6 +99,7 @@ export const isMoving = (
   );
 };
 
+
 export const updateMovement = ({
   deltaTime,
   input,
@@ -95,13 +108,17 @@ export const updateMovement = ({
 }) => {
   const movement =
     getMovementDirection({
-      keys: input.keys,
+      keys:
+        input.keys,
+
       camera,
+
       player,
     });
 
   if (
-    movement.lengthSquared() === 0
+    movement.lengthSquared() ===
+    0
   ) {
     return;
   }
@@ -110,13 +127,28 @@ export const updateMovement = ({
 
   const distance =
     PLAYER.speed *
-    (deltaTime / 1000);
+    (
+      deltaTime /
+      1000
+    );
 
-  player.position.addInPlace(
-    movement.scale(distance)
+  const displacement =
+    movement.scale(
+      distance
+    );
+
+  /*
+   * Use Babylon collisions instead
+   * of directly changing position.
+   */
+
+  player.moveWithCollisions(
+    displacement
   );
 
-  if (input.rightMouseDown) {
+  if (
+    input.rightMouseDown
+  ) {
     faceDirection(
       player,
       getCameraForward(
@@ -134,12 +166,15 @@ export const updateMovement = ({
   );
 };
 
+
 export const updateCameraFacing = ({
   input,
   camera,
   player,
 }) => {
-  if (!input.rightMouseDown) {
+  if (
+    !input.rightMouseDown
+  ) {
     return;
   }
 
@@ -152,73 +187,154 @@ export const updateCameraFacing = ({
   );
 };
 
+
 export const createJumpController = (
   player
 ) => {
-  let velocityY = 0;
-  let jumping = false;
+  let velocityY =
+    0;
 
-  const jump = () => {
-    if (jumping) {
-      return;
-    }
+  let jumping =
+    false;
 
-    jumping = true;
 
-    velocityY =
-      JUMP.velocity;
-  };
+  const jump =
+    () => {
+      if (
+        jumping
+      ) {
+        return;
+      }
 
-  const update = (
-    deltaTime
-  ) => {
-    if (!jumping) {
-      return;
-    }
+      jumping =
+        true;
 
-    const deltaSeconds =
-      deltaTime / 1000;
+      velocityY =
+        JUMP.velocity;
+    };
 
-    /*
-     * Gravity.
-     */
-    velocityY -=
-      JUMP.gravity *
-      deltaSeconds;
 
-    /*
-     * Move vertically.
-     */
-    player.position.y +=
-      velocityY *
-      deltaSeconds;
+  const update =
+    (
+      deltaTime
+    ) => {
+      if (
+        !jumping
+      ) {
+        return;
+      }
 
-    /*
-     * Land.
-     */
-    if (
-      player.position.y <=
-      JUMP.groundY
-    ) {
+      const deltaSeconds =
+        deltaTime /
+        1000;
+
+
+      /*
+       * Gravity
+       */
+
+      velocityY -=
+        JUMP.gravity *
+        deltaSeconds;
+
+
+      /*
+       * Vertical movement.
+       *
+       * moveWithCollisions()
+       * allows landing on puzzle
+       * blocks instead of moving
+       * straight through them.
+       */
+
+      const beforeY =
+        player.position.y;
+
+
+      player.moveWithCollisions(
+        new Vector3(
+          0,
+          velocityY *
+            deltaSeconds,
+          0
+        )
+      );
+
+
+      const movedY =
+        player.position.y -
+        beforeY;
+
+
+      /*
+       * Detect landing on an object.
+       *
+       * If we're falling but Babylon
+       * prevented us from moving the
+       * requested distance downward,
+       * something solid is underneath.
+       */
+
+      if (
+        velocityY <
+          0 &&
+        Math.abs(
+          movedY
+        ) <
+          Math.abs(
+            velocityY *
+              deltaSeconds
+          ) *
+            0.5
+      ) {
+        velocityY =
+          0;
+
+        jumping =
+          false;
+
+        return;
+      }
+
+
+      /*
+       * Ground fallback.
+       */
+
+      if (
+        player.position.y <=
+        JUMP.groundY
+      ) {
+        player.position.y =
+          JUMP.groundY;
+
+        velocityY =
+          0;
+
+        jumping =
+          false;
+      }
+    };
+
+
+  const reset =
+    () => {
+      velocityY =
+        0;
+
+      jumping =
+        false;
+
       player.position.y =
         JUMP.groundY;
+    };
 
-      velocityY = 0;
-      jumping = false;
-    }
-  };
 
-  const reset = () => {
-    velocityY = 0;
-    jumping = false;
+  const isJumping =
+    () => {
+      return jumping;
+    };
 
-    player.position.y =
-      JUMP.groundY;
-  };
-
-  const isJumping = () => {
-    return jumping;
-  };
 
   return {
     jump,

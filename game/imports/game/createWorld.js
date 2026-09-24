@@ -43,6 +43,10 @@ import {
   createKayKitAnimationController,
 } from "./character/createKayKitAnimationController";
 
+import {
+  createJumpingPuzzle,
+} from "./environment/createJumpingPuzzle";
+
 export const createWorld =
   async (
     scene,
@@ -77,6 +81,8 @@ export const createWorld =
     scene.fogEnd =
       220;
 
+    scene.collisionsEnabled =
+      true;
 
     /*
      * =====================================================
@@ -148,6 +154,9 @@ export const createWorld =
         scene
       );
 
+    ground.checkCollisions =
+      true;
+
     const groundMaterial =
       new StandardMaterial(
         "groundMaterial",
@@ -178,14 +187,107 @@ export const createWorld =
         appearance,
       });
 
+
+    /*
+    * =====================================================
+    * PLAYER COLLIDER
+    * =====================================================
+    *
+    * The KayKit character root is a TransformNode,
+    * which cannot use moveWithCollisions().
+    *
+    * Keep gameplay collision separate from
+    * the visual character.
+    */
+
     const player =
-      character.root;
+      MeshBuilder.CreateBox(
+        "playerCollider",
+        {
+          width:
+            0.8,
+
+          height:
+            1.8,
+
+          depth:
+            0.8,
+        },
+        scene
+      );
+
 
     player.position.set(
       0,
-      0,
+      0.9,
       0
     );
+
+
+    /*
+    * Keep the collider active but invisible.
+    */
+
+    player.visibility =
+      0;
+
+    player.isPickable =
+      false;
+
+    player.checkCollisions =
+      true;
+
+
+    /*
+    * Babylon uses an ellipsoid for
+    * moveWithCollisions().
+    */
+
+    player.ellipsoid =
+      new Vector3(
+        0.4,
+        0.9,
+        0.4
+      );
+
+    player.ellipsoidOffset =
+      new Vector3(
+        0,
+        0,
+        0
+      );
+
+
+    /*
+    * Attach the visual KayKit character
+    * to the gameplay collider.
+    */
+
+    character.root.parent =
+      player;
+
+    character.root.position.set(
+      0,
+      -0.9,
+      0
+    );
+
+    player.checkCollisions =
+      true;
+
+    player.ellipsoid =
+      new Vector3(
+        0.4,
+        0.9,
+        0.4
+      );
+
+    player.ellipsoidOffset =
+      new Vector3(
+        0,
+        0.9,
+        0
+      );
 
 
     /*
@@ -218,7 +320,7 @@ export const createWorld =
           "white",
 
         y:
-          -0.4,
+          -1.3,
       });
 
 
@@ -411,6 +513,17 @@ export const createWorld =
           6,
       });
 
+    /*
+    * =====================================================
+    * JUMPING PUZZLE
+    * =====================================================
+    */
+
+    const jumpingPuzzle =
+      createJumpingPuzzle({
+        scene,
+      });
+
 
     /*
      * =====================================================
@@ -473,5 +586,7 @@ export const createWorld =
 
       camp:
         clearingCamp,
+
+      jumpingPuzzle,
     };
   };

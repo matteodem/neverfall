@@ -20,6 +20,10 @@ import {
 } from "meteor/meteor";
 
 import {
+  JUMP,
+} from "./config";
+
+import {
   ensureGuestUser,
 } from "../auth/guest";
 
@@ -1408,7 +1412,10 @@ export const createMultiplayer =
         ) {
           localPlayer.position.set(
             localPlayerState.x,
-            localPlayerState.y,
+
+            localPlayerState.y +
+              JUMP.groundY,
+
             localPlayerState.z
           );
 
@@ -1584,7 +1591,8 @@ export const createMultiplayer =
             y:
               localPlayer
                 .position
-                .y,
+                .y -
+              JUMP.groundY,
 
             z:
               localPlayer
