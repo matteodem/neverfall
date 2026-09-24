@@ -14,12 +14,12 @@ import {
 } from "@babylonjs/core";
 
 import {
-  createLowPolyCharacter,
-} from "../game/character/createLowPolyCharacter";
+  createKayKitCharacter,
+} from "../game/character/createKayKitCharacter";
 
 import {
-  createCharacterAnimationController,
-} from "../game/character/createCharacterAnimationController";
+  createKayKitAnimationController,
+} from "../game/character/createKayKitAnimationController";
 
 
 export const CharacterPreview = ({
@@ -46,6 +46,16 @@ export const CharacterPreview = ({
       if (!canvas) {
         return;
       }
+
+
+      let disposed =
+        false;
+
+      let characterRoot =
+        null;
+
+      let animations =
+        null;
 
 
       setLoading(
@@ -151,11 +161,13 @@ export const CharacterPreview = ({
       const frontLight =
         new DirectionalLight(
           "previewFrontLight",
+
           new Vector3(
             0,
             -0.5,
             1
           ),
+
           scene
         );
 
@@ -172,35 +184,79 @@ export const CharacterPreview = ({
        * =====================================================
        */
 
-      const character =
-        createLowPolyCharacter({
-          scene,
+      const loadCharacter =
+        async () => {
+          try {
+            const character =
+              await createKayKitCharacter({
+                scene,
+                appearance,
+              });
 
-          appearance,
-        });
 
-      const characterRoot =
-        character.root;
+            /*
+             * The effect may have been
+             * cleaned up while the GLB
+             * files were loading.
+             */
+
+            if (
+              disposed
+            ) {
+              character.root.dispose();
+
+              return;
+            }
 
 
-      /*
-       * =====================================================
-       * IDLE ANIMATION
-       * =====================================================
-       */
+            characterRoot =
+              character.root;
 
-      const animations =
-        createCharacterAnimationController(
-          character
-        );
 
-      animations.setRunning(
-        false
-      );
+            /*
+             * =====================================================
+             * IDLE ANIMATION
+             * =====================================================
+             */
 
-      animations.setJumping(
-        false
-      );
+            animations =
+              createKayKitAnimationController(
+                character
+              );
+
+
+            animations.setRunning(
+              false
+            );
+
+            animations.setJumping(
+              false
+            );
+
+
+            setLoading(
+              false
+            );
+          } catch (
+            error
+          ) {
+            console.error(
+              "[CharacterPreview] Failed to load KayKit character:",
+              error
+            );
+
+            if (
+              !disposed
+            ) {
+              setLoading(
+                false
+              );
+            }
+          }
+        };
+
+
+      loadCharacter();
 
 
       /*
@@ -232,11 +288,14 @@ export const CharacterPreview = ({
             return;
           }
 
+
           dragging =
             true;
 
+
           previousX =
             event.clientX;
+
 
           canvas
             .setPointerCapture
@@ -250,16 +309,22 @@ export const CharacterPreview = ({
         (
           event
         ) => {
-          if (!dragging) {
+          if (
+            !dragging ||
+            !characterRoot
+          ) {
             return;
           }
+
 
           const deltaX =
             event.clientX -
             previousX;
 
+
           previousX =
             event.clientX;
+
 
           characterRoot.rotation.y +=
             deltaX *
@@ -273,6 +338,7 @@ export const CharacterPreview = ({
         ) => {
           dragging =
             false;
+
 
           canvas
             .releasePointerCapture
@@ -322,19 +388,16 @@ export const CharacterPreview = ({
        * =====================================================
        */
 
-      setLoading(
-        false
-      );
-
-
       engine.runRenderLoop(
         () => {
           const deltaTime =
             engine.getDeltaTime();
 
-          animations.update(
+
+          animations?.update(
             deltaTime
           );
+
 
           scene.render();
         }
@@ -366,6 +429,10 @@ export const CharacterPreview = ({
        */
 
       return () => {
+        disposed =
+          true;
+
+
         canvas.removeEventListener(
           "pointerdown",
           pointerDown
@@ -391,14 +458,18 @@ export const CharacterPreview = ({
           contextMenu
         );
 
+
         window.removeEventListener(
           "resize",
           resize
         );
 
-        animations.destroy();
+
+        animations?.destroy();
+
 
         scene.dispose();
+
 
         engine.dispose();
       };
@@ -425,6 +496,7 @@ export const CharacterPreview = ({
         }
         className="h-full w-full cursor-grab outline-none active:cursor-grabbing"
       />
+
 
       {loading && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
