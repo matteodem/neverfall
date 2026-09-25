@@ -433,7 +433,7 @@ export const Game = ({
            */
 
           const SKILL_HANDLERS = {
-            KeyM() {
+            KeyV() {
               if (
                 playerAlive
               ) {
@@ -641,7 +641,7 @@ export const Game = ({
                 useActionBarStore
                   .getState()
                   .triggerSkill(
-                    "KeyM"
+                    "KeyV"
                   );
 
 
