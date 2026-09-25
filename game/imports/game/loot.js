@@ -3,6 +3,9 @@ import { JUMP } from "./config";
 import { canCollectLoot } from "./inventory";
 import { useLootStore } from "../ui/stores/useLootStore";
 import { useHudStore } from "../ui/stores/useHudStore";
+import {
+  playGameSound,
+} from "./sound";
 
 export const createLoot = ({ scene, room, callbacks, player }) => {
   const orbs = new Map();
@@ -61,11 +64,38 @@ export const createLoot = ({ scene, room, callbacks, player }) => {
     }
   };
 
-  const collect = () => {
-    update();
-    const { nearbyId } = useLootStore.getState();
-    if (nearbyId && !useHudStore.getState().activeModal) room.send("loot", nearbyId);
-  };
+  const collect =
+    () => {
+      update();
+
+
+      const {
+        nearbyId,
+      } =
+        useLootStore
+          .getState();
+
+
+      if (
+        !nearbyId ||
+        useHudStore
+          .getState()
+          .activeModal
+      ) {
+        return;
+      }
+
+
+      room.send(
+        "loot",
+        nearbyId
+      );
+
+
+      playGameSound(
+        "loot"
+      );
+    };
 
   return {
     update,

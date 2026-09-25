@@ -60,6 +60,11 @@ import {
   useHudStore,
 } from "./stores/useHudStore";
 
+import {
+  playGameSound,
+  preloadSounds,
+} from "../game/sound";
+
 export const Game = ({
   character,
 
@@ -120,7 +125,6 @@ export const Game = ({
       let disposed =
         false;
 
-
       const init =
         async () => {
           const canvas =
@@ -170,6 +174,7 @@ export const Game = ({
               engine
             );
 
+          preloadSounds();
 
           /*
            * =====================================================
@@ -305,9 +310,16 @@ export const Game = ({
                 combat
                   ?.startAttack();
 
-              if (!attacked) {
+
+              if (
+                !attacked
+              ) {
                 return;
               }
+
+              playGameSound(
+                "attack"
+              );
 
               multiplayer
                 ?.sendAttack();
