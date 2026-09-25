@@ -794,11 +794,27 @@ export const createMultiplayer =
       authToken;
 
 
-    const room =
-      await client.joinOrCreate(
-        "world"
-      );
+    let room
 
+    try {
+      room =
+        await client.joinOrCreate(
+          "world"
+        );
+    } catch (error) {
+      const worldIsFull =
+        /full|max clients|maximum clients/i.test(
+          error?.message || ""
+        );
+
+      if (worldIsFull) {
+        alert(
+          "The world is currently full (50/50 players). Please try again later."
+        );
+      }
+
+      throw error;
+    }
 
     const callbacks =
       Callbacks.get(

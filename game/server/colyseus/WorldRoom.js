@@ -36,6 +36,8 @@ import {
   getPlayerStats,
 } from "../../imports/game/playerStats";
 
+const MAX_PLAYERS =
+  50;
 
 /*
  * =====================================================
@@ -197,6 +199,9 @@ export class WorldRoom
    */
 
   onCreate() {
+    this.maxClients =
+      MAX_PLAYERS;
+
     for (
       const spawn
       of ENEMY_SPAWNS
