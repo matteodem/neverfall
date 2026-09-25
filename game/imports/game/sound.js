@@ -1,9 +1,9 @@
 const SOUND_VOLUME = {
   attack:
-    0.45,
+    0.35,
 
   loot:
-    0.5,
+    0.3,
 };
 
 
