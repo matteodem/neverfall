@@ -56,6 +56,10 @@ import {
   useMinimapStore,
 } from "./stores/useMinimapStore";
 
+import {
+  useHudStore,
+} from "./stores/useHudStore";
+
 export const Game = ({
   character,
 
@@ -429,6 +433,39 @@ export const Game = ({
                 if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
                 event.preventDefault();
                 multiplayer?.collectLoot();
+                return;
+              }
+
+              if (
+                event.code ===
+                "KeyI"
+              ) {
+                if (
+                  event.target?.closest?.(
+                    "input, textarea, select, [contenteditable='true']"
+                  )
+                ) {
+                  return;
+                }
+
+                event.preventDefault();
+
+                const hudStore =
+                  useHudStore.getState();
+
+                if (
+                  hudStore.activeModal ===
+                  "inventory"
+                ) {
+                  hudStore.closeModal();
+
+                  return;
+                }
+
+                hudStore.openModal(
+                  "inventory"
+                );
+
                 return;
               }
 
