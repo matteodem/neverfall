@@ -678,12 +678,9 @@ export const Game = ({
                     .getState();
 
 
-                if (
-                  hudStore.activeModal ===
-                  "inventory"
-                ) {
+                if (hudStore.openModals.includes("inventory")) {
                   hudStore
-                    .closeModal();
+                    .closeModal("inventory");
 
                   return;
                 }

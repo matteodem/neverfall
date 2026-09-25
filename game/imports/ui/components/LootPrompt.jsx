@@ -4,8 +4,8 @@ import { useHudStore } from "../stores/useHudStore";
 
 export const LootPrompt = () => {
   const nearbyId = useLootStore((state) => state.nearbyId);
-  const activeModal = useHudStore((state) => state.activeModal);
-  if (!nearbyId || activeModal) return null;
+  const hasOpenModal = useHudStore((state) => state.openModals.length > 0);
+  if (!nearbyId || hasOpenModal) return null;
 
   return (
     <div className="pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2 rounded bg-black/70 px-4 py-2 text-white">

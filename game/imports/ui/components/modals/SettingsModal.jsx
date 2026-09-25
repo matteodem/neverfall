@@ -84,6 +84,7 @@ export const SettingsModal = () => {
     <HudModal
       id="settings"
       title="Settings"
+      backdrop
     >
       <div className="flex flex-col gap-2">
         {SETTINGS.map(

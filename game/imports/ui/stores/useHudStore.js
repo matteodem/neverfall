@@ -2,14 +2,18 @@ import { create } from "zustand";
 
 export const useHudStore = create((set) => ({
   activeModal: null,
+  openModals: [],
 
-  openModal: (modal) =>
-    set({
-      activeModal: modal,
-    }),
+  openModal: (modal) => set((state) => {
+    const openModals = state.openModals.filter((openModal) => openModal !== modal);
+    openModals.push(modal);
+    return { openModals, activeModal: modal };
+  }),
 
-  closeModal: () =>
-    set({
-      activeModal: null,
-    }),
+  closeModal: (modal) => set((state) => {
+    if (!modal) return { openModals: [], activeModal: null };
+
+    const openModals = state.openModals.filter((openModal) => openModal !== modal);
+    return { openModals, activeModal: openModals[openModals.length - 1] || null };
+  }),
 }));
