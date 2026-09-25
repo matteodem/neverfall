@@ -40,6 +40,8 @@ import {
   createCombat,
 } from "../game/combat";
 
+import { createHorseMount } from "../game/mounts";
+
 import {
   createLoadingScreen,
 } from "../game/loadingScreen";
@@ -71,6 +73,7 @@ export const Game = ({
   setPlayerHealth,
   setHealCooldownUntil,
   setAttackCooldownUntil,
+  setMountedState,
 }) => {
   const canvasRef =
     useRef(
@@ -122,6 +125,10 @@ export const Game = ({
 
       let multiplayer =
         null;
+
+      let mount = null;
+      let mounted = false;
+      let playerAlive = true;
 
       let disposed =
         false;
@@ -185,6 +192,7 @@ export const Game = ({
 
           const {
             player,
+            character: playerCharacter,
 
             swordPivot,
             swordTip,
@@ -208,6 +216,19 @@ export const Game = ({
             return;
           }
 
+          mount = await createHorseMount({ scene, parent: player, character: playerCharacter });
+
+          if (disposed) {
+            mount.destroy();
+            return;
+          }
+
+          const setMounted = (value) => {
+            mounted = Boolean(value && playerAlive);
+            mount.setMounted(mounted);
+            setMountedState(mounted);
+          };
+
           useLoadingStore
             .getState()
             .setProgress(
@@ -227,8 +248,11 @@ export const Game = ({
 
               player,
 
-              onLocalHealthChange:
-                setPlayerHealth,
+              onLocalHealthChange: (health) => {
+                setPlayerHealth(health);
+                playerAlive = health.health > 0;
+                if (!playerAlive && mounted) setMounted(false);
+              },
 
               onBoarQuestChange:
                 setBoarKills,
@@ -306,7 +330,11 @@ export const Game = ({
            */
 
           const SKILL_HANDLERS = {
+            KeyM() {
+              if (playerAlive) setMounted(!mounted);
+            },
             Digit1() {
+              if (mounted) return;
               const attacked =
                 combat
                   ?.startAttack();
@@ -329,6 +357,7 @@ export const Game = ({
             },
 
             Digit4() {
+              if (mounted) return;
               multiplayer
                 ?.sendHeal();
             },
@@ -448,6 +477,13 @@ export const Game = ({
                 if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
                 event.preventDefault();
                 multiplayer?.collectLoot();
+                return;
+              }
+
+              if (event.code === "KeyM") {
+                if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
+                event.preventDefault();
+                useActionBarStore.getState().triggerSkill("KeyM");
                 return;
               }
 
@@ -601,6 +637,7 @@ export const Game = ({
                 camera,
 
                 player,
+                speedMultiplier: mounted ? 1.5 : 1,
               });
 
 
@@ -653,6 +690,8 @@ export const Game = ({
                 deltaTime
               );
 
+              mount?.setRunning(mounted && isMoving(input.state));
+
 
               /*
                * ---------------------
@@ -680,7 +719,8 @@ export const Game = ({
                 ?.sendMovement(
                   player,
 
-                  deltaTime
+                  deltaTime,
+                  mounted
                 );
 
               multiplayer
@@ -756,6 +796,9 @@ export const Game = ({
         setSkillHandler(
           null
         );
+
+        setMountedState(false);
+        mount?.destroy();
 
         resetMinimap();
 

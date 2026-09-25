@@ -105,6 +105,7 @@ export const updateMovement = ({
   input,
   camera,
   player,
+  speedMultiplier = 1,
 }) => {
   const movement =
     getMovementDirection({
@@ -126,7 +127,7 @@ export const updateMovement = ({
   movement.normalize();
 
   const distance =
-    PLAYER.speed *
+    PLAYER.speed * speedMultiplier *
     (
       deltaTime /
       1000

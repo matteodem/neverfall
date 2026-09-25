@@ -1,4 +1,4 @@
-Read AGENTS.md and docs/instructions/{instruction.md}.
+Read AGENTS.md and docs/instructions/07-mounts.md.
 
 Implement only the feature described in the spec.
 

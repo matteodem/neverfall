@@ -510,6 +510,7 @@ const ActionSlot = ({
   slot,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted,
   onTrigger,
 }) => {
   const cooldownUntil =
@@ -531,6 +532,7 @@ const ActionSlot = ({
     >
       <button
         type="button"
+        disabled={mounted && (slot.code === "Digit1" || slot.code === "Digit4")}
         onClick={
           () =>
             onTrigger(
@@ -622,6 +624,7 @@ const ActionBar = ({
   currentLevel,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted,
 }) => {
   const triggerSkill =
     useActionBarStore(
@@ -660,6 +663,7 @@ const ActionBar = ({
               healCooldownUntil
             }
             attackCooldownUntil={attackCooldownUntil}
+            mounted={mounted}
             onTrigger={
               triggerSkill
             }
@@ -682,6 +686,8 @@ const BottomHud = ({
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted,
+  isDead,
 }) => {
   return (
     <div
@@ -706,17 +712,24 @@ const BottomHud = ({
           healCooldownUntil
         }
         attackCooldownUntil={attackCooldownUntil}
+        mounted={mounted}
       />
 
 
-      <PlayerHealthBar
-        health={
-          playerHealth.health
-        }
-        maxHealth={
-          playerHealth.maxHealth
-        }
-      />
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={isDead}
+          onClick={() => useActionBarStore.getState().triggerSkill("KeyM")}
+          className="btn btn-sm border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40"
+        >
+          {mounted ? "Dismount" : "Mount"}
+        </button>
+        <PlayerHealthBar
+          health={playerHealth.health}
+          maxHealth={playerHealth.maxHealth}
+        />
+      </div>
 
 
       <XpBar />
@@ -736,6 +749,7 @@ export const Hud = ({
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted = false,
 }) => {
   const [hitFeedback, setHitFeedback] = useState(false);
   const previousHealth = React.useRef(playerHealth.health);
@@ -799,6 +813,8 @@ export const Hud = ({
           healCooldownUntil
         }
         attackCooldownUntil={attackCooldownUntil}
+        mounted={mounted}
+        isDead={isDead}
       />
 
 
