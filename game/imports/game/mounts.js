@@ -79,7 +79,7 @@ export const createHorseMount =
     );
 
     root.scaling.setAll(
-      0.8
+      1.2
     );
 
 

@@ -825,7 +825,7 @@ export const Game = ({
 
                   speedMultiplier:
                     mounted
-                      ? 1.5
+                      ? 2
                       : 1,
                 });
 
