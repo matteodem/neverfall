@@ -510,7 +510,6 @@ const ActionSlot = ({
   slot,
   healCooldownUntil,
   attackCooldownUntil,
-  mounted,
   onTrigger,
 }) => {
   const cooldownUntil =
@@ -532,7 +531,6 @@ const ActionSlot = ({
     >
       <button
         type="button"
-        disabled={mounted && (slot.code === "Digit1" || slot.code === "Digit4")}
         onClick={
           () =>
             onTrigger(
@@ -624,7 +622,6 @@ const ActionBar = ({
   currentLevel,
   healCooldownUntil,
   attackCooldownUntil,
-  mounted,
 }) => {
   const triggerSkill =
     useActionBarStore(
@@ -663,7 +660,6 @@ const ActionBar = ({
               healCooldownUntil
             }
             attackCooldownUntil={attackCooldownUntil}
-            mounted={mounted}
             onTrigger={
               triggerSkill
             }
@@ -712,7 +708,6 @@ const BottomHud = ({
           healCooldownUntil
         }
         attackCooldownUntil={attackCooldownUntil}
-        mounted={mounted}
       />
 
 

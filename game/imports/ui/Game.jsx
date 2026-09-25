@@ -445,13 +445,6 @@ export const Game = ({
 
 
             Digit1() {
-              if (
-                mounted
-              ) {
-                return;
-              }
-
-
               const attacked =
                 combat
                   ?.startAttack();
@@ -481,13 +474,6 @@ export const Game = ({
 
 
             Digit4() {
-              if (
-                mounted
-              ) {
-                return;
-              }
-
-
               multiplayer
                 ?.sendHeal();
             },
@@ -498,6 +484,13 @@ export const Game = ({
             (
               code
             ) => {
+              if (
+                mounted &&
+                /^Digit[1-4]$/.test(code)
+              ) {
+                setMounted(false);
+              }
+
               SKILL_HANDLERS[
                 code
               ]?.();

@@ -18,6 +18,7 @@ export const HelpModal = () => {
         <ul>
           <li>WASD to move.</li>
           <li>1 to 4 to use skills.</li>
+          <li>M to Mount / Dismount.</li>
         </ul>
       </div>
 
