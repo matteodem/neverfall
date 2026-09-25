@@ -38,6 +38,38 @@ describe("inventory", function () {
 
 if (Meteor.isServer) {
   describe("loot collection", function () {
+    it("gives each participating user a separate drop at the boar's death position", async function () {
+      const { WorldRoom } = await import("../server/colyseus/WorldRoom");
+      const enemy = { x: 4, y: 0, z: 8 };
+      const room = {
+        state: {
+          players: new Map([
+            ["first", { userId: "one", characterId: "character-one" }],
+            ["second", { userId: "two", characterId: "character-two" }],
+            ["duplicate", { userId: "one", characterId: "character-one" }],
+            ["bystander", { userId: "three", characterId: "character-three" }],
+          ]),
+          enemies: new Map([["boar", enemy]]),
+          loot: new Map(),
+        },
+        enemyRuntime: new Map([["boar", {
+          spawn: enemy,
+          contributors: new Set(["character-one", "character-two"]),
+        }]]),
+        awardXp: async () => {},
+        advanceBoarQuest: () => false,
+        clock: { setTimeout() {} },
+      };
+      await WorldRoom.prototype.killEnemy.call(room, "boar");
+      const drops = Array.from(room.state.loot.values());
+      assert.deepStrictEqual(drops.map((drop) => drop.ownerId).sort(), ["one", "two"]);
+      for (const drop of drops) {
+        assert.deepStrictEqual({ x: drop.x, y: drop.y, z: drop.z }, enemy);
+      }
+      await WorldRoom.prototype.killEnemy.call(room, "boar");
+      assert.strictEqual(room.state.loot.size, 2);
+    });
+
     it("saves a drop once despite concurrent requests and rejects replay", async function () {
       const { collectLoot, spawnLoot } = await import("../server/inventory/loot");
       const userId = await Meteor.users.insertAsync({ profile: { inventory: { money: 0, items: [] } } });

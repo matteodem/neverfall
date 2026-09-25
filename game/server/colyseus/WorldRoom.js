@@ -1241,8 +1241,7 @@ export class WorldRoom
       0
     ) {
       await this.killEnemy(
-        enemyId,
-        sessionId
+        enemyId
       );
     }
   }
@@ -1306,8 +1305,7 @@ export class WorldRoom
 
 
   async killEnemy(
-    enemyId,
-    killerSessionId
+    enemyId
   ) {
     const runtime =
       this.enemyRuntime.get(
@@ -1328,7 +1326,14 @@ export class WorldRoom
     } = runtime;
 
 
-    spawnLoot(this, this.state.enemies.get(enemyId), killerSessionId);
+    const lootOwners = new Set();
+    for (const [sessionId, player] of this.state.players.entries()) {
+      if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
+        continue;
+      }
+      spawnLoot(this, this.state.enemies.get(enemyId), sessionId);
+      lootOwners.add(player.userId);
+    }
 
     /*
      * Remove dead enemy.
