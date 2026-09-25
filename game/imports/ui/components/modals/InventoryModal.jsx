@@ -22,9 +22,22 @@ import {
   HudModal,
 } from "../HudModal";
 
+import { Icon } from "../Icon";
+
 
 const INVENTORY_SLOTS =
   20;
+
+const ITEM_DISPLAY = {
+  boar_skin: {
+    icon: "boarSkin",
+    iconClass: "h-7 w-7 text-amber-800",
+  },
+  wolf_skin: {
+    icon: "wolfSkin",
+    iconClass: "h-7 w-7 text-blue-600",
+  },
+};
 
 
 const MoneyDisplay = ({
@@ -174,106 +187,76 @@ const InventorySlot = ({
     ] ||
     item.id;
 
-  const rarity = item.id === "wolf_skin" ? "Uncommon" : "Common";
   const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
+  const itemDisplay = ITEM_DISPLAY[item.id];
 
 
   return (
     <div
-      title={`${name} · ${rarity} · x${item.count}`}
-      className="
-        group
-        relative
-
-        aspect-square
-        min-w-0
-
-        cursor-default
-
-        overflow-hidden
-
-        rounded-md
-
-        border
-        ${rarityClass}
-
-        bg-gradient-to-br
-        from-amber-50
-        to-gray-100
-
-        shadow-sm
-
-        transition
-
-        hover:brightness-105
-      "
+      className="tooltip tooltip-top block aspect-square min-w-0"
+      data-tip={name}
     >
       <div
-        className="
-          absolute
-          inset-1
-
-          flex
-          items-center
-          justify-center
-
-          overflow-hidden
-
-          rounded
-
-          border
-          border-gray-200
-
-          bg-white
-
-          p-1
-        "
+        className={[
+          "group relative aspect-square min-w-0 cursor-default overflow-hidden rounded-md border bg-gradient-to-br from-amber-50 to-gray-100 shadow-sm transition hover:brightness-105",
+          rarityClass,
+        ].join(" ")}
       >
-        <span
-          className="
-            text-center
-
-            text-[10px]
-            font-semibold
-            leading-tight
-
-            text-gray-800
-          "
-        >
-          {
-            name
-          }
-        </span>
-      </div>
-
-
-      {item.count >
-        1 && (
-        <span
+        <div
           className="
             absolute
-            bottom-1
-            right-1
+            inset-1
+
+            flex
+            items-center
+            justify-center
+
+            overflow-hidden
 
             rounded
 
-            bg-gray-900
+            border
+            border-gray-200
 
-            px-1
+            bg-white
 
-            text-xs
-            font-bold
-
-            text-white
-
-            shadow
+            p-1
           "
         >
-          {
-            item.count
-          }
-        </span>
-      )}
+          <Icon
+            icon={itemDisplay?.icon}
+            className={itemDisplay?.iconClass}
+            aria-label={name}
+          />
+        </div>
+
+
+        {item.count >
+          1 && (
+          <span
+            className="
+              absolute
+              bottom-1
+              right-1
+
+              rounded
+
+              bg-gray-900
+
+              px-1
+
+              text-xs
+              font-bold
+
+              text-white
+
+              shadow
+            "
+          >
+            {item.count}
+          </span>
+        )}
+      </div>
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React from "react";
 import { FaGear } from "react-icons/fa6";
 import { FaQuestion, FaHorse } from "react-icons/fa";
 import { BsBackpack4Fill } from "react-icons/bs";
-import { GiBroadsword, GiHealthCapsule } from "react-icons/gi";
+import { GiBoarTusks, GiBroadsword, GiHealthCapsule, GiWolfHead } from "react-icons/gi";
 
 const ICON_MAP = {
   gear: FaGear,
@@ -12,6 +12,8 @@ const ICON_MAP = {
   sword: GiBroadsword,
   healthCapsule: GiHealthCapsule,
   horse: FaHorse,
+  boarSkin: GiBoarTusks,
+  wolfSkin: GiWolfHead,
 };
 
 export const Icon = ({ icon, ...props }) => {

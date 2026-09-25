@@ -624,7 +624,7 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyM"
+                "KeyV"
               ) {
                 if (
                   event.target?.closest?.(
