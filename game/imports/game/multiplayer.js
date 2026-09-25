@@ -62,6 +62,9 @@ import {
   useLevelUpStore,
 } from "../ui/stores/useLevelUpStore";
 
+import {
+  useMinimapStore,
+} from "../ui/stores/useMinimapStore";
 
 const SERVER_URL =
   "ws://localhost:2567";
@@ -1011,6 +1014,28 @@ export const createMultiplayer =
           entity
         );
 
+        useMinimapStore
+          .getState()
+          .upsertRemotePlayer(
+            sessionId,
+            {
+              x:
+                playerState.x,
+
+              z:
+                playerState.z,
+
+              rotationY:
+                playerState.rotationY,
+
+              name:
+                playerState.name,
+
+              currentLevel:
+                playerState.currentLevel,
+            }
+          );
+
 
         /*
          * HEALTH
@@ -1167,6 +1192,28 @@ export const createMultiplayer =
                 performance.now() +
                 RUN_TIMEOUT;
             }
+
+            useMinimapStore
+              .getState()
+              .upsertRemotePlayer(
+                sessionId,
+                {
+                  x:
+                    playerState.x,
+
+                  z:
+                    playerState.z,
+
+                  rotationY:
+                    playerState.rotationY,
+
+                  name:
+                    playerState.name,
+
+                  currentLevel:
+                    playerState.currentLevel,
+                }
+              );
           }
         );
       }
@@ -1209,6 +1256,12 @@ export const createMultiplayer =
         remotePlayers.delete(
           sessionId
         );
+
+        useMinimapStore
+          .getState()
+          .removeRemotePlayer(
+            sessionId
+          );
       }
     );
 
@@ -1482,6 +1535,26 @@ export const createMultiplayer =
           enemy
         );
 
+        useMinimapStore
+          .getState()
+          .upsertEnemy(
+            enemyId,
+            {
+              x:
+                enemyState.x,
+
+              z:
+                enemyState.z,
+
+              type:
+                enemyState.type,
+
+              level:
+                enemyState.level ??
+                1,
+            }
+          );
+
 
         /*
          * MOVEMENT
@@ -1496,10 +1569,29 @@ export const createMultiplayer =
               enemyState.z
             );
 
-
             enemy.setTargetRotation(
               enemyState.rotationY
             );
+
+            useMinimapStore
+              .getState()
+              .upsertEnemy(
+                enemyId,
+                {
+                  x:
+                    enemyState.x,
+
+                  z:
+                    enemyState.z,
+
+                  type:
+                    enemyState.type,
+
+                  level:
+                    enemyState.level ??
+                    1,
+                }
+              );
           }
         );
 
@@ -1559,6 +1651,12 @@ export const createMultiplayer =
         enemies.delete(
           enemyId
         );
+
+        useMinimapStore
+          .getState()
+          .removeEnemy(
+            enemyId
+          );
       }
     );
 
@@ -1853,6 +1951,9 @@ export const createMultiplayer =
 
         enemies.clear();
 
+        useMinimapStore
+          .getState()
+          .reset();
 
         await room.leave();
       };

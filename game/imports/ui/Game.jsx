@@ -52,6 +52,10 @@ import {
   useQuestStore,
 } from "./stores/useQuestStore";
 
+import {
+  useMinimapStore,
+} from "./stores/useMinimapStore";
+
 export const Game = ({
   character,
 
@@ -75,6 +79,18 @@ export const Game = ({
         state
       ) =>
         state.setBoarKills
+    );
+
+  const setLocalPlayerOnMinimap =
+    useMinimapStore(
+      (state) =>
+        state.setLocalPlayer
+    );
+
+  const resetMinimap =
+    useMinimapStore(
+      (state) =>
+        state.reset
     );
 
   useEffect(
@@ -618,6 +634,21 @@ export const Game = ({
                   deltaTime
                 );
 
+              setLocalPlayerOnMinimap(
+                {
+                  x:
+                    player.position
+                      .x,
+
+                  z:
+                    player.position
+                      .z,
+
+                  rotationY:
+                    player.rotation
+                      .y,
+                }
+              );
 
               /*
                * ---------------------
@@ -664,6 +695,8 @@ export const Game = ({
         setSkillHandler(
           null
         );
+
+        resetMinimap();
 
         multiplayer
           ?.destroy();

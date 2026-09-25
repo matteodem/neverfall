@@ -8,7 +8,7 @@ export const LootPrompt = () => {
   if (!nearbyId || activeModal) return null;
 
   return (
-    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded bg-black/70 px-4 py-2 text-white">
+    <div className="pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2 rounded bg-black/70 px-4 py-2 text-white">
       Press F to loot
     </div>
   );

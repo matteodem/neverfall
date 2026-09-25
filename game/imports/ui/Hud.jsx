@@ -49,6 +49,10 @@ import {
 } from "./components/LevelUpOverlay";
 
 import {
+  Minimap,
+} from "./components/Minimap";
+
+import {
   getPlayerStats,
 } from "../game/playerStats";
 
@@ -745,10 +749,18 @@ export const Hud = ({
       <div
         className="
           absolute
-          right-10
+          right-6
           top-5
+          z-[10000]
+
+          flex
+          flex-col
+          items-end
+          gap-3
         "
       >
+        <Minimap />
+
         <QuestTracker />
       </div>
 
