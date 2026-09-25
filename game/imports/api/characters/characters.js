@@ -20,6 +20,8 @@ import {
   currentLevel: 1,
   currentXp: 0,
 
+  inventory: { items: [] },
+
   assetFile:
     "/models/player.glb",
 

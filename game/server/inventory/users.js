@@ -1,10 +1,11 @@
 import { Accounts } from "meteor/accounts-base";
 import { Meteor } from "meteor/meteor";
+import { initializeCharacterInventories } from "./characters";
 
 Accounts.onCreateUser((options, user) => {
   user.profile = {
     ...options.profile,
-    inventory: { money: 0, items: [] },
+    inventory: { money: 0 },
   };
   return user;
 });
@@ -17,12 +18,10 @@ Meteor.users.deny({
 });
 
 export const initializeInventories = async () => {
-  for (const [field, value] of [["money", 0], ["items", []]]) {
-    const path = `profile.inventory.${field}`;
-    await Meteor.users.updateAsync(
-      { [path]: { $exists: false } },
-      { $set: { [path]: value } },
-      { multi: true }
-    );
-  }
+  await Meteor.users.updateAsync(
+    { "profile.inventory.money": { $exists: false } },
+    { $set: { "profile.inventory.money": 0 } },
+    { multi: true }
+  );
+  await initializeCharacterInventories();
 };

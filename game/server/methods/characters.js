@@ -9,6 +9,7 @@ import {
 import {
   Characters,
 } from "../../imports/api/characters/characters";
+import { migrateUserItems } from "../inventory/characters";
 
 const MAX_CHARACTERS =
   5;
@@ -267,6 +268,8 @@ Meteor.methods({
       currentXp:
         0,
 
+      inventory: { items: [] },
+
       lastPlayedAt:
         new Date(),
     });
@@ -292,6 +295,8 @@ Meteor.methods({
         },
       }
     );
+
+    await migrateUserItems(this.userId);
 
     return id;
   },

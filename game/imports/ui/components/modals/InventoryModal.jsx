@@ -2,15 +2,24 @@ import React from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { ITEM_NAMES, splitMoney, stackItems } from "../../../game/inventory";
+import { Characters } from "../../../api/characters/characters";
 
 import {
   HudModal,
 } from "../HudModal";
 
 export const InventoryModal = () => {
-  const inventory = useTracker(() => Meteor.user()?.profile?.inventory);
-  const money = splitMoney(inventory?.money);
-  const items = stackItems(inventory?.items);
+  const { balance, characterItems } = useTracker(() => {
+    const user = Meteor.user();
+    const characterId = user?.profile?.currentCharacterId;
+    const character = characterId && Characters.findOne({ _id: characterId, userId: user._id });
+    return {
+      balance: user?.profile?.inventory?.money,
+      characterItems: character?.inventory?.items,
+    };
+  });
+  const money = splitMoney(balance);
+  const items = stackItems(characterItems);
   return (
     <HudModal
       id="inventory"
