@@ -174,12 +174,13 @@ const InventorySlot = ({
     ] ||
     item.id;
 
+  const rarity = item.id === "wolf_skin" ? "Uncommon" : "Common";
+  const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
+
 
   return (
     <div
-      title={
-        name
-      }
+      title={`${name} · ${rarity} · x${item.count}`}
       className="
         group
         relative
@@ -194,7 +195,7 @@ const InventorySlot = ({
         rounded-md
 
         border
-        border-amber-300
+        ${rarityClass}
 
         bg-gradient-to-br
         from-amber-50
@@ -204,7 +205,6 @@ const InventorySlot = ({
 
         transition
 
-        hover:border-amber-500
         hover:brightness-105
       "
     >

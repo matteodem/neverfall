@@ -70,6 +70,7 @@ export const Game = ({
 
   setPlayerHealth,
   setHealCooldownUntil,
+  setAttackCooldownUntil,
 }) => {
   const canvasRef =
     useRef(
@@ -316,6 +317,8 @@ export const Game = ({
               ) {
                 return;
               }
+
+              setAttackCooldownUntil(Date.now() + 250);
 
               playGameSound(
                 "attack"
@@ -565,6 +568,8 @@ export const Game = ({
               100
             );
 
+          useLoadingStore.getState().hide();
+
           engine.hideLoadingUI();
 
 
@@ -718,6 +723,13 @@ export const Game = ({
           console.error(
             "[Game] Failed to initialize:",
             error
+          );
+
+          const worldIsFull = error?.worldIsFull || /full|max clients|maximum clients/i.test(error?.message || "");
+          useLoadingStore.getState().setError(
+            worldIsFull
+              ? "The world is full right now. Please try again soon."
+              : "We couldn’t connect to the world. Check your connection and try again."
           );
 
           engine

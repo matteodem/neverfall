@@ -7,17 +7,26 @@ export const useLoadingStore =
     (set) => ({
       visible: false,
       progress: 0,
+      error: "",
 
       show() {
         set({
           visible: true,
           progress: 0,
+          error: "",
         });
       },
 
       hide() {
         set({
           visible: false,
+        });
+      },
+
+      setError(error) {
+        set({
+          visible: true,
+          error,
         });
       },
 

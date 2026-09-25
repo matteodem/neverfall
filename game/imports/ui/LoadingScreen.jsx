@@ -12,10 +12,15 @@ export const LoadingScreen =
           state.visible
       );
 
-    const progress =
+  const progress =
       useLoadingStore(
         (state) =>
           state.progress
+      );
+
+    const error =
+      useLoadingStore(
+        (state) => state.error
       );
 
     if (!visible) {
@@ -26,8 +31,19 @@ export const LoadingScreen =
       <div className="absolute inset-0 z-[30000] flex items-center justify-center bg-black">
         <div className="w-80">
           <div className="mb-3 text-center text-sm text-white">
-            Loading Game...
+            {error || "Loading Game..."}
           </div>
+
+          {error ? (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline mt-4 w-full text-white"
+              onClick={() => window.location.reload()}
+            >
+              Try again
+            </button>
+          ) : (
+            <>
 
           <div className="h-3 overflow-hidden rounded-full bg-white/20">
             <div
@@ -45,6 +61,8 @@ export const LoadingScreen =
             )}
             %
           </div>
+            </>
+          )}
         </div>
       </div>
     );

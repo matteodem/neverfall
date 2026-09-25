@@ -103,6 +103,7 @@ const DotMarker = ({
   color,
   size = 8,
   className = "",
+  outlined = true,
 }) => {
   const position =
     worldToPercent({
@@ -113,7 +114,7 @@ const DotMarker = ({
   return (
     <div
       className={[
-        "absolute rounded-full -translate-x-1/2 -translate-y-1/2",
+        `absolute rounded-full ${outlined ? "border-2 border-white shadow-[0_0_5px_rgba(0,0,0,0.95)]" : ""} -translate-x-1/2 -translate-y-1/2`,
         className,
       ].join(" ")}
       style={{
@@ -146,7 +147,7 @@ const LocalPlayerMarker = ({
 
   return (
     <div
-      className="absolute z-20"
+      className="absolute z-20 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
       style={{
         left:
           position.left,
@@ -223,7 +224,7 @@ const Legend = () => {
             className="flex items-center gap-1"
           >
             <span
-              className="h-2 w-2 rounded-full"
+                className="h-2 w-2 rounded-full border border-white shadow"
               style={{
                 backgroundColor:
                   item.color,
@@ -372,6 +373,7 @@ export const Minimap =
                 color={getEnemyColor(
                   enemy.type
                 )}
+                outlined={false}
                 size={
                   enemy.type ===
                   "forestGiant"

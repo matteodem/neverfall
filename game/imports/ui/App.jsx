@@ -61,6 +61,8 @@ export const App = () => {
     0
   );
 
+  const [attackCooldownUntil, setAttackCooldownUntil] = useState(0);
+
 
   const [
     authReady,
@@ -361,6 +363,7 @@ export const App = () => {
         setHealCooldownUntil={
           setHealCooldownUntil
         }
+        setAttackCooldownUntil={setAttackCooldownUntil}
       />
 
 
@@ -374,6 +377,7 @@ export const App = () => {
         healCooldownUntil={
           healCooldownUntil
         }
+        attackCooldownUntil={attackCooldownUntil}
       />
 
 

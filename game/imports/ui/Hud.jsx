@@ -509,13 +509,14 @@ const PlayerHealthBar = ({
 const ActionSlot = ({
   slot,
   healCooldownUntil,
+  attackCooldownUntil,
   onTrigger,
 }) => {
   const cooldownUntil =
     slot.code ===
     "Digit4"
       ? healCooldownUntil
-      : 0;
+      : slot.code === "Digit1" ? attackCooldownUntil : 0;
 
 
   return (
@@ -602,6 +603,9 @@ const ActionSlot = ({
             }
           />
         )}
+        {slot.code === "Digit1" && cooldownUntil > Date.now() && (
+          <CooldownOverlay until={cooldownUntil} duration={250} />
+        )}
       </button>
     </div>
   );
@@ -617,6 +621,7 @@ const ActionSlot = ({
 const ActionBar = ({
   currentLevel,
   healCooldownUntil,
+  attackCooldownUntil,
 }) => {
   const triggerSkill =
     useActionBarStore(
@@ -654,6 +659,7 @@ const ActionBar = ({
             healCooldownUntil={
               healCooldownUntil
             }
+            attackCooldownUntil={attackCooldownUntil}
             onTrigger={
               triggerSkill
             }
@@ -675,6 +681,7 @@ const BottomHud = ({
   currentLevel,
   playerHealth,
   healCooldownUntil,
+  attackCooldownUntil,
 }) => {
   return (
     <div
@@ -698,6 +705,7 @@ const BottomHud = ({
         healCooldownUntil={
           healCooldownUntil
         }
+        attackCooldownUntil={attackCooldownUntil}
       />
 
 
@@ -727,7 +735,21 @@ export const Hud = ({
   currentLevel = 1,
   playerHealth,
   healCooldownUntil,
+  attackCooldownUntil,
 }) => {
+  const [hitFeedback, setHitFeedback] = useState(false);
+  const previousHealth = React.useRef(playerHealth.health);
+
+  useEffect(() => {
+    if (playerHealth.health < previousHealth.current) {
+      setHitFeedback(true);
+      const timeout = setTimeout(() => setHitFeedback(false), 220);
+      previousHealth.current = playerHealth.health;
+      return () => clearTimeout(timeout);
+    }
+    previousHealth.current = playerHealth.health;
+  }, [playerHealth.health]);
+
   const isDead =
     playerHealth.health <=
     0;
@@ -735,6 +757,7 @@ export const Hud = ({
 
   return (
     <>
+      <div className={`pointer-events-none fixed inset-0 z-[9998] border-[10px] border-red-400/70 transition-opacity duration-200 ${hitFeedback ? "opacity-100" : "opacity-0"}`} />
       <LootPrompt />
 
       <CombatBorder />
@@ -775,6 +798,7 @@ export const Hud = ({
         healCooldownUntil={
           healCooldownUntil
         }
+        attackCooldownUntil={attackCooldownUntil}
       />
 
 
