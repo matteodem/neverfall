@@ -408,30 +408,6 @@ export const InventoryModal =
                 slots used
               </p>
             </div>
-
-
-            <div
-              className="
-                shrink-0
-
-                rounded-md
-
-                border
-                border-gray-200
-
-                bg-gray-100
-
-                px-3
-                py-1.5
-
-                text-xs
-                font-semibold
-
-                text-gray-600
-              "
-            >
-              Bag 1
-            </div>
           </div>
 
 
