@@ -31,6 +31,30 @@ export const ENEMY_TYPES = {
     rotationY: 0,
     animations: { idle: "Idle", attack: "Attack", walk: "Walk" },
   },
+  forestGiant: {
+    name: "Forest Giant",
+    model: "mini-boss-ogre.glb",
+    scale: 1.1,
+    rotationY: 0,
+    healthBarY: 3.5,
+    nameplateY: 3.85,
+    health: 2500,
+    healthPerLevel: 0,
+    attackDamage: 40,
+    damagePerLevel: 0,
+    attackRange: 2.5,
+    attackCooldown: 1200,
+    speed: 4.5,
+    wanderRadius: 4,
+    respawnDelay: 180000,
+    xpReward: 0,
+    moneyReward: 10000,
+    animations: {
+      idle: "CharacterArmature|Idle",
+      walk: "CharacterArmature|Walk",
+      attack: "CharacterArmature|Weapon",
+    },
+  },
 };
 
 export const getEnemyStats = (type = "boar", level = 1) => {
@@ -57,4 +81,5 @@ export const ENEMY_SPAWNS = [
   { id: "wolf-3", type: "wolf", level: 3, x: -80, y: 0, z: 65 },
   { id: "wolf-4", type: "wolf", level: 3, x: -60, y: 0, z: 80 },
   { id: "wolf-5", type: "wolf", level: 3, x: -77, y: 0, z: 82 },
+  { id: "forest-giant", type: "forestGiant", level: 5, x: 70, y: 0, z: 72 },
 ];

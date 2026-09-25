@@ -1022,6 +1022,9 @@ export class WorldRoom
 
         contributors:
           new Set(),
+
+        // Keep reward eligibility even if a participant leaves the room.
+        contributorUserIds: new Set(),
       }
     );
   }
@@ -1113,6 +1116,7 @@ export class WorldRoom
       runtime.contributors.add(
         player.characterId
       );
+      runtime.contributorUserIds.add(player.userId);
     }
 
 
@@ -1235,7 +1239,9 @@ export class WorldRoom
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
         continue;
       }
-      spawnLoot(this, this.state.enemies.get(enemyId), sessionId);
+      if (!stats.moneyReward) {
+        spawnLoot(this, this.state.enemies.get(enemyId), sessionId);
+      }
       lootOwners.add(player.userId);
     }
 
@@ -1251,6 +1257,22 @@ export class WorldRoom
     this.enemyRuntime.delete(
       enemyId
     );
+
+    // Remove the enemy before any await so simultaneous killing blows cannot
+    // grant rewards twice. Schedule respawn independently of persistence.
+    this.clock.setTimeout(
+      () => this.spawnEnemy(spawn),
+      stats.respawnDelay
+    );
+
+    if (stats.moneyReward) {
+      await Meteor.users.updateAsync(
+        { _id: { $in: Array.from(runtime.contributorUserIds) } },
+        { $inc: { "profile.inventory.money": stats.moneyReward } },
+        { multi: true }
+      );
+      return;
+    }
 
 
     /*
@@ -1269,7 +1291,7 @@ export class WorldRoom
 
 
       const completed =
-        this.advanceHuntQuest(
+        quest && this.advanceHuntQuest(
           characterId,
           spawn.type || "boar"
         );
@@ -1286,19 +1308,6 @@ export class WorldRoom
     }
 
 
-    /*
-     * Respawn the same enemy at
-     * its original spawn.
-     */
-
-    this.clock.setTimeout(
-      () => {
-        this.spawnEnemy(
-          spawn
-        );
-      },
-      stats.respawnDelay
-    );
   }
 
 

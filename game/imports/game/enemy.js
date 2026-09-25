@@ -107,7 +107,7 @@ export const createEnemy = async ({
         "#ef4444",
 
       y:
-        1.35,
+        config.healthBarY ?? 1.35,
     });
 
   healthBar.setHealth(
@@ -129,7 +129,7 @@ export const createEnemy = async ({
         "#fca5a5",
 
       y:
-        -0.45,
+        config.nameplateY ?? -0.45,
     });
 
   /*
