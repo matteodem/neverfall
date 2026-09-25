@@ -50,6 +50,7 @@ export const HudModal = ({ id, title, children, backdrop = false }) => {
   if (!isOpen) return null;
 
   const startDragging = (event) => {
+    if (backdrop) return;
     if (event.target.closest("button")) return;
     event.preventDefault();
     setDrag({
@@ -62,13 +63,13 @@ export const HudModal = ({ id, title, children, backdrop = false }) => {
 
   const modal = (
     <div
-      className="pointer-events-auto absolute flex max-h-[calc(100vh-16px)] w-[min(32rem,calc(100vw-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl"
-      style={{ left: position.x, top: position.y }}
+      className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} flex max-h-[calc(100vh-16px)] w-[min(32rem,calc(100vw-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl`}
+      style={backdrop ? undefined : { left: position.x, top: position.y }}
       onPointerDown={() => openModal(id)}
     >
       <div
-        className="flex shrink-0 cursor-move select-none items-center justify-between border-b border-base-300 px-4 py-3"
-        onPointerDown={startDragging}
+        className={`flex shrink-0 ${backdrop ? "" : "cursor-move"} select-none items-center justify-between border-b border-base-300 px-4 py-3`}
+        onPointerDown={backdrop ? undefined : startDragging}
       >
         <h3 className="text-xl font-bold">{title}</h3>
         <button
@@ -90,7 +91,7 @@ export const HudModal = ({ id, title, children, backdrop = false }) => {
   return (
     <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-black/30" onClick={() => closeModal(id)} />
-      <div className="pointer-events-none absolute inset-0">{modal}</div>
+      <div className="pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
     </div>
   );
 };
