@@ -12,6 +12,8 @@ import {
   useActionBarStore,
 } from "./stores/useActionBarStore";
 
+import { useEquipmentStore } from "./stores/useEquipmentStore";
+
 import {
   createMultiplayer,
 } from "../game/multiplayer";
@@ -231,7 +233,6 @@ export const Game = ({
             return;
           }
 
-
           const {
             player,
 
@@ -275,7 +276,6 @@ export const Game = ({
 
             return;
           }
-
 
           const setMounted =
             (
@@ -374,6 +374,14 @@ export const Game = ({
 
             return;
           }
+
+          useEquipmentStore.getState().setChangeHandler((action, payload) => {
+            if (action === "equip") {
+              multiplayer.equipItem(payload.itemId, payload.slot);
+            } else if (action === "unequip") {
+              multiplayer.unequipItem(payload);
+            }
+          });
 
 
           useLoadingStore
@@ -1031,6 +1039,8 @@ export const Game = ({
         setSkillHandler(
           null
         );
+
+        useEquipmentStore.getState().setChangeHandler(null);
 
 
         setMountedState(

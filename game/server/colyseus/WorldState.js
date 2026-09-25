@@ -30,6 +30,12 @@ export const PlayerState =
       mounted:
         t.boolean().default(false),
 
+      ring:
+        t.string().default(""),
+
+      accessory:
+        t.string().default(""),
+
       health:
         t.number().default(100),
 

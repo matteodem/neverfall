@@ -23,6 +23,11 @@ import {
 } from "../HudModal";
 
 import { Icon } from "../Icon";
+import {
+  EQUIPMENT_ITEMS,
+  formatEquipmentStats,
+} from "../../../game/equipment";
+import { useEquipmentStore } from "../../stores/useEquipmentStore";
 
 
 const INVENTORY_SLOTS =
@@ -189,6 +194,7 @@ const InventorySlot = ({
 
   const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
   const itemDisplay = ITEM_DISPLAY[item.id];
+  const itemDefinition = EQUIPMENT_ITEMS[item.id];
 
 
   return (
@@ -196,7 +202,49 @@ const InventorySlot = ({
       className="tooltip tooltip-top block aspect-square min-w-0"
       data-tip={name}
     >
-      <div
+      {itemDefinition ? (
+        <div className="dropdown dropdown-top h-full w-full">
+          <button type="button" className="block h-full w-full">
+            <InventorySlotContent
+              item={item}
+              name={name}
+              itemDisplay={itemDisplay}
+              rarityClass={rarityClass}
+            />
+          </button>
+          <ul className="dropdown-content menu z-50 w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+            <li>
+              <div className="pointer-events-none block">
+                <strong className="block text-xs">{itemDefinition.name}</strong>
+                {formatEquipmentStats(itemDefinition).map((stat) => (
+                  <span key={stat} className="mt-1 block text-[11px] text-gray-600">{stat}</span>
+                ))}
+              </div>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot })}
+              >
+                Equip item
+              </button>
+            </li>
+          </ul>
+        </div>
+      ) : (
+        <InventorySlotContent
+          item={item}
+          name={name}
+          itemDisplay={itemDisplay}
+          rarityClass={rarityClass}
+        />
+      )}
+    </div>
+  );
+};
+
+const InventorySlotContent = ({ item, name, itemDisplay, rarityClass }) => (
+  <div
         className={[
           "group relative aspect-square min-w-0 cursor-default overflow-hidden rounded-md border bg-gradient-to-br from-amber-50 to-gray-100 shadow-sm transition hover:brightness-105",
           rarityClass,
@@ -228,6 +276,7 @@ const InventorySlot = ({
             className={itemDisplay?.iconClass}
             aria-label={name}
           />
+          {!itemDisplay && <span className="text-center text-[9px] font-semibold text-gray-800">{name}</span>}
         </div>
 
 
@@ -257,10 +306,7 @@ const InventorySlot = ({
           </span>
         )}
       </div>
-    </div>
-  );
-};
-
+);
 
 export const InventoryModal =
   () => {
@@ -303,6 +349,7 @@ export const InventoryModal =
                   ?.inventory
                   ?.items
               ),
+
           };
         }
       );
@@ -336,8 +383,6 @@ export const InventoryModal =
             w-full
             min-w-0
             max-w-full
-
-            overflow-hidden
 
             rounded-xl
 

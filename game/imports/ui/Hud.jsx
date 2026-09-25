@@ -25,6 +25,10 @@ import {
 } from "./components/modals/InventoryModal";
 
 import {
+  GearModal,
+} from "./components/modals/GearModal";
+
+import {
   SettingsModal,
 } from "./components/modals/SettingsModal";
 
@@ -75,11 +79,13 @@ const HEAL_COOLDOWN =
  */
 
 const getActionSlots = (
-  currentLevel
+  currentLevel,
+  equipment
 ) => {
   const playerStats =
     getPlayerStats(
-      currentLevel
+      currentLevel,
+      equipment
     );
 
 
@@ -167,6 +173,17 @@ const HUD_BUTTONS = [
 
     label:
       "Inventory",
+  },
+
+  {
+    id:
+      "gear",
+
+    icon:
+      "sword",
+
+    label:
+      "Gear",
   },
 
   {
@@ -620,6 +637,7 @@ const ActionSlot = ({
 
 const ActionBar = ({
   currentLevel,
+  equipment,
   healCooldownUntil,
   attackCooldownUntil,
 }) => {
@@ -634,7 +652,8 @@ const ActionBar = ({
 
   const actionSlots =
     getActionSlots(
-      currentLevel
+      currentLevel,
+      equipment
     );
 
 
@@ -679,6 +698,7 @@ const ActionBar = ({
 
 const BottomHud = ({
   currentLevel,
+  equipment,
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
@@ -704,6 +724,7 @@ const BottomHud = ({
         currentLevel={
           currentLevel
         }
+        equipment={equipment}
         healCooldownUntil={
           healCooldownUntil
         }
@@ -755,6 +776,7 @@ const BottomHud = ({
 
 export const Hud = ({
   currentLevel = 1,
+  equipment,
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
@@ -815,6 +837,7 @@ export const Hud = ({
         currentLevel={
           currentLevel
         }
+        equipment={equipment}
         playerHealth={
           playerHealth
         }
@@ -836,6 +859,9 @@ export const Hud = ({
 
 
       <InventoryModal />
+
+
+      <GearModal />
 
 
       <SettingsModal />
