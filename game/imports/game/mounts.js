@@ -20,7 +20,7 @@ export const createHorseMount =
       await SceneLoader.ImportMeshAsync(
         "",
         "/models/mounts/",
-        "horse-01.glb",
+        "horse-02.glb",
         scene
       );
 

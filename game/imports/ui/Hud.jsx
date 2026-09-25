@@ -716,14 +716,14 @@ const BottomHud = ({
       />
 
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 relative">
         <button
           type="button"
           disabled={isDead}
           onClick={() => useActionBarStore.getState().triggerSkill("KeyM")}
-          className="btn btn-sm border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40"
+          className="btn btn-sm border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40 absolute left-[-45px] h-[45px]"
         >
-          {mounted ? "Dismount" : "Mount"}
+          <Icon icon="horse" />
         </button>
         <PlayerHealthBar
           health={playerHealth.health}

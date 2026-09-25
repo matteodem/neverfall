@@ -1,6 +1,6 @@
 import React from "react";
 import { FaGear } from "react-icons/fa6";
-import { FaQuestion } from "react-icons/fa";
+import { FaQuestion, FaHorse } from "react-icons/fa";
 import { BsBackpack4Fill } from "react-icons/bs";
 import { GiBroadsword, GiHealthCapsule } from "react-icons/gi";
 
@@ -11,6 +11,7 @@ const ICON_MAP = {
 
   sword: GiBroadsword,
   healthCapsule: GiHealthCapsule,
+  horse: FaHorse,
 };
 
 export const Icon = ({ icon, ...props }) => {
