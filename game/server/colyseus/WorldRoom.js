@@ -263,10 +263,15 @@ export class WorldRoom
     player.health = Math.min(player.health, player.maxHealth);
   }
 
-  async persistPlayerEquipment(player, equipment) {
+  async persistPlayerEquipment(player, equipment, inventoryItems) {
     const updated = await Characters.updateAsync(
       { _id: player.characterId, userId: player.userId },
-      { $set: { equipment } }
+      {
+        $set: {
+          equipment,
+          "inventory.items": inventoryItems,
+        },
+      }
     );
 
     if (!updated) return false;
@@ -286,14 +291,22 @@ export class WorldRoom
         _id: player.characterId,
         userId: player.userId,
       });
-      if (!character?.inventory?.items?.some((ownedItem) => ownedItem.id === itemId)) return;
+      const inventoryItems = [...(character?.inventory?.items || [])];
+      const itemIndex = inventoryItems.findIndex((ownedItem) => ownedItem.id === itemId);
+      if (itemIndex < 0) return;
 
       const equipment = {
         ...DEFAULT_EQUIPMENT,
         ...(character.equipment || {}),
-        [slot]: itemId,
       };
-      await this.persistPlayerEquipment(player, equipment);
+      const replacedItemId = equipment[slot];
+      inventoryItems.splice(itemIndex, 1);
+      if (replacedItemId && replacedItemId !== itemId) {
+        inventoryItems.push({ id: replacedItemId });
+      }
+      equipment[slot] = itemId;
+
+      await this.persistPlayerEquipment(player, equipment, inventoryItems);
     },
 
     unequipItem: async (client, slot) => {
@@ -309,9 +322,14 @@ export class WorldRoom
       const equipment = {
         ...DEFAULT_EQUIPMENT,
         ...(character.equipment || {}),
-        [slot]: null,
       };
-      await this.persistPlayerEquipment(player, equipment);
+      const equippedItemId = equipment[slot];
+      if (!equippedItemId) return;
+
+      const inventoryItems = [...(character.inventory?.items || []), { id: equippedItemId }];
+      equipment[slot] = null;
+
+      await this.persistPlayerEquipment(player, equipment, inventoryItems);
     },
 
     move: (
