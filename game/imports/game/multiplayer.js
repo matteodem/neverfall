@@ -54,6 +54,8 @@ import {
   createKayKitAnimationController,
 } from "./character/createKayKitAnimationController";
 
+import { createHorseMount } from "./mounts";
+
 import {
   useCombatStore,
 } from "../ui/stores/useCombatStore";
@@ -471,8 +473,10 @@ const createRemotePlayer =
       });
 
 
-    const root =
-      character.root;
+    const characterRoot = character.root;
+    const root = new TransformNode(`remote-player-${sessionId}`, scene);
+    characterRoot.parent = root;
+    characterRoot.position.set(0, 0, 0);
 
 
     const animations =
@@ -648,6 +652,10 @@ const createRemotePlayer =
         swordTip,
       });
 
+    const mount = await createHorseMount({ scene, parent: root, character });
+    mount.setMounted(playerState.mounted);
+    let alive = playerState.health > 0;
+
 
     return {
       root,
@@ -663,6 +671,7 @@ const createRemotePlayer =
 
       animations,
       combat,
+      mount,
 
       targetPosition:
         Vector3.Zero(),
@@ -687,8 +696,10 @@ const createRemotePlayer =
 
 
       setAlive(
-        alive
+        isAlive
       ) {
+        alive = isAlive;
+        if (!alive) mount.setMounted(false);
         root.setEnabled(
           alive
         );
@@ -719,12 +730,17 @@ const createRemotePlayer =
         );
       },
 
+      setMounted(value) {
+        mount.setMounted(alive && value);
+      },
+
 
       destroy() {
         animations.destroy();
 
 
         combat.destroy();
+        mount.destroy();
 
 
         nameplate.destroy();
@@ -1153,6 +1169,8 @@ export const createMultiplayer =
             ) {
               return;
             }
+
+            remote.setMounted(playerState.mounted);
 
 
             /*
@@ -1675,7 +1693,8 @@ export const createMultiplayer =
     const sendMovement =
       (
         localPlayer,
-        deltaTime
+        deltaTime,
+        mounted = false
       ) => {
         sendAccumulator +=
           deltaTime;
@@ -1716,6 +1735,8 @@ export const createMultiplayer =
               localPlayer
                 .rotation
                 .y,
+
+            mounted,
           }
         );
       };
@@ -1815,6 +1836,8 @@ export const createMultiplayer =
               now <
                 entity.movingUntil
             );
+
+          entity.mount.setRunning(!isJumping && now < entity.movingUntil);
 
 
           /*

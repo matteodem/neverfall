@@ -682,6 +682,8 @@ const BottomHud = ({
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted,
+  isDead,
 }) => {
   return (
     <div
@@ -709,14 +711,25 @@ const BottomHud = ({
       />
 
 
-      <PlayerHealthBar
-        health={
-          playerHealth.health
-        }
-        maxHealth={
-          playerHealth.maxHealth
-        }
-      />
+      <div className="flex items-center gap-2 relative">
+        <div
+          className="tooltip tooltip-top absolute left-[-45px] h-[45px]"
+          data-tip={mounted ? "Dismount" : "Mount"}
+        >
+          <button
+            type="button"
+            disabled={isDead}
+            onClick={() => useActionBarStore.getState().triggerSkill("KeyM")}
+            className="btn btn-sm h-[45px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40"
+          >
+            <Icon icon="horse" />
+          </button>
+        </div>
+        <PlayerHealthBar
+          health={playerHealth.health}
+          maxHealth={playerHealth.maxHealth}
+        />
+      </div>
 
 
       <XpBar />
@@ -736,6 +749,7 @@ export const Hud = ({
   playerHealth,
   healCooldownUntil,
   attackCooldownUntil,
+  mounted = false,
 }) => {
   const [hitFeedback, setHitFeedback] = useState(false);
   const previousHealth = React.useRef(playerHealth.health);
@@ -799,6 +813,8 @@ export const Hud = ({
           healCooldownUntil
         }
         attackCooldownUntil={attackCooldownUntil}
+        mounted={mounted}
+        isDead={isDead}
       />
 
 

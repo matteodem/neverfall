@@ -27,6 +27,9 @@ export const PlayerState =
       rotationY:
         t.number().default(0),
 
+      mounted:
+        t.boolean().default(false),
+
       health:
         t.number().default(100),
 

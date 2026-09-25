@@ -105,6 +105,7 @@ export const updateMovement = ({
   input,
   camera,
   player,
+  speedMultiplier = 1,
 }) => {
   const movement =
     getMovementDirection({
@@ -120,13 +121,13 @@ export const updateMovement = ({
     movement.lengthSquared() ===
     0
   ) {
-    return;
+    return movement;
   }
 
   movement.normalize();
 
   const distance =
-    PLAYER.speed *
+    PLAYER.speed * speedMultiplier *
     (
       deltaTime /
       1000
@@ -157,13 +158,15 @@ export const updateMovement = ({
       )
     );
 
-    return;
+    return movement;
   }
 
   faceDirection(
     player,
     movement
   );
+
+  return movement;
 };
 
 

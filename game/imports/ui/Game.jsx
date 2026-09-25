@@ -41,6 +41,10 @@ import {
 } from "../game/combat";
 
 import {
+  createHorseMount,
+} from "../game/mounts";
+
+import {
   createLoadingScreen,
 } from "../game/loadingScreen";
 
@@ -65,23 +69,27 @@ import {
   preloadSounds,
 } from "../game/sound";
 
+
 export const Game = ({
   character,
 
   setPlayerHealth,
   setHealCooldownUntil,
   setAttackCooldownUntil,
+  setMountedState,
 }) => {
   const canvasRef =
     useRef(
       null
     );
 
+
   const setSkillHandler =
     useActionBarStore(
       (state) =>
         state.setSkillHandler
     );
+
 
   const setBoarKills =
     useQuestStore(
@@ -91,17 +99,20 @@ export const Game = ({
         state.setBoarKills
     );
 
+
   const setLocalPlayerOnMinimap =
     useMinimapStore(
       (state) =>
         state.setLocalPlayer
     );
 
+
   const resetMinimap =
     useMinimapStore(
       (state) =>
         state.reset
     );
+
 
   useEffect(
     () => {
@@ -123,15 +134,28 @@ export const Game = ({
       let multiplayer =
         null;
 
+      let mount =
+        null;
+
+      let mounted =
+        false;
+
+      let playerAlive =
+        true;
+
       let disposed =
         false;
+
 
       const init =
         async () => {
           const canvas =
             canvasRef.current;
 
-          if (!canvas) {
+
+          if (
+            !canvas
+          ) {
             return;
           }
 
@@ -148,10 +172,13 @@ export const Game = ({
               true
             );
 
+
           engine.loadingScreen =
             createLoadingScreen();
 
+
           engine.displayLoadingUI();
+
 
           requestAnimationFrame(
             () => {
@@ -175,7 +202,9 @@ export const Game = ({
               engine
             );
 
+
           preloadSounds();
+
 
           /*
            * =====================================================
@@ -183,16 +212,7 @@ export const Game = ({
            * =====================================================
            */
 
-          const {
-            player,
-
-            swordPivot,
-            swordTip,
-
-            camera,
-
-            animations,
-          } =
+          const world =
             await createWorld(
               scene,
               {
@@ -204,9 +224,89 @@ export const Game = ({
               }
             );
 
-          if (disposed) {
+
+          if (
+            disposed
+          ) {
             return;
           }
+
+
+          const {
+            player,
+
+            character:
+              playerCharacter,
+
+            swordPivot,
+            swordTip,
+
+            camera,
+          } =
+            world;
+
+
+          animations =
+            world.animations;
+
+
+          /*
+           * =====================================================
+           * MOUNT
+           * =====================================================
+           */
+
+          mount =
+            await createHorseMount({
+              scene,
+
+              parent:
+                player,
+
+              character:
+                playerCharacter,
+            });
+
+
+          if (
+            disposed
+          ) {
+            mount.destroy();
+
+            return;
+          }
+
+
+          const setMounted =
+            (
+              value
+            ) => {
+              mounted =
+                Boolean(
+                  value &&
+                  playerAlive
+                );
+
+
+              mount.setMounted(
+                mounted
+              );
+
+
+              /*
+               * Prevent the Knight from playing
+               * run/jump animations while mounted.
+               */
+              animations.setMounted(
+                mounted
+              );
+
+
+              setMountedState(
+                mounted
+              );
+            };
+
 
           useLoadingStore
             .getState()
@@ -228,7 +328,28 @@ export const Game = ({
               player,
 
               onLocalHealthChange:
-                setPlayerHealth,
+                (
+                  health
+                ) => {
+                  setPlayerHealth(
+                    health
+                  );
+
+
+                  playerAlive =
+                    health.health >
+                    0;
+
+
+                  if (
+                    !playerAlive &&
+                    mounted
+                  ) {
+                    setMounted(
+                      false
+                    );
+                  }
+                },
 
               onBoarQuestChange:
                 setBoarKills,
@@ -244,17 +365,23 @@ export const Game = ({
                 },
             });
 
-          if (disposed) {
-            multiplayer?.destroy();
+
+          if (
+            disposed
+          ) {
+            multiplayer
+              ?.destroy();
 
             return;
           }
+
 
           useLoadingStore
             .getState()
             .setProgress(
               85
             );
+
 
           /*
            * =====================================================
@@ -306,6 +433,17 @@ export const Game = ({
            */
 
           const SKILL_HANDLERS = {
+            KeyM() {
+              if (
+                playerAlive
+              ) {
+                setMounted(
+                  !mounted
+                );
+              }
+            },
+
+
             Digit1() {
               const attacked =
                 combat
@@ -318,15 +456,22 @@ export const Game = ({
                 return;
               }
 
-              setAttackCooldownUntil(Date.now() + 250);
+
+              setAttackCooldownUntil(
+                Date.now() +
+                  250
+              );
+
 
               playGameSound(
                 "attack"
               );
 
+
               multiplayer
                 ?.sendAttack();
             },
+
 
             Digit4() {
               multiplayer
@@ -339,6 +484,13 @@ export const Game = ({
             (
               code
             ) => {
+              if (
+                mounted &&
+                /^Digit[1-4]$/.test(code)
+              ) {
+                setMounted(false);
+              }
+
               SKILL_HANDLERS[
                 code
               ]?.();
@@ -374,6 +526,7 @@ export const Game = ({
                 return;
               }
 
+
               rotateCamera(
                 camera,
 
@@ -404,6 +557,7 @@ export const Game = ({
               event
             ) => {
               event.preventDefault();
+
 
               zoomCamera(
                 camera,
@@ -444,12 +598,56 @@ export const Game = ({
               }
 
 
-              if (event.code === "KeyF") {
-                if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
+              if (
+                event.code ===
+                "KeyF"
+              ) {
+                if (
+                  event.target?.closest?.(
+                    "input, textarea, select, [contenteditable='true']"
+                  )
+                ) {
+                  return;
+                }
+
+
                 event.preventDefault();
-                multiplayer?.collectLoot();
+
+
+                multiplayer
+                  ?.collectLoot();
+
+
                 return;
               }
+
+
+              if (
+                event.code ===
+                "KeyM"
+              ) {
+                if (
+                  event.target?.closest?.(
+                    "input, textarea, select, [contenteditable='true']"
+                  )
+                ) {
+                  return;
+                }
+
+
+                event.preventDefault();
+
+
+                useActionBarStore
+                  .getState()
+                  .triggerSkill(
+                    "KeyM"
+                  );
+
+
+                return;
+              }
+
 
               if (
                 event.code ===
@@ -463,26 +661,35 @@ export const Game = ({
                   return;
                 }
 
+
                 event.preventDefault();
 
+
                 const hudStore =
-                  useHudStore.getState();
+                  useHudStore
+                    .getState();
+
 
                 if (
                   hudStore.activeModal ===
                   "inventory"
                 ) {
-                  hudStore.closeModal();
+                  hudStore
+                    .closeModal();
 
                   return;
                 }
 
-                hudStore.openModal(
-                  "inventory"
-                );
+
+                hudStore
+                  .openModal(
+                    "inventory"
+                  );
+
 
                 return;
               }
+
 
               /*
                * Jump remains a movement
@@ -496,7 +703,9 @@ export const Game = ({
               ) {
                 event.preventDefault();
 
+
                 jump.jump();
+
 
                 return;
               }
@@ -568,7 +777,11 @@ export const Game = ({
               100
             );
 
-          useLoadingStore.getState().hide();
+
+          useLoadingStore
+            .getState()
+            .hide();
+
 
           engine.hideLoadingUI();
 
@@ -592,16 +805,28 @@ export const Game = ({
                * ---------------------
                */
 
-              updateMovement({
-                deltaTime,
+              const movement =
+                updateMovement({
+                  deltaTime,
 
-                input:
-                  input.state,
+                  input:
+                    input.state,
 
-                camera,
+                  camera,
 
-                player,
-              });
+                  player,
+
+                  speedMultiplier:
+                    mounted
+                      ? 2
+                      : 1,
+                });
+
+
+              mount
+                ?.setFacing(
+                  movement
+                );
 
 
               updateCameraFacing({
@@ -627,31 +852,54 @@ export const Game = ({
 
               /*
                * ---------------------
-               * ANIMATIONS
+               * CHARACTER ANIMATIONS
                * ---------------------
+               *
+               * The animation controller itself
+               * ignores run/jump while mounted.
                */
 
               if (
                 jump.isJumping()
               ) {
-                animations.setJumping(
-                  true
-                );
+                animations
+                  .setJumping(
+                    true
+                  );
               } else {
-                animations.setJumping(
-                  false
-                );
+                animations
+                  .setJumping(
+                    false
+                  );
 
-                animations.setRunning(
-                  isMoving(
-                    input.state
-                  )
-                );
+
+                animations
+                  .setRunning(
+                    isMoving(
+                      input.state
+                    )
+                  );
               }
+
 
               animations.update(
                 deltaTime
               );
+
+
+              /*
+               * ---------------------
+               * MOUNT ANIMATIONS
+               * ---------------------
+               */
+
+              mount
+                ?.setRunning(
+                  mounted &&
+                  isMoving(
+                    input.state
+                  )
+                );
 
 
               /*
@@ -676,33 +924,48 @@ export const Game = ({
                   player
                 );
 
+
               multiplayer
                 ?.sendMovement(
                   player,
 
-                  deltaTime
+                  deltaTime,
+
+                  mounted
                 );
+
 
               multiplayer
                 ?.update(
                   deltaTime
                 );
 
+
+              /*
+               * ---------------------
+               * MINIMAP
+               * ---------------------
+               */
+
               setLocalPlayerOnMinimap(
                 {
                   x:
-                    player.position
+                    player
+                      .position
                       .x,
 
                   z:
-                    player.position
+                    player
+                      .position
                       .z,
 
                   rotationY:
-                    player.rotation
+                    player
+                      .rotation
                       .y,
                 }
               );
+
 
               /*
                * ---------------------
@@ -725,12 +988,23 @@ export const Game = ({
             error
           );
 
-          const worldIsFull = error?.worldIsFull || /full|max clients|maximum clients/i.test(error?.message || "");
-          useLoadingStore.getState().setError(
-            worldIsFull
-              ? "The world is full right now. Please try again soon."
-              : "We couldn’t connect to the world. Check your connection and try again."
-          );
+
+          const worldIsFull =
+            error?.worldIsFull ||
+            /full|max clients|maximum clients/i.test(
+              error?.message ||
+                ""
+            );
+
+
+          useLoadingStore
+            .getState()
+            .setError(
+              worldIsFull
+                ? "The world is full right now. Please try again soon."
+                : "We couldn’t connect to the world. Check your connection and try again."
+            );
+
 
           engine
             ?.hideLoadingUI();
@@ -748,6 +1022,7 @@ export const Game = ({
         disposed =
           true;
 
+
         /*
          * Disable HUD skill buttons
          * before destroying the game.
@@ -757,25 +1032,42 @@ export const Game = ({
           null
         );
 
+
+        setMountedState(
+          false
+        );
+
+
+        mount
+          ?.destroy();
+
+
         resetMinimap();
+
 
         multiplayer
           ?.destroy();
 
+
         combat
           ?.destroy();
+
 
         animations
           ?.destroy();
 
+
         input
           ?.destroy();
+
 
         engine
           ?.stopRenderLoop();
 
+
         scene
           ?.dispose();
+
 
         engine
           ?.dispose();

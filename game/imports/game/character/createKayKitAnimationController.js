@@ -51,6 +51,9 @@ export const createKayKitAnimationController =
     let jumping =
       false;
 
+    let mounted =
+      false;
+
     let currentAnimation =
       null;
 
@@ -61,15 +64,9 @@ export const createKayKitAnimationController =
         loop = true
       ) => {
         if (
-          !animation
-        ) {
-          return;
-        }
-
-
-        if (
+          !animation ||
           animation ===
-          currentAnimation
+            currentAnimation
         ) {
           return;
         }
@@ -77,10 +74,8 @@ export const createKayKitAnimationController =
 
         currentAnimation?.stop();
 
-
         currentAnimation =
           animation;
-
 
         animation.start(
           loop
@@ -106,8 +101,42 @@ export const createKayKitAnimationController =
       };
 
 
+    const setMounted =
+      (
+        value
+      ) => {
+        mounted =
+          value;
+
+        if (
+          mounted
+        ) {
+          running =
+            false;
+
+          jumping =
+            false;
+
+          play(
+            idle
+          );
+        }
+      };
+
+
     const update =
       () => {
+        if (
+          mounted
+        ) {
+          play(
+            idle
+          );
+
+          return;
+        }
+
+
         if (
           jumping
         ) {
@@ -176,6 +205,7 @@ export const createKayKitAnimationController =
     return {
       setRunning,
       setJumping,
+      setMounted,
 
       update,
 

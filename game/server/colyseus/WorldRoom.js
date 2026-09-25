@@ -292,6 +292,10 @@ export class WorldRoom
 
       player.rotationY =
         data.rotationY;
+
+      if (typeof data.mounted === "boolean") {
+        player.mounted = data.mounted;
+      }
     },
 
 
@@ -313,6 +317,7 @@ export class WorldRoom
       if (
         !player ||
         !runtime ||
+        player.mounted ||
         player.health <=
           0
       ) {
@@ -395,6 +400,7 @@ export class WorldRoom
       if (
         !player ||
         !runtime ||
+        player.mounted ||
         player.health <=
           0
       ) {
