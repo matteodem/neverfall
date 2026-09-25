@@ -10,6 +10,7 @@ export const spawnLoot = (room, enemy, sessionId) => {
   const id = randomUUID();
   room.state.loot.set(id, new LootState({
     ownerId: player.userId,
+    enemyType: enemy.type || "boar",
     x: enemy.x,
     y: enemy.y,
     z: enemy.z,
@@ -24,7 +25,7 @@ export const collectLoot = async (room, client, id) => {
 
   // Claim synchronously before writing so repeated requests cannot pay twice.
   room.state.loot.delete(id);
-  const reward = rollLoot();
+  const reward = rollLoot(Math.random, loot.enemyType);
   const modifier = { $inc: { "profile.inventory.money": reward.money } };
   if (reward.items.length) {
     modifier.$push = { "profile.inventory.items": { $each: reward.items } };

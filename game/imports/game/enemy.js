@@ -1,3 +1,5 @@
+import { getEnemyStats } from "./enemyConfig";
+import { createEnemyAnimations } from "./enemyAnimations";
 import {
   SceneLoader,
   TransformNode,
@@ -12,123 +14,12 @@ import {
   createNameplate,
 } from "./nameplate";
 
-const IDLE = {
-  from: 0,
-  to: 29,
-};
-
-const ATTACK = {
-  from: 30,
-  to: 59,
-};
-
-const WALK = {
-  from: 90,
-  to: 119,
-};
-
-const createAnimationController = (
-  animationGroup
-) => {
-  let currentAnimation =
-    null;
-
-  let attacking =
-    false;
-
-  const play = (
-    name,
-    range,
-    loop = true
-  ) => {
-    if (
-      currentAnimation === name &&
-      animationGroup.isPlaying
-    ) {
-      return;
-    }
-
-    currentAnimation =
-      name;
-
-    animationGroup.stop();
-
-    animationGroup.start(
-      loop,
-      1,
-      range.from,
-      range.to
-    );
-  };
-
-  const idle = () => {
-    if (attacking) {
-      return;
-    }
-
-    play(
-      "idle",
-      IDLE
-    );
-  };
-
-  const walk = () => {
-    if (attacking) {
-      return;
-    }
-
-    play(
-      "walk",
-      WALK
-    );
-  };
-
-  const attack = () => {
-    if (attacking) {
-      return;
-    }
-
-    attacking =
-      true;
-
-    currentAnimation =
-      "attack";
-
-    animationGroup.stop();
-
-    animationGroup.start(
-      false,
-      1,
-      ATTACK.from,
-      ATTACK.to
-    );
-
-    animationGroup
-      .onAnimationGroupEndObservable
-      .addOnce(
-        () => {
-          attacking =
-            false;
-
-          idle();
-        }
-      );
-  };
-
-  idle();
-
-  return {
-    idle,
-    walk,
-    attack,
-  };
-};
-
 export const createEnemy = async ({
   scene,
   state,
   id,
 }) => {
+  const config = getEnemyStats(state.type, state.level);
   /*
    * =====================================================
    * NETWORK ROOT
@@ -162,35 +53,14 @@ export const createEnemy = async ({
   modelRoot.parent =
     root;
 
-  /*
-   * Flip Boar 180°.
-   *
-   * This fixes the model facing
-   * backwards while attacking.
-   */
-
-  modelRoot.rotation.y = 0;
-
-  /*
-   * 2x smaller than the previous
-   * 1.2 scale.
-   */
-
-  modelRoot.scaling.setAll(
-    0.3
-  );
-
-  /*
-   * =====================================================
-   * LOAD BOAR
-   * =====================================================
-   */
+  modelRoot.rotation.y = config.rotationY;
+  modelRoot.scaling.setAll(config.scale);
 
   const result =
     await SceneLoader.ImportMeshAsync(
       "",
       "/models/",
-      "boar.glb",
+      config.model,
       scene
     );
 
@@ -218,19 +88,7 @@ export const createEnemy = async ({
    * =====================================================
    */
 
-  const animationGroup =
-    result.animationGroups[0];
-
-  if (!animationGroup) {
-    throw new Error(
-      "Boar has no animation group."
-    );
-  }
-
-  const animations =
-    createAnimationController(
-      animationGroup
-    );
+  const animations = createEnemyAnimations(result.animationGroups, config.animations);
 
   /*
    * =====================================================
@@ -265,7 +123,7 @@ export const createEnemy = async ({
         root,
 
       name:
-        "Boar (Level 1)",
+        `${config.name} (Level ${state.level || 1})`,
 
       color:
         "#fca5a5",
@@ -336,7 +194,7 @@ export const createEnemy = async ({
     destroy() {
       healthBar.destroy();
 
-      animationGroup.stop();
+      animations.destroy();
 
       nameplate.destroy();
 

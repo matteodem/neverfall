@@ -1,3 +1,5 @@
+import { getQuestArea } from "./quests";
+import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
 
@@ -865,6 +867,11 @@ export const createMultiplayer =
           );
 
 
+          useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
+          callbacks.listen(playerState, "wolfQuestKills", () => {
+            useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
+          });
+
           /*
            * LEVEL UP
            */
@@ -1622,6 +1629,10 @@ export const createMultiplayer =
         deltaTime
       ) => {
         loot.update();
+        const area = getQuestArea(player.position);
+        if (useQuestStore.getState().area !== area) {
+          useQuestStore.getState().setArea(area);
+        }
 
         const smoothing =
           1 -
@@ -1814,6 +1825,7 @@ export const createMultiplayer =
     const destroy =
       async () => {
         loot.destroy();
+        useQuestStore.getState().reset();
 
         useCombatStore
           .getState()

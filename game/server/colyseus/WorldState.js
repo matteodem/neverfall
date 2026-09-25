@@ -63,6 +63,8 @@ export const PlayerState =
           "head1"
         ),
 
+      wolfQuestKills: t.number().default(0),
+
       boarQuestKills:
         t.number().default(0),
     },
@@ -71,6 +73,8 @@ export const PlayerState =
 
 export const EnemyState = schema(
   {
+    type: t.string().default("boar"),
+    level: t.number().default(1),
     x:
       t.number().default(0),
 
@@ -95,6 +99,7 @@ export const EnemyState = schema(
 export const LootState = schema(
   {
     ownerId: t.string().default(""),
+    enemyType: t.string().default("boar"),
     x: t.number().default(0),
     y: t.number().default(0),
     z: t.number().default(0),

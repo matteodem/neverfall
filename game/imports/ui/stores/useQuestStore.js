@@ -10,6 +10,11 @@ export const useQuestStore =
     ) => ({
       boarKills:
         0,
+      wolfKills: 0,
+      area: "boar",
+
+      setWolfKills(wolfKills) { set({ wolfKills }); },
+      setArea(area) { set({ area }); },
 
       setBoarKills(
         boarKills
@@ -23,6 +28,8 @@ export const useQuestStore =
         set({
           boarKills:
             0,
+          wolfKills: 0,
+          area: "boar",
         });
       },
     })

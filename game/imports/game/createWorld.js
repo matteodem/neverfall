@@ -1,3 +1,4 @@
+import { FOREST_SIZE } from "./enemyConfig";
 import "@babylonjs/loaders/glTF";
 
 import {
@@ -462,6 +463,9 @@ export const createWorld =
     const forest =
       createForestArea({
         scene,
+        size: FOREST_SIZE,
+        treeCount: 300,
+        bushCount: 150,
 
         center:
           new Vector3(

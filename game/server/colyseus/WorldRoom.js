@@ -1,3 +1,4 @@
+import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
 import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
   Meteor,
@@ -28,7 +29,7 @@ import {
 } from "../../imports/game/xp";
 
 import {
-  BOAR_HUNT_QUEST,
+  HUNT_QUESTS,
 } from "../../imports/game/quests";
 
 import {
@@ -50,111 +51,6 @@ const PLAYER_REGEN = {
     0.05,
 };
 
-
-const BOAR_SPAWNS = [
-  {
-    id:
-      "boar-1",
-
-    x:
-      -20,
-
-    y:
-      0,
-
-    z:
-      16,
-  },
-
-  {
-    id:
-      "boar-2",
-
-    x:
-      19,
-
-    y:
-      0,
-
-    z:
-      18,
-  },
-
-  {
-    id:
-      "boar-3",
-
-    x:
-      -19,
-
-    y:
-      0,
-
-    z:
-      -17,
-  },
-
-  {
-    id:
-      "boar-4",
-
-    x:
-      20,
-
-    y:
-      0,
-
-    z:
-      -15,
-  },
-
-  {
-    id:
-      "boar-5",
-
-    x:
-      22,
-
-    y:
-      0,
-
-    z:
-      2,
-  },
-];
-
-
-const ENEMY = {
-  health:
-    100,
-
-  level:
-    1,
-
-  xpReward:
-    20,
-
-  speed:
-    2,
-
-  attackDamage:
-    10,
-
-  attackRange:
-    1.8,
-
-  attackCooldown:
-    1000,
-
-  respawnDelay:
-    5000,
-
-  wanderRadius:
-    3,
-
-  wanderWait:
-    1500,
-};
 
 const HEAL_COOLDOWN =
   15000;
@@ -197,9 +93,12 @@ export class WorldRoom
    * =====================================================
    */
 
-  advanceBoarQuest(
-    characterId
+  advanceHuntQuest(
+    characterId,
+    type
   ) {
+    const quest = HUNT_QUESTS[type];
+    const field = quest.progressField;
     for (
       const player
       of this.state.players.values()
@@ -212,23 +111,23 @@ export class WorldRoom
       }
 
 
-      player.boarQuestKills =
+      player[field] =
         (
-          player.boarQuestKills ??
+          player[field] ??
           0
         ) +
         1;
 
 
       if (
-        player.boarQuestKills <
-        BOAR_HUNT_QUEST.target
+        player[field] <
+        quest.target
       ) {
         return false;
       }
 
 
-      player.boarQuestKills =
+      player[field] =
         0;
 
 
@@ -300,7 +199,7 @@ export class WorldRoom
   onCreate() {
     for (
       const spawn
-      of BOAR_SPAWNS
+      of ENEMY_SPAWNS
     ) {
       this.spawnEnemy(
         spawn
@@ -1062,8 +961,11 @@ export class WorldRoom
   spawnEnemy(
     spawn
   ) {
+    const stats = getEnemyStats(spawn.type, spawn.level);
     const enemy =
       new EnemyState({
+        type: spawn.type,
+        level: spawn.level,
         x:
           spawn.x,
 
@@ -1077,10 +979,10 @@ export class WorldRoom
           Math.PI,
 
         health:
-          ENEMY.health,
+          stats.health,
 
         maxHealth:
-          ENEMY.health,
+          stats.health,
       });
 
 
@@ -1326,6 +1228,8 @@ export class WorldRoom
     } = runtime;
 
 
+    const stats = getEnemyStats(spawn.type, spawn.level);
+    const quest = HUNT_QUESTS[spawn.type || "boar"];
     const lootOwners = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
@@ -1360,13 +1264,14 @@ export class WorldRoom
     ) {
       await this.awardXp(
         characterId,
-        ENEMY.xpReward
+        stats.xpReward
       );
 
 
       const completed =
-        this.advanceBoarQuest(
-          characterId
+        this.advanceHuntQuest(
+          characterId,
+          spawn.type || "boar"
         );
 
 
@@ -1375,14 +1280,14 @@ export class WorldRoom
       ) {
         await this.awardXp(
           characterId,
-          BOAR_HUNT_QUEST.rewardXp
+          quest.rewardXp
         );
       }
     }
 
 
     /*
-     * Respawn the same Boar at
+     * Respawn the same enemy at
      * its original spawn.
      */
 
@@ -1392,7 +1297,7 @@ export class WorldRoom
           spawn
         );
       },
-      ENEMY.respawnDelay
+      stats.respawnDelay
     );
   }
 
@@ -1442,6 +1347,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
+    const stats = getEnemyStats(enemy.type, enemy.level);
     /*
      * No aggro:
      * wander around this enemy's
@@ -1524,7 +1430,7 @@ export class WorldRoom
 
     if (
       distance >
-      ENEMY.attackRange
+      stats.attackRange
     ) {
       const safeDistance =
         Math.max(
@@ -1534,7 +1440,7 @@ export class WorldRoom
 
 
       const movement =
-        ENEMY.speed *
+        stats.speed *
         (
           deltaTime /
           1000
@@ -1579,7 +1485,7 @@ export class WorldRoom
 
     runtime.nextAttackAt =
       now +
-      ENEMY.attackCooldown;
+      stats.attackCooldown;
 
 
     /*
@@ -1602,7 +1508,7 @@ export class WorldRoom
 
     this.damagePlayer(
       runtime.targetSessionId,
-      ENEMY.attackDamage
+      stats.attackDamage
     );
   }
 
@@ -1618,6 +1524,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
+    const stats = getEnemyStats(enemy.type, enemy.level);
     const now =
       Date.now();
 
@@ -1671,7 +1578,7 @@ export class WorldRoom
 
       runtime.nextWanderAt =
         now +
-        ENEMY.wanderWait;
+        stats.wanderWait;
 
 
       return;
@@ -1686,7 +1593,7 @@ export class WorldRoom
 
 
     const movement =
-      ENEMY.speed *
+      stats.speed *
       0.5 *
       (
         deltaTime /
@@ -1721,6 +1628,7 @@ export class WorldRoom
   pickWanderTarget(
     spawn
   ) {
+    const stats = getEnemyStats(spawn.type, spawn.level);
     const angle =
       Math.random() *
       Math.PI *
@@ -1737,7 +1645,7 @@ export class WorldRoom
       Math.sqrt(
         Math.random()
       ) *
-      ENEMY.wanderRadius;
+      stats.wanderRadius;
 
 
     return {

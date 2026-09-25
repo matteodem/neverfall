@@ -2,6 +2,7 @@ export const LOOT_RANGE = 2.5;
 
 export const ITEM_NAMES = {
   boar_skin: "Boar Skin",
+  wolf_skin: "Wolf Skin",
 };
 
 export const splitMoney = (money = 0) => ({
@@ -24,7 +25,7 @@ export const canCollectLoot = (player, loot) => Boolean(
   Math.hypot(player.x - loot.x, player.y - loot.y, player.z - loot.z) <= LOOT_RANGE
 );
 
-export const rollLoot = (random = Math.random) => ({
-  money: 50,
-  items: random() < 0.7 ? [{ id: "boar_skin" }] : [],
+export const rollLoot = (random = Math.random, enemyType = "boar") => ({
+  money: enemyType === "wolf" ? 200 : 50,
+  items: random() < 0.7 ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }] : [],
 });

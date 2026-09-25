@@ -57,7 +57,7 @@ if (Meteor.isServer) {
           contributors: new Set(["character-one", "character-two"]),
         }]]),
         awardXp: async () => {},
-        advanceBoarQuest: () => false,
+        advanceHuntQuest: () => false,
         clock: { setTimeout() {} },
       };
       await WorldRoom.prototype.killEnemy.call(room, "boar");

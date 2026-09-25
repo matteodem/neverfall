@@ -1,7 +1,7 @@
 import React from "react";
 
 import {
-  BOAR_HUNT_QUEST,
+  HUNT_QUESTS,
 } from "../../game/quests";
 
 import {
@@ -11,39 +11,34 @@ import {
 
 export const QuestTracker =
   () => {
-    const boarKills =
-      useQuestStore(
-        (
-          state
-        ) =>
-          state.boarKills
-      );
-
+    const area = useQuestStore((state) => state.area);
+    const kills = useQuestStore((state) => area === "wolf" ? state.wolfKills : state.boarKills);
+    const quest = HUNT_QUESTS[area];
 
     return (
       <div className="w-64 rounded-lg border border-white/10 bg-black/50 p-4 text-white shadow-lg">
         <div className="font-bold">
           {
-            BOAR_HUNT_QUEST.title
+            quest.title
           }
         </div>
 
         <div className="mt-1 text-sm text-white/70">
-          Kill Boars
+          {quest.description}
         </div>
 
         <div className="mt-2 font-semibold">
-          {boarKills}
+          {kills}
           {" / "}
           {
-            BOAR_HUNT_QUEST.target
+            quest.target
           }
         </div>
 
         <div className="mt-1 text-xs text-yellow-300">
           Reward:{" "}
           {
-            BOAR_HUNT_QUEST.rewardXp
+            quest.rewardXp
           }{" "}
           XP
         </div>
