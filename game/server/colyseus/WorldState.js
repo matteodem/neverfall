@@ -92,6 +92,16 @@ export const EnemyState = schema(
   "EnemyState"
 );
 
+export const LootState = schema(
+  {
+    ownerId: t.string().default(""),
+    x: t.number().default(0),
+    y: t.number().default(0),
+    z: t.number().default(0),
+  },
+  "LootState"
+);
+
 export const WorldState = schema(
   {
     players:
@@ -99,6 +109,8 @@ export const WorldState = schema(
 
     enemies:
       t.map(EnemyState),
+
+    loot: t.map(LootState),
   },
   "WorldState"
 );

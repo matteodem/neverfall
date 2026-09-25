@@ -1,4 +1,5 @@
 import assert from "assert";
+import "./inventory";
 
 describe("game", function () {
   it("package.json has correct name", async function () {

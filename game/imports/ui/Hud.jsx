@@ -1,3 +1,4 @@
+import { LootPrompt } from "./components/LootPrompt";
 import React, {
   useEffect,
   useState,
@@ -730,6 +731,8 @@ export const Hud = ({
 
   return (
     <>
+      <LootPrompt />
+
       <CombatBorder />
 
 

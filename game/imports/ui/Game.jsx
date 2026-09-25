@@ -409,6 +409,13 @@ export const Game = ({
               }
 
 
+              if (event.code === "KeyF") {
+                if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
+                event.preventDefault();
+                multiplayer?.collectLoot();
+                return;
+              }
+
               /*
                * Jump remains a movement
                * action rather than an

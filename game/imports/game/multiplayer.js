@@ -1,3 +1,4 @@
+import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
 
 import {
@@ -799,6 +800,8 @@ export const createMultiplayer =
         room
       );
 
+
+    const loot = createLoot({ scene, room, callbacks, player });
 
     const remotePlayers =
       new Map();
@@ -1618,6 +1621,8 @@ export const createMultiplayer =
       (
         deltaTime
       ) => {
+        loot.update();
+
         const smoothing =
           1 -
           Math.exp(
@@ -1808,6 +1813,8 @@ export const createMultiplayer =
 
     const destroy =
       async () => {
+        loot.destroy();
+
         useCombatStore
           .getState()
           .resetCombat();
@@ -1845,6 +1852,7 @@ export const createMultiplayer =
       sendMovement,
       sendAttack,
       sendHeal,
+      collectLoot: loot.collect,
 
       syncLocalPlayer,
 

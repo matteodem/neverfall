@@ -1,3 +1,4 @@
+import { initializeInventories } from "./inventory/users";
 import {
   Meteor,
 } from "meteor/meteor";
@@ -13,6 +14,7 @@ import {
 
 Meteor.startup(
   async () => {
+    await initializeInventories();
     await startColyseus();
   }
 );

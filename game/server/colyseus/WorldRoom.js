@@ -1,3 +1,4 @@
+import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
   Meteor,
 } from "meteor/meteor";
@@ -336,6 +337,8 @@ export class WorldRoom
    */
 
   messages = {
+    loot: (client, id) => collectLoot(this, client, id),
+
     move: (
       client,
       data
@@ -1238,7 +1241,8 @@ export class WorldRoom
       0
     ) {
       await this.killEnemy(
-        enemyId
+        enemyId,
+        sessionId
       );
     }
   }
@@ -1302,7 +1306,8 @@ export class WorldRoom
 
 
   async killEnemy(
-    enemyId
+    enemyId,
+    killerSessionId
   ) {
     const runtime =
       this.enemyRuntime.get(
@@ -1322,6 +1327,8 @@ export class WorldRoom
       contributors,
     } = runtime;
 
+
+    spawnLoot(this, this.state.enemies.get(enemyId), killerSessionId);
 
     /*
      * Remove dead enemy.

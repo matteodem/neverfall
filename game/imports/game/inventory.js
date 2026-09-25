@@ -1,0 +1,30 @@
+export const LOOT_RANGE = 2.5;
+
+export const ITEM_NAMES = {
+  boar_skin: "Boar Skin",
+};
+
+export const splitMoney = (money = 0) => ({
+  gold: Math.floor(money / 10000),
+  silver: Math.floor(money / 100) % 100,
+  bronze: money % 100,
+});
+
+export const stackItems = (items = []) => {
+  const stacks = new Map();
+  for (const { id } of items) {
+    stacks.set(id, (stacks.get(id) || 0) + 1);
+  }
+  return Array.from(stacks, ([id, count]) => ({ id, count }));
+};
+
+export const canCollectLoot = (player, loot) => Boolean(
+  player && loot && player.health > 0 &&
+  player.userId === loot.ownerId &&
+  Math.hypot(player.x - loot.x, player.y - loot.y, player.z - loot.z) <= LOOT_RANGE
+);
+
+export const rollLoot = (random = Math.random) => ({
+  money: 50,
+  items: random() < 0.7 ? [{ id: "boar_skin" }] : [],
+});
