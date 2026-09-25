@@ -5,70 +5,290 @@ import {
 
 import "@babylonjs/loaders/glTF";
 
-export const createHorseMount = async ({ scene, parent, character }) => {
-  const result = await SceneLoader.ImportMeshAsync(
-    "",
-    "/models/mounts/",
-    "horse-01.glb",
-    scene
-  );
 
-  const root = result.meshes[0];
-  root.name = "horse-mount";
-  root.parent = parent;
-  root.position.set(0, 0, 0);
-  root.scaling.setAll(0.8);
+const HORSE_ROTATION_OFFSET =
+  Math.PI;
 
-  const riderAnchor = new TransformNode("riderAnchor", scene);
-  riderAnchor.parent = root;
-  riderAnchor.position.set(0, 1.9, -0.12);
 
-  const idle = result.animationGroups.find((group) => group.name === "Idle");
-  const run = result.animationGroups.find((group) => group.name === "Run" || group.name === "Walk");
-  let mounted = false;
-  let running = false;
-  let currentAnimation = null;
+export const createHorseMount =
+  async ({
+    scene,
+    parent,
+    character,
+  }) => {
+    const result =
+      await SceneLoader.ImportMeshAsync(
+        "",
+        "/models/mounts/",
+        "horse-01.glb",
+        scene
+      );
 
-  const play = (animation) => {
-    if (!animation || animation === currentAnimation) return;
-    currentAnimation?.stop();
-    currentAnimation = animation;
-    animation.start(true);
+
+    const root =
+      result.meshes[0];
+
+    root.name =
+      "horse-mount";
+
+
+    /*
+     * Gameplay root.
+     *
+     * This handles the direction the mount should face.
+     */
+    const mountRoot =
+      new TransformNode(
+        "mountRoot",
+        scene
+      );
+
+    mountRoot.parent =
+      parent;
+
+
+    /*
+     * Visual-only root.
+     *
+     * The horse GLB faces backwards compared to Neverfall's
+     * forward direction, so rotate only the horse model by 180°.
+     *
+     * Do not rotate mountRoot by 180°, because setFacing()
+     * controls that node.
+     */
+    const horseVisualRoot =
+      new TransformNode(
+        "horseVisualRoot",
+        scene
+      );
+
+    horseVisualRoot.parent =
+      mountRoot;
+
+    horseVisualRoot.rotation.y =
+      HORSE_ROTATION_OFFSET;
+
+
+    root.parent =
+      horseVisualRoot;
+
+    root.position.set(
+      0,
+      0,
+      0
+    );
+
+    root.scaling.setAll(
+      0.8
+    );
+
+
+    /*
+     * Keep rider independent from the horse's visual
+     * 180° correction.
+     */
+    const riderAnchor =
+      new TransformNode(
+        "riderAnchor",
+        scene
+      );
+
+    riderAnchor.parent =
+      parent;
+
+    riderAnchor.position.set(
+      0,
+      1.9,
+      -0.12
+    );
+
+
+    const idle =
+      result.animationGroups.find(
+        (group) =>
+          group.name ===
+          "Idle"
+      );
+
+
+    const run =
+      result.animationGroups.find(
+        (group) =>
+          group.name ===
+            "Run" ||
+          group.name ===
+            "Walk"
+      );
+
+
+    let mounted =
+      false;
+
+    let running =
+      false;
+
+    let currentAnimation =
+      null;
+
+
+    const play =
+      (animation) => {
+        if (
+          !animation ||
+          animation ===
+            currentAnimation
+        ) {
+          return;
+        }
+
+
+        currentAnimation
+          ?.stop();
+
+
+        currentAnimation =
+          animation;
+
+        animation.start(
+          true
+        );
+      };
+
+
+    const setMounted =
+      (value) => {
+        if (
+          mounted ===
+          value
+        ) {
+          return;
+        }
+
+
+        mounted =
+          value;
+
+
+        if (
+          mounted
+        ) {
+          character.root.parent =
+            riderAnchor;
+
+          character.root.position.set(
+            0,
+            -0.7,
+            0
+          );
+
+
+          mountRoot.setEnabled(
+            true
+          );
+
+          play(
+            idle
+          );
+
+          return;
+        }
+
+
+        mountRoot.setEnabled(
+          false
+        );
+
+
+        currentAnimation
+          ?.stop();
+
+        currentAnimation =
+          null;
+
+
+        character.root.parent =
+          parent;
+
+        character.root.position.set(
+          0,
+          0,
+          0
+        );
+      };
+
+
+    mountRoot.setEnabled(
+      false
+    );
+
+
+    return {
+      setMounted,
+
+      isMounted:
+        () =>
+          mounted,
+
+
+      setFacing(
+        direction
+      ) {
+        if (
+          direction?.lengthSquared()
+        ) {
+          mountRoot.rotation.y =
+            Math.atan2(
+              direction.x,
+              direction.z
+            ) -
+            parent.rotation.y;
+
+          return;
+        }
+
+
+        mountRoot.rotation.y =
+          0;
+      },
+
+
+      setRunning(
+        value
+      ) {
+        running =
+          value;
+
+
+        if (
+          mounted
+        ) {
+          play(
+            running
+              ? run
+              : idle
+          );
+        }
+      },
+
+
+      destroy() {
+        currentAnimation
+          ?.stop();
+
+
+        result.animationGroups.forEach(
+          (group) =>
+            group.dispose()
+        );
+
+
+        riderAnchor.dispose();
+
+        root.dispose();
+
+        horseVisualRoot.dispose();
+
+        mountRoot.dispose();
+      },
+    };
   };
-
-  const setMounted = (value) => {
-    if (mounted === value) return;
-    mounted = value;
-
-    if (mounted) {
-      character.root.parent = riderAnchor;
-      character.root.position.set(0, -0.7, 0);
-      root.setEnabled(true);
-      play(idle);
-      return;
-    }
-
-    root.setEnabled(false);
-    currentAnimation?.stop();
-    currentAnimation = null;
-    character.root.parent = parent;
-    character.root.position.set(0, 0, 0);
-  };
-
-  root.setEnabled(false);
-
-  return {
-    setMounted,
-    isMounted: () => mounted,
-    setRunning(value) {
-      running = value;
-      if (mounted) play(running ? run : idle);
-    },
-    destroy() {
-      currentAnimation?.stop();
-      riderAnchor.dispose();
-      root.dispose();
-      result.animationGroups.forEach((group) => group.dispose());
-    },
-  };
-};

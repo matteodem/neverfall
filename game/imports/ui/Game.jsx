@@ -628,7 +628,7 @@ export const Game = ({
                * ---------------------
                */
 
-              updateMovement({
+              const movement = updateMovement({
                 deltaTime,
 
                 input:
@@ -639,6 +639,8 @@ export const Game = ({
                 player,
                 speedMultiplier: mounted ? 1.5 : 1,
               });
+
+              mount?.setFacing(movement);
 
 
               updateCameraFacing({

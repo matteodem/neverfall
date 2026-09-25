@@ -121,7 +121,7 @@ export const updateMovement = ({
     movement.lengthSquared() ===
     0
   ) {
-    return;
+    return movement;
   }
 
   movement.normalize();
@@ -158,13 +158,15 @@ export const updateMovement = ({
       )
     );
 
-    return;
+    return movement;
   }
 
   faceDirection(
     player,
     movement
   );
+
+  return movement;
 };
 
 
