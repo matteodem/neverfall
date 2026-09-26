@@ -34,6 +34,8 @@ export const PlayerState =
       worldSessionId: t.string().default(""),
       dungeonRewardClaimed: t.boolean().default(false),
 
+      movementSpeedMultiplier: t.number().default(1),
+
       mounted:
         t.boolean().default(false),
 

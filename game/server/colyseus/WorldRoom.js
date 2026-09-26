@@ -24,6 +24,7 @@ import {
 
 import {
   ATTACK,
+  PLAYER,
 } from "../../imports/game/config";
 
 import {
@@ -283,6 +284,7 @@ export class WorldRoom
     player.accessory = equipment.accessory || "";
 
     const stats = getPlayerStats(player.currentLevel, equipment, player.gameClass);
+    player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
     if (player.inDungeon) this.dungeons?.syncPlayer(player);
@@ -418,21 +420,6 @@ export class WorldRoom
       }
 
 
-      player.x =
-        data.x;
-
-
-      player.y =
-        data.y;
-
-
-      player.z =
-        data.z;
-
-
-      player.rotationY =
-        data.rotationY;
-
       if (typeof data.mounted === "boolean") {
         const wasMounted = player.mounted;
         player.mounted = this.mountsAllowed && data.mounted;
@@ -440,6 +427,26 @@ export class WorldRoom
           void trackAchievements(player.characterId, "mount");
         }
       }
+
+      const runtime = this.playerRuntime.get(client.sessionId);
+      if (!runtime) return;
+      const now = Date.now();
+      const speed = PLAYER.speed * getStatsForPlayer(player).movementSpeedMultiplier * (player.mounted ? 2 : 1);
+      // A small accumulated allowance tolerates packet jitter without trusting client speed.
+      const elapsed = Math.max(0, (now - (runtime.lastMoveAt ?? now)) / 1000);
+      runtime.lastMoveAt = now;
+      const allowance = Math.min(speed * 0.5, (runtime.moveAllowance ?? speed * 0.25) + speed * elapsed);
+      const dx = data.x - player.x;
+      const dz = data.z - player.z;
+      const distance = Math.hypot(dx, dz);
+      const ratio = distance > allowance ? allowance / distance : 1;
+      player.x += dx * ratio;
+      player.z += dz * ratio;
+      player.y = data.y;
+      player.rotationY = data.rotationY;
+      runtime.moveAllowance = Math.max(0, allowance - distance);
+      if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+
     },
 
 
@@ -702,6 +709,7 @@ export class WorldRoom
         gameClass: character.gameClass || "warrior",
 
         currentLevel,
+        movementSpeedMultiplier: stats.movementSpeedMultiplier,
 
         currentXp:
           character.currentXp ??
@@ -1079,7 +1087,7 @@ export class WorldRoom
           character.currentXp,
 
         gainedXp:
-          amount,
+          Math.round(amount * getPlayerStats(previousLevel, character.equipment, character.gameClass).xpGainMultiplier),
       });
 
 
@@ -1465,7 +1473,7 @@ export class WorldRoom
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
         continue;
       }
-      if (!stats.moneyReward) {
+      if (!stats.moneyReward || stats.accessoryDropChance) {
         spawnLoot(this, this.state.enemies.get(enemyId), sessionId);
       }
       lootOwners.add(player.userId);

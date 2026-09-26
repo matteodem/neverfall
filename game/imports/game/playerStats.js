@@ -57,6 +57,8 @@ export const getPlayerStats = (
 
 
   return {
+    xpGainMultiplier: 1 + equipmentStats.xpGain,
+    movementSpeedMultiplier: 1 + equipmentStats.movementSpeed,
     maxHealth:
       classConfig.maxHealth +
       levelsGained *

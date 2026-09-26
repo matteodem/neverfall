@@ -5,7 +5,7 @@ import { WorldRoom } from "./WorldRoom";
 import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
 import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
-import { collectLoot } from "../inventory/loot";
+import { collectLoot, spawnLoot } from "../inventory/loot";
 
 const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
@@ -113,6 +113,13 @@ export class DungeonRoom extends WorldRoom {
   killEnemy(enemyId) {
     const runtime = this.enemyRuntime.get(enemyId);
     if (!runtime) return;
+    // The final boss's accessory roll belongs to the existing reward chest.
+    if (runtime.spawn.type === "dungeonGuardian") {
+      const enemy = this.state.enemies.get(enemyId);
+      for (const [sessionId, player] of this.state.players) {
+        if (runtime.contributors.has(player.characterId)) spawnLoot(this, enemy, sessionId);
+      }
+    }
     for (const characterId of runtime.contributors) {
       void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
     }

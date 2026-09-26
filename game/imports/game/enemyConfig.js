@@ -39,6 +39,7 @@ export const ENEMY_TYPES = {
   },
   forestGiant: {
     bossMechanics: BOSS_MECHANICS,
+    accessoryDropChance: 0.50,
     name: "Forest Giant",
     model: "mini-boss-ogre.glb",
     scale: 1.1,
@@ -67,6 +68,7 @@ export const ENEMY_TYPES = {
 // Reuse the existing ogre asset and animations for the small dungeon bosses.
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
+  accessoryDropChance: 0.20,
   name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0, speed: 2.5,
   healthPerLevel: 100, damagePerLevel: 5,
 };

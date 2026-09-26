@@ -842,9 +842,7 @@ export const Game = ({
                   player,
 
                   speedMultiplier:
-                    mounted
-                      ? 2
-                      : 1,
+                    (mounted ? 2 : 1) * (multiplayer?.getMovementSpeedMultiplier() ?? 1),
                 });
 
 

@@ -825,6 +825,9 @@ export const createMultiplayer =
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
     const bossVisuals = createBossVisuals(scene);
+    onMessage("movementCorrection", ({ x, y, z }) => {
+      player.position.set(x, y + JUMP.groundY, z);
+    });
     onMessage("respawn", ({ x, y, z, rotationY }) => {
       player.position.set(x, y + JUMP.groundY, z);
       player.rotation.y = rotationY;
@@ -1942,6 +1945,7 @@ export const createMultiplayer =
 
     return {
       room,
+      getMovementSpeedMultiplier: () => localPlayerState?.movementSpeedMultiplier ?? 1,
       getRemotePlayerId(mesh) {
         for (let node = mesh; node; node = node.parent) {
           const id = node.metadata?.remotePlayerId;
