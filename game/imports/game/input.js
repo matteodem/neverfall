@@ -1,8 +1,11 @@
+import { useMobileControlsStore } from "../ui/stores/useMobileControlsStore";
+
 export const createInput = (
   canvas
 ) => {
   const state = {
     keys: {},
+    get joystick() { return useMobileControlsStore.getState().direction; },
     leftMouseDown: false,
     rightMouseDown: false,
   };

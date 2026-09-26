@@ -1,3 +1,5 @@
+import { useMobileDevice } from "./hooks/useMobileDevice";
+import { MobileJoystick } from "./components/MobileJoystick";
 import { BossNotice } from "./components/BossNotice";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
@@ -382,6 +384,7 @@ const MenuButtons =
     return (
       <div
         className="
+          hud-menu
           absolute
           left-4
           top-4
@@ -675,6 +678,7 @@ const ActionBar = ({
   return (
     <div
       className="
+        hud-action-bar
         flex
         gap-2
       "
@@ -711,6 +715,7 @@ const ActionBar = ({
  */
 
 const BottomHud = ({
+  mobile = false,
   currentLevel,
   equipment,
   gameClass,
@@ -720,6 +725,23 @@ const BottomHud = ({
   isDead,
   inDungeon,
 }) => {
+  if (mobile) return (
+    <>
+      <div className="absolute bottom-3 right-3 z-[10000]">
+        <div className="mb-2 flex gap-[5px]">
+          <button type="button" className="btn btn-sm" disabled={isDead} onClick={() => useActionBarStore.getState().triggerSkill("Space")}>Jump</button>
+          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon} onClick={() => useActionBarStore.getState().triggerSkill("KeyV")}>
+            {mounted ? "Dismount" : "Mount"}
+          </button>
+        </div>
+        <ActionBar gameClass={gameClass} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
+      </div>
+      <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
+        <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />
+        <XpBar />
+      </div>
+    </>
+  );
   return (
     <div
       className="
@@ -797,6 +819,7 @@ export const Hud = ({
   healCooldownUntil,
   mounted = false,
 }) => {
+  const { mobile, portrait } = useMobileDevice();
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
   const dungeonBusy = useDungeonStore((state) => state.busy);
   const leaveDungeon = useDungeonStore((state) => state.leaveDungeon);
@@ -834,11 +857,13 @@ export const Hud = ({
 
 
       <MenuButtons />
+      {mobile && <MobileJoystick portrait={portrait} disabled={isDead} />}
 
 
       <div
         className="
           absolute
+          hud-world-panel
           right-6
           top-5
           z-[10000]
@@ -861,6 +886,7 @@ export const Hud = ({
 
 
       <BottomHud
+        mobile={mobile}
         gameClass={gameClass}
         currentLevel={
           currentLevel

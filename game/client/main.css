@@ -4,3 +4,54 @@
 body {
     font-family: sans-serif;
 }
+
+/* Mobile controls stay in landscape even where orientation locking is unavailable. */
+.mobile-game {
+    width: 100dvw;
+    height: 100dvh;
+    touch-action: none;
+    user-select: none;
+    --minimap-size: 72px;
+    --game-width: 100dvw;
+    --game-height: 100dvh;
+}
+.mobile-game.mobile-portrait {
+    position: fixed;
+    top: 0;
+    left: 100dvw;
+    width: 100dvh;
+    height: 100dvw;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    --game-width: 100dvh;
+    --game-height: 100dvw;
+}
+.mobile-joystick-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    height: 50%;
+    z-index: 30;
+    touch-action: none;
+}
+.mobile-game .hud-menu { top: 8px; left: 8px; padding: 6px 8px; }
+.mobile-game .hud-menu > div { gap: 8px; }
+.mobile-game .hud-menu button { width: 36px; height: 36px; min-height: 36px; }
+.mobile-game .hud-world-panel { top: 8px; right: 8px; gap: 4px; transform: scale(0.8); transform-origin: top right; }
+.mobile-game .hud-action-bar { display: grid; grid-template-columns: repeat(2, 44px); justify-content: flex-end; gap: 12px; }
+.mobile-game .hud-action-bar button { width: 44px; height: 44px; }
+.mobile-game .mobile-player-bars { transform: translateX(-50%) scale(0.7); transform-origin: bottom center; }
+.mobile-game .hud-world-panel .w-64 { width: 170px; padding: 8px; font-size: 12px; }
+.mobile-game .hud-world-panel .w-64 .text-sm { font-size: 11px; }
+.mobile-game [role="status"] { font-size: 12px; }
+.mobile-game .text-xl { font-size: 16px; }
+
+.mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
+.mobile-game .hud-modal { font-size: 12px; transform: scale(0.5); transform-origin: top left; }
+.mobile-game .hud-modal .p-4 { padding: 10px; }
+
+.mobile-game .hud-minimap { order: 2; width: 170px; padding: 8px; flex-shrink: 0; }
+.mobile-game .hud-minimap .text-sm { font-size: 11px; }
+
+.mobile-game .hud-modal.relative { transform-origin: center; }

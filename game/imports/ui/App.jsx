@@ -1,3 +1,4 @@
+import { useMobileDevice } from "./hooks/useMobileDevice";
 import {
   Meteor,
 } from "meteor/meteor";
@@ -42,6 +43,7 @@ import {
 
 
 export const App = () => {
+  const { mobile, portrait } = useMobileDevice();
   const [
     playerHealth,
     setPlayerHealth,
@@ -343,15 +345,7 @@ export const App = () => {
 
   return (
     <div
-      className="
-        relative
-        h-screen
-        w-screen
-
-        overflow-hidden
-
-        bg-black
-      "
+      className={`relative h-screen w-screen overflow-hidden bg-black ${mobile ? "mobile-game" : ""} ${mobile && portrait ? "mobile-portrait" : ""}`}
     >
       <Game
         character={

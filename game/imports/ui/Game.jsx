@@ -476,6 +476,8 @@ export const Game = ({
           };
 
           const SKILL_HANDLERS = {
+            Space: () => { if (playerAlive) jump.jump(); },
+            KeyF: () => { if (!multiplayer?.interactDungeon()) multiplayer?.collectLoot(); },
             KeyV() {
               if (
                 playerAlive
@@ -535,6 +537,13 @@ export const Game = ({
 
           createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer });
 
+          let previousTouch = null;
+          input.on(canvas, "pointerdown", (event) => {
+            if (event.pointerType === "touch") previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+          });
+          const clearTouch = () => { previousTouch = null; };
+          input.on(canvas, "pointerup", clearTouch);
+          input.on(canvas, "pointercancel", clearTouch);
           const handlePointerMove =
             (
               event
@@ -549,13 +558,16 @@ export const Game = ({
               }
 
 
-              rotateCamera(
-                camera,
-
-                event.movementX,
-
-                event.movementY
-              );
+              let dx = event.movementX;
+              let dy = event.movementY;
+              if (event.pointerType === "touch") {
+                if (!previousTouch || previousTouch.id !== event.pointerId) return;
+                dx = event.clientX - previousTouch.x;
+                dy = event.clientY - previousTouch.y;
+                previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+                if (canvas.closest(".mobile-portrait")) [dx, dy] = [dy, -dx];
+              }
+              rotateCamera(camera, dx, dy);
             };
 
 
@@ -772,7 +784,7 @@ export const Game = ({
 
           const handleResize =
             () => {
-              engine.resize();
+              requestAnimationFrame(() => engine?.resize());
             };
 
 
