@@ -143,6 +143,8 @@ export const Game = ({
       let animations =
         null;
 
+      let jump = null;
+
       let combat =
         null;
 
@@ -342,6 +344,7 @@ export const Game = ({
 
               player,
               dungeonVisuals: world.dungeonVisuals,
+              onLocalRespawn: () => jump?.reset(),
 
               onLocalHealthChange:
                 (
@@ -413,7 +416,7 @@ export const Game = ({
            * =====================================================
            */
 
-          const jump =
+          jump =
             createJumpController(
               player
             );

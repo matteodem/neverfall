@@ -93,6 +93,10 @@ export class DungeonRoom extends WorldRoom {
   respawnPlayer(player) {
     super.respawnPlayer(player);
     this.respawnPosition(player);
+    this.broadcast("dungeonRespawn", {
+      sessionId: Array.from(this.state.players.entries()).find(([, current]) => current === player)?.[0],
+      x: player.x, y: player.y, z: player.z, rotationY: player.rotationY,
+    });
   }
 
   spawnStage() {

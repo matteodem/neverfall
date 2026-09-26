@@ -390,7 +390,7 @@ export class WorldRoom
 
 
       if (
-        !player || player.inDungeon
+        !player || player.inDungeon || player.health <= 0
       ) {
         return;
       }

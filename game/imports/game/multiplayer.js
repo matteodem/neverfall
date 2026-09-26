@@ -787,6 +787,7 @@ export const createMultiplayer =
     scene,
     player,
     onLocalHealthChange,
+    onLocalRespawn,
     onHealCooldown,
     onBoarQuestChange,
     dungeonVisuals,
@@ -821,6 +822,12 @@ export const createMultiplayer =
 
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
+    onMessage("dungeonRespawn", ({ sessionId, x, y, z, rotationY }) => {
+      if (sessionId !== room.sessionId) return;
+      player.position.set(x, y + JUMP.groundY, z);
+      player.rotation.y = rotationY;
+      onLocalRespawn?.();
+    });
 
     const remotePlayers =
       new Map();
