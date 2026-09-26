@@ -1,3 +1,4 @@
+import { initializeChat } from "./chat";
 import { initializeInventories } from "./inventory/users";
 import {
   Meteor,
@@ -15,6 +16,7 @@ import {
 Meteor.startup(
   async () => {
     await initializeInventories();
+    await initializeChat();
     await startColyseus();
   }
 );

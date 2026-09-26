@@ -1,3 +1,4 @@
+import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
@@ -313,6 +314,7 @@ export class WorldRoom
   }
 
   messages = {
+    chat: (client, text) => sendChat(this, client, text),
     dungeonEnter: (client) => this.dungeons.enter(client),
     groupInvite: (client, targetId) => {
       const target = this.clients.find((candidate) => candidate.sessionId === targetId);
@@ -440,6 +442,7 @@ export class WorldRoom
       const dz = data.z - player.z;
       const distance = Math.hypot(dx, dz);
       const ratio = distance > allowance ? allowance / distance : 1;
+      if (distance > 0.01) player.chatAnimation = "";
       player.x += dx * ratio;
       player.z += dz * ratio;
       player.y = data.y;
