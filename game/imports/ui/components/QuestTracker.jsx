@@ -14,6 +14,7 @@ export const QuestTracker =
     const area = useQuestStore((state) => state.area);
     const kills = useQuestStore((state) => area === "forestGiant" ? state.giantKills : area === "wolf" ? state.wolfKills : state.boarKills);
     const quest = HUNT_QUESTS[area];
+    if (!quest) return null;
 
     return (
       <div className="w-64 rounded-lg border border-white/10 bg-black/50 p-4 text-white shadow-lg">
