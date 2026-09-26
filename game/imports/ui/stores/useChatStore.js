@@ -1,8 +1,9 @@
 import { create } from "zustand";
 
 export const useChatStore = create((set, get) => ({
-  open: false, draft: "", lastChannelPrefix: "", focusRequest: 0, roomId: null, sendHandler: null, error: "",
-  show(draft) { set((state) => ({ open: true, focusRequest: state.focusRequest + 1, ...(draft !== undefined ? { draft } : {}) })); },
+  visible: true, open: false, draft: "", lastChannelPrefix: "", focusRequest: 0, roomId: null, sendHandler: null, error: "",
+  toggleVisible() { set((state) => ({ visible: !state.visible, open: false })); },
+  show(draft) { set((state) => ({ visible: true, open: true, focusRequest: state.focusRequest + 1, ...(draft !== undefined ? { draft } : {}) })); },
   close() { set({ open: false }); },
   setDraft: (draft) => set({ draft }),
   connect: (roomId, sendHandler) => set({ roomId, sendHandler }),

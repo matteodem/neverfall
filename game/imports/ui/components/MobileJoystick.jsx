@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Joystick } from "react-joystick-component";
 import { useMobileControlsStore } from "../stores/useMobileControlsStore";
+import { useChatStore } from "../stores/useChatStore";
 import { useHudStore } from "../stores/useHudStore";
 
 export const MobileJoystick = ({ portrait, disabled }) => {
@@ -36,6 +37,8 @@ export const MobileJoystick = ({ portrait, disabled }) => {
     <div ref={area} className="mobile-joystick-area" style={{ pointerEvents: disabled || modalOpen ? "none" : "auto" }}
       onPointerDown={(event) => {
         if (pointer.current !== null) return;
+        if (document.activeElement?.closest?.(".game-chat")) document.activeElement.blur();
+        useChatStore.getState().close();
         pointer.current = event.pointerId;
         event.currentTarget.setPointerCapture(event.pointerId);
         setOrigin(point(event));

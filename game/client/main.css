@@ -58,5 +58,5 @@ body {
 
 .mobile-game .game-chat { width: 220px; font-size: 10px; }
 .mobile-game .game-chat [role="log"] { height: 72px; }
-.mobile-game .game-chat:not(:focus-within) { pointer-events: none; }
-.mobile-game .game-chat button { pointer-events: auto; }
+.mobile-game .game-chat { pointer-events: none; }
+.mobile-game .game-chat input, .mobile-game .game-chat button { pointer-events: auto; }
