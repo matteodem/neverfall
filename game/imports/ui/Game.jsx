@@ -668,7 +668,7 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI"
+                "KeyI" || event.code === "KeyG"
               ) {
                 if (
                   event.target?.closest?.(
@@ -686,10 +686,12 @@ export const Game = ({
                   useHudStore
                     .getState();
 
+                const modal = event.code === "KeyG" ? "gear" : "inventory";
 
-                if (hudStore.openModals.includes("inventory")) {
+
+                if (hudStore.openModals.includes(modal)) {
                   hudStore
-                    .closeModal("inventory");
+                    .closeModal(modal);
 
                   return;
                 }
@@ -697,7 +699,7 @@ export const Game = ({
 
                 hudStore
                   .openModal(
-                    "inventory"
+                    modal
                   );
 
 
