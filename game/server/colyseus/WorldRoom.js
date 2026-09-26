@@ -998,6 +998,10 @@ export class WorldRoom
         this.respawnPlayer(
           currentPlayer
         );
+        this.clients.find((client) => client.sessionId === sessionId)?.send("respawn", {
+          x: currentPlayer.x, y: currentPlayer.y, z: currentPlayer.z,
+          rotationY: currentPlayer.rotationY,
+        });
       },
       PLAYER_RESPAWN_DELAY
     );

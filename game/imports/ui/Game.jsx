@@ -945,12 +945,6 @@ export const Game = ({
                */
 
               multiplayer
-                ?.syncLocalPlayer(
-                  player
-                );
-
-
-              multiplayer
                 ?.sendMovement(
                   player,
 

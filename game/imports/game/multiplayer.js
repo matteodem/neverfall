@@ -822,8 +822,7 @@ export const createMultiplayer =
 
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
-    onMessage("dungeonRespawn", ({ sessionId, x, y, z, rotationY }) => {
-      if (sessionId !== room.sessionId) return;
+    onMessage("respawn", ({ x, y, z, rotationY }) => {
       player.position.set(x, y + JUMP.groundY, z);
       player.rotation.y = rotationY;
       onLocalRespawn?.();
@@ -1447,64 +1446,6 @@ export const createMultiplayer =
       0;
 
 
-    const syncLocalPlayer =
-      (
-        localPlayer
-      ) => {
-        if (
-          !localPlayerState
-        ) {
-          return;
-        }
-
-
-        /*
-         * Detect server-side
-         * respawn.
-         */
-
-        if (
-          localPlayerState.health ===
-            localPlayerState.maxHealth &&
-
-          Math.abs(
-            localPlayerState.x
-          ) <
-            0.001 &&
-
-          Math.abs(
-            localPlayerState.z
-          ) <
-            0.001 &&
-
-          (
-            Math.abs(
-              localPlayer.position.x
-            ) >
-              1 ||
-
-            Math.abs(
-              localPlayer.position.z
-            ) >
-              1
-          )
-        ) {
-          localPlayer.position.set(
-            localPlayerState.x,
-
-            localPlayerState.y +
-              JUMP.groundY,
-
-            localPlayerState.z
-          );
-
-
-          localPlayer.rotation.y =
-            localPlayerState.rotationY;
-        }
-      };
-
-
     /*
      * =========================================================
      * ENEMIES
@@ -1656,6 +1597,7 @@ export const createMultiplayer =
         mounted = false,
         force = false
       ) => {
+        if (!localPlayerState || localPlayerState.health <= 0) return;
         sendAccumulator +=
           deltaTime;
 
@@ -2017,7 +1959,6 @@ export const createMultiplayer =
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,
 
-      syncLocalPlayer,
 
       update,
       destroy,
