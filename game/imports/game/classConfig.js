@@ -2,7 +2,7 @@ import { WARRIOR_SKILLS } from "./config";
 
 const projectileAttack = (name, icon, type, radius) => ({
   ...WARRIOR_SKILLS.Digit1,
-  cooldown: 1000,
+  cooldown: 500,
   name,
   icon,
   projectile: { type, speed: 18, lifetime: 1500, radius },
