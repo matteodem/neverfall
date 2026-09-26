@@ -373,6 +373,7 @@ export const App = () => {
         currentLevel={
           currentLevel
         }
+        equipment={currentCharacter?.equipment}
         playerHealth={
           playerHealth
         }

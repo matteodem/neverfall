@@ -36,6 +36,12 @@ import {
   getPlayerStats,
 } from "../../imports/game/playerStats";
 
+import {
+  DEFAULT_EQUIPMENT,
+  EQUIPMENT_ITEMS,
+  EQUIPMENT_SLOTS,
+} from "../../imports/game/equipment";
+
 const MAX_PLAYERS =
   50;
 
@@ -60,6 +66,14 @@ const HEAL_COOLDOWN =
 
 const PLAYER_RESPAWN_DELAY =
   2000;
+
+const getEquipmentForPlayer = (player) => ({
+  ring: player.ring || null,
+  accessory: player.accessory || null,
+});
+
+const getStatsForPlayer = (player) =>
+  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player));
 
 
 /*
@@ -240,8 +254,83 @@ export class WorldRoom
    * =====================================================
    */
 
+  applyPlayerEquipment(player, equipment) {
+    player.ring = equipment.ring || "";
+    player.accessory = equipment.accessory || "";
+
+    const stats = getPlayerStats(player.currentLevel, equipment);
+    player.maxHealth = stats.maxHealth;
+    player.health = Math.min(player.health, player.maxHealth);
+  }
+
+  async persistPlayerEquipment(player, equipment, inventoryItems) {
+    const updated = await Characters.updateAsync(
+      { _id: player.characterId, userId: player.userId },
+      {
+        $set: {
+          equipment,
+          "inventory.items": inventoryItems,
+        },
+      }
+    );
+
+    if (!updated) return false;
+    this.applyPlayerEquipment(player, equipment);
+    return true;
+  }
+
   messages = {
     loot: (client, id) => collectLoot(this, client, id),
+
+    equipItem: async (client, { itemId, slot }) => {
+      const player = this.state.players.get(client.sessionId);
+      const item = EQUIPMENT_ITEMS[itemId];
+      if (!player || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
+
+      const character = await Characters.findOneAsync({
+        _id: player.characterId,
+        userId: player.userId,
+      });
+      const inventoryItems = [...(character?.inventory?.items || [])];
+      const itemIndex = inventoryItems.findIndex((ownedItem) => ownedItem.id === itemId);
+      if (itemIndex < 0) return;
+
+      const equipment = {
+        ...DEFAULT_EQUIPMENT,
+        ...(character.equipment || {}),
+      };
+      const replacedItemId = equipment[slot];
+      inventoryItems.splice(itemIndex, 1);
+      if (replacedItemId && replacedItemId !== itemId) {
+        inventoryItems.push({ id: replacedItemId });
+      }
+      equipment[slot] = itemId;
+
+      await this.persistPlayerEquipment(player, equipment, inventoryItems);
+    },
+
+    unequipItem: async (client, slot) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !EQUIPMENT_SLOTS.includes(slot)) return;
+
+      const character = await Characters.findOneAsync({
+        _id: player.characterId,
+        userId: player.userId,
+      });
+      if (!character) return;
+
+      const equipment = {
+        ...DEFAULT_EQUIPMENT,
+        ...(character.equipment || {}),
+      };
+      const equippedItemId = equipment[slot];
+      if (!equippedItemId) return;
+
+      const inventoryItems = [...(character.inventory?.items || []), { id: equippedItemId }];
+      equipment[slot] = null;
+
+      await this.persistPlayerEquipment(player, equipment, inventoryItems);
+    },
 
     move: (
       client,
@@ -344,10 +433,7 @@ export class WorldRoom
         return;
       }
 
-      const stats =
-        getPlayerStats(
-          player.currentLevel
-        );
+      const stats = getStatsForPlayer(player);
 
 
       player.health =
@@ -505,10 +591,15 @@ export class WorldRoom
       character.currentLevel ??
       1;
 
+    const equipment = {
+      ...DEFAULT_EQUIPMENT,
+      ...(character.equipment || {}),
+    };
 
     const stats =
       getPlayerStats(
-        currentLevel
+        currentLevel,
+        equipment
       );
 
 
@@ -540,6 +631,12 @@ export class WorldRoom
 
         rotationY:
           0,
+
+        ring:
+          equipment.ring || "",
+
+        accessory:
+          equipment.accessory || "",
 
         health:
           stats.maxHealth,
@@ -939,10 +1036,10 @@ export class WorldRoom
       if (
         leveledUp
       ) {
-        const stats =
-          getPlayerStats(
-            progress.currentLevel
-          );
+        const stats = getPlayerStats(
+          progress.currentLevel,
+          getEquipmentForPlayer(player)
+        );
 
 
         player.maxHealth =
@@ -1139,10 +1236,7 @@ export class WorldRoom
      * from the client.
      */
 
-    const stats =
-      getPlayerStats(
-        player.currentLevel
-      );
+    const stats = getStatsForPlayer(player);
 
 
     enemy.health =

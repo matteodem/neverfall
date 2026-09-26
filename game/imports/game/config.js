@@ -3,9 +3,9 @@ export const PLAYER = {
 };
 
 export const CAMERA = {
-  radius: 9,
+  radius: 14,
   minRadius: 4,
-  maxRadius: 14,
+  maxRadius: 30,
 
   minBeta: 0.25,
   maxBeta: Math.PI / 2 - 0.05,

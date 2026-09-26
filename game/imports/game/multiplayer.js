@@ -957,6 +957,17 @@ export const createMultiplayer =
             }
           );
 
+          callbacks.listen(
+            playerState,
+            "maxHealth",
+            () => {
+              onLocalHealthChange?.({
+                health: playerState.health,
+                maxHealth: playerState.maxHealth,
+              });
+            }
+          );
+
 
           return;
         }
@@ -1941,6 +1952,14 @@ export const createMultiplayer =
         );
       };
 
+    const equipItem = (itemId, slot) => {
+      room.send("equipItem", { itemId, slot });
+    };
+
+    const unequipItem = (slot) => {
+      room.send("unequipItem", slot);
+    };
+
 
     /*
      * =========================================================
@@ -1993,6 +2012,8 @@ export const createMultiplayer =
       sendMovement,
       sendAttack,
       sendHeal,
+      equipItem,
+      unequipItem,
       collectLoot: loot.collect,
 
       syncLocalPlayer,

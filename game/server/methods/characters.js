@@ -270,6 +270,11 @@ Meteor.methods({
 
       inventory: { items: [] },
 
+      equipment: {
+        ring: null,
+        accessory: null,
+      },
+
       lastPlayedAt:
         new Date(),
     });
