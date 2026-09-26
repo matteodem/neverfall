@@ -6,8 +6,6 @@ The goal is to create a lightweight online RPG that runs directly in the browser
 
 > 🚧 Heroes of Neverfall is still in active development. Features, visuals, balancing, assets, systems, and the project name may change over time.
 
----
-
 ## ✨ Current Features
 
 - 🌍 3D browser-based game world
@@ -40,8 +38,6 @@ The goal is to create a lightweight online RPG that runs directly in the browser
 - 💾 Persistent character progression
 - ⚡ Multiplayer entity and performance optimizations
 
----
-
 ## 🛠️ Tech Stack
 
 Heroes of Neverfall is built with:
@@ -56,8 +52,6 @@ Heroes of Neverfall is built with:
 - **DaisyUI** — reusable UI components
 
 The project currently uses JavaScript rather than TypeScript.
-
----
 
 ## 🎮 Gameplay
 
@@ -77,8 +71,6 @@ The current gameplay loop includes:
 12. Explore using mounts
 
 The game is being developed iteratively, with new systems being added while existing gameplay is continuously refined.
-
----
 
 ## 🧙 Classes
 
@@ -116,8 +108,6 @@ The Mage currently does not require a staff or wand model.
 
 The class system is intentionally lightweight for now and will continue expanding over time.
 
----
-
 ## 💍 Equipment
 
 A lightweight equipment system is currently implemented.
@@ -136,8 +126,6 @@ Examples include:
 
 More equipment types may be added later.
 
----
-
 ## 🐎 Mounts
 
 Players can mount and dismount a horse to travel through the world faster.
@@ -153,8 +141,6 @@ The current mount system supports:
 
 Additional mounts may be added later.
 
----
-
 ## 🧑‍🤝‍🧑 Parties
 
 Players can form parties for group gameplay.
@@ -164,8 +150,6 @@ The party system is intended to support future group-focused content such as:
 - Boss encounters
 - Group events
 - Shared objectives
-
----
 
 ## 🌎 World & Enemies
 
@@ -185,8 +169,6 @@ Current content includes:
 
 The world will continue expanding with additional enemies, locations, and activities.
 
----
-
 ## ⚡ Performance
 
 As the world grows, Neverfall is also receiving dedicated performance optimization work.
@@ -202,8 +184,6 @@ Current and planned optimizations include:
 - Reuse / instancing of repeated world props
 
 Gameplay state and minimap information remain independent from 3D rendering distance.
-
----
 
 ## 🚀 How to Run
 
@@ -227,8 +207,6 @@ The application should then be available at:
 http://localhost:3000
 ```
 
----
-
 ## 🧪 Development Status
 
 Heroes of Neverfall is currently in active development.
@@ -238,8 +216,6 @@ The project has moved beyond the initial prototype and now includes several inte
 Development currently focuses on expanding gameplay while keeping systems small, maintainable, and performant.
 
 Some assets and visuals are temporary and are expected to change as development continues.
-
----
 
 ## 🗺️ Planned Features
 
@@ -258,23 +234,17 @@ Future development may include:
 
 Larger systems such as crafting, trading, guilds, and advanced equipment progression may be explored later.
 
----
-
 ## ❤️ Support the Project
 
 If you enjoy the project and want to support its development, you can support me on [Patreon](https://patreon.com/MatteoDeMicheli).
 
 Support is completely optional and helps me continue working on Neverfall and future projects.
 
----
-
 ## 🤝 Contributing
 
 The project is under active development, so architecture and gameplay systems may still change frequently.
 
 Feel free to explore the codebase, report issues, or suggest ideas.
-
----
 
 ## ⚠️ Disclaimer
 
