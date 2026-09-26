@@ -48,8 +48,10 @@ body {
 .mobile-game .text-xl { font-size: 16px; }
 
 .mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
-.mobile-game .hud-modal { font-size: 12px; }
+.mobile-game .hud-modal { font-size: 12px; transform: scale(0.5); transform-origin: top left; }
 .mobile-game .hud-modal .p-4 { padding: 10px; }
 
 .mobile-game .hud-minimap { order: 2; width: 170px; padding: 8px; flex-shrink: 0; }
 .mobile-game .hud-minimap .text-sm { font-size: 11px; }
+
+.mobile-game .hud-modal.relative { transform-origin: center; }
