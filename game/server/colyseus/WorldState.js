@@ -95,6 +95,7 @@ export const PlayerState =
 export const EnemyState = schema(
   {
     type: t.string().default("boar"),
+    rare: t.boolean().default(false),
     enraged: t.boolean().default(false),
     bossActive: t.boolean().default(false),
     bossAction: t.string().default(""),
@@ -128,6 +129,7 @@ export const LootState = schema(
     ownerId: t.string().default(""),
     ownerCharacterId: t.string().default(""),
     enemyType: t.string().default("boar"),
+    rare: t.boolean().default(false),
     xpReward: t.number().default(0),
     x: t.number().default(0),
     y: t.number().default(0),

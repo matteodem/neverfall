@@ -16,6 +16,7 @@ export const spawnLoot = (room, enemy, sessionId) => {
   room.state.loot.set(id, new LootState({
     ownerId: player.userId,
     enemyType: enemy.type || "boar",
+    rare: enemy.rare,
     x: enemy.x,
     y: enemy.y,
     z: enemy.z,
@@ -31,7 +32,7 @@ export const collectLoot = async (room, client, id) => {
   // Claim synchronously before writing so repeated requests cannot pay twice.
   room.state.loot.delete(id);
   const pending = pendingRewards.get(loot) || {
-    reward: rollLoot(Math.random, loot.enemyType),
+    reward: rollLoot(Math.random, loot.enemyType, loot.rare),
     characterId: player.characterId,
     itemsSaved: false,
     xpSaved: false,

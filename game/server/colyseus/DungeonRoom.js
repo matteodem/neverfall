@@ -100,8 +100,8 @@ export class DungeonRoom extends WorldRoom {
     for (const spawn of DUNGEON.stages[this.state.stage].enemies) this.spawnEnemy(spawn);
   }
 
-  getEnemyStats(type, level) {
-    const stats = super.getEnemyStats(type, level);
+  getEnemyStats(type, level, rare = false) {
+    const stats = super.getEnemyStats(type, level, rare);
     return {
       ...stats,
       health: stats.health * DUNGEON.enemyHealthMultiplier,
@@ -114,8 +114,8 @@ export class DungeonRoom extends WorldRoom {
     const runtime = this.enemyRuntime.get(enemyId);
     if (!runtime) return;
     // The final boss's accessory roll belongs to the existing reward chest.
-    if (runtime.spawn.type === "dungeonGuardian") {
-      const enemy = this.state.enemies.get(enemyId);
+    const enemy = this.state.enemies.get(enemyId);
+    if (runtime.spawn.type === "dungeonGuardian" || enemy?.rare) {
       for (const [sessionId, player] of this.state.players) {
         if (runtime.contributors.has(player.characterId)) spawnLoot(this, enemy, sessionId);
       }

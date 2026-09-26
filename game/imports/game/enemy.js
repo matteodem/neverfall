@@ -2,6 +2,7 @@ import { createEntityVisibility } from "./entityVisibility";
 import { getEnemyStats } from "./enemyConfig";
 import { createEnemyAnimations } from "./enemyAnimations";
 import {
+  Color3,
   SceneLoader,
   TransformNode,
   Vector3,
@@ -20,7 +21,7 @@ export const createEnemy = async ({
   state,
   id,
 }) => {
-  const config = getEnemyStats(state.type, state.level);
+  const config = getEnemyStats(state.type, state.level, state.rare);
   /*
    * =====================================================
    * NETWORK ROOT
@@ -89,6 +90,20 @@ export const createEnemy = async ({
    * =====================================================
    */
 
+  const rareMaterials = new Map();
+  if (state.rare) {
+    for (const mesh of result.meshes) {
+      const material = mesh.material;
+      if (!material || !material.emissiveColor) continue;
+      if (!rareMaterials.has(material)) {
+        const tinted = material.clone(`${material.name}-rare-${id}`);
+        tinted.emissiveColor = new Color3(0.08, 0.065, 0.006);
+        rareMaterials.set(material, tinted);
+      }
+      mesh.material = rareMaterials.get(material);
+    }
+  }
+
   const animations = createEnemyAnimations(result.animationGroups, config.animations);
 
   /*
@@ -127,7 +142,7 @@ export const createEnemy = async ({
         `${config.name} (Level ${state.level || 1})`,
 
       color:
-        "#fca5a5",
+        state.rare ? "#fde047" : "#fca5a5",
 
       y:
         config.nameplateY ?? -0.45,
@@ -212,6 +227,7 @@ export const createEnemy = async ({
         mesh.dispose();
       }
 
+      for (const material of rareMaterials.values()) material.dispose();
       modelRoot.dispose();
       root.dispose();
     },

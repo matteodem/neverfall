@@ -3,7 +3,7 @@ import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
-import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
+import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY } from "../../imports/game/enemyConfig";
 import { getClassConfig } from "../../imports/game/classConfig";
 import { createProjectiles } from "./projectiles";
 import { spawnLoot, collectLoot } from "../inventory/loot";
@@ -1184,11 +1184,13 @@ export class WorldRoom
   spawnEnemy(
     spawn
   ) {
-    const stats = this.getEnemyStats(spawn.type, spawn.level);
+    const rare = !getEnemyStats(spawn.type, spawn.level).bossMechanics && Math.random() < RARE_ENEMY.chance;
+    const stats = this.getEnemyStats(spawn.type, spawn.level, rare);
     const enemy =
       new EnemyState({
         type: spawn.type,
         level: spawn.level,
+        rare,
         x:
           spawn.x,
 
@@ -1263,8 +1265,8 @@ export class WorldRoom
    * =====================================================
    */
 
-  getEnemyStats(type, level) {
-    const stats = getEnemyStats(type, level);
+  getEnemyStats(type, level, rare = false) {
+    const stats = getEnemyStats(type, level, rare);
     return { ...stats, speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER };
   }
 
@@ -1620,7 +1622,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
-    const stats = this.getEnemyStats(enemy.type, enemy.level);
+    const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
     /*
      * No aggro:
      * wander around this enemy's
@@ -1805,7 +1807,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
-    const stats = this.getEnemyStats(enemy.type, enemy.level);
+    const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
     const now =
       Date.now();
 

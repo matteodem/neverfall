@@ -1,4 +1,4 @@
-import { ENEMY_TYPES } from "./enemyConfig";
+import { ENEMY_TYPES, RARE_ENEMY } from "./enemyConfig";
 import { DUNGEON } from "./dungeonConfig";
 import {
   EQUIPMENT_DROP_CHANCE,
@@ -37,20 +37,21 @@ export const canCollectLoot = (player, loot) => Boolean(
   Math.hypot(player.x - loot.x, player.y - loot.y, player.z - loot.z) <= LOOT_RANGE
 );
 
-export const rollLoot = (random = Math.random, enemyType = "boar") => {
+export const rollLoot = (random = Math.random, enemyType = "boar", rare = false) => {
   const bossDrop = Boolean(ENEMY_TYPES[enemyType]?.bossMechanics);
   const accessoryDropChance = enemyType === "dungeonChest"
     ? ENEMY_TYPES.dungeonWarden.accessoryDropChance
     : ENEMY_TYPES[enemyType]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE;
+  const lootMultiplier = rare && !bossDrop && enemyType !== "dungeonChest" ? RARE_ENEMY.lootChanceMultiplier : 1;
   const equipmentItemIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "ring").map(({ id }) => id);
-  const dropsEquipment = !bossDrop && random() < EQUIPMENT_DROP_CHANCE;
+  const dropsEquipment = !bossDrop && random() < Math.min(1, EQUIPMENT_DROP_CHANCE * lootMultiplier);
   const items = dropsEquipment
     ? [{ id: equipmentItemIds[Math.floor(random() * equipmentItemIds.length)] }]
     : !bossDrop && enemyType !== "dungeonChest" && random() < 0.7
       ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
       : [];
 
-  if (random() < accessoryDropChance) {
+  if (random() < Math.min(1, accessoryDropChance * lootMultiplier)) {
     const accessoryIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "accessory").map(({ id }) => id);
     items.push({ id: accessoryIds[Math.floor(random() * accessoryIds.length)] });
   }

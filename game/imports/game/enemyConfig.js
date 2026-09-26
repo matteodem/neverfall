@@ -1,3 +1,11 @@
+export const RARE_ENEMY = {
+  chance: 0.05,
+  healthMultiplier: 1.5,
+  damageMultiplier: 1.25,
+  scaleMultiplier: 1.1,
+  lootChanceMultiplier: 2,
+};
+
 const BOSS_MECHANICS = {
   aoe: { telegraphDuration: 1500, radius: 3, cooldown: 8000 },
   charge: { windup: 800, speed: 18, radius: 1.5, maxDistance: 20, cooldown: 12000 },
@@ -78,12 +86,15 @@ ENEMY_TYPES.dungeonWarden = {
   healthPerLevel: 100, damagePerLevel: 5,
 };
 
-export const getEnemyStats = (type = "boar", level = 1) => {
+export const getEnemyStats = (type = "boar", level = 1, rare = false) => {
   const config = { ...BASE_STATS, ...ENEMY_TYPES[type] };
+  const variant = rare && !config.bossMechanics;
   return {
     ...config,
-    health: config.health + (level - 1) * config.healthPerLevel,
-    attackDamage: config.attackDamage + (level - 1) * config.damagePerLevel,
+    name: variant ? `Rare ${config.name}` : config.name,
+    scale: config.scale * (variant ? RARE_ENEMY.scaleMultiplier : 1),
+    health: (config.health + (level - 1) * config.healthPerLevel) * (variant ? RARE_ENEMY.healthMultiplier : 1),
+    attackDamage: (config.attackDamage + (level - 1) * config.damagePerLevel) * (variant ? RARE_ENEMY.damageMultiplier : 1),
   };
 };
 
