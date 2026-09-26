@@ -3,6 +3,7 @@ import { getEnemyStats } from "./enemyConfig";
 import { createEnemyAnimations } from "./enemyAnimations";
 import {
   Color3,
+  MeshBuilder,
   SceneLoader,
   TransformNode,
   Vector3,
@@ -38,6 +39,16 @@ export const createEnemy = async ({
     );
 
   root.metadata = { enemyId: id };
+
+  if (!config.bossMechanics) {
+    const selectionArea = MeshBuilder.CreateBox(`enemy-selection-${id}`, {
+      width: 2.4, height: 2, depth: 2.4,
+    }, scene);
+    selectionArea.parent = root;
+    selectionArea.position.y = 1;
+    selectionArea.visibility = 0;
+    selectionArea.isPickable = true;
+  }
 
   /*
    * =====================================================

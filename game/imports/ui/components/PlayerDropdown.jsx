@@ -15,7 +15,6 @@ export const PlayerDropdown = ({ selection, onClose }) => {
     const bounds = menu.querySelector("ul").getBoundingClientRect();
     menu.style.left = `${Math.max(8, Math.min(selection.x, window.innerWidth - bounds.width - 8))}px`;
     menu.style.top = `${Math.max(8, Math.min(selection.y, window.innerHeight - bounds.height - 8))}px`;
-    menu.querySelector("button")?.focus({ preventScroll: true });
   }, [selection]);
 
   useEffect(() => {
