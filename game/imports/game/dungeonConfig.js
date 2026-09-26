@@ -8,18 +8,18 @@ export const DUNGEON = {
   rewardMoney: 10000,
   stages: [
     { name: "Enemy Pack 1", enemies: [
-      { id: "pack-1-a", type: "boar", level: 1, x: -3, y: 0, z: 18 },
-      { id: "pack-1-b", type: "boar", level: 1, x: 3, y: 0, z: 21 },
+      { id: "pack-1-a", type: "boar", level: 5, x: -3, y: 0, z: 18 },
+      { id: "pack-1-b", type: "boar", level: 5, x: 3, y: 0, z: 21 },
     ] },
     { name: "Enemy Pack 2", enemies: [
-      { id: "pack-2-a", type: "wolf", level: 2, x: -3, y: 0, z: 37 },
-      { id: "pack-2-b", type: "wolf", level: 2, x: 3, y: 0, z: 40 },
+      { id: "pack-2-a", type: "wolf", level: 5, x: -3, y: 0, z: 37 },
+      { id: "pack-2-b", type: "wolf", level: 5, x: 3, y: 0, z: 40 },
     ] },
     { name: "Mini-Boss", enemies: [
-      { id: "dungeon-mini-boss", type: "dungeonGuardian", level: 3, x: 0, y: 0, z: 58 },
+      { id: "dungeon-mini-boss", type: "dungeonGuardian", level: 6, x: 0, y: 0, z: 58 },
     ] },
     { name: "Final Boss", enemies: [
-      { id: "dungeon-final-boss", type: "dungeonWarden", level: 5, x: 0, y: 0, z: 77 },
+      { id: "dungeon-final-boss", type: "dungeonWarden", level: 7, x: 0, y: 0, z: 77 },
     ] },
   ],
 };

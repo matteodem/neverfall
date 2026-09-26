@@ -61,10 +61,12 @@ export const ENEMY_TYPES = {
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
   name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0, speed: 2.5,
+  healthPerLevel: 100, damagePerLevel: 5,
 };
 ENEMY_TYPES.dungeonWarden = {
   ...ENEMY_TYPES.forestGiant,
   name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, speed: 3, scale: 1.3,
+  healthPerLevel: 100, damagePerLevel: 5,
 };
 
 export const getEnemyStats = (type = "boar", level = 1) => {
