@@ -1,4 +1,5 @@
 import { connectGroups } from "./groups";
+import { useActionBarStore } from "../ui/stores/useActionBarStore";
 import { Client } from "@colyseus/sdk";
 import { Meteor } from "meteor/meteor";
 import { ensureGuestUser } from "../auth/guest";
@@ -91,7 +92,7 @@ export const getGameSession = async () => {
     const current = { client, room: worldRoom, worldRoom, entering: false, exiting: false, disconnectGroups: connectGroups(worldRoom) };
     session = current;
     // The party connection receives combat broadcasts while its scene is inactive.
-    for (const type of ["attack", "enemyAttack", "playerHeal", "healCooldown"]) worldRoom.onMessage(type, () => {});
+    for (const type of ["attack", "enemyAttack", "playerHeal", "healCooldown", "skillCooldown"]) worldRoom.onMessage(type, () => {});
     worldRoom.onMessage("dungeonReady", (data) => finishEntry(current, data));
     worldRoom.onMessage("dungeonError", (message) => {
       clearTimeout(current.entryTimeout);
@@ -133,6 +134,7 @@ export const leaveDungeon = () => {
 export const closeGameSession = async () => {
   const current = session;
   session = null;
+  useActionBarStore.getState().resetCooldowns();
   if (!current) return;
   clearTimeout(current.entryTimeout);
   current.disconnectGroups();

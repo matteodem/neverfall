@@ -1,4 +1,5 @@
 import { useDungeonStore } from "./stores/useDungeonStore";
+import { WARRIOR_SKILLS } from "../game/config";
 import { DungeonPrompt } from "./components/DungeonPrompt";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
@@ -115,8 +116,10 @@ const getActionSlots = (
       code:
         "Digit2",
 
+      icon: "heavyStrike",
+      cooldown: WARRIOR_SKILLS.Digit2.cooldown,
       tooltip:
-        "No ability assigned",
+        `Heavy Strike (Causes ${playerStats.damage * WARRIOR_SKILLS.Digit2.damageMultiplier} damage)`,
     },
 
     {
@@ -126,8 +129,10 @@ const getActionSlots = (
       code:
         "Digit3",
 
+      icon: "cleave",
+      cooldown: WARRIOR_SKILLS.Digit3.cooldown,
       tooltip:
-        "No ability assigned",
+        `Cleave (Causes ${playerStats.damage * WARRIOR_SKILLS.Digit3.damageMultiplier} damage to nearby enemies)`,
     },
 
     {
@@ -532,11 +537,12 @@ const ActionSlot = ({
   healCooldownUntil,
   onTrigger,
 }) => {
+  const skillCooldownUntil = useActionBarStore((state) => state.cooldownUntil[slot.code] || 0);
   const cooldownUntil =
     slot.code ===
     "Digit4"
       ? healCooldownUntil
-      : 0;
+      : skillCooldownUntil;
 
 
   return (

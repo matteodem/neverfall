@@ -20,6 +20,7 @@ import {
 
 import {
   ATTACK,
+  WARRIOR_SKILLS,
 } from "../../imports/game/config";
 
 import {
@@ -59,6 +60,12 @@ const HEALTH_REGEN = {
 
   percentPerSecond:
     0.05,
+};
+
+const ATTACK_COOLDOWN_FIELDS = {
+  Digit1: "attackAvailableAt",
+  Digit2: "heavyStrikeAvailableAt",
+  Digit3: "cleaveAvailableAt",
 };
 
 
@@ -505,8 +512,12 @@ export class WorldRoom
 
 
     attack: async (
-      client
+      client,
+      code = "Digit1"
     ) => {
+      if (!["Digit1", "Digit2", "Digit3"].includes(code)) return;
+      const skill = WARRIOR_SKILLS[code];
+      const cooldownField = ATTACK_COOLDOWN_FIELDS[code];
       const player =
         this.state.players.get(
           client.sessionId
@@ -537,7 +548,7 @@ export class WorldRoom
 
       if (
         now <
-        runtime.attackAvailableAt
+        runtime.attackAvailableAt || now < runtime[cooldownField]
       ) {
         return;
       }
@@ -546,6 +557,11 @@ export class WorldRoom
       runtime.attackAvailableAt =
         now +
         ATTACK.cooldown;
+
+      runtime[cooldownField] = now + skill.cooldown;
+      if (code !== "Digit1") {
+        client.send("skillCooldown", { code, duration: skill.cooldown });
+      }
 
 
       this.broadcast(
@@ -562,7 +578,8 @@ export class WorldRoom
 
 
       await this.attackEnemy(
-        client.sessionId
+        client.sessionId,
+        skill
       );
     },
   };
@@ -713,6 +730,9 @@ export class WorldRoom
 
         attackAvailableAt:
           0,
+
+        heavyStrikeAvailableAt: 0,
+        cleaveAvailableAt: 0,
 
         lastCombatAt:
           0,
@@ -1191,7 +1211,8 @@ export class WorldRoom
    */
 
   async attackEnemy(
-    sessionId
+    sessionId,
+    skill = WARRIOR_SKILLS.Digit1
   ) {
     const player =
       this.state.players.get(
@@ -1209,24 +1230,28 @@ export class WorldRoom
     }
 
 
-    const target =
+    const target = skill.aoe ? null :
       this.findClosestEnemy(
         player,
-        ATTACK.range
+        skill.range
       );
 
 
-    if (
-      !target
-    ) {
-      return;
-    }
+    const targets = skill.aoe
+      ? Array.from(this.state.enemies.entries())
+        .filter(([, enemy]) => enemy.health > 0 && this.getHorizontalDistance(player, enemy) <= skill.range)
+        .map(([enemyId, enemy]) => ({ enemyId, enemy }))
+      : target ? [target] : [];
+
+    // Snapshot targets so killing a dungeon pack cannot hit the next stage.
+    await Promise.all(targets.map(({ enemyId, enemy }) =>
+      this.damageEnemy(sessionId, enemyId, enemy, skill.damageMultiplier)));
+  }
 
 
-    const {
-      enemyId,
-      enemy,
-    } = target;
+  async damageEnemy(sessionId, enemyId, enemy, damageMultiplier) {
+    const player = this.state.players.get(sessionId);
+    if (!player || player.inDungeon || player.health <= 0 || enemy.health <= 0 || this.state.enemies.get(enemyId) !== enemy) return;
 
 
     const runtime =
@@ -1292,7 +1317,7 @@ export class WorldRoom
       Math.max(
         0,
         enemy.health -
-          stats.damage
+          stats.damage * damageMultiplier
       );
 
 

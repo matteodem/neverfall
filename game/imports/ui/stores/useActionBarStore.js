@@ -8,6 +8,18 @@ export const useActionBarStore =
       skillHandler:
         null,
 
+      cooldownUntil: {},
+
+      setCooldown(code, duration) {
+        set((state) => ({
+          cooldownUntil: { ...state.cooldownUntil, [code]: Date.now() + duration },
+        }));
+      },
+
+      resetCooldowns() {
+        set({ cooldownUntil: {} });
+      },
+
       setSkillHandler(
         skillHandler
       ) {

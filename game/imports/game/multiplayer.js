@@ -6,6 +6,7 @@ import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
 
+import { useActionBarStore } from "../ui/stores/useActionBarStore";
 import {
   Callbacks,
 } from "@colyseus/sdk";
@@ -1258,6 +1259,10 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    onMessage("skillCooldown", ({ code, duration }) => {
+      useActionBarStore.getState().setCooldown(code, duration);
+    });
+
     onMessage(
       "healCooldown",
       ({
@@ -1875,9 +1880,9 @@ export const createMultiplayer =
      */
 
     const sendAttack =
-      () => {
+      (code = "Digit1") => {
         room.send(
-          "attack"
+          "attack", code
         );
       };
 

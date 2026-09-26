@@ -2,7 +2,7 @@ import React from "react";
 import { FaGear } from "react-icons/fa6";
 import { FaQuestion, FaHorse } from "react-icons/fa";
 import { BsBackpack4Fill } from "react-icons/bs";
-import { GiBoarTusks, GiBroadsword, GiHealthCapsule, GiWolfHead } from "react-icons/gi";
+import { GiBoarTusks, GiBroadsword, GiHealthCapsule, GiWolfHead, GiSwordWound, GiSpinningBlades } from "react-icons/gi";
 
 const ICON_MAP = {
   gear: FaGear,
@@ -10,6 +10,8 @@ const ICON_MAP = {
   backpack: BsBackpack4Fill,
 
   sword: GiBroadsword,
+  heavyStrike: GiSwordWound,
+  cleave: GiSpinningBlades,
   healthCapsule: GiHealthCapsule,
   horse: FaHorse,
   boarSkin: GiBoarTusks,

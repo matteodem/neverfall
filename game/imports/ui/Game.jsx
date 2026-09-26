@@ -1,4 +1,5 @@
 import { useDungeonStore } from "./stores/useDungeonStore";
+import { WARRIOR_SKILLS } from "../game/config";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
@@ -454,6 +455,16 @@ export const Game = ({
            * use this exact same dispatcher.
            */
 
+          const performAttack = (code) => {
+            const skill = WARRIOR_SKILLS[code];
+            const actionBar = useActionBarStore.getState();
+            if (!playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
+            if (!combat?.startAttack()) return;
+            if (code !== "Digit1") actionBar.setCooldown(code, skill.cooldown);
+            playGameSound("attack");
+            multiplayer?.sendAttack(code);
+          };
+
           const SKILL_HANDLERS = {
             KeyV() {
               if (
@@ -466,27 +477,9 @@ export const Game = ({
             },
 
 
-            Digit1() {
-              const attacked =
-                combat
-                  ?.startAttack();
-
-
-              if (
-                !attacked
-              ) {
-                return;
-              }
-
-
-              playGameSound(
-                "attack"
-              );
-
-
-              multiplayer
-                ?.sendAttack();
-            },
+            Digit1: () => performAttack("Digit1"),
+            Digit2: () => performAttack("Digit2"),
+            Digit3: () => performAttack("Digit3"),
 
 
             Digit4() {

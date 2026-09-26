@@ -21,6 +21,12 @@ export const ATTACK = {
   cooldown: 250,
 };
 
+export const WARRIOR_SKILLS = {
+  Digit1: { damageMultiplier: 1, cooldown: ATTACK.cooldown, range: ATTACK.range },
+  Digit2: { damageMultiplier: 2, cooldown: 4000, range: ATTACK.range },
+  Digit3: { damageMultiplier: 1.25, cooldown: 6000, range: 2.5, aoe: true },
+};
+
 export const HEAL = {
   amount: 40,
   cooldown: 15000,

@@ -5,7 +5,7 @@ import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
 import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
 import { collectLoot } from "../inventory/loot";
 
-const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "lastCombatAt"];
+const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
 export class DungeonRoom extends WorldRoom {
   mountsAllowed = false;
