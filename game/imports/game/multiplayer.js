@@ -1,3 +1,4 @@
+import { useTargetStore } from "../ui/stores/useTargetStore";
 import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
@@ -1690,6 +1691,7 @@ export const createMultiplayer =
         projectiles.update(deltaTime);
         bossVisuals.update(room.state.enemies);
         useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
+        useTargetStore.getState().sync(room.state);
         loot.update();
         if (!dungeon) {
           const area = getQuestArea(player.position);
@@ -1914,6 +1916,7 @@ export const createMultiplayer =
         projectiles.destroy();
         bossVisuals.destroy();
         useBossHealthStore.getState().reset();
+        useTargetStore.getState().clear();
         useChatStore.getState().disconnect();
         useBossNoticeStore.getState().reset();
         loot.destroy();
@@ -1958,6 +1961,13 @@ export const createMultiplayer =
       getChatAnimation: () => localPlayerState?.chatAnimation || "",
       getRemotePlayerName: (sessionId) => room.state.players.get(sessionId)?.name || "",
       getMovementSpeedMultiplier: () => localPlayerState?.movementSpeedMultiplier ?? 1,
+      getEnemyId(mesh) {
+        for (let node = mesh; node; node = node.parent) {
+          const id = node.metadata?.enemyId;
+          if (id && enemies.get(id)?.visibility.isVisible() && room.state.enemies.get(id)?.health > 0) return id;
+        }
+        return null;
+      },
       getRemotePlayerId(mesh) {
         for (let node = mesh; node; node = node.parent) {
           const id = node.metadata?.remotePlayerId;

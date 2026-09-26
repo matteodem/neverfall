@@ -1,3 +1,4 @@
+import { TargetFrame } from "./components/TargetFrame";
 import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
@@ -861,6 +862,7 @@ export const Hud = ({
       <LevelUpOverlay />
       <BossNotice />
       <BossHealthBar />
+      <TargetFrame />
 
 
       <MenuButtons />

@@ -65,3 +65,8 @@ body {
 .mobile-game .boss-health-bar .text-sm { font-size: 11px; }
 .mobile-game .boss-health-bar .text-xs { font-size: 10px; }
 .mobile-game .boss-health-bar .h-5 { height: 12px; }
+
+.target-frame.target-with-boss { top: 88px; }
+.mobile-game .target-frame { top: 8px; width: 190px; padding: 6px; }
+.mobile-game .target-frame .text-xs { font-size: 10px; }
+.mobile-game .target-frame.target-with-boss { top: 60px; }

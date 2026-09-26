@@ -37,6 +37,8 @@ export const createEnemy = async ({
       scene
     );
 
+  root.metadata = { enemyId: id };
+
   /*
    * =====================================================
    * MODEL ROOT
