@@ -30,7 +30,6 @@ const MapContent = () => {
           <Icon icon="locationArrow" className="h-4 w-4 text-white drop-shadow-[0_1px_3px_black]" />
         </div>
       </div>
-      <p className="mt-2 text-center text-xs text-base-content/70">White arrow: You · Purple marker: Dungeon Entrance</p>
     </>
   );
 };
