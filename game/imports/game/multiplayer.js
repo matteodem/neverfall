@@ -1,3 +1,5 @@
+import { createBossVisuals } from "./bossVisuals";
+import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
 import { getGameSession, closeGameSession } from "./gameSession";
 import { getClassConfig } from "./classConfig";
 import { createProjectileVisuals } from "./projectiles";
@@ -822,6 +824,7 @@ export const createMultiplayer =
 
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
+    const bossVisuals = createBossVisuals(scene);
     onMessage("respawn", ({ x, y, z, rotationY }) => {
       player.position.set(x, y + JUMP.groundY, z);
       player.rotation.y = rotationY;
@@ -1276,6 +1279,8 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    onMessage("bossNotice", (text) => useBossNoticeStore.getState().show(text));
+
     onMessage("skillCooldown", ({ code, duration }) => {
       useActionBarStore.getState().setCooldown(code, duration);
     });
@@ -1674,6 +1679,7 @@ export const createMultiplayer =
         }
         dungeonInteractions.update(deltaTime);
         projectiles.update(deltaTime);
+        bossVisuals.update(room.state.enemies);
         loot.update();
         if (!dungeon) {
           const area = getQuestArea(player.position);
@@ -1895,6 +1901,8 @@ export const createMultiplayer =
         for (const stop of disposers) stop();
         dungeonInteractions.destroy();
         projectiles.destroy();
+        bossVisuals.destroy();
+        useBossNoticeStore.getState().reset();
         loot.destroy();
         useQuestStore.getState().reset();
 

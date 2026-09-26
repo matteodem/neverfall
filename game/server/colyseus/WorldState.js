@@ -91,6 +91,11 @@ export const PlayerState =
 export const EnemyState = schema(
   {
     type: t.string().default("boar"),
+    enraged: t.boolean().default(false),
+    bossAction: t.string().default(""),
+    bossTargetX: t.number().default(0),
+    bossTargetZ: t.number().default(0),
+    bossRadius: t.number().default(0),
     level: t.number().default(1),
     x:
       t.number().default(0),

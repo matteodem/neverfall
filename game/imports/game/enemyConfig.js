@@ -1,3 +1,9 @@
+const BOSS_MECHANICS = {
+  aoe: { telegraphDuration: 1500, radius: 3, cooldown: 8000 },
+  charge: { windup: 800, speed: 18, radius: 1.5, maxDistance: 20, cooldown: 12000 },
+  enrage: { threshold: 0.3, damageMultiplier: 1.25, speedMultiplier: 1.2 },
+};
+
 const BASE_STATS = {
   health: 100,
   attackDamage: 10,
@@ -32,6 +38,7 @@ export const ENEMY_TYPES = {
     animations: { idle: "Idle", attack: "Attack", walk: "Walk" },
   },
   forestGiant: {
+    bossMechanics: BOSS_MECHANICS,
     name: "Forest Giant",
     model: "mini-boss-ogre.glb",
     scale: 1.1,

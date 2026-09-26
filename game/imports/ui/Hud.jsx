@@ -1,3 +1,4 @@
+import { BossNotice } from "./components/BossNotice";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getClassConfig } from "../game/classConfig";
@@ -829,6 +830,7 @@ export const Hud = ({
 
 
       <LevelUpOverlay />
+      <BossNotice />
 
 
       <MenuButtons />

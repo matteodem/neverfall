@@ -1,3 +1,4 @@
+import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
@@ -1643,6 +1644,7 @@ export class WorldRoom
       target.health <=
         0
     ) {
+      cancelBossAction(enemy, runtime);
       runtime.targetSessionId =
         null;
 
@@ -1654,6 +1656,10 @@ export class WorldRoom
       return;
     }
 
+
+    if (updateBossMechanics(this, enemy, runtime, target, stats, deltaTime)) return;
+    const damageMultiplier = enemy.enraged ? stats.bossMechanics.enrage.damageMultiplier : 1;
+    const speedMultiplier = enemy.enraged ? stats.bossMechanics.enrage.speedMultiplier : 1;
 
     const dx =
       target.x -
@@ -1700,7 +1706,7 @@ export class WorldRoom
 
 
       const movement =
-        stats.speed *
+        stats.speed * speedMultiplier *
         (
           deltaTime /
           1000
@@ -1770,7 +1776,7 @@ export class WorldRoom
 
     this.damagePlayer(
       runtime.targetSessionId,
-      stats.attackDamage
+      stats.attackDamage * damageMultiplier
     );
   }
 
