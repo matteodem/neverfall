@@ -93,7 +93,7 @@ const getEnemyColor = (
     type ===
     "forestGiant" || type === "dungeonGuardian" || type === "dungeonWarden"
   ) {
-    return "#a855f7";
+    return "#d8f710";
   }
 
   return "#ef4444";
@@ -105,7 +105,7 @@ const DotMarker = ({
   color,
   size = 8,
   className = "",
-  outlined = true,
+  outlined = false,
 }) => {
   const position =
     worldToPercent({
@@ -181,7 +181,7 @@ const LocalPlayerMarker = ({
   );
 };
 
-const Legend = () => {
+const Legend = ({ location }) => {
   const ITEMS = [
     {
       label:
@@ -211,8 +211,13 @@ const Legend = () => {
       label:
         "Boss",
       color:
-        "#a855f7",
+        "#d8f710",
     },
+    ...(location === "world" ? [{
+      label: "Dungeon Entrance",
+      color: "#a78bfa",
+      outlined: false,
+    }] : []),
   ];
 
   return (
@@ -226,7 +231,7 @@ const Legend = () => {
             className="flex items-center gap-1"
           >
             <span
-                className="h-2 w-2 rounded-full border border-white shadow"
+              className={`h-2 w-2 rounded-full ${item.outlined === false ? "" : "shadow"}`}
               style={{
                 backgroundColor:
                   item.color,
@@ -321,18 +326,7 @@ export const Minimap =
           <div className="absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="absolute left-1/2 top-1/2 h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
 
-          {/*
-           * Camp / center marker
-           */}
-          <DotMarker
-            x={0}
-            z={0}
-            color="#facc15"
-            size={10}
-            className="z-10 ring-2 ring-black/30"
-          />
-
-          <DotMarker {...(location === "dungeon" ? DUNGEON.exit : DUNGEON.entrance)} color="#a78bfa" size={10} className="z-10" />
+          <DotMarker {...(location === "dungeon" ? DUNGEON.exit : DUNGEON.entrance)} color="#a78bfa" size={10} className="z-10" outlined={location === "dungeon"} />
 
           {/*
            * Remote players
@@ -351,6 +345,7 @@ export const Minimap =
                 z={
                   remote.z
                 }
+                outlined={false}
                 color="#22c55e"
                 size={7}
                 className="z-10"
@@ -406,7 +401,7 @@ export const Minimap =
           />
         </div>
 
-        <Legend />
+        <Legend location={location} />
       </div>
     );
   };
