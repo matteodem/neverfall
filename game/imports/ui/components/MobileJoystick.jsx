@@ -52,7 +52,7 @@ export const MobileJoystick = ({ portrait, disabled }) => {
       onPointerCancel={(event) => { if (event.pointerId === pointer.current) stop(); }}
       onLostPointerCapture={(event) => { if (event.pointerId === pointer.current) stop(); }}
     >
-      {origin && <div style={{ position: "absolute", left: origin.x - size / 2, top: origin.y - size / 2, opacity: 0.8, pointerEvents: "none" }}>
+      {origin && <div style={{ position: "absolute", left: origin.x - size / 2, top: origin.y - size / 2, opacity: 0.7, pointerEvents: "none" }}>
         <Joystick size={size} stickSize={size * 0.4} baseColor="#666666" stickColor="#aaaaaa" disabled pos={direction} />
       </div>}
     </div>
