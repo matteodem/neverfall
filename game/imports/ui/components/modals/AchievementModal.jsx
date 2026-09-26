@@ -12,10 +12,14 @@ const useAchievementCharacter = () => useTracker(() => {
 
 export const AchievementModal = () => {
   const character = useAchievementCharacter();
+  const sortedAchievements = [...ACHIEVEMENTS].sort((a, b) =>
+    Number(Boolean(character?.achievements?.[b.id]?.unlocked)) -
+    Number(Boolean(character?.achievements?.[a.id]?.unlocked))
+  );
   return (
-    <HudModal id="achievements" title="Achievements" maxHeight={500}>
+    <HudModal id="achievements" title="Achievements" maxHeight={750}>
       <div className="space-y-3">
-        {ACHIEVEMENTS.map(({ id, name, description, target }) => {
+        {sortedAchievements.map(({ id, name, description, target }) => {
           const achievement = character?.achievements?.[id];
           const progress = achievement?.progress || 0;
           return (
