@@ -503,12 +503,12 @@ export const Game = ({
             (
               code
             ) => {
-              if (mounted && getClassConfig(character.gameClass).skills[code]?.requiresUnmounted) return;
               if (
                 mounted &&
                 /^Digit[1-4]$/.test(code)
               ) {
                 setMounted(false);
+                multiplayer?.sendMovement(player, 0, false, true);
               }
 
               SKILL_HANDLERS[
