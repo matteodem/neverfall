@@ -2,10 +2,13 @@ import React, { useEffect, useRef } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { ChatMessages } from "../../api/chat/messages";
+import { useDungeonStore } from "../stores/useDungeonStore";
 import { useChatStore } from "../stores/useChatStore";
 
 export const Chat = () => {
   const { open, draft, focusRequest, roomId, error } = useChatStore();
+  const location = useDungeonStore((state) => state.location);
+  const roomLabel = location === "dungeon" ? "Dungeon" : "World";
   const input = useRef(null);
   const log = useRef(null);
   const messages = useTracker(() => {
@@ -28,7 +31,7 @@ export const Chat = () => {
     <section className="game-chat absolute bottom-2 left-2 z-[10002] w-80 rounded-box bg-black/65 p-2 text-xs text-white" aria-label="Chat">
       <div ref={log} className="h-32 overflow-y-auto break-words" role="log" aria-live="polite">
         {messages.map((message) => <p key={message._id} className={message.channel === "whisper" ? "text-violet-300" : message.channel === "party" ? "text-green-300" : "text-white"}>
-          <span className="font-semibold">[{message.channel}] {message.senderName}{message.recipientName ? ` → ${message.recipientName}` : ""}: </span>{message.text}
+          <span className="font-semibold capitalize">[{message.channel === "room" ? roomLabel : message.channel}] {message.senderName}{message.recipientName ? ` → ${message.recipientName}` : ""}: </span>{message.text}
         </p>)}
         {error && <p className="text-yellow-300">{error}</p>}
       </div>
