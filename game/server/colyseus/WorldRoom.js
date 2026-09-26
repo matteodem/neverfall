@@ -281,12 +281,29 @@ export class WorldRoom
     return true;
   }
 
+  leaveGroup(sessionId) {
+    for (const targetId of this.groups.leave(sessionId)) {
+      this.clients.find((client) => client.sessionId === targetId)?.send("groupInvitationCancelled");
+    }
+  }
+
   messages = {
     groupInvite: (client, targetId) => {
-      const error = this.groups.invite(client.sessionId, targetId);
+      const target = this.clients.find((candidate) => candidate.sessionId === targetId);
+      if (!target) {
+        client.send("groupError", "That player is no longer connected.");
+        return;
+      }
+      const { error, invitation } = this.groups.invite(client.sessionId, targetId);
+      if (error) client.send("groupError", error);
+      else target.send("groupInvitation", invitation);
+    },
+    groupAccept: (client, invitationId) => {
+      const error = this.groups.accept(client.sessionId, invitationId);
       if (error) client.send("groupError", error);
     },
-    groupLeave: (client) => this.groups.leave(client.sessionId),
+    groupIgnore: (client, invitationId) => this.groups.ignore(client.sessionId, invitationId),
+    groupLeave: (client) => this.leaveGroup(client.sessionId),
 
     loot: (client, id) => collectLoot(this, client, id),
 
@@ -717,7 +734,7 @@ export class WorldRoom
       );
 
 
-    this.groups.leave(client.sessionId);
+    this.leaveGroup(client.sessionId);
 
     this.state.players.delete(
       client.sessionId

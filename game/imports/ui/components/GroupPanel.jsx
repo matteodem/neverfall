@@ -10,7 +10,7 @@ export const GroupPanel = () => {
   if (!groupId && !error) return null;
 
   return (
-    <section className="absolute left-6 top-24 z-40 w-56 space-y-2" aria-label="Group">
+    <section className="absolute left-4 top-24 z-40 w-56 space-y-2" aria-label="Group">
       {error && (
         <div className="alert alert-error text-sm" role="alert">
           <span>{error}</span>

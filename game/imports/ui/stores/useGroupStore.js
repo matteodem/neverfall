@@ -4,13 +4,15 @@ export const useGroupStore = create((set, get) => ({
   groupId: "",
   members: [],
   error: null,
+  invitation: null,
   actionHandler: null,
 
   setActionHandler: (actionHandler) => set({ actionHandler }),
   requestAction(action, sessionId) {
-    set({ error: null });
+    set({ error: null, ...(["accept", "ignore"].includes(action) ? { invitation: null } : {}) });
     get().actionHandler?.(action, sessionId);
   },
+  setInvitation: (invitation) => set({ invitation }),
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
 
@@ -37,8 +39,9 @@ export const useGroupStore = create((set, get) => ({
     if (changed || members.length !== previous.members.length) set({
       groupId, members,
       error: groupId !== previous.groupId ? null : previous.error,
+      ...(groupId ? { invitation: null } : {}),
     });
   },
 
-  reset: () => set({ groupId: "", members: [], error: null, actionHandler: null }),
+  reset: () => set({ groupId: "", members: [], error: null, invitation: null, actionHandler: null }),
 }));

@@ -13,10 +13,14 @@ const getInitialPosition = (id) => {
   };
 };
 
-export const HudModal = ({ id, title, children, backdrop = false }) => {
+export const HudModal = ({ id, title, children, backdrop = false, onClose }) => {
   const openModals = useHudStore((state) => state.openModals);
   const openModal = useHudStore((state) => state.openModal);
   const closeModal = useHudStore((state) => state.closeModal);
+  const dismiss = () => {
+    onClose?.();
+    closeModal(id);
+  };
   const index = openModals.indexOf(id);
   const isOpen = index >= 0;
   const [position, setPosition] = useState(() => getInitialPosition(id));
@@ -75,7 +79,7 @@ export const HudModal = ({ id, title, children, backdrop = false }) => {
         <button
           type="button"
           className="btn btn-sm btn-circle btn-ghost cursor-pointer"
-          onClick={() => closeModal(id)}
+          onClick={dismiss}
         >
           ✕
         </button>
@@ -90,7 +94,7 @@ export const HudModal = ({ id, title, children, backdrop = false }) => {
 
   return (
     <div className="fixed inset-0 z-[70]">
-      <div className="absolute inset-0 bg-black/30" onClick={() => closeModal(id)} />
+      <div className="absolute inset-0 bg-black/30" onClick={dismiss} />
       <div className="pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
     </div>
   );
