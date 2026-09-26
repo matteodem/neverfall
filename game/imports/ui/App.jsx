@@ -61,7 +61,6 @@ export const App = () => {
     0
   );
 
-  const [attackCooldownUntil, setAttackCooldownUntil] = useState(0);
   const [mounted, setMounted] = useState(false);
 
 
@@ -364,7 +363,6 @@ export const App = () => {
         setHealCooldownUntil={
           setHealCooldownUntil
         }
-        setAttackCooldownUntil={setAttackCooldownUntil}
         setMountedState={setMounted}
       />
 
@@ -380,7 +378,6 @@ export const App = () => {
         healCooldownUntil={
           healCooldownUntil
         }
-        attackCooldownUntil={attackCooldownUntil}
         mounted={mounted}
       />
 

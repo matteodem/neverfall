@@ -526,14 +526,13 @@ const PlayerHealthBar = ({
 const ActionSlot = ({
   slot,
   healCooldownUntil,
-  attackCooldownUntil,
   onTrigger,
 }) => {
   const cooldownUntil =
     slot.code ===
     "Digit4"
       ? healCooldownUntil
-      : slot.code === "Digit1" ? attackCooldownUntil : 0;
+      : 0;
 
 
   return (
@@ -620,9 +619,6 @@ const ActionSlot = ({
             }
           />
         )}
-        {slot.code === "Digit1" && cooldownUntil > Date.now() && (
-          <CooldownOverlay until={cooldownUntil} duration={250} />
-        )}
       </button>
     </div>
   );
@@ -639,7 +635,6 @@ const ActionBar = ({
   currentLevel,
   equipment,
   healCooldownUntil,
-  attackCooldownUntil,
 }) => {
   const triggerSkill =
     useActionBarStore(
@@ -678,7 +673,6 @@ const ActionBar = ({
             healCooldownUntil={
               healCooldownUntil
             }
-            attackCooldownUntil={attackCooldownUntil}
             onTrigger={
               triggerSkill
             }
@@ -701,7 +695,6 @@ const BottomHud = ({
   equipment,
   playerHealth,
   healCooldownUntil,
-  attackCooldownUntil,
   mounted,
   isDead,
 }) => {
@@ -728,7 +721,6 @@ const BottomHud = ({
         healCooldownUntil={
           healCooldownUntil
         }
-        attackCooldownUntil={attackCooldownUntil}
       />
 
 
@@ -779,7 +771,6 @@ export const Hud = ({
   equipment,
   playerHealth,
   healCooldownUntil,
-  attackCooldownUntil,
   mounted = false,
 }) => {
   const [hitFeedback, setHitFeedback] = useState(false);
@@ -844,7 +835,6 @@ export const Hud = ({
         healCooldownUntil={
           healCooldownUntil
         }
-        attackCooldownUntil={attackCooldownUntil}
         mounted={mounted}
         isDead={isDead}
       />

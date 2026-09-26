@@ -80,7 +80,6 @@ export const Game = ({
 
   setPlayerHealth,
   setHealCooldownUntil,
-  setAttackCooldownUntil,
   setMountedState,
 }) => {
   const canvasRef =
@@ -466,12 +465,6 @@ export const Game = ({
               ) {
                 return;
               }
-
-
-              setAttackCooldownUntil(
-                Date.now() +
-                  250
-              );
 
 
               playGameSound(
