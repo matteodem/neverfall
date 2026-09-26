@@ -14,6 +14,7 @@ export const useDungeonStore = create((set, get) => ({
   clearError: () => set({ error: "" }),
   setActionHandler: (actionHandler) => set({ actionHandler }),
   interact: () => get().actionHandler?.() || false,
+  leaveDungeon: () => get().actionHandler?.("leave") || false,
   update({ prompt, stage, completed }) {
     const previous = get();
     if (previous.prompt !== prompt || previous.stage !== stage || previous.completed !== completed) {

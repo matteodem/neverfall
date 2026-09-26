@@ -1,6 +1,6 @@
 import { LOOT_RANGE } from "./inventory";
 import { DUNGEON, nearDungeonObject } from "./dungeonConfig";
-import { enterDungeon } from "./gameSession";
+import { enterDungeon, leaveDungeon } from "./gameSession";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useHudStore } from "../ui/stores/useHudStore";
 
@@ -24,7 +24,12 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     useDungeonStore.getState().update({ prompt, stage: dungeon ? state?.stage || 0 : 0, completed });
   };
 
-  const interact = () => {
+  const interact = (action) => {
+    if (action === "leave") {
+      if (!dungeon || useDungeonStore.getState().busy) return false;
+      leaveDungeon();
+      return true;
+    }
     update(100);
     const state = useDungeonStore.getState();
     if (!state.prompt) return false;

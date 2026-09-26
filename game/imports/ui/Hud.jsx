@@ -778,6 +778,8 @@ export const Hud = ({
   mounted = false,
 }) => {
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
+  const dungeonBusy = useDungeonStore((state) => state.busy);
+  const leaveDungeon = useDungeonStore((state) => state.leaveDungeon);
   const [hitFeedback, setHitFeedback] = useState(false);
   const previousHealth = React.useRef(playerHealth.health);
 
@@ -827,6 +829,11 @@ export const Hud = ({
         "
       >
         <Minimap />
+        {inDungeon && (
+          <button type="button" className="btn btn-sm btn-error" disabled={dungeonBusy} onClick={leaveDungeon}>
+            Leave Dungeon
+          </button>
+        )}
 
         {!inDungeon && <QuestTracker />}
       </div>

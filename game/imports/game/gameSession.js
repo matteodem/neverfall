@@ -125,6 +125,11 @@ export const enterDungeon = () => {
   current.worldRoom.send("dungeonEnter");
 };
 
+export const leaveDungeon = () => {
+  if (!session || session.room === session.worldRoom || useDungeonStore.getState().busy) return;
+  return finishExit(session);
+};
+
 export const closeGameSession = async () => {
   const current = session;
   session = null;
