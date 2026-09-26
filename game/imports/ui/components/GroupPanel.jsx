@@ -36,7 +36,7 @@ export const GroupPanel = () => {
                   max={Math.max(1, member.maxHealth)}
                   aria-label={`${member.name} health`}
                 />
-                <div className="text-right text-xs opacity-70">{member.health} / {member.maxHealth}</div>
+                <div className="text-right text-xs opacity-70">{parseInt(member.health, 10)} / {member.maxHealth}</div>
               </li>
             ))}
           </ul>
