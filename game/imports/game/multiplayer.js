@@ -489,6 +489,7 @@ const createRemotePlayer =
 
     const characterRoot = character.root;
     const root = new TransformNode(`remote-player-${sessionId}`, scene);
+    root.metadata = { remotePlayerId: sessionId };
     characterRoot.parent = root;
     characterRoot.position.set(0, 0, 0);
 
@@ -1971,6 +1972,13 @@ export const createMultiplayer =
 
     return {
       room,
+      getRemotePlayerId(mesh) {
+        for (let node = mesh; node; node = node.parent) {
+          const id = node.metadata?.remotePlayerId;
+          if (id && remotePlayers.get(id)?.visibility.isVisible()) return id;
+        }
+        return null;
+      },
       getPerformanceStats() {
         let activeEnemies = 0;
         let activePlayers = 0;

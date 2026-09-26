@@ -1,9 +1,13 @@
+import { createPlayerSelection } from "../game/playerSelection";
+import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
 import { ENTITY_VISIBILITY } from "../game/entityVisibility";
 import { createPerformanceOverlay } from "../game/performanceOverlay";
 import React, {
   useEffect,
   useRef,
+  useState,
+  useCallback,
 } from "react";
 
 import {
@@ -82,6 +86,9 @@ export const Game = ({
   setHealCooldownUntil,
   setMountedState,
 }) => {
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const closePlayerDropdown = useCallback(() => setSelectedPlayer(null), []);
+
   const canvasRef =
     useRef(
       null
@@ -516,6 +523,8 @@ export const Game = ({
            * CAMERA ROTATION
            * =====================================================
            */
+
+          createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer });
 
           const handlePointerMove =
             (
@@ -1077,11 +1086,14 @@ export const Game = ({
 
 
   return (
-    <canvas
-      ref={
-        canvasRef
-      }
-      className="block h-full w-full touch-none"
-    />
+    <>
+      <canvas
+        ref={canvasRef}
+        className="block h-full w-full touch-none"
+      />
+      {selectedPlayer && (
+        <PlayerDropdown selection={selectedPlayer} onClose={closePlayerDropdown} />
+      )}
+    </>
   );
 };
