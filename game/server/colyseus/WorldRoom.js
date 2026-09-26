@@ -1225,6 +1225,7 @@ export class WorldRoom
          */
 
         spawn,
+        isBoss: Boolean(stats.bossMechanics),
 
         targetSessionId:
           null,
@@ -1590,6 +1591,7 @@ export class WorldRoom
         deltaTime
       );
 
+      enemy.bossActive = Boolean(runtime.isBoss && runtime.targetSessionId);
       this.updateEnemyRegeneration(enemy, runtime, deltaTime);
     }
   }

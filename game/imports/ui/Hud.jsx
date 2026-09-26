@@ -1,3 +1,4 @@
+import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
@@ -859,6 +860,7 @@ export const Hud = ({
 
       <LevelUpOverlay />
       <BossNotice />
+      <BossHealthBar />
 
 
       <MenuButtons />

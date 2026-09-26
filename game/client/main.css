@@ -60,3 +60,8 @@ body {
 .mobile-game .game-chat [role="log"] { height: 72px; }
 .mobile-game .game-chat { pointer-events: none; }
 .mobile-game .game-chat input, .mobile-game .game-chat button { pointer-events: auto; }
+
+.mobile-game .boss-health-bar { top: 52px; width: 220px; padding: 6px; }
+.mobile-game .boss-health-bar .text-sm { font-size: 11px; }
+.mobile-game .boss-health-bar .text-xs { font-size: 10px; }
+.mobile-game .boss-health-bar .h-5 { height: 12px; }

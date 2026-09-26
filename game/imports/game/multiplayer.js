@@ -1,3 +1,4 @@
+import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
 import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
@@ -1688,6 +1689,7 @@ export const createMultiplayer =
         dungeonInteractions.update(deltaTime);
         projectiles.update(deltaTime);
         bossVisuals.update(room.state.enemies);
+        useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
         loot.update();
         if (!dungeon) {
           const area = getQuestArea(player.position);
@@ -1911,6 +1913,7 @@ export const createMultiplayer =
         dungeonInteractions.destroy();
         projectiles.destroy();
         bossVisuals.destroy();
+        useBossHealthStore.getState().reset();
         useChatStore.getState().disconnect();
         useBossNoticeStore.getState().reset();
         loot.destroy();
