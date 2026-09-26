@@ -45,6 +45,8 @@ export const createKayKitAnimationController =
       );
 
 
+    let visible = true;
+
     let running =
       false;
 
@@ -64,6 +66,7 @@ export const createKayKitAnimationController =
         loop = true
       ) => {
         if (
+          !visible ||
           !animation ||
           animation ===
             currentAnimation
@@ -203,6 +206,11 @@ export const createKayKitAnimationController =
 
 
     return {
+      setVisible(value) {
+        visible = value;
+        if (!value) currentAnimation?.pause();
+        else if (currentAnimation?.isStarted) currentAnimation.restart();
+      },
       setRunning,
       setJumping,
       setMounted,

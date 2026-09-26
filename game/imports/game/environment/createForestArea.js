@@ -159,7 +159,7 @@ const distanceToSegment = (
 const applyLowPolyLook = (
   mesh
 ) => {
-  mesh.convertToFlatShadedMesh();
+  if (!mesh.sourceMesh) mesh.convertToFlatShadedMesh();
 
 
   mesh.receiveShadows =
@@ -276,6 +276,7 @@ const createPineTree = ({
   parent,
   position,
   materials,
+  leafSources,
 }) => {
   const root =
     new TransformNode(
@@ -354,7 +355,7 @@ const createPineTree = ({
 
 
   const leaf1 =
-    MeshBuilder.CreateCylinder(
+    leafSources[1]?.createInstance("treeLeaf1") || MeshBuilder.CreateCylinder(
       "treeLeaf1",
       {
         height:
@@ -388,10 +389,11 @@ const createPineTree = ({
   applyLowPolyLook(
     leaf1
   );
+  leafSources[1] ||= leaf1;
 
 
   const leaf2 =
-    MeshBuilder.CreateCylinder(
+    leafSources[2]?.createInstance("treeLeaf2") || MeshBuilder.CreateCylinder(
       "treeLeaf2",
       {
         height:
@@ -425,10 +427,11 @@ const createPineTree = ({
   applyLowPolyLook(
     leaf2
   );
+  leafSources[2] ||= leaf2;
 
 
   const leaf3 =
-    MeshBuilder.CreateCylinder(
+    leafSources[3]?.createInstance("treeLeaf3") || MeshBuilder.CreateCylinder(
       "treeLeaf3",
       {
         height:
@@ -462,6 +465,7 @@ const createPineTree = ({
   applyLowPolyLook(
     leaf3
   );
+  leafSources[3] ||= leaf3;
 
 
   return root;
@@ -855,6 +859,8 @@ export const createForestArea =
       2;
 
 
+    const leafSources = {};
+
     /*
      * TREES
      */
@@ -868,6 +874,7 @@ export const createForestArea =
     ) {
       createPineTree({
         scene,
+        leafSources,
 
         parent:
           root,
@@ -975,5 +982,6 @@ export const createForestArea =
     }
 
 
+    for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();
     return root;
   };

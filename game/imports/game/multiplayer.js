@@ -1,3 +1,4 @@
+import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea } from "./quests";
 import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
@@ -208,10 +209,12 @@ const createRemoteCombat =
     );
 
 
+    let visible = true;
+
     const startAttack =
       () => {
         if (
-          attacking
+          !visible || attacking
         ) {
           return;
         }
@@ -426,6 +429,17 @@ const createRemoteCombat =
 
 
     return {
+      setVisible(value) {
+        visible = value;
+        if (value) trail.start();
+        else {
+          trail.stop();
+          attacking = false;
+          progress = 0;
+          trail.setEnabled(false);
+          swordPivot.rotation.copyFrom(defaultRotation);
+        }
+      },
       startAttack,
       update,
       destroy,
@@ -657,7 +671,14 @@ const createRemotePlayer =
     let alive = playerState.health > 0;
 
 
+    const targetPosition = Vector3.Zero();
+    const visibility = createEntityVisibility({
+      root, targetPosition, nameplate, healthBar,
+      controllers: [animations, mount, combat], alive: () => alive,
+    });
+
     return {
+      visibility,
       root,
       character,
 
@@ -673,8 +694,7 @@ const createRemotePlayer =
       combat,
       mount,
 
-      targetPosition:
-        Vector3.Zero(),
+      targetPosition,
 
       targetRotationY:
         0,
@@ -700,11 +720,6 @@ const createRemotePlayer =
       ) {
         alive = isAlive;
         if (!alive) mount.setMounted(false);
-        root.setEnabled(
-          alive
-        );
-
-
         swordPivot.setEnabled(
           alive
         );
@@ -725,9 +740,7 @@ const createRemotePlayer =
         );
 
 
-        healthBar.setVisible(
-          alive
-        );
+        visibility.apply();
       },
 
       setMounted(value) {
@@ -1041,32 +1054,12 @@ export const createMultiplayer =
         );
 
 
+        entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
+
         remotePlayers.set(
           sessionId,
           entity
         );
-
-        useMinimapStore
-          .getState()
-          .upsertRemotePlayer(
-            sessionId,
-            {
-              x:
-                playerState.x,
-
-              z:
-                playerState.z,
-
-              rotationY:
-                playerState.rotationY,
-
-              name:
-                playerState.name,
-
-              currentLevel:
-                playerState.currentLevel,
-            }
-          );
 
 
         /*
@@ -1227,27 +1220,7 @@ export const createMultiplayer =
                 RUN_TIMEOUT;
             }
 
-            useMinimapStore
-              .getState()
-              .upsertRemotePlayer(
-                sessionId,
-                {
-                  x:
-                    playerState.x,
 
-                  z:
-                    playerState.z,
-
-                  rotationY:
-                    playerState.rotationY,
-
-                  name:
-                    playerState.name,
-
-                  currentLevel:
-                    playerState.currentLevel,
-                }
-              );
           }
         );
       }
@@ -1439,7 +1412,7 @@ export const createMultiplayer =
 
 
         if (
-          !entity
+          !entity || !entity.visibility.isVisible()
         ) {
           return;
         }
@@ -1564,30 +1537,14 @@ export const createMultiplayer =
         }
 
 
+        enemy.targetPosition.set(enemyState.x, enemyState.y, enemyState.z);
+        enemy.setTargetRotation(enemyState.rotationY);
+        enemy.visibility.update(player.position, ENTITY_VISIBILITY.enemy);
+
         enemies.set(
           enemyId,
           enemy
         );
-
-        useMinimapStore
-          .getState()
-          .upsertEnemy(
-            enemyId,
-            {
-              x:
-                enemyState.x,
-
-              z:
-                enemyState.z,
-
-              type:
-                enemyState.type,
-
-              level:
-                enemyState.level ??
-                1,
-            }
-          );
 
 
         /*
@@ -1607,25 +1564,7 @@ export const createMultiplayer =
               enemyState.rotationY
             );
 
-            useMinimapStore
-              .getState()
-              .upsertEnemy(
-                enemyId,
-                {
-                  x:
-                    enemyState.x,
 
-                  z:
-                    enemyState.z,
-
-                  type:
-                    enemyState.type,
-
-                  level:
-                    enemyState.level ??
-                    1,
-                }
-              );
           }
         );
 
@@ -1759,10 +1698,23 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    let visibilityElapsed = 0;
+    let minimapElapsed = 0;
     const update =
       (
         deltaTime
       ) => {
+        visibilityElapsed += deltaTime;
+        minimapElapsed += deltaTime;
+        if (visibilityElapsed >= ENTITY_VISIBILITY.updateInterval) {
+          visibilityElapsed %= ENTITY_VISIBILITY.updateInterval;
+          for (const entity of remotePlayers.values()) entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
+          for (const enemy of enemies.values()) enemy.visibility.update(player.position, ENTITY_VISIBILITY.enemy);
+        }
+        if (minimapElapsed >= ENTITY_VISIBILITY.minimapInterval) {
+          minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
+          useMinimapStore.getState().syncEntities(room.state, room.sessionId);
+        }
         loot.update();
         const area = getQuestArea(player.position);
         if (useQuestStore.getState().area !== area) {
@@ -1790,6 +1742,7 @@ export const createMultiplayer =
           const entity
           of remotePlayers.values()
         ) {
+          if (!entity.visibility.isVisible()) continue;
           /*
            * POSITION
            */
@@ -1882,8 +1835,18 @@ export const createMultiplayer =
           const enemy
           of enemies.values()
         ) {
+          if (!enemy.visibility.isVisible()) {
+            enemy.visualElapsed = 0;
+            continue;
+          }
+          enemy.visualElapsed += deltaTime;
+          const interval = enemy.visibility.getDistanceSquared() <= ENTITY_VISIBILITY.nameplateDistance ** 2
+            ? ENTITY_VISIBILITY.nearEnemyInterval : ENTITY_VISIBILITY.farEnemyInterval;
+          if (enemy.visualElapsed < interval) continue;
+          const enemySmoothing = 1 - Math.exp(-REMOTE_SMOOTHING * enemy.visualElapsed / 1000);
+          enemy.visualElapsed = 0;
           const distance =
-            Vector3.Distance(
+            Vector3.DistanceSquared(
               enemy.root.position,
               enemy.targetPosition
             );
@@ -1892,7 +1855,7 @@ export const createMultiplayer =
           Vector3.LerpToRef(
             enemy.root.position,
             enemy.targetPosition,
-            smoothing,
+            enemySmoothing,
             enemy.root.position
           );
 
@@ -1908,12 +1871,12 @@ export const createMultiplayer =
 
           enemy.root.rotation.y +=
             difference *
-            smoothing;
+            enemySmoothing;
 
 
           if (
             distance >
-            0.03
+            0.03 ** 2
           ) {
             enemy.animations
               .walk();
@@ -2008,6 +1971,20 @@ export const createMultiplayer =
 
     return {
       room,
+      getPerformanceStats() {
+        let activeEnemies = 0;
+        let activePlayers = 0;
+        let nameplates = 0;
+        for (const enemy of enemies.values()) {
+          if (enemy.visibility.isVisible()) activeEnemies++;
+          if (enemy.visibility.hasLabels()) nameplates++;
+        }
+        for (const entity of remotePlayers.values()) {
+          if (entity.visibility.isVisible()) activePlayers++;
+          if (entity.visibility.hasLabels()) nameplates++;
+        }
+        return { activeEnemies, enemies: enemies.size, activePlayers, players: remotePlayers.size, nameplates };
+      },
 
       sendMovement,
       sendAttack,

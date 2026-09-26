@@ -121,6 +121,9 @@ export const createHorseMount =
       );
 
 
+    for (const group of result.animationGroups) group.stop();
+    let visible = true;
+
     let mounted =
       false;
 
@@ -134,6 +137,7 @@ export const createHorseMount =
     const play =
       (animation) => {
         if (
+          !visible ||
           !animation ||
           animation ===
             currentAnimation
@@ -223,6 +227,14 @@ export const createHorseMount =
 
 
     return {
+      setVisible(value) {
+        visible = value;
+        if (!value) currentAnimation?.pause();
+        else if (mounted) {
+          if (currentAnimation?.isStarted) currentAnimation.restart();
+          else play(running ? run : idle);
+        }
+      },
       setMounted,
 
       isMounted:

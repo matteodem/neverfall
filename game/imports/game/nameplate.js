@@ -99,6 +99,7 @@ export const createNameplate = ({
 
   return {
     setName,
+    setVisible: (visible) => plane.setEnabled(visible),
     destroy,
   };
 };

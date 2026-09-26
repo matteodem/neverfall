@@ -1,3 +1,4 @@
+import { createEntityVisibility } from "./entityVisibility";
 import { getEnemyStats } from "./enemyConfig";
 import { createEnemyAnimations } from "./enemyAnimations";
 import {
@@ -167,6 +168,8 @@ export const createEnemy = async ({
     root,
 
     targetPosition,
+    visualElapsed: 0,
+    visibility: createEntityVisibility({ root, targetPosition, nameplate, healthBar, controllers: [animations] }),
 
     animations,
 

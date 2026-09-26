@@ -20,14 +20,39 @@ export const useMinimapStore =
       enemies:
         {},
 
+      syncEntities(world, localId) {
+        set((state) => {
+          const remotePlayers = {};
+          const enemies = {};
+          let changed = false;
+          const copy = (previous, next, id, marker) => {
+            const old = previous[id];
+            if (old && Object.keys(marker).every((key) => old[key] === marker[key])) next[id] = old;
+            else { next[id] = marker; changed = true; }
+          };
+          world.players.forEach((player, id) => {
+            if (id === localId) return;
+            copy(state.remotePlayers, remotePlayers, id, {
+              id, x: player.x, z: player.z, rotationY: player.rotationY,
+              name: player.name, currentLevel: player.currentLevel,
+            });
+          });
+          world.enemies.forEach((enemy, id) => {
+            copy(state.enemies, enemies, id, { id, x: enemy.x, z: enemy.z, type: enemy.type, level: enemy.level ?? 1 });
+          });
+          changed ||= Object.keys(remotePlayers).length !== Object.keys(state.remotePlayers).length
+            || Object.keys(enemies).length !== Object.keys(state.enemies).length;
+          return changed ? { remotePlayers, enemies } : state;
+        });
+      },
+
       setLocalPlayer(
         payload
       ) {
-        set({
-          localPlayer: {
-            ...DEFAULT_LOCAL_PLAYER,
-            ...payload,
-          },
+        set((state) => {
+          const previous = state.localPlayer;
+          if (previous.x === payload.x && previous.z === payload.z && previous.rotationY === payload.rotationY) return state;
+          return { localPlayer: { ...DEFAULT_LOCAL_PLAYER, ...payload } };
         });
       },
 

@@ -1,10 +1,12 @@
 // Boars use ranges in one clip; wolves provide separate named clips.
 export const createEnemyAnimations = (groups, clips) => {
+  let visible = true;
   let current = null;
   let attacking = false;
   for (const group of groups) group.stop();
 
   const play = (name, loop = true) => {
+    if (!visible) return;
     const clip = clips[name];
     const group = typeof clip === "string"
       ? groups.find((candidate) => candidate.name === clip)
@@ -31,6 +33,13 @@ export const createEnemyAnimations = (groups, clips) => {
 
   idle();
   return {
+    setVisible(value) {
+      visible = value;
+      for (const group of groups) {
+        if (!value && group.isPlaying) group.pause();
+        else if (value && group.isStarted) group.restart();
+      }
+    },
     idle,
     walk,
     attack,

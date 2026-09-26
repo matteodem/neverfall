@@ -174,6 +174,7 @@ export const createWorld =
 
     ground.material =
       groundMaterial;
+    ground.freezeWorldMatrix();
 
 
     /*
@@ -545,6 +546,9 @@ export const createWorld =
           ),
       });
 
+
+    for (const mesh of mountainRing.getChildMeshes()) mesh.freezeWorldMatrix();
+    for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
 
     /*
      * =====================================================

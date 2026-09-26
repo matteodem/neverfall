@@ -1,3 +1,6 @@
+import { Meteor } from "meteor/meteor";
+import { ENTITY_VISIBILITY } from "../game/entityVisibility";
+import { createPerformanceOverlay } from "../game/performanceOverlay";
 import React, {
   useEffect,
   useRef,
@@ -797,6 +800,11 @@ export const Game = ({
            * =====================================================
            */
 
+          let minimapElapsed = 0;
+          const performanceOverlay = Meteor.isDevelopment
+            ? createPerformanceOverlay({ scene, engine, multiplayer }) : null;
+          scene.onDisposeObservable.addOnce(() => performanceOverlay?.destroy());
+
           engine.runRenderLoop(
             () => {
               const deltaTime =
@@ -952,25 +960,15 @@ export const Game = ({
                * ---------------------
                */
 
-              setLocalPlayerOnMinimap(
-                {
-                  x:
-                    player
-                      .position
-                      .x,
-
-                  z:
-                    player
-                      .position
-                      .z,
-
-                  rotationY:
-                    player
-                      .rotation
-                      .y,
-                }
-              );
-
+              minimapElapsed += deltaTime;
+              if (minimapElapsed >= ENTITY_VISIBILITY.localMinimapInterval) {
+                minimapElapsed %= ENTITY_VISIBILITY.localMinimapInterval;
+                setLocalPlayerOnMinimap({
+                  x: player.position.x,
+                  z: player.position.z,
+                  rotationY: player.rotation.y,
+                });
+              }
 
               /*
                * ---------------------
@@ -978,6 +976,7 @@ export const Game = ({
                * ---------------------
                */
 
+              performanceOverlay?.update(deltaTime);
               scene.render();
             }
           );
