@@ -1146,7 +1146,7 @@ export class WorldRoom
   spawnEnemy(
     spawn
   ) {
-    const stats = getEnemyStats(spawn.type, spawn.level);
+    const stats = this.getEnemyStats(spawn.type, spawn.level);
     const enemy =
       new EnemyState({
         type: spawn.type,
@@ -1223,6 +1223,10 @@ export class WorldRoom
    * PLAYER -> ENEMY COMBAT
    * =====================================================
    */
+
+  getEnemyStats(type, level) {
+    return getEnemyStats(type, level);
+  }
 
   async attackEnemy(
     sessionId,
@@ -1426,7 +1430,7 @@ export class WorldRoom
     } = runtime;
 
 
-    const stats = getEnemyStats(spawn.type, spawn.level);
+    const stats = this.getEnemyStats(spawn.type, spawn.level);
     const quest = HUNT_QUESTS[spawn.type || "boar"];
     const lootOwners = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
@@ -1570,7 +1574,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
-    const stats = getEnemyStats(enemy.type, enemy.level);
+    const stats = this.getEnemyStats(enemy.type, enemy.level);
     /*
      * No aggro:
      * wander around this enemy's
@@ -1750,7 +1754,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
-    const stats = getEnemyStats(enemy.type, enemy.level);
+    const stats = this.getEnemyStats(enemy.type, enemy.level);
     const now =
       Date.now();
 
@@ -1854,7 +1858,7 @@ export class WorldRoom
   pickWanderTarget(
     spawn
   ) {
-    const stats = getEnemyStats(spawn.type, spawn.level);
+    const stats = this.getEnemyStats(spawn.type, spawn.level);
     const angle =
       Math.random() *
       Math.PI *

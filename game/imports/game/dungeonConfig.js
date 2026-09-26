@@ -4,6 +4,8 @@ export const DUNGEON = {
   chest: { x: 0, z: 86 },
   exit: { x: 0, z: 96 },
   interactionDistance: 3,
+  enemyHealthMultiplier: 1.5,
+  enemyDamageMultiplier: 1.5,
   rewardXp: 250,
   rewardMoney: 10000,
   stages: [

@@ -98,6 +98,15 @@ export class DungeonRoom extends WorldRoom {
     for (const spawn of DUNGEON.stages[this.state.stage].enemies) this.spawnEnemy(spawn);
   }
 
+  getEnemyStats(type, level) {
+    const stats = super.getEnemyStats(type, level);
+    return {
+      ...stats,
+      health: stats.health * DUNGEON.enemyHealthMultiplier,
+      attackDamage: stats.attackDamage * DUNGEON.enemyDamageMultiplier,
+    };
+  }
+
   killEnemy(enemyId) {
     if (!this.enemyRuntime.has(enemyId)) return;
     this.state.enemies.delete(enemyId);
