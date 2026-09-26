@@ -574,6 +574,15 @@ export class WorldRoom
         return;
       }
 
+      if (skill.effect) {
+        this.broadcast("attack", {
+          sessionId: client.sessionId,
+          effect: { id: `nova-${client.sessionId}-${now}`, type: skill.effect, x: player.x, y: player.y + 0.05, z: player.z, dx: 0, dz: 0, speed: 0, lifetime: 500, radius: skill.range },
+        });
+        await this.attackEnemy(client.sessionId, skill);
+        return;
+      }
+
 
       this.broadcast(
         "attack",

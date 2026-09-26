@@ -1299,7 +1299,12 @@ export const createMultiplayer =
       ({
         sessionId,
         projectile,
+        effect,
       }) => {
+        if (effect) {
+          projectiles.spawn(effect);
+          return;
+        }
         if (projectile) {
           projectiles.spawn(projectile);
           return;

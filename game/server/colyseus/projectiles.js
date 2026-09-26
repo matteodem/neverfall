@@ -10,15 +10,20 @@ export const createProjectiles = (room) => {
 
   return {
     fire(sessionId, player, skill) {
-      const { type, speed, lifetime, radius } = skill.projectile;
-      const projectile = {
-        id: `${room.roomId}-${++nextId}`,
-        sessionId, type, speed, lifetime,
-        x: player.x, y: player.y + 1, z: player.z,
-        dx: Math.sin(player.rotationY), dz: Math.cos(player.rotationY),
-      };
-      active.set(projectile.id, { ...projectile, radius, remaining: lifetime, multiplier: skill.damageMultiplier });
-      room.broadcast("attack", { sessionId, projectile });
+      const { type, speed, lifetime, radius, scale = 1 } = skill.projectile;
+      const hitEnemies = new Set();
+      const count = skill.projectiles || 1;
+      for (let index = 0; index < count; index++) {
+        const angle = player.rotationY + (index - (count - 1) / 2) * (skill.spreadAngle || 0) * Math.PI / 180;
+        const projectile = {
+          id: `${room.roomId}-${++nextId}`,
+          sessionId, type, speed, lifetime, scale,
+          x: player.x, y: player.y + 1, z: player.z,
+          dx: Math.sin(angle), dz: Math.cos(angle),
+        };
+        active.set(projectile.id, { ...projectile, radius, remaining: lifetime, multiplier: skill.damageMultiplier, hitEnemies });
+        room.broadcast("attack", { sessionId, projectile });
+      }
     },
     update(deltaTime) {
       for (const projectile of active.values()) {
@@ -46,6 +51,8 @@ export const createProjectiles = (room) => {
         projectile.remaining -= elapsed;
         if (hit) {
           remove(projectile.id);
+          if (projectile.hitEnemies.has(hit.enemy)) continue;
+          projectile.hitEnemies.add(hit.enemy);
           room.damageEnemy(projectile.sessionId, hit.enemyId, hit.enemy, projectile.multiplier)
             .catch((error) => console.error("[Projectiles] Damage failed", error));
         } else if (projectile.remaining <= 0) {

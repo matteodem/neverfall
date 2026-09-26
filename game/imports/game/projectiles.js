@@ -31,6 +31,14 @@ export const createProjectileVisuals = (scene) => {
       material.diffuseColor = Color3.FromHexString("#ef4415");
       material.emissiveColor = Color3.FromHexString("#ff6600");
     },
+    fireNova(root, material, data) {
+      const mesh = MeshBuilder.CreateCylinder("fireNova", { diameter: data.radius * 2, height: 0.05, tessellation: 32 }, scene);
+      mesh.parent = root;
+      mesh.material = material;
+      mesh.isPickable = false;
+      material.emissiveColor = Color3.FromHexString("#ff6600");
+      material.alpha = 0.5;
+    },
   };
 
   return {
@@ -42,7 +50,8 @@ export const createProjectileVisuals = (scene) => {
       const material = new StandardMaterial(`projectile-material-${data.id}`, scene);
       root.position.set(data.x, data.y, data.z);
       root.rotation.y = Math.atan2(data.dx, data.dz);
-      build(root, material);
+      root.scaling.setAll(data.scale || 1);
+      build(root, material, data);
       active.set(data.id, { ...data, root, material, remaining: data.lifetime });
     },
     remove,

@@ -119,10 +119,10 @@ const getActionSlots = (
       code:
         "Digit2",
 
-      icon: skills.Digit2 ? "heavyStrike" : null,
+      icon: skills.Digit2?.icon,
       cooldown: skills.Digit2?.cooldown,
       tooltip:
-        skills.Digit2 ? `Heavy Strike (Causes ${playerStats.damage * skills.Digit2.damageMultiplier} damage)` : "No ability assigned",
+        skills.Digit2 ? `${skills.Digit2.name} (Causes ${playerStats.damage * skills.Digit2.damageMultiplier} damage)` : "No ability assigned",
     },
 
     {
@@ -132,10 +132,10 @@ const getActionSlots = (
       code:
         "Digit3",
 
-      icon: skills.Digit3 ? "cleave" : null,
+      icon: skills.Digit3?.icon,
       cooldown: skills.Digit3?.cooldown,
       tooltip:
-        skills.Digit3 ? `Cleave (Causes ${playerStats.damage * skills.Digit3.damageMultiplier} damage to nearby enemies)` : "No ability assigned",
+        skills.Digit3 ? `${skills.Digit3.name} (Causes ${playerStats.damage * skills.Digit3.damageMultiplier} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
     },
 
     {

@@ -463,7 +463,7 @@ export const Game = ({
             const skill = getClassConfig(character.gameClass).skills[code];
             const actionBar = useActionBarStore.getState();
             if (!skill || !playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
-            if (skill.projectile) {
+            if (skill.projectile || skill.effect) {
               actionBar.setCooldown(code, skill.cooldown);
               multiplayer?.sendMovement(player, 0, mounted, true);
               multiplayer?.sendAttack(code);
@@ -503,6 +503,7 @@ export const Game = ({
             (
               code
             ) => {
+              if (mounted && getClassConfig(character.gameClass).skills[code]?.requiresUnmounted) return;
               if (
                 mounted &&
                 /^Digit[1-4]$/.test(code)
