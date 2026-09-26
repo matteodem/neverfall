@@ -10,6 +10,7 @@ import {
   Characters,
 } from "../../imports/api/characters/characters";
 import { migrateUserItems } from "../inventory/characters";
+import { isValidGameClass } from "../../imports/game/classConfig";
 
 const MAX_CHARACTERS =
   5;
@@ -219,8 +220,7 @@ Meteor.methods({
     }
 
     if (
-      gameClass !==
-      "warrior"
+      !isValidGameClass(gameClass)
     ) {
       throw new Meteor.Error(
         "invalid-class"
@@ -256,8 +256,7 @@ Meteor.methods({
       species:
         "human",
 
-      gameClass:
-        "warrior",
+      gameClass,
 
       appearance:
         normalizedAppearance,

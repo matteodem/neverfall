@@ -5,6 +5,7 @@ import {
 } from "@babylonjs/core";
 
 import "@babylonjs/loaders/glTF";
+import { getClassConfig } from "../classConfig";
 
 
 const KAYKIT_ROOT =
@@ -58,15 +59,11 @@ const BODY_TYPES = {
  * Helmet and visor stay untouched.
  */
 
-const SKIN_MESHES = [
-  "Knight_Head",
-];
-
-
 const applySkinTone =
   (
     knight,
-    skinTone
+    skinTone,
+    skinMeshes
   ) => {
     const color =
       Color3.FromHexString(
@@ -82,7 +79,7 @@ const applySkinTone =
         mesh
       ) => {
         if (
-          !SKIN_MESHES.includes(
+          !skinMeshes.includes(
             mesh.name
           ) ||
           !mesh.material
@@ -92,7 +89,7 @@ const applySkinTone =
 
 
         /*
-         * All Knight meshes share
+         * All character meshes share
          * the same base material.
          *
          * Clone it first so changing
@@ -323,11 +320,13 @@ export const createKayKitCharacter =
   async ({
     scene,
     appearance = {},
+    gameClass = "warrior",
   }) => {
+    const classConfig = getClassConfig(gameClass);
 
     /*
      * =====================================================
-     * KNIGHT
+     * CHARACTER MODEL
      * =====================================================
      */
 
@@ -335,7 +334,7 @@ export const createKayKitCharacter =
       await SceneLoader.ImportMeshAsync(
         "",
         KAYKIT_ROOT,
-        "knight/Knight.glb",
+        classConfig.model,
         scene
       );
 
@@ -356,7 +355,8 @@ export const createKayKitCharacter =
 
     applySkinTone(
       knight,
-      skinTone
+      skinTone,
+      classConfig.skinMeshes
     );
 
 

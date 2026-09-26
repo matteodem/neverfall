@@ -1,6 +1,7 @@
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
+import { getClassConfig } from "../../imports/game/classConfig";
 import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
   Meteor,
@@ -20,7 +21,6 @@ import {
 
 import {
   ATTACK,
-  WARRIOR_SKILLS,
 } from "../../imports/game/config";
 
 import {
@@ -82,7 +82,7 @@ const getEquipmentForPlayer = (player) => ({
 });
 
 const getStatsForPlayer = (player) =>
-  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player));
+  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass);
 
 
 /*
@@ -275,7 +275,7 @@ export class WorldRoom
     player.ring = equipment.ring || "";
     player.accessory = equipment.accessory || "";
 
-    const stats = getPlayerStats(player.currentLevel, equipment);
+    const stats = getPlayerStats(player.currentLevel, equipment, player.gameClass);
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
     if (player.inDungeon) this.dungeons?.syncPlayer(player);
@@ -516,7 +516,6 @@ export class WorldRoom
       code = "Digit1"
     ) => {
       if (!["Digit1", "Digit2", "Digit3"].includes(code)) return;
-      const skill = WARRIOR_SKILLS[code];
       const cooldownField = ATTACK_COOLDOWN_FIELDS[code];
       const player =
         this.state.players.get(
@@ -542,6 +541,8 @@ export class WorldRoom
       }
 
 
+      const skill = getClassConfig(player.gameClass).skills[code];
+      if (!skill) return;
       const now =
         Date.now();
 
@@ -653,7 +654,8 @@ export class WorldRoom
     const stats =
       getPlayerStats(
         currentLevel,
-        equipment
+        equipment,
+        character.gameClass
       );
 
 
@@ -667,6 +669,8 @@ export class WorldRoom
 
         name:
           character.name,
+
+        gameClass: character.gameClass || "warrior",
 
         currentLevel,
 
@@ -1100,7 +1104,8 @@ export class WorldRoom
       ) {
         const stats = getPlayerStats(
           progress.currentLevel,
-          getEquipmentForPlayer(player)
+          getEquipmentForPlayer(player),
+          player.gameClass
         );
 
 
@@ -1212,7 +1217,7 @@ export class WorldRoom
 
   async attackEnemy(
     sessionId,
-    skill = WARRIOR_SKILLS.Digit1
+    skill
   ) {
     const player =
       this.state.players.get(
@@ -1230,6 +1235,7 @@ export class WorldRoom
     }
 
 
+    skill = skill || getClassConfig(player.gameClass).skills.Digit1;
     const target = skill.aoe ? null :
       this.findClosestEnemy(
         player,

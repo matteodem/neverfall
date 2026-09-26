@@ -2,6 +2,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
+import { CLASS_CONFIG } from "../game/classConfig";
 
 import {
   Meteor,
@@ -339,6 +340,7 @@ const AppearanceStep =
           <div className="flex items-center justify-center">
             <div className="h-[380px] w-[280px] overflow-hidden rounded-xl border border-white/10 bg-black/20">
               <CharacterPreview
+                gameClass={creator.gameClass}
                 appearance={
                   appearance
                 }
@@ -370,39 +372,23 @@ const SpeciesStep =
 
 const ClassStep =
   () => {
+    const gameClass = useCharacterStore((state) => state.creator.gameClass);
+    const setCreatorField = useCharacterStore((state) => state.setCreatorField);
     return (
       <Screen
         title="Class"
       >
         <div className="grid grid-cols-3 gap-4">
-          <div>
+          {Object.entries(CLASS_CONFIG).map(([id, config]) => (
             <button
+              key={id}
               type="button"
-              className="btn btn-primary w-full cursor-pointer px-8 py-5"
+              onClick={() => setCreatorField("gameClass", id)}
+              className={`btn w-full cursor-pointer px-8 py-5 ${gameClass === id ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
             >
-              Warrior
+              {config.name}
             </button>
-          </div>
-
-          <div className="cursor-not-allowed">
-            <button
-              type="button"
-              disabled
-              className="btn pointer-events-none w-full px-8 py-5"
-            >
-              Ranger
-            </button>
-          </div>
-
-          <div className="cursor-not-allowed">
-            <button
-              type="button"
-              disabled
-              className="btn pointer-events-none w-full px-8 py-5"
-            >
-              Elementalist
-            </button>
-          </div>
+          ))}
         </div>
       </Screen>
     );

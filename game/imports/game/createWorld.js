@@ -57,6 +57,7 @@ export const createWorld =
     {
       appearance,
       name,
+      gameClass = "warrior",
       dungeon = false,
     }
   ) => {
@@ -197,6 +198,7 @@ export const createWorld =
       await createKayKitCharacter({
         scene,
         appearance,
+        gameClass,
       });
 
 

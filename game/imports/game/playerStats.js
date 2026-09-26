@@ -1,14 +1,9 @@
 import { getEquipmentStats } from "./equipment";
-
-const BASE_MAX_HEALTH =
-  100;
+import { getClassConfig } from "./classConfig";
 
 const HEALTH_PER_LEVEL =
   25;
 
-
-const BASE_DAMAGE =
-  25;
 
 const DAMAGE_PER_LEVEL =
   10;
@@ -44,8 +39,10 @@ const normalizeLevel = (
 
 export const getPlayerStats = (
   level,
-  equipment
+  equipment,
+  gameClass = "warrior"
 ) => {
+  const classConfig = getClassConfig(gameClass);
   const normalizedLevel =
     normalizeLevel(
       level
@@ -61,13 +58,13 @@ export const getPlayerStats = (
 
   return {
     maxHealth:
-      BASE_MAX_HEALTH +
+      classConfig.maxHealth +
       levelsGained *
         HEALTH_PER_LEVEL +
       equipmentStats.maxHealth,
 
     damage:
-      BASE_DAMAGE +
+      classConfig.attackDamage +
       levelsGained *
         DAMAGE_PER_LEVEL +
       equipmentStats.attackDamage,

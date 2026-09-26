@@ -24,6 +24,7 @@ import {
 
 export const CharacterPreview = ({
   appearance,
+  gameClass = "warrior",
 }) => {
   const canvasRef =
     useRef(
@@ -191,6 +192,7 @@ export const CharacterPreview = ({
               await createKayKitCharacter({
                 scene,
                 appearance,
+                gameClass,
               });
 
 
@@ -477,9 +479,10 @@ export const CharacterPreview = ({
 
     /*
      * Rebuild preview whenever
-     * appearance changes.
+     * appearance or class changes.
      */
     [
+      gameClass,
       appearance?.gender,
       appearance?.skinTone,
       appearance?.bodyType,

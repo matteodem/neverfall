@@ -368,6 +368,7 @@ export const App = () => {
 
 
       <Hud
+        gameClass={currentCharacter?.gameClass}
         currentLevel={
           currentLevel
         }

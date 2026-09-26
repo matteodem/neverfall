@@ -1,5 +1,5 @@
 import { useDungeonStore } from "./stores/useDungeonStore";
-import { WARRIOR_SKILLS } from "../game/config";
+import { getClassConfig } from "../game/classConfig";
 import { DungeonPrompt } from "./components/DungeonPrompt";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
@@ -85,12 +85,15 @@ const HEAL_COOLDOWN =
 
 const getActionSlots = (
   currentLevel,
-  equipment
+  equipment,
+  gameClass
 ) => {
+  const skills = getClassConfig(gameClass).skills;
   const playerStats =
     getPlayerStats(
       currentLevel,
-      equipment
+      equipment,
+      gameClass
     );
 
 
@@ -117,9 +120,9 @@ const getActionSlots = (
         "Digit2",
 
       icon: "heavyStrike",
-      cooldown: WARRIOR_SKILLS.Digit2.cooldown,
+      cooldown: skills.Digit2.cooldown,
       tooltip:
-        `Heavy Strike (Causes ${playerStats.damage * WARRIOR_SKILLS.Digit2.damageMultiplier} damage)`,
+        `Heavy Strike (Causes ${playerStats.damage * skills.Digit2.damageMultiplier} damage)`,
     },
 
     {
@@ -130,9 +133,9 @@ const getActionSlots = (
         "Digit3",
 
       icon: "cleave",
-      cooldown: WARRIOR_SKILLS.Digit3.cooldown,
+      cooldown: skills.Digit3.cooldown,
       tooltip:
-        `Cleave (Causes ${playerStats.damage * WARRIOR_SKILLS.Digit3.damageMultiplier} damage to nearby enemies)`,
+        `Cleave (Causes ${playerStats.damage * skills.Digit3.damageMultiplier} damage to nearby enemies)`,
     },
 
     {
@@ -644,6 +647,7 @@ const ActionSlot = ({
 const ActionBar = ({
   currentLevel,
   equipment,
+  gameClass,
   healCooldownUntil,
 }) => {
   const triggerSkill =
@@ -658,7 +662,8 @@ const ActionBar = ({
   const actionSlots =
     getActionSlots(
       currentLevel,
-      equipment
+      equipment,
+      gameClass
     );
 
 
@@ -703,6 +708,7 @@ const ActionBar = ({
 const BottomHud = ({
   currentLevel,
   equipment,
+  gameClass,
   playerHealth,
   healCooldownUntil,
   mounted,
@@ -725,6 +731,7 @@ const BottomHud = ({
       "
     >
       <ActionBar
+        gameClass={gameClass}
         currentLevel={
           currentLevel
         }
@@ -779,6 +786,7 @@ const BottomHud = ({
 
 export const Hud = ({
   currentLevel = 1,
+  gameClass = "warrior",
   equipment,
   playerHealth,
   healCooldownUntil,
@@ -847,6 +855,7 @@ export const Hud = ({
 
 
       <BottomHud
+        gameClass={gameClass}
         currentLevel={
           currentLevel
         }

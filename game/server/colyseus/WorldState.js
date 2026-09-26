@@ -15,6 +15,8 @@ export const PlayerState =
       name:
         t.string().default(""),
 
+      gameClass: t.string().default("warrior"),
+
       x:
         t.number().default(0),
 

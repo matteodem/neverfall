@@ -456,6 +456,7 @@ const createRemotePlayer =
     const character =
       await createKayKitCharacter({
         scene,
+        gameClass: playerState.gameClass,
 
         appearance: {
           gender:

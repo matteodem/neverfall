@@ -232,6 +232,7 @@ export const CharacterOverview = ({
         <div className="flex-1">
           {selected && (
             <CharacterPreview
+              gameClass={selected.gameClass}
               appearance={
                 selected.appearance
               }

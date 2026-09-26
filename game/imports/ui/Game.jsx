@@ -1,5 +1,5 @@
 import { useDungeonStore } from "./stores/useDungeonStore";
-import { WARRIOR_SKILLS } from "../game/config";
+import { getClassConfig } from "../game/classConfig";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
@@ -236,6 +236,7 @@ export const Game = ({
 
                 name:
                   character.name,
+                gameClass: character.gameClass,
                 dungeon: location === "dungeon",
               }
             );
@@ -456,7 +457,7 @@ export const Game = ({
            */
 
           const performAttack = (code) => {
-            const skill = WARRIOR_SKILLS[code];
+            const skill = getClassConfig(character.gameClass).skills[code];
             const actionBar = useActionBarStore.getState();
             if (!playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
             if (!combat?.startAttack()) return;
