@@ -1,3 +1,4 @@
+import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
 import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
@@ -213,6 +214,7 @@ export class WorldRoom
    */
 
   onCreate() {
+    this.groups = createGroups(this.state.players);
     this.maxClients =
       MAX_PLAYERS;
 
@@ -280,6 +282,12 @@ export class WorldRoom
   }
 
   messages = {
+    groupInvite: (client, targetId) => {
+      const error = this.groups.invite(client.sessionId, targetId);
+      if (error) client.send("groupError", error);
+    },
+    groupLeave: (client) => this.groups.leave(client.sessionId),
+
     loot: (client, id) => collectLoot(this, client, id),
 
     equipItem: async (client, { itemId, slot }) => {
@@ -708,6 +716,8 @@ export class WorldRoom
         client.sessionId
       );
 
+
+    this.groups.leave(client.sessionId);
 
     this.state.players.delete(
       client.sessionId

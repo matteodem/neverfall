@@ -1,3 +1,4 @@
+import { GroupPanel } from "./components/GroupPanel";
 import { LootPrompt } from "./components/LootPrompt";
 import React, {
   useEffect,
@@ -795,6 +796,7 @@ export const Hud = ({
     <>
       <div className={`pointer-events-none fixed inset-0 z-[9998] border-[10px] border-red-400/70 transition-opacity duration-200 ${hitFeedback ? "opacity-100" : "opacity-0"}`} />
       <LootPrompt />
+      <GroupPanel />
 
       <CombatBorder />
 

@@ -1,6 +1,12 @@
+import { useGroupStore } from "../stores/useGroupStore";
 import React, { useEffect, useLayoutEffect, useRef } from "react";
 
 export const PlayerDropdown = ({ selection, onClose }) => {
+  const invite = () => {
+    useGroupStore.getState().requestAction("invite", selection.sessionId);
+    onClose();
+  };
+
   const menuRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -35,7 +41,7 @@ export const PlayerDropdown = ({ selection, onClose }) => {
       style={{ left: selection.x, top: selection.y }}
     >
       <ul className="dropdown-content menu bg-base-100 rounded-box w-40 p-2 shadow-lg" aria-label="Player actions">
-        <li><button type="button">Invite</button></li>
+        <li><button type="button" onClick={invite}>Invite</button></li>
       </ul>
     </div>
   );

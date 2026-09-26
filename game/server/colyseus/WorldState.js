@@ -27,6 +27,8 @@ export const PlayerState =
       rotationY:
         t.number().default(0),
 
+      groupId: t.string().default(""),
+
       mounted:
         t.boolean().default(false),
 

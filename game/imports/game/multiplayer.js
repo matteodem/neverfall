@@ -1,3 +1,4 @@
+import { connectGroups } from "./groups";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea } from "./quests";
 import { useQuestStore } from "../ui/stores/useQuestStore";
@@ -834,6 +835,8 @@ export const createMultiplayer =
     } catch (error) {
       throw error;
     }
+
+    const disconnectGroups = connectGroups(room);
 
     const callbacks =
       Callbacks.get(
@@ -1933,6 +1936,7 @@ export const createMultiplayer =
 
     const destroy =
       async () => {
+        disconnectGroups();
         loot.destroy();
         useQuestStore.getState().reset();
 
