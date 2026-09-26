@@ -1,3 +1,4 @@
+import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
 import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
 import { getGameSession, closeGameSession } from "./gameSession";
@@ -822,6 +823,9 @@ export const createMultiplayer =
       return stop;
     };
 
+    useChatStore.getState().connect(room.roomId, (text) => room.send("chat", text));
+    onMessage("chatError", (message) => useChatStore.getState().setError(message));
+
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
     const bossVisuals = createBossVisuals(scene);
@@ -1053,6 +1057,7 @@ export const createMultiplayer =
         );
 
 
+        entity.playerState = playerState;
         entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
 
         remotePlayers.set(
@@ -1762,6 +1767,7 @@ export const createMultiplayer =
            * RUN / IDLE
            */
 
+          entity.animations.setChatAnimation?.(entity.playerState?.chatAnimation || "");
           entity.animations
             .setRunning(
               !isJumping &&
@@ -1905,6 +1911,7 @@ export const createMultiplayer =
         dungeonInteractions.destroy();
         projectiles.destroy();
         bossVisuals.destroy();
+        useChatStore.getState().disconnect();
         useBossNoticeStore.getState().reset();
         loot.destroy();
         useQuestStore.getState().reset();
@@ -1945,6 +1952,8 @@ export const createMultiplayer =
 
     return {
       room,
+      getChatAnimation: () => localPlayerState?.chatAnimation || "",
+      getRemotePlayerName: (sessionId) => room.state.players.get(sessionId)?.name || "",
       getMovementSpeedMultiplier: () => localPlayerState?.movementSpeedMultiplier ?? 1,
       getRemotePlayerId(mesh) {
         for (let node = mesh; node; node = node.parent) {

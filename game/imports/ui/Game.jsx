@@ -625,6 +625,7 @@ export const Game = ({
             (
               event
             ) => {
+              if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
               if (
                 event.repeat
               ) {
@@ -917,6 +918,7 @@ export const Game = ({
               }
 
 
+              animations.setChatAnimation?.(multiplayer?.getChatAnimation() || "");
               animations.update(
                 deltaTime
               );

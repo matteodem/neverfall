@@ -1,3 +1,4 @@
+import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
@@ -847,6 +848,7 @@ export const Hud = ({
   return (
     <>
       <div className={`pointer-events-none fixed inset-0 z-[9998] border-[10px] border-red-400/70 transition-opacity duration-200 ${hitFeedback ? "opacity-100" : "opacity-0"}`} />
+      <Chat />
       <LootPrompt />
       <DungeonPrompt />
       <GroupPanel />

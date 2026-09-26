@@ -26,6 +26,6 @@ export const createPlayerSelection = ({ canvas, scene, input, multiplayer, onSel
     if (x < 0 || y < 0 || x > bounds.width || y > bounds.height) return;
     const pick = scene.pick(x, y);
     const sessionId = multiplayer.getRemotePlayerId(pick?.pickedMesh);
-    onSelect(sessionId ? { sessionId, x: event.clientX, y: event.clientY } : null);
+    onSelect(sessionId ? { sessionId, name: multiplayer.getRemotePlayerName(sessionId), x: event.clientX, y: event.clientY } : null);
   });
 };

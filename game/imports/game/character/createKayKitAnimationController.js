@@ -45,6 +45,12 @@ export const createKayKitAnimationController =
       );
 
 
+    const chatAnimations = {
+      walk: getAnimation(animations, "Walking_A"),
+      idle: idle,
+      interact: getAnimation(animations, "Interact"),
+    };
+    let chatAnimation = "";
     let visible = true;
 
     let running =
@@ -152,6 +158,10 @@ export const createKayKitAnimationController =
         }
 
 
+        if (chatAnimation && !running) {
+          play(chatAnimations[chatAnimation], chatAnimation !== "interact");
+          return;
+        }
         if (
           running
         ) {
@@ -206,6 +216,7 @@ export const createKayKitAnimationController =
 
 
     return {
+      setChatAnimation(value) { chatAnimation = value; },
       setVisible(value) {
         visible = value;
         if (!value) currentAnimation?.pause();

@@ -36,6 +36,7 @@ export const createInput = (
   const handleKeyDown = (
     event
   ) => {
+    if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
     state.keys[
       event.key.toLowerCase()
     ] = true;
@@ -94,6 +95,10 @@ export const createInput = (
   ) => {
     event.preventDefault();
   };
+
+  on(window, "focusin", (event) => {
+    if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) state.keys = {};
+  });
 
   on(
     window,

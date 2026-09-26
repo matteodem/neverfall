@@ -55,3 +55,8 @@ body {
 .mobile-game .hud-minimap .text-sm { font-size: 11px; }
 
 .mobile-game .hud-modal.relative { transform-origin: center; }
+
+.mobile-game .game-chat { width: 220px; font-size: 10px; }
+.mobile-game .game-chat [role="log"] { height: 72px; }
+.mobile-game .game-chat:not(:focus-within) { pointer-events: none; }
+.mobile-game .game-chat button { pointer-events: auto; }
