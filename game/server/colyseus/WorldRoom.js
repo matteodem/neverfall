@@ -63,6 +63,8 @@ const HEALTH_REGEN = {
     0.05,
 };
 
+const WORLD_ENEMY_SPEED_MULTIPLIER = 2.3;
+
 const ATTACK_COOLDOWN_FIELDS = {
   Digit1: "attackAvailableAt",
   Digit2: "heavyStrikeAvailableAt",
@@ -1225,7 +1227,8 @@ export class WorldRoom
    */
 
   getEnemyStats(type, level) {
-    return getEnemyStats(type, level);
+    const stats = getEnemyStats(type, level);
+    return { ...stats, speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER };
   }
 
   async attackEnemy(

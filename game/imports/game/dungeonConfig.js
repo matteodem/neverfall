@@ -6,6 +6,7 @@ export const DUNGEON = {
   interactionDistance: 3,
   enemyHealthMultiplier: 1.5,
   enemyDamageMultiplier: 1.5,
+  enemySpeedMultiplier: 2.3,
   rewardXp: 250,
   rewardMoney: 10000,
   stages: [

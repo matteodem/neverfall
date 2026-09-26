@@ -1,4 +1,5 @@
 import { LOOT_RANGE } from "../../imports/game/inventory";
+import { PLAYER } from "../../imports/game/config";
 import { WorldRoom } from "./WorldRoom";
 import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
@@ -104,6 +105,7 @@ export class DungeonRoom extends WorldRoom {
       ...stats,
       health: stats.health * DUNGEON.enemyHealthMultiplier,
       attackDamage: stats.attackDamage * DUNGEON.enemyDamageMultiplier,
+      speed: PLAYER.speed * DUNGEON.enemySpeedMultiplier,
     };
   }
 
