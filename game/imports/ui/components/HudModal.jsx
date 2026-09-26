@@ -14,7 +14,7 @@ const getInitialPosition = (id) => {
   };
 };
 
-export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHeight }) => {
+export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHeight, scrollable = true }) => {
   const openModals = useHudStore((state) => state.openModals);
   const openModal = useHudStore((state) => state.openModal);
   const closeModal = useHudStore((state) => state.closeModal);
@@ -72,7 +72,7 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
 
   const modal = (
     <div
-      className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl`}
+      className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col ${scrollable ? "overflow-hidden" : "overflow-visible"} rounded-box bg-base-100 text-base-content shadow-2xl`}
       style={{
         ...(backdrop ? {} : { left: position.x, top: position.y }),
         ...(maxHeight ? { maxHeight: `min(${maxHeight}px, calc(var(--game-height, 100vh) - 16px))` } : {}),
@@ -92,7 +92,7 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
           ✕
         </button>
       </div>
-      <div className="overflow-auto p-4">{children}</div>
+      <div className={`${scrollable ? "overflow-auto" : "overflow-visible"} p-4`}>{children}</div>
     </div>
   );
 

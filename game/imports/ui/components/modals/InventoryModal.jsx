@@ -203,7 +203,7 @@ const InventorySlot = ({
       data-tip={name}
     >
       {itemDefinition ? (
-        <div className="dropdown dropdown-top h-full w-full">
+        <div className="dropdown dropdown-top focus-within:z-[100] h-full w-full">
           <button type="button" className="block h-full w-full">
             <InventorySlotContent
               item={item}
@@ -212,7 +212,7 @@ const InventorySlot = ({
               rarityClass={rarityClass}
             />
           </button>
-          <ul className="dropdown-content menu z-50 w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+          <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
             <li>
               <div className="pointer-events-none block">
                 <strong className="block text-xs">{itemDefinition.name}</strong>
@@ -375,6 +375,7 @@ export const InventoryModal =
 
     return (
       <HudModal
+        scrollable={false}
         id="inventory"
         title="Inventory"
       >

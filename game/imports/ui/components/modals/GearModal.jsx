@@ -28,9 +28,9 @@ const EquipmentSlot = ({ slot, itemId }) => {
   if (!item) return content;
 
   return (
-    <div className="dropdown dropdown-top w-full">
+    <div className="dropdown dropdown-top focus-within:z-[100] w-full">
       <button type="button" className="block w-full text-left">{content}</button>
-      <ul className="dropdown-content menu z-50 w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+      <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
         <li>
           <div className="pointer-events-none block">
             <strong className="block text-xs">{item.name}</strong>
@@ -61,7 +61,7 @@ export const GearModal = () => {
   });
 
   return (
-    <HudModal id="gear" title="Gear">
+    <HudModal id="gear" title="Gear" scrollable={false}>
       <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
         <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Equipped</h4>
         <div className="grid grid-cols-2 gap-2">
