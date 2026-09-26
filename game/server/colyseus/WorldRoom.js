@@ -53,7 +53,7 @@ const MAX_PLAYERS =
  * =====================================================
  */
 
-const PLAYER_REGEN = {
+const HEALTH_REGEN = {
   delay:
     5000,
 
@@ -862,7 +862,7 @@ export class WorldRoom
 
       if (
         timeSinceCombat <
-        PLAYER_REGEN.delay
+        HEALTH_REGEN.delay
       ) {
         continue;
       }
@@ -870,7 +870,7 @@ export class WorldRoom
 
       const healthPerSecond =
         player.maxHealth *
-        PLAYER_REGEN.percentPerSecond;
+        HEALTH_REGEN.percentPerSecond;
 
 
       const healthThisTick =
@@ -1158,6 +1158,9 @@ export class WorldRoom
         nextAttackAt:
           0,
 
+        lastCombatAt:
+          0,
+
         wanderTarget:
           null,
 
@@ -1249,6 +1252,8 @@ export class WorldRoom
 
     runtime.targetSessionId =
       sessionId;
+
+    runtime.lastCombatAt = Date.now();
 
 
     runtime.wanderTarget =
@@ -1493,7 +1498,26 @@ export class WorldRoom
         runtime,
         deltaTime
       );
+
+      this.updateEnemyRegeneration(enemy, runtime, deltaTime);
     }
+  }
+
+
+  updateEnemyRegeneration(enemy, runtime, deltaTime) {
+    if (
+      runtime.targetSessionId ||
+      enemy.health <= 0 ||
+      enemy.health >= enemy.maxHealth ||
+      Date.now() - runtime.lastCombatAt < HEALTH_REGEN.delay
+    ) {
+      return;
+    }
+
+    enemy.health = Math.min(
+      enemy.maxHealth,
+      enemy.health + enemy.maxHealth * HEALTH_REGEN.percentPerSecond * (deltaTime / 1000)
+    );
   }
 
 
@@ -1643,6 +1667,8 @@ export class WorldRoom
     runtime.nextAttackAt =
       now +
       stats.attackCooldown;
+
+    runtime.lastCombatAt = now;
 
 
     /*

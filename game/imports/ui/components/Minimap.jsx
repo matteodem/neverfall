@@ -286,6 +286,7 @@ export const Minimap =
           text-white
           backdrop-blur-sm
           shadow-2xl
+          max-w-[256px]
         "
       >
         <div className="mb-2 flex items-center justify-between">
@@ -307,6 +308,7 @@ export const Minimap =
             border-white/15
             bg-slate-900/80
             shadow-inner
+            mx-auto
           "
           style={{
             width:
