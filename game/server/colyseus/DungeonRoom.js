@@ -8,6 +8,7 @@ import { collectLoot } from "../inventory/loot";
 const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "lastCombatAt"];
 
 export class DungeonRoom extends WorldRoom {
+  mountsAllowed = false;
   state = new DungeonState();
   participants = new Map();
 

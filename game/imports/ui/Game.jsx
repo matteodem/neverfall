@@ -297,7 +297,7 @@ export const Game = ({
               mounted =
                 Boolean(
                   value &&
-                  playerAlive
+                  playerAlive && location !== "dungeon"
                 );
 
 

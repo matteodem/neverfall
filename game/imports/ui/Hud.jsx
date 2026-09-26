@@ -701,6 +701,7 @@ const BottomHud = ({
   healCooldownUntil,
   mounted,
   isDead,
+  inDungeon,
 }) => {
   return (
     <div
@@ -735,9 +736,9 @@ const BottomHud = ({
         >
           <button
             type="button"
-            disabled={isDead}
+            disabled={isDead || inDungeon}
             onClick={() => useActionBarStore.getState().triggerSkill("KeyV")}
-            className="btn btn-sm relative h-[45px] w-[55px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40"
+            className={`btn btn-sm relative h-[45px] w-[55px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40 disabled:pointer-events-auto ${isDead || inDungeon ? "cursor-not-allowed" : ""}`}
           >
             <Icon icon="horse" />
             <span className="
@@ -852,6 +853,7 @@ export const Hud = ({
         }
         mounted={mounted}
         isDead={isDead}
+        inDungeon={inDungeon}
       />
 
 

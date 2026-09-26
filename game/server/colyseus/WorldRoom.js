@@ -86,6 +86,8 @@ const getStatsForPlayer = (player) =>
 
 export class WorldRoom
   extends Room {
+  mountsAllowed = true;
+
   state =
     new WorldState();
 
@@ -416,7 +418,7 @@ export class WorldRoom
         data.rotationY;
 
       if (typeof data.mounted === "boolean") {
-        player.mounted = data.mounted;
+        player.mounted = this.mountsAllowed && data.mounted;
       }
     },
 
