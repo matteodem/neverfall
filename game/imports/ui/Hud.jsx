@@ -1,3 +1,5 @@
+import { useDungeonStore } from "./stores/useDungeonStore";
+import { DungeonPrompt } from "./components/DungeonPrompt";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
 import { LootPrompt } from "./components/LootPrompt";
@@ -775,6 +777,7 @@ export const Hud = ({
   healCooldownUntil,
   mounted = false,
 }) => {
+  const inDungeon = useDungeonStore((state) => state.location === "dungeon");
   const [hitFeedback, setHitFeedback] = useState(false);
   const previousHealth = React.useRef(playerHealth.health);
 
@@ -797,6 +800,7 @@ export const Hud = ({
     <>
       <div className={`pointer-events-none fixed inset-0 z-[9998] border-[10px] border-red-400/70 transition-opacity duration-200 ${hitFeedback ? "opacity-100" : "opacity-0"}`} />
       <LootPrompt />
+      <DungeonPrompt />
       <GroupPanel />
       <GroupInvitationModal />
 
@@ -824,7 +828,7 @@ export const Hud = ({
       >
         <Minimap />
 
-        <QuestTracker />
+        {!inDungeon && <QuestTracker />}
       </div>
 
 

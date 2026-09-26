@@ -1,4 +1,5 @@
-import { connectGroups } from "./groups";
+import { getGameSession, closeGameSession } from "./gameSession";
+import { createDungeonInteractions } from "./dungeonInteractions";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea } from "./quests";
 import { useQuestStore } from "../ui/stores/useQuestStore";
@@ -7,7 +8,6 @@ import "@babylonjs/loaders/glTF";
 
 import {
   Callbacks,
-  Client,
 } from "@colyseus/sdk";
 
 import {
@@ -21,16 +21,8 @@ import {
 } from "@babylonjs/core";
 
 import {
-  Meteor,
-} from "meteor/meteor";
-
-import {
   JUMP,
 } from "./config";
-
-import {
-  ensureGuestUser,
-} from "../auth/guest";
 
 import {
   createHealthBar,
@@ -69,10 +61,6 @@ import {
 import {
   useMinimapStore,
 } from "../ui/stores/useMinimapStore";
-
-const SERVER_URL =
-  "ws://localhost:2567";
-
 
 const SEND_INTERVAL =
   50;
@@ -795,54 +783,35 @@ export const createMultiplayer =
     onLocalHealthChange,
     onHealCooldown,
     onBoarQuestChange,
+    dungeonVisuals,
   }) => {
-    await ensureGuestUser();
-
-
-    const userId =
-      Meteor.userId();
-
-
-    console.log(
-      "[Meteor] userId:",
-      userId
-    );
-
-
-    const authToken =
-      await Meteor.callAsync(
-        "colyseus.authToken"
-      );
-
-
-    const client =
-      new Client(
-        SERVER_URL
-      );
-
-
-    client.auth.token =
-      authToken;
-
-
-    let room
-
-    try {
-      room =
-        await client.joinOrCreate(
-          "world"
-        );
-    } catch (error) {
-      throw error;
+    const session = await getGameSession();
+    const room = session.room;
+    const dungeon = room !== session.worldRoom;
+    const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, dungeon });
+    let destroyed = false;
+    const disposers = [];
+    const rawCallbacks = Callbacks.get(room);
+    const callbacks = {};
+    // Scene transitions detach only the listeners owned by this scene.
+    for (const method of ["onAdd", "onRemove", "onChange", "listen"]) {
+      callbacks[method] = (...args) => {
+        const callback = args.pop();
+        const stop = rawCallbacks[method](...args, (...values) => {
+          if (destroyed) return;
+          const result = callback(...values);
+          result?.catch?.((error) => { if (!destroyed) console.error("[Multiplayer] Entity update failed", error); });
+          return result;
+        });
+        disposers.push(stop);
+        return stop;
+      };
     }
-
-    const disconnectGroups = connectGroups(room);
-
-    const callbacks =
-      Callbacks.get(
-        room
-      );
-
+    const onMessage = (type, callback) => {
+      const stop = room.onMessage(type, callback);
+      disposers.push(stop);
+      return stop;
+    };
 
     const loot = createLoot({ scene, room, callbacks, player });
 
@@ -884,6 +853,8 @@ export const createMultiplayer =
         ) {
           localPlayerState =
             playerState;
+          player.position.set(playerState.x, playerState.y + JUMP.groundY, playerState.z);
+          player.rotation.y = playerState.rotationY;
 
 
           /*
@@ -1013,7 +984,7 @@ export const createMultiplayer =
          */
 
         if (
-          removedPlayers.has(
+          destroyed || removedPlayers.has(
             sessionId
           )
         ) {
@@ -1054,7 +1025,7 @@ export const createMultiplayer =
 
         entity.setAlive(
           playerState.health >
-            0
+            0 && !playerState.inDungeon
         );
 
 
@@ -1066,6 +1037,10 @@ export const createMultiplayer =
         );
 
 
+        callbacks.listen(playerState, "inDungeon", () => {
+          entity.setAlive(playerState.health > 0 && !playerState.inDungeon);
+        });
+
         /*
          * HEALTH
          */
@@ -1076,7 +1051,7 @@ export const createMultiplayer =
           () => {
             const alive =
               playerState.health >
-              0;
+              0 && !playerState.inDungeon;
 
 
             entity.healthBar.setHealth(
@@ -1283,7 +1258,7 @@ export const createMultiplayer =
      * =========================================================
      */
 
-    room.onMessage(
+    onMessage(
       "healCooldown",
       ({
         duration,
@@ -1301,7 +1276,7 @@ export const createMultiplayer =
      * =========================================================
      */
 
-    room.onMessage(
+    onMessage(
       "attack",
       ({
         sessionId,
@@ -1331,7 +1306,7 @@ export const createMultiplayer =
      * =========================================================
      */
 
-    room.onMessage(
+    onMessage(
       "enemyAttack",
       ({
         enemyId,
@@ -1382,7 +1357,7 @@ export const createMultiplayer =
      * =========================================================
      */
 
-    room.onMessage(
+    onMessage(
       "playerHeal",
       ({
         sessionId,
@@ -1530,7 +1505,7 @@ export const createMultiplayer =
          */
 
         if (
-          !room.state.enemies.has(
+          destroyed || !room.state.enemies.has(
             enemyId
           )
         ) {
@@ -1719,10 +1694,11 @@ export const createMultiplayer =
           minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
           useMinimapStore.getState().syncEntities(room.state, room.sessionId);
         }
+        dungeonInteractions.update(deltaTime);
         loot.update();
-        const area = getQuestArea(player.position);
-        if (useQuestStore.getState().area !== area) {
-          useQuestStore.getState().setArea(area);
+        if (!dungeon) {
+          const area = getQuestArea(player.position);
+          if (useQuestStore.getState().area !== area) useQuestStore.getState().setArea(area);
         }
 
         const smoothing =
@@ -1935,8 +1911,10 @@ export const createMultiplayer =
      */
 
     const destroy =
-      async () => {
-        disconnectGroups();
+      async ({ keepConnection = false } = {}) => {
+        destroyed = true;
+        for (const stop of disposers) stop();
+        dungeonInteractions.destroy();
         loot.destroy();
         useQuestStore.getState().reset();
 
@@ -1970,7 +1948,7 @@ export const createMultiplayer =
           .getState()
           .reset();
 
-        await room.leave();
+        if (!keepConnection) await closeGameSession();
       };
 
 
@@ -1979,7 +1957,7 @@ export const createMultiplayer =
       getRemotePlayerId(mesh) {
         for (let node = mesh; node; node = node.parent) {
           const id = node.metadata?.remotePlayerId;
-          if (id && remotePlayers.get(id)?.visibility.isVisible()) return id;
+          if (id && remotePlayers.get(id)?.visibility.isVisible()) return room.state.players.get(id)?.worldSessionId || id;
         }
         return null;
       },
@@ -2004,6 +1982,7 @@ export const createMultiplayer =
       equipItem,
       unequipItem,
       collectLoot: loot.collect,
+      interactDungeon: dungeonInteractions.interact,
 
       syncLocalPlayer,
 

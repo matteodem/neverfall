@@ -1,3 +1,6 @@
+import { DUNGEON } from "./dungeonConfig";
+import { createDungeonPortal } from "./environment/createDungeonPortal";
+import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
 import { FOREST_SIZE } from "./enemyConfig";
 import "@babylonjs/loaders/glTF";
 
@@ -54,6 +57,7 @@ export const createWorld =
     {
       appearance,
       name,
+      dungeon = false,
     }
   ) => {
 
@@ -147,13 +151,19 @@ export const createWorld =
         "ground",
         {
           width:
-            500,
+            dungeon ? 26 : 500,
 
           height:
-            500,
+            dungeon ? 118 : 500,
         },
         scene
       );
+
+    if (dungeon) {
+      ground.position.z = 48;
+      scene.clearColor = Color3.FromHexString("#1b202b").toColor4();
+      scene.fogColor = Color3.FromHexString("#1b202b");
+    }
 
     ground.checkCollisions =
       true;
@@ -166,7 +176,7 @@ export const createWorld =
 
     groundMaterial.diffuseColor =
       Color3.FromHexString(
-        "#4B6B3C"
+        dungeon ? "#333946" : "#4B6B3C"
       );
 
     groundMaterial.specularColor =
@@ -455,27 +465,25 @@ export const createWorld =
       false;
 
 
-    /*
-     * =====================================================
-     * FOREST
-     * =====================================================
-     */
+    let forest, mountainRing, jumpingPuzzle, clearingCamp;
+    let dungeonVisuals = null;
+    if (dungeon) {
+      dungeonVisuals = createDungeonEnvironment(scene);
+    } else {
+      createDungeonPortal({ scene, ...DUNGEON.entrance, title: "Enter Dungeon" });
+      /*
+       * =====================================================
+       * FOREST
+       * =====================================================
+       */
 
-    const forest =
-      createForestArea({
-        scene,
-        size: FOREST_SIZE,
-        treeCount: 300,
-        bushCount: 150,
+      forest =
+        createForestArea({
+          scene,
+          size: FOREST_SIZE,
+          treeCount: 300,
+          bushCount: 150,
 
-        center:
-          new Vector3(
-            0,
-            0,
-            0
-          ),
-
-        clearing: {
           center:
             new Vector3(
               0,
@@ -483,72 +491,81 @@ export const createWorld =
               0
             ),
 
-          radius:
-            8,
-        },
-      });
+          clearing: {
+            center:
+              new Vector3(
+                0,
+                0,
+                0
+              ),
+
+            radius:
+              8,
+          },
+        });
 
 
-    /*
-     * =====================================================
-     * MOUNTAINS
-     * =====================================================
-     */
+      /*
+       * =====================================================
+       * MOUNTAINS
+       * =====================================================
+       */
 
-    const mountainRing =
-      createMountainRing({
-        scene,
+      mountainRing =
+        createMountainRing({
+          scene,
 
-        center:
-          new Vector3(
-            0,
-            0,
-            0
-          ),
+          center:
+            new Vector3(
+              0,
+              0,
+              0
+            ),
 
-        size:
-          280,
+          size:
+            280,
 
-        spacing:
-          22,
+          spacing:
+            22,
 
-        jitter:
-          6,
-      });
+          jitter:
+            6,
+        });
 
-    /*
-    * =====================================================
-    * JUMPING PUZZLE
-    * =====================================================
-    */
+      /*
+      * =====================================================
+      * JUMPING PUZZLE
+      * =====================================================
+      */
 
-    const jumpingPuzzle =
-      createJumpingPuzzle({
-        scene,
-      });
-
-
-    /*
-     * =====================================================
-     * CAMP
-     * =====================================================
-     */
-
-    const clearingCamp =
-      createClearingCamp({
-        scene,
-
-        center:
-          new Vector3(
-            2,
-            0,
-            3.5
-          ),
-      });
+      jumpingPuzzle =
+        createJumpingPuzzle({
+          scene,
+        });
 
 
-    for (const mesh of mountainRing.getChildMeshes()) mesh.freezeWorldMatrix();
-    for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
+      /*
+       * =====================================================
+       * CAMP
+       * =====================================================
+       */
+
+      clearingCamp =
+        createClearingCamp({
+          scene,
+
+          center:
+            new Vector3(
+              2,
+              0,
+              3.5
+            ),
+        });
+
+
+      for (const mesh of mountainRing.getChildMeshes()) mesh.freezeWorldMatrix();
+      for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
+    }
 
     /*
      * =====================================================
@@ -570,6 +587,7 @@ export const createWorld =
      */
 
     return {
+      dungeonVisuals,
       player,
 
       character,

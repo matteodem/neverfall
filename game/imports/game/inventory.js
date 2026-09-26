@@ -1,3 +1,4 @@
+import { DUNGEON } from "./dungeonConfig";
 import {
   EQUIPMENT_DROP_CHANCE,
   EQUIPMENT_ITEMS,
@@ -28,8 +29,9 @@ export const stackItems = (items = []) => {
 };
 
 export const canCollectLoot = (player, loot) => Boolean(
-  player && loot && player.health > 0 &&
+  player && loot && player.health > 0 && !player.inDungeon &&
   player.userId === loot.ownerId &&
+  (!loot.ownerCharacterId || player.characterId === loot.ownerCharacterId) &&
   Math.hypot(player.x - loot.x, player.y - loot.y, player.z - loot.z) <= LOOT_RANGE
 );
 
@@ -38,12 +40,12 @@ export const rollLoot = (random = Math.random, enemyType = "boar") => {
   const dropsEquipment = random() < EQUIPMENT_DROP_CHANCE;
   const items = dropsEquipment
     ? [{ id: equipmentItemIds[Math.floor(random() * equipmentItemIds.length)] }]
-    : random() < 0.7
+    : enemyType !== "dungeonChest" && random() < 0.7
       ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
       : [];
 
   return {
-    money: enemyType === "wolf" ? 200 : 50,
+    money: enemyType === "dungeonChest" ? DUNGEON.rewardMoney : enemyType === "wolf" ? 200 : 50,
     items,
   };
 };

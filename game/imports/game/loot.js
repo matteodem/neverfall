@@ -16,7 +16,8 @@ export const createLoot = ({ scene, room, callbacks, player }) => {
   glow.intensity = 0.8;
 
   const stopAdd = callbacks.onAdd("loot", (loot, id) => {
-    if (loot.ownerId !== room.state?.players?.get(room.sessionId)?.userId) return;
+    const local = room.state?.players?.get(room.sessionId);
+    if (loot.ownerId !== local?.userId || (loot.ownerCharacterId && loot.ownerCharacterId !== local?.characterId)) return;
     const orb = MeshBuilder.CreateSphere(`loot-${id}`, { diameter: 0.3, segments: 12 }, scene);
     orb.position.set(loot.x, loot.y + 0.5, loot.z);
     orb.material = material;
@@ -44,6 +45,8 @@ export const createLoot = ({ scene, room, callbacks, player }) => {
     if (state) {
       const position = {
         userId: state.userId,
+        characterId: state.characterId,
+        inDungeon: state.inDungeon,
         health: state.health,
         x: player.position.x,
         y: player.position.y - JUMP.groundY,

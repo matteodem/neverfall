@@ -28,6 +28,9 @@ export const PlayerState =
         t.number().default(0),
 
       groupId: t.string().default(""),
+      inDungeon: t.boolean().default(false),
+      worldSessionId: t.string().default(""),
+      dungeonRewardClaimed: t.boolean().default(false),
 
       mounted:
         t.boolean().default(false),
@@ -110,7 +113,9 @@ export const EnemyState = schema(
 export const LootState = schema(
   {
     ownerId: t.string().default(""),
+    ownerCharacterId: t.string().default(""),
     enemyType: t.string().default("boar"),
+    xpReward: t.number().default(0),
     x: t.number().default(0),
     y: t.number().default(0),
     z: t.number().default(0),
@@ -130,3 +135,12 @@ export const WorldState = schema(
   },
   "WorldState"
 );
+
+export const DungeonState = schema({
+  players: t.map(PlayerState),
+  enemies: t.map(EnemyState),
+  loot: t.map(LootState),
+  stage: t.number().default(0),
+  bossDefeated: t.boolean().default(false),
+  completed: t.boolean().default(false),
+}, "DungeonState");

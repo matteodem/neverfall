@@ -1,3 +1,4 @@
+import { useDungeonStore } from "./stores/useDungeonStore";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
@@ -86,6 +87,7 @@ export const Game = ({
   setHealCooldownUntil,
   setMountedState,
 }) => {
+  const location = useDungeonStore((state) => state.location);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const closePlayerDropdown = useCallback(() => setSelectedPlayer(null), []);
 
@@ -127,6 +129,7 @@ export const Game = ({
 
   useEffect(
     () => {
+      setSelectedPlayer(null);
       let engine =
         null;
 
@@ -232,6 +235,7 @@ export const Game = ({
 
                 name:
                   character.name,
+                dungeon: location === "dungeon",
               }
             );
 
@@ -335,6 +339,7 @@ export const Game = ({
               scene,
 
               player,
+              dungeonVisuals: world.dungeonVisuals,
 
               onLocalHealthChange:
                 (
@@ -379,7 +384,7 @@ export const Game = ({
             disposed
           ) {
             multiplayer
-              ?.destroy();
+              ?.destroy({ keepConnection: useDungeonStore.getState().location !== location });
 
             return;
           }
@@ -627,8 +632,7 @@ export const Game = ({
                 event.preventDefault();
 
 
-                multiplayer
-                  ?.collectLoot();
+                if (!multiplayer?.interactDungeon()) multiplayer?.collectLoot();
 
 
                 return;
@@ -1054,7 +1058,7 @@ export const Game = ({
 
 
         multiplayer
-          ?.destroy();
+          ?.destroy({ keepConnection: useDungeonStore.getState().location !== location });
 
 
         combat
@@ -1081,7 +1085,7 @@ export const Game = ({
           ?.dispose();
       };
     },
-    []
+    [location]
   );
 
 

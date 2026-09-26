@@ -1,3 +1,4 @@
+import { DungeonRoom } from "./DungeonRoom";
 import {
   defineRoom,
   defineServer,
@@ -27,6 +28,7 @@ export const startColyseus = async () => {
     }),
 
     rooms: {
+      dungeon: defineRoom(DungeonRoom),
       world: defineRoom(
         WorldRoom
       ),

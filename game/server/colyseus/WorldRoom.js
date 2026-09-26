@@ -1,3 +1,4 @@
+import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
 import { spawnLoot, collectLoot } from "../inventory/loot";
@@ -213,8 +214,13 @@ export class WorldRoom
    * =====================================================
    */
 
+  onDispose() {
+    this.dungeons?.dispose();
+  }
+
   onCreate() {
     this.groups = createGroups(this.state.players);
+    this.dungeons = createDungeonInstances(this);
     this.maxClients =
       MAX_PLAYERS;
 
@@ -263,6 +269,7 @@ export class WorldRoom
     const stats = getPlayerStats(player.currentLevel, equipment);
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
+    if (player.inDungeon) this.dungeons?.syncPlayer(player);
   }
 
   async persistPlayerEquipment(player, equipment, inventoryItems) {
@@ -288,6 +295,7 @@ export class WorldRoom
   }
 
   messages = {
+    dungeonEnter: (client) => this.dungeons.enter(client),
     groupInvite: (client, targetId) => {
       const target = this.clients.find((candidate) => candidate.sessionId === targetId);
       if (!target) {
@@ -310,7 +318,7 @@ export class WorldRoom
     equipItem: async (client, { itemId, slot }) => {
       const player = this.state.players.get(client.sessionId);
       const item = EQUIPMENT_ITEMS[itemId];
-      if (!player || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
+      if (!player || player.inDungeon || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
 
       const character = await Characters.findOneAsync({
         _id: player.characterId,
@@ -336,7 +344,7 @@ export class WorldRoom
 
     unequipItem: async (client, slot) => {
       const player = this.state.players.get(client.sessionId);
-      if (!player || !EQUIPMENT_SLOTS.includes(slot)) return;
+      if (!player || player.inDungeon || !EQUIPMENT_SLOTS.includes(slot)) return;
 
       const character = await Characters.findOneAsync({
         _id: player.characterId,
@@ -368,7 +376,7 @@ export class WorldRoom
 
 
       if (
-        !player
+        !player || player.inDungeon
       ) {
         return;
       }
@@ -431,6 +439,7 @@ export class WorldRoom
       if (
         !player ||
         !runtime ||
+        player.inDungeon ||
         player.mounted ||
         player.health <=
           0
@@ -511,6 +520,7 @@ export class WorldRoom
       if (
         !player ||
         !runtime ||
+        player.inDungeon ||
         player.mounted ||
         player.health <=
           0
@@ -734,6 +744,7 @@ export class WorldRoom
       );
 
 
+    this.dungeons?.removePlayer(client.sessionId);
     this.leaveGroup(client.sessionId);
 
     this.state.players.delete(
@@ -821,6 +832,7 @@ export class WorldRoom
       of this.state.players.entries()
     ) {
       if (
+        player.inDungeon ||
         player.health <=
           0 ||
         player.health >=
@@ -891,6 +903,7 @@ export class WorldRoom
 
     if (
       !player ||
+      player.inDungeon ||
       player.health <=
         0
     ) {
@@ -1083,6 +1096,7 @@ export class WorldRoom
         player.health =
           stats.maxHealth;
       }
+      if (player.inDungeon) this.dungeons?.syncPlayer(player);
     }
   }
 
@@ -1182,6 +1196,7 @@ export class WorldRoom
 
     if (
       !player ||
+      player.inDungeon ||
       player.health <=
         0
     ) {
@@ -1521,6 +1536,7 @@ export class WorldRoom
 
     if (
       !target ||
+      target.inDungeon ||
       target.health <=
         0
     ) {

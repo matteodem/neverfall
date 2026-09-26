@@ -31,7 +31,7 @@ export const useMinimapStore =
             else { next[id] = marker; changed = true; }
           };
           world.players.forEach((player, id) => {
-            if (id === localId) return;
+            if (id === localId || player.inDungeon) return;
             copy(state.remotePlayers, remotePlayers, id, {
               id, x: player.x, z: player.z, rotationY: player.rotationY,
               name: player.name, currentLevel: player.currentLevel,

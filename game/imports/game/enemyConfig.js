@@ -57,6 +57,16 @@ export const ENEMY_TYPES = {
   },
 };
 
+// Reuse the existing ogre asset and animations for the small dungeon bosses.
+ENEMY_TYPES.dungeonGuardian = {
+  ...ENEMY_TYPES.forestGiant,
+  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0, speed: 2.5,
+};
+ENEMY_TYPES.dungeonWarden = {
+  ...ENEMY_TYPES.forestGiant,
+  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, speed: 3, scale: 1.3,
+};
+
 export const getEnemyStats = (type = "boar", level = 1) => {
   const config = { ...BASE_STATS, ...ENEMY_TYPES[type] };
   return {

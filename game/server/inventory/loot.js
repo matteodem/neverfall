@@ -33,6 +33,7 @@ export const collectLoot = async (room, client, id) => {
     reward: rollLoot(Math.random, loot.enemyType),
     characterId: player.characterId,
     itemsSaved: false,
+    xpSaved: false,
   };
   pendingRewards.set(loot, pending);
   const { reward, characterId } = pending;
@@ -45,11 +46,16 @@ export const collectLoot = async (room, client, id) => {
       if (!updated) throw new Error("Loot character not found");
       pending.itemsSaved = true;
     }
+    if (loot.xpReward > 0 && !pending.xpSaved) {
+      await room.awardXp(characterId, loot.xpReward);
+      pending.xpSaved = true;
+    }
     const updated = await Meteor.users.updateAsync(player.userId, {
       $inc: { "profile.inventory.money": reward.money },
     });
     if (!updated) throw new Error("Loot user not found");
     pendingRewards.delete(loot);
+    room.onLootCollected?.(player, loot);
   } catch (error) {
     room.state.loot.set(id, loot);
     console.error("[Loot] Failed to save inventory", error);

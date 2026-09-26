@@ -1,3 +1,5 @@
+import { DUNGEON } from "../../game/dungeonConfig";
+import { useDungeonStore } from "../stores/useDungeonStore";
 import React from "react";
 
 import {
@@ -89,7 +91,7 @@ const getEnemyColor = (
 
   if (
     type ===
-    "forestGiant"
+    "forestGiant" || type === "dungeonGuardian" || type === "dungeonWarden"
   ) {
     return "#a855f7";
   }
@@ -245,6 +247,7 @@ const Legend = () => {
 
 export const Minimap =
   () => {
+    const location = useDungeonStore((state) => state.location);
     const localPlayer =
       useMinimapStore(
         (state) =>
@@ -328,6 +331,8 @@ export const Minimap =
             size={10}
             className="z-10 ring-2 ring-black/30"
           />
+
+          <DotMarker {...(location === "dungeon" ? DUNGEON.exit : DUNGEON.entrance)} color="#a78bfa" size={10} className="z-10" />
 
           {/*
            * Remote players
