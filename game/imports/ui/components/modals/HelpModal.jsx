@@ -28,7 +28,7 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        v0.3
+        v0.4
       </div>
 
       <p className="mt-5 text-lg font-bold">
