@@ -1,6 +1,7 @@
 import { DUNGEON } from "../../game/dungeonConfig";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import React from "react";
+import { Icon } from "./Icon";
 
 import {
   FOREST_SIZE,
@@ -158,24 +159,16 @@ const LocalPlayerMarker = ({
           position.top,
 
         transform:
-          `translate(-50%, -50%) rotate(${rotationY}rad)`,
+          `translate(-50%, -50%) rotate(${rotationY - Math.PI / 4}rad)`,
       }}
     >
-      <div
-        className="
-          h-0
-          w-0
-
-          border-l-[7px]
-          border-r-[7px]
-          border-b-[14px]
-
-          border-l-transparent
-          border-r-transparent
-          border-b-white
-
-          drop-shadow-[0_0_6px_rgba(255,255,255,0.85)]
-        "
+      <Icon
+        icon="locationArrow"
+        className="h-4 w-4 text-white"
+        stroke="#0f172a"
+        strokeWidth={30}
+        style={{ paintOrder: "stroke" }}
+        aria-hidden="true"
       />
     </div>
   );
