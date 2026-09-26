@@ -1,7 +1,8 @@
 import { create } from "zustand";
+import { getDevice } from "../hooks/useMobileDevice";
 
 export const useChatStore = create((set, get) => ({
-  visible: true, open: false, draft: "", lastChannelPrefix: "", focusRequest: 0, roomId: null, sendHandler: null, error: "",
+  visible: typeof window === "undefined" || !getDevice().mobile, open: false, draft: "", lastChannelPrefix: "", focusRequest: 0, roomId: null, sendHandler: null, error: "",
   toggleVisible() { set((state) => ({ visible: !state.visible, open: false })); },
   show(draft) { set((state) => ({ visible: true, open: true, focusRequest: state.focusRequest + 1, ...(draft !== undefined ? { draft } : {}) })); },
   close() { set({ open: false }); },

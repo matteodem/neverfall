@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const getDevice = () => {
+export const getDevice = () => {
   const touch = navigator.maxTouchPoints > 0;
   const mobile = navigator.userAgentData?.mobile || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
     || (navigator.platform === "MacIntel" && touch)
