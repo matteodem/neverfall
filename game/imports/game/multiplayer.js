@@ -892,6 +892,11 @@ export const createMultiplayer =
           );
 
 
+          useQuestStore.getState().setGiantKills(playerState.giantQuestKills ?? 0);
+          callbacks.listen(playerState, "giantQuestKills", () => {
+            useQuestStore.getState().setGiantKills(playerState.giantQuestKills ?? 0);
+          });
+
           useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
           callbacks.listen(playerState, "wolfQuestKills", () => {
             useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);

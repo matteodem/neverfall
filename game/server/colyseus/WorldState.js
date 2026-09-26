@@ -79,6 +79,7 @@ export const PlayerState =
           "head1"
         ),
 
+      giantQuestKills: t.number().default(0),
       wolfQuestKills: t.number().default(0),
 
       boarQuestKills:

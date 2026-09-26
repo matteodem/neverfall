@@ -12,7 +12,7 @@ import {
 export const QuestTracker =
   () => {
     const area = useQuestStore((state) => state.area);
-    const kills = useQuestStore((state) => area === "wolf" ? state.wolfKills : state.boarKills);
+    const kills = useQuestStore((state) => area === "forestGiant" ? state.giantKills : area === "wolf" ? state.wolfKills : state.boarKills);
     const quest = HUNT_QUESTS[area];
 
     return (

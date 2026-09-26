@@ -13,7 +13,7 @@ const getInitialPosition = (id) => {
   };
 };
 
-export const HudModal = ({ id, title, children, backdrop = false, onClose }) => {
+export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHeight }) => {
   const openModals = useHudStore((state) => state.openModals);
   const openModal = useHudStore((state) => state.openModal);
   const closeModal = useHudStore((state) => state.closeModal);
@@ -68,7 +68,10 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose }) => 
   const modal = (
     <div
       className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} flex max-h-[calc(100vh-16px)] w-[min(32rem,calc(100vw-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl`}
-      style={backdrop ? undefined : { left: position.x, top: position.y }}
+      style={{
+        ...(backdrop ? {} : { left: position.x, top: position.y }),
+        ...(maxHeight ? { maxHeight: `min(${maxHeight}px, calc(100vh - 16px))` } : {}),
+      }}
       onPointerDown={() => openModal(id)}
     >
       <div

@@ -1,3 +1,4 @@
+import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getClassConfig } from "../game/classConfig";
 import { DungeonPrompt } from "./components/DungeonPrompt";
@@ -197,6 +198,8 @@ const HUD_BUTTONS = [
     label:
       "Gear",
   },
+
+  { id: "achievements", icon: "trophy", label: "Achievements" },
 
   {
     id:
@@ -409,6 +412,7 @@ const MenuButtons =
                 title={
                   label
                 }
+                aria-label={label}
                 onClick={
                   () =>
                     openModal(
@@ -876,6 +880,9 @@ export const Hud = ({
         <DeathOverlay />
       )}
 
+
+      <AchievementModal />
+      <AchievementToast />
 
       <HelpModal />
 

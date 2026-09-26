@@ -267,6 +267,8 @@ Meteor.methods({
       currentXp:
         0,
 
+      achievements: {},
+
       inventory: { items: [] },
 
       equipment: {

@@ -1,3 +1,4 @@
+import { trackAchievements } from "../achievements";
 import { LOOT_RANGE } from "../../imports/game/inventory";
 import { PLAYER } from "../../imports/game/config";
 import { WorldRoom } from "./WorldRoom";
@@ -110,7 +111,11 @@ export class DungeonRoom extends WorldRoom {
   }
 
   killEnemy(enemyId) {
-    if (!this.enemyRuntime.has(enemyId)) return;
+    const runtime = this.enemyRuntime.get(enemyId);
+    if (!runtime) return;
+    for (const characterId of runtime.contributors) {
+      void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
+    }
     this.state.enemies.delete(enemyId);
     this.enemyRuntime.delete(enemyId);
     if (this.state.enemies.size) return;

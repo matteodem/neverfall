@@ -1,3 +1,4 @@
+import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
@@ -353,7 +354,9 @@ export class WorldRoom
       }
       equipment[slot] = itemId;
 
-      await this.persistPlayerEquipment(player, equipment, inventoryItems);
+      if (await this.persistPlayerEquipment(player, equipment, inventoryItems)) {
+        await trackAchievements(player.characterId, "equip");
+      }
     },
 
     unequipItem: async (client, slot) => {
@@ -430,7 +433,11 @@ export class WorldRoom
         data.rotationY;
 
       if (typeof data.mounted === "boolean") {
+        const wasMounted = player.mounted;
         player.mounted = this.mountsAllowed && data.mounted;
+        if (player.mounted && !wasMounted) {
+          void trackAchievements(player.characterId, "mount");
+        }
       }
     },
 
@@ -655,6 +662,8 @@ export class WorldRoom
       );
     }
 
+
+    await trackAchievements(character._id, "level", character.currentLevel ?? 1);
 
     const appearance =
       character.appearance ||
@@ -1092,6 +1101,8 @@ export class WorldRoom
     );
 
 
+    await trackAchievements(characterId, "level", progress.currentLevel);
+
     /*
      * Update online Colyseus
      * player immediately.
@@ -1479,13 +1490,16 @@ export class WorldRoom
       stats.respawnDelay
     );
 
+    for (const characterId of contributors) {
+      await trackAchievements(characterId, "kill", spawn.type || "boar");
+    }
+
     if (stats.moneyReward) {
       await Meteor.users.updateAsync(
         { _id: { $in: Array.from(runtime.contributorUserIds) } },
         { $inc: { "profile.inventory.money": stats.moneyReward } },
         { multi: true }
       );
-      return;
     }
 
 
@@ -1498,10 +1512,12 @@ export class WorldRoom
       const characterId
       of contributors
     ) {
-      await this.awardXp(
-        characterId,
-        stats.xpReward
-      );
+      if (stats.xpReward > 0) {
+        await this.awardXp(
+          characterId,
+          stats.xpReward
+        );
+      }
 
 
       const completed =

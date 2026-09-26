@@ -1,3 +1,4 @@
+import { trackAchievements } from "../achievements";
 import { Meteor } from "meteor/meteor";
 import { randomUUID } from "node:crypto";
 import { LootState } from "../colyseus/WorldState";
@@ -45,6 +46,7 @@ export const collectLoot = async (room, client, id) => {
       );
       if (!updated) throw new Error("Loot character not found");
       pending.itemsSaved = true;
+      await trackAchievements(characterId, "loot");
     }
     if (loot.xpReward > 0 && !pending.xpSaved) {
       await room.awardXp(characterId, loot.xpReward);

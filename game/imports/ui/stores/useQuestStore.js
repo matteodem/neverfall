@@ -11,8 +11,10 @@ export const useQuestStore =
       boarKills:
         0,
       wolfKills: 0,
+      giantKills: 0,
       area: "boar",
 
+      setGiantKills(giantKills) { set({ giantKills }); },
       setWolfKills(wolfKills) { set({ wolfKills }); },
       setArea(area) { set({ area }); },
 
@@ -29,6 +31,7 @@ export const useQuestStore =
           boarKills:
             0,
           wolfKills: 0,
+          giantKills: 0,
           area: "boar",
         });
       },
