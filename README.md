@@ -139,8 +139,6 @@ The current mount system supports:
 - Automatic dismounting where required
 - Combat restrictions while mounted
 
-Additional mounts may be added later.
-
 ## 🧑‍🤝‍🧑 Parties
 
 Players can form parties for group gameplay.
@@ -195,9 +193,7 @@ Then run:
 
 ```sh
 cd game
-
 meteor npm install
-
 meteor run
 ```
 
@@ -227,7 +223,6 @@ Future development may include:
 - 🌎 Dynamic world events
 - 📜 More quests and progression systems
 - 🧑‍🤝‍🧑 More group-oriented gameplay
-- 🐎 Additional mounts
 - 🎨 Improved visual effects and animations
 - 🔊 Expanded audio and ambience
 - 🎒 More loot and rewards
