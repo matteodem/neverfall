@@ -34,6 +34,7 @@ export const faceDirection = (
 
 const getMovementDirection = ({
   keys,
+  joystick,
   camera,
   player,
 }) => {
@@ -84,6 +85,10 @@ const getMovementDirection = ({
     );
   }
 
+  if (joystick) {
+    movement.addInPlace(forward.scale(joystick.y));
+    movement.addInPlace(right.scale(joystick.x));
+  }
   return movement;
 };
 
@@ -92,6 +97,7 @@ export const isMoving = (
   input
 ) => {
   return Boolean(
+    Math.hypot(input.joystick?.x || 0, input.joystick?.y || 0) > 0.1 ||
     input.keys.w ||
     input.keys.a ||
     input.keys.s ||
@@ -111,6 +117,7 @@ export const updateMovement = ({
     getMovementDirection({
       keys:
         input.keys,
+      joystick: Math.hypot(input.joystick?.x || 0, input.joystick?.y || 0) > 0.1 ? input.joystick : null,
 
       camera,
 

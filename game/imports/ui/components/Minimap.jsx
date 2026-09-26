@@ -11,9 +11,6 @@ import {
   useMinimapStore,
 } from "../stores/useMinimapStore";
 
-const MINIMAP_SIZE =
-  220;
-
 /*
  * Make the minimap a bit larger than
  * the forest so wolves / giant still fit.
@@ -271,6 +268,7 @@ export const Minimap =
     return (
       <div
         className="
+          hud-minimap
           rounded-3xl
           border
           border-white/15
@@ -305,9 +303,9 @@ export const Minimap =
           "
           style={{
             width:
-              MINIMAP_SIZE,
+              "var(--minimap-size, 220px)",
             height:
-              MINIMAP_SIZE,
+              "var(--minimap-size, 220px)",
           }}
         >
           {/*

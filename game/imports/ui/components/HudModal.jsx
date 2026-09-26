@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useHudStore } from "../stores/useHudStore";
 
 const getInitialPosition = (id) => {
-  const viewportWidth = typeof window === "undefined" ? 1024 : window.innerWidth;
-  const viewportHeight = typeof window === "undefined" ? 768 : window.innerHeight;
+  const game = typeof document === "undefined" ? null : document.querySelector(".mobile-game");
+  const viewportWidth = game?.clientWidth || (typeof window === "undefined" ? 1024 : window.innerWidth);
+  const viewportHeight = game?.clientHeight || (typeof window === "undefined" ? 768 : window.innerHeight);
   const offset = { inventory: 0, gear: 40, help: 80, settings: 120 }[id] || 0;
 
   return {
@@ -34,11 +35,15 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
     if (!drag) return undefined;
 
     const handlePointerMove = (event) => {
-      const maxX = Math.max(8, window.innerWidth - 120);
-      const maxY = Math.max(8, window.innerHeight - 56);
+      const game = document.querySelector(".mobile-game");
+      const maxX = Math.max(8, (game?.clientWidth || window.innerWidth) - 120);
+      const maxY = Math.max(8, (game?.clientHeight || window.innerHeight) - 56);
+      let dx = event.clientX - drag.pointerX;
+      let dy = event.clientY - drag.pointerY;
+      if (game?.classList.contains("mobile-portrait")) [dx, dy] = [dy, -dx];
       setPosition({
-        x: Math.max(8, Math.min(maxX, drag.x + event.clientX - drag.pointerX)),
-        y: Math.max(8, Math.min(maxY, drag.y + event.clientY - drag.pointerY)),
+        x: Math.max(8, Math.min(maxX, drag.x + dx)),
+        y: Math.max(8, Math.min(maxY, drag.y + dy)),
       });
     };
     const handlePointerUp = () => setDrag(null);
@@ -67,10 +72,10 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
 
   const modal = (
     <div
-      className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} flex max-h-[calc(100vh-16px)] w-[min(32rem,calc(100vw-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl`}
+      className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col overflow-hidden rounded-box bg-base-100 text-base-content shadow-2xl`}
       style={{
         ...(backdrop ? {} : { left: position.x, top: position.y }),
-        ...(maxHeight ? { maxHeight: `min(${maxHeight}px, calc(100vh - 16px))` } : {}),
+        ...(maxHeight ? { maxHeight: `min(${maxHeight}px, calc(var(--game-height, 100vh) - 16px))` } : {}),
       }}
       onPointerDown={() => openModal(id)}
     >
