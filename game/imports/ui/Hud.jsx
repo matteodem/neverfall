@@ -1,3 +1,4 @@
+import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
 import { BossNotice } from "./components/BossNotice";
@@ -203,6 +204,8 @@ const HUD_BUTTONS = [
   },
 
   { id: "achievements", icon: "trophy", label: "Achievements" },
+
+  { id: "map", icon: "map", label: "Map" },
 
   {
     id:
@@ -909,6 +912,7 @@ export const Hud = ({
       )}
 
 
+      <WorldMapModal />
       <AchievementModal />
       <AchievementToast />
 

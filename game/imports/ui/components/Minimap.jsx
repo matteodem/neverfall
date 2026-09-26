@@ -3,80 +3,11 @@ import { useDungeonStore } from "../stores/useDungeonStore";
 import React from "react";
 import { Icon } from "./Icon";
 
-import {
-  FOREST_SIZE,
-} from "../../game/enemyConfig";
+import { worldToPercent } from "../../game/worldMap";
 
 import {
   useMinimapStore,
 } from "../stores/useMinimapStore";
-
-/*
- * Make the minimap a bit larger than
- * the forest so wolves / giant still fit.
- */
-const WORLD_RADIUS =
-  FOREST_SIZE / 2 + 30;
-
-const clamp = (
-  value,
-  min,
-  max
-) => {
-  return Math.max(
-    min,
-    Math.min(
-      max,
-      value
-    )
-  );
-};
-
-const worldToPercent = ({
-  x,
-  z,
-}) => {
-  const normalizedX =
-    (
-      x +
-      WORLD_RADIUS
-    ) /
-    (
-      WORLD_RADIUS *
-      2
-    );
-
-  /*
-   * Positive Z should point north / up.
-   */
-  const normalizedY =
-    (
-      WORLD_RADIUS -
-      z
-    ) /
-    (
-      WORLD_RADIUS *
-      2
-    );
-
-  return {
-    left: `${
-      clamp(
-        normalizedX,
-        0,
-        1
-      ) * 100
-    }%`,
-
-    top: `${
-      clamp(
-        normalizedY,
-        0,
-        1
-      ) * 100
-    }%`,
-  };
-};
 
 const getEnemyColor = (
   type
