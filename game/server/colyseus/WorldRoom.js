@@ -2,6 +2,7 @@ import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats } from "../../imports/game/enemyConfig";
 import { getClassConfig } from "../../imports/game/classConfig";
+import { createProjectiles } from "./projectiles";
 import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
   Meteor,
@@ -97,6 +98,8 @@ export class WorldRoom
 
   state =
     new WorldState();
+
+  projectiles = createProjectiles(this);
 
 
   /*
@@ -564,6 +567,11 @@ export class WorldRoom
         client.send("skillCooldown", { code, duration: skill.cooldown });
       }
 
+      if (skill.projectile) {
+        this.projectiles.fire(client.sessionId, player, skill);
+        return;
+      }
+
 
       this.broadcast(
         "attack",
@@ -771,6 +779,7 @@ export class WorldRoom
 
 
     this.dungeons?.removePlayer(client.sessionId);
+    this.projectiles.removePlayer(client.sessionId);
     this.leaveGroup(client.sessionId);
 
     this.state.players.delete(
@@ -1505,6 +1514,7 @@ export class WorldRoom
   updateEnemies(
     deltaTime
   ) {
+    this.projectiles.update(deltaTime);
     for (
       const [
         enemyId,

@@ -1,4 +1,6 @@
 import { getGameSession, closeGameSession } from "./gameSession";
+import { getClassConfig } from "./classConfig";
+import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea } from "./quests";
@@ -479,6 +481,7 @@ const createRemotePlayer =
 
 
     const characterRoot = character.root;
+    const swordVisible = getClassConfig(playerState.gameClass).swordVisible;
     const root = new TransformNode(`remote-player-${sessionId}`, scene);
     root.metadata = { remotePlayerId: sessionId };
     characterRoot.parent = root;
@@ -661,6 +664,7 @@ const createRemotePlayer =
     const mount = await createHorseMount({ scene, parent: root, character });
     mount.setMounted(playerState.mounted);
     let alive = playerState.health > 0;
+    swordPivot.setEnabled(alive && swordVisible);
 
 
     const targetPosition = Vector3.Zero();
@@ -713,22 +717,22 @@ const createRemotePlayer =
         alive = isAlive;
         if (!alive) mount.setMounted(false);
         swordPivot.setEnabled(
-          alive
+          alive && swordVisible
         );
 
 
         swordGrip.setEnabled(
-          alive
+          alive && swordVisible
         );
 
 
         sword.setEnabled(
-          alive
+          alive && swordVisible
         );
 
 
         swordTip.setEnabled(
-          alive
+          alive && swordVisible
         );
 
 
@@ -816,6 +820,7 @@ export const createMultiplayer =
     };
 
     const loot = createLoot({ scene, room, callbacks, player });
+    const projectiles = createProjectileVisuals(scene);
 
     const remotePlayers =
       new Map();
@@ -1286,7 +1291,12 @@ export const createMultiplayer =
       "attack",
       ({
         sessionId,
+        projectile,
       }) => {
+        if (projectile) {
+          projectiles.spawn(projectile);
+          return;
+        }
         const entity =
           remotePlayers.get(
             sessionId
@@ -1311,6 +1321,8 @@ export const createMultiplayer =
      * ENEMY ATTACK
      * =========================================================
      */
+
+    onMessage("projectileEnd", ({ id }) => projectiles.remove(id));
 
     onMessage(
       "enemyAttack",
@@ -1629,14 +1641,15 @@ export const createMultiplayer =
       (
         localPlayer,
         deltaTime,
-        mounted = false
+        mounted = false,
+        force = false
       ) => {
         sendAccumulator +=
           deltaTime;
 
 
         if (
-          sendAccumulator <
+          !force && sendAccumulator <
           SEND_INTERVAL
         ) {
           return;
@@ -1701,6 +1714,7 @@ export const createMultiplayer =
           useMinimapStore.getState().syncEntities(room.state, room.sessionId);
         }
         dungeonInteractions.update(deltaTime);
+        projectiles.update(deltaTime);
         loot.update();
         if (!dungeon) {
           const area = getQuestArea(player.position);
@@ -1921,6 +1935,7 @@ export const createMultiplayer =
         destroyed = true;
         for (const stop of disposers) stop();
         dungeonInteractions.destroy();
+        projectiles.destroy();
         loot.destroy();
         useQuestStore.getState().reset();
 

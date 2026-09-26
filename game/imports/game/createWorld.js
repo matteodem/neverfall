@@ -4,6 +4,7 @@ import { createDungeonEnvironment } from "./environment/createDungeonEnvironment
 import { FOREST_SIZE } from "./enemyConfig";
 import "@babylonjs/loaders/glTF";
 
+import { getClassConfig } from "./classConfig";
 import {
   Color3,
   DirectionalLight,
@@ -465,6 +466,8 @@ export const createWorld =
 
     swordTip.isVisible =
       false;
+
+    swordPivot.setEnabled(getClassConfig(gameClass).swordVisible);
 
 
     let forest, mountainRing, jumpingPuzzle, clearingCamp;

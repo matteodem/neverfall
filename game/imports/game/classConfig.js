@@ -1,6 +1,12 @@
 import { WARRIOR_SKILLS } from "./config";
 
-// All classes share the current skill kit until their own abilities are added.
+const projectileAttack = (name, icon, type, radius) => ({
+  ...WARRIOR_SKILLS.Digit1,
+  name,
+  icon,
+  projectile: { type, speed: 18, lifetime: 1500, radius },
+});
+
 export const CLASS_CONFIG = {
   warrior: {
     name: "Warrior",
@@ -8,7 +14,11 @@ export const CLASS_CONFIG = {
     skinMeshes: ["Knight_Head"],
     maxHealth: 100,
     attackDamage: 25,
-    skills: WARRIOR_SKILLS,
+    swordVisible: true,
+    skills: {
+      ...WARRIOR_SKILLS,
+      Digit1: { ...WARRIOR_SKILLS.Digit1, name: "Basic Attack", icon: "sword" },
+    },
   },
   ranger: {
     name: "Ranger",
@@ -16,7 +26,8 @@ export const CLASS_CONFIG = {
     skinMeshes: ["Ranger_Head"],
     maxHealth: 85,
     attackDamage: 30,
-    skills: WARRIOR_SKILLS,
+    swordVisible: false,
+    skills: { Digit1: projectileAttack("Arrow Shot", "arrow", "arrow", 0.6) },
   },
   mage: {
     name: "Mage",
@@ -24,7 +35,8 @@ export const CLASS_CONFIG = {
     skinMeshes: ["Mage_Head"],
     maxHealth: 70,
     attackDamage: 35,
-    skills: WARRIOR_SKILLS,
+    swordVisible: false,
+    skills: { Digit1: projectileAttack("Fireball", "fireball", "fireball", 0.8) },
   },
 };
 

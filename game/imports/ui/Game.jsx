@@ -459,7 +459,13 @@ export const Game = ({
           const performAttack = (code) => {
             const skill = getClassConfig(character.gameClass).skills[code];
             const actionBar = useActionBarStore.getState();
-            if (!playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
+            if (!skill || !playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
+            if (skill.projectile) {
+              actionBar.setCooldown(code, skill.cooldown);
+              multiplayer?.sendMovement(player, 0, mounted, true);
+              multiplayer?.sendAttack(code);
+              return;
+            }
             if (!combat?.startAttack()) return;
             if (code !== "Digit1") actionBar.setCooldown(code, skill.cooldown);
             playGameSound("attack");
