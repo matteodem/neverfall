@@ -375,6 +375,9 @@ const MenuButtons =
       );
 
 
+    const openModals = useHudStore((state) => state.openModals);
+    const closeModal = useHudStore((state) => state.closeModal);
+
     return (
       <div
         className="
@@ -414,10 +417,7 @@ const MenuButtons =
                 }
                 aria-label={label}
                 onClick={
-                  () =>
-                    openModal(
-                      id
-                    )
+                  () => openModals.includes(id) ? closeModal(id) : openModal(id)
                 }
                 className="
                   btn
