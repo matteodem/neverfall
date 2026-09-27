@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useMobileDevice } from "../../hooks/useMobileDevice";
+import { actionButtonHandlers } from "../actionButtonHandlers";
 
 import {
   Meteor,
@@ -157,6 +159,10 @@ const MoneyDisplay = ({
 
 const InventorySlot = ({
   item,
+  mobile,
+  open,
+  onToggle,
+  onClose,
 }) => {
   if (
     !item
@@ -203,8 +209,9 @@ const InventorySlot = ({
       data-tip={name}
     >
       {itemDefinition ? (
-        <div className="dropdown dropdown-top focus-within:z-[100] h-full w-full">
-          <button type="button" className="block h-full w-full">
+        <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${mobile && open ? "dropdown-open z-[100]" : ""}`}>
+          <button type="button" className="block h-full w-full" aria-expanded={mobile ? open : undefined}
+            {...(mobile ? actionButtonHandlers(onToggle, true) : {})}>
             <InventorySlotContent
               item={item}
               name={name}
@@ -212,7 +219,7 @@ const InventorySlot = ({
               rarityClass={rarityClass}
             />
           </button>
-          <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+          {(!mobile || open) && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
             <li>
               <div className="pointer-events-none block">
                 <strong className="block text-xs">{itemDefinition.name}</strong>
@@ -224,12 +231,15 @@ const InventorySlot = ({
             <li>
               <button
                 type="button"
-                onClick={() => useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot })}
+                {...actionButtonHandlers(() => {
+                  useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot });
+                  onClose();
+                }, mobile)}
               >
                 Equip item
               </button>
             </li>
-          </ul>
+          </ul>}
         </div>
       ) : (
         <InventorySlotContent
@@ -310,6 +320,16 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass }) => (
 
 export const InventoryModal =
   () => {
+    const { mobile } = useMobileDevice();
+    const [openItem, setOpenItem] = useState(null);
+    useEffect(() => {
+      if (!mobile || openItem === null) return;
+      const closeOutside = (event) => {
+        if (!event.target.closest?.(".inventory-item-dropdown")) setOpenItem(null);
+      };
+      window.addEventListener("pointerdown", closeOutside);
+      return () => window.removeEventListener("pointerdown", closeOutside);
+    }, [mobile, openItem]);
     const {
       money,
       items,
@@ -487,6 +507,10 @@ export const InventoryModal =
                 index
               ) => (
                 <InventorySlot
+                  mobile={mobile}
+                  open={openItem === item?.id}
+                  onToggle={() => setOpenItem((previous) => previous === item.id ? null : item.id)}
+                  onClose={() => setOpenItem(null)}
                   key={
                     item
                       ? `${item.id}-${index}`
