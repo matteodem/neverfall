@@ -1,3 +1,4 @@
+import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
@@ -237,6 +238,7 @@ export class WorldRoom
   }
 
   onCreate() {
+    this.patchRate = PERFORMANCE.statePatchInterval;
     this.groups = createGroups(this.state.players);
     this.dungeons = createDungeonInstances(this);
     this.maxClients =
@@ -1587,15 +1589,24 @@ export class WorldRoom
       }
 
 
-      this.updateEnemy(
-        enemyId,
-        enemy,
-        runtime,
-        deltaTime
-      );
+      runtime.aiElapsed = (runtime.aiElapsed || 0) + deltaTime;
+      let nearby = Boolean(runtime.targetSessionId);
+      if (!nearby) {
+        for (const player of this.state.players.values()) {
+          if (!player.inDungeon && player.health > 0 &&
+              (player.x - enemy.x) ** 2 + (player.z - enemy.z) ** 2 <= PERFORMANCE.activeEnemyDistance ** 2) {
+            nearby = true;
+            break;
+          }
+        }
+      }
+      if (!nearby && runtime.aiElapsed < PERFORMANCE.inactiveEnemyInterval) continue;
+      const elapsed = nearby ? deltaTime : runtime.aiElapsed;
+      runtime.aiElapsed = 0;
+      this.updateEnemy(enemyId, enemy, runtime, elapsed);
 
       enemy.bossActive = Boolean(runtime.isBoss && runtime.targetSessionId);
-      this.updateEnemyRegeneration(enemy, runtime, deltaTime);
+      this.updateEnemyRegeneration(enemy, runtime, elapsed);
     }
   }
 

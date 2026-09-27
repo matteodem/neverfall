@@ -6,7 +6,10 @@ export const createHighlandsArea = ({ scene, chunk }) => {
   root.position.set(chunk.x, 0, chunk.z);
 
   const material = (name, color) => {
-    const result = new StandardMaterial(`highlands-${name}-${chunk.x}`, scene);
+    const key = `highlands-${name}`;
+    const existing = scene.getMaterialByName(key);
+    if (existing) return existing;
+    const result = new StandardMaterial(key, scene);
     result.diffuseColor = Color3.FromHexString(color);
     result.specularColor = Color3.Black();
     return result;
@@ -25,8 +28,14 @@ export const createHighlandsArea = ({ scene, chunk }) => {
     mesh.isPickable = false;
     return mesh;
   };
-  const block = (name, x, y, z, width, height, depth, surface = stone, rotation = 0) =>
-    place(MeshBuilder.CreateBox(name, { width, height, depth }, scene), x, y, z, surface, rotation);
+  const blockSources = new Map();
+  const block = (name, x, y, z, width, height, depth, surface = stone, rotation = 0) => {
+    const key = `${width},${height},${depth},${surface.name}`;
+    const source = blockSources.get(key);
+    const mesh = source ? source.createInstance(name) : MeshBuilder.CreateBox(name, { width, height, depth }, scene);
+    if (!source) blockSources.set(key, mesh);
+    return place(mesh, x, y, z, surface, rotation);
+  };
 
   const rock = (x, y, z, size, surface = stone) => {
     const mesh = MeshBuilder.CreatePolyhedron("highlands-rock", { type: 1, size }, scene);

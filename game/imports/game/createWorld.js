@@ -1,3 +1,4 @@
+import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEON } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
@@ -62,6 +63,7 @@ export const createWorld =
       name,
       gameClass = "warrior",
       dungeon = false,
+      quality = QUALITY_PRESETS.standard,
     }
   ) => {
 
@@ -71,6 +73,7 @@ export const createWorld =
      * =====================================================
      */
 
+    scene.metadata = { ...scene.metadata, quality };
     scene.clearColor =
       Color3.FromHexString(
         "#FFF4D6"
@@ -492,6 +495,8 @@ export const createWorld =
           size: CHUNK_SIZE,
           center: new Vector3(chunk.x, 0, chunk.z),
           ...WORLD_REGIONS[chunk.region],
+          ...Object.fromEntries(["treeCount", "bushCount", "rockCount", "logCount"].map((key) =>
+            [key, Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
         });
         chunks.add(area, chunk);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);

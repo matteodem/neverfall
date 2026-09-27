@@ -1,3 +1,4 @@
+import { PERFORMANCE, QUALITY_PRESETS } from "./performanceConfig";
 import { useTargetStore } from "../ui/stores/useTargetStore";
 import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
@@ -70,8 +71,7 @@ import {
   useMinimapStore,
 } from "../ui/stores/useMinimapStore";
 
-const SEND_INTERVAL =
-  50;
+const SEND_INTERVAL = PERFORMANCE.movementInterval;
 
 
 const REMOTE_SMOOTHING =
@@ -803,6 +803,16 @@ export const createMultiplayer =
     const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, dungeon });
     let destroyed = false;
     const disposers = [];
+    const quality = scene.metadata?.quality || QUALITY_PRESETS.standard;
+    const enemyVisibility = { ...ENTITY_VISIBILITY.enemy, enableDistance: quality.enemyDistance,
+      disableDistance: quality.enemyDistance + 20, chunks: !dungeon, labelDistance: quality.labelDistance };
+    const playerVisibility = { ...ENTITY_VISIBILITY.remotePlayer, enableDistance: quality.playerDistance,
+      disableDistance: quality.playerDistance + 30, labelDistance: quality.labelDistance };
+    let movementMessages = 0;
+    let statePatches = 0;
+    const countPatch = () => { statePatches++; };
+    room.onStateChange(countPatch);
+    disposers.push(() => room.onStateChange.remove(countPatch));
     const rawCallbacks = Callbacks.get(room);
     const callbacks = {};
     // Scene transitions detach only the listeners owned by this scene.
@@ -1071,7 +1081,7 @@ export const createMultiplayer =
 
 
         entity.playerState = playerState;
-        entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
+        entity.visibility.update(player.position, playerVisibility);
 
         remotePlayers.set(
           sessionId,
@@ -1520,7 +1530,7 @@ export const createMultiplayer =
 
         enemy.targetPosition.set(enemyState.x, enemyState.y, enemyState.z);
         enemy.setTargetRotation(enemyState.rotationY);
-        enemy.visibility.update(player.position, { ...ENTITY_VISIBILITY.enemy, chunks: !dungeon });
+        enemy.visibility.update(player.position, enemyVisibility);
 
         enemies.set(
           enemyId,
@@ -1645,6 +1655,7 @@ export const createMultiplayer =
           0;
 
 
+        movementMessages++;
         room.send(
           "move",
           {
@@ -1691,8 +1702,8 @@ export const createMultiplayer =
         minimapElapsed += deltaTime;
         if (visibilityElapsed >= ENTITY_VISIBILITY.updateInterval) {
           visibilityElapsed %= ENTITY_VISIBILITY.updateInterval;
-          for (const entity of remotePlayers.values()) entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
-          for (const enemy of enemies.values()) enemy.visibility.update(player.position, { ...ENTITY_VISIBILITY.enemy, chunks: !dungeon });
+          for (const entity of remotePlayers.values()) entity.visibility.update(player.position, playerVisibility);
+          for (const enemy of enemies.values()) enemy.visibility.update(player.position, enemyVisibility);
         }
         if (minimapElapsed >= ENTITY_VISIBILITY.minimapInterval) {
           minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
@@ -2002,7 +2013,14 @@ export const createMultiplayer =
           if (entity.visibility.isVisible()) activePlayers++;
           if (entity.visibility.hasLabels()) nameplates++;
         }
-        return { activeEnemies, enemies: enemies.size, activePlayers, players: remotePlayers.size, nameplates };
+        const projectileStats = projectiles.getStats();
+        const bossStats = bossVisuals.getStats();
+        const lootStats = loot.getStats();
+        return { activeEnemies, enemies: enemies.size, activePlayers, players: remotePlayers.size, nameplates,
+          projectiles: projectileStats.active, vfx: bossStats.active + lootStats.active,
+          pooledVisuals: projectileStats.retained + bossStats.retained + lootStats.retained,
+          createdVisuals: projectileStats.created + bossStats.created + lootStats.created,
+          movementMessages, statePatches };
       },
 
       sendMovement,

@@ -1,3 +1,4 @@
+import { useQualityStore } from "../../stores/useQualityStore";
 import React, {
   useState,
 } from "react";
@@ -15,6 +16,8 @@ import {
 } from "../../stores/useHudStore";
 
 export const SettingsModal = () => {
+  const quality = useQualityStore((state) => state.quality);
+  const setQuality = useQualityStore((state) => state.setQuality);
   const [
     loading,
     setLoading,
@@ -87,6 +90,13 @@ export const SettingsModal = () => {
       backdrop
     >
       <div className="flex flex-col gap-2">
+        <label className="flex items-center justify-between gap-3">
+          <span>Graphics quality</span>
+          <select className="select select-bordered select-sm" value={quality} onChange={(event) => setQuality(event.target.value)}>
+            <option value="standard">Standard</option>
+            <option value="low">Low (mobile)</option>
+          </select>
+        </label>
         {SETTINGS.map(
           (
             setting

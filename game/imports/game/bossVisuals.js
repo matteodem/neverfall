@@ -1,17 +1,37 @@
 import { Color3, MeshBuilder, StandardMaterial } from "@babylonjs/core";
 
+import { createVisualPool } from "./visualPool";
+
 export const createBossVisuals = (scene) => {
   const active = new Map();
   const remove = (id) => {
     const visual = active.get(id);
     if (!visual) return;
-    visual.circle.dispose();
-    visual.path.dispose();
-    visual.material.dispose();
+    pool.release(visual);
     active.delete(id);
   };
 
+  const pool = createVisualPool({
+    limit: 8,
+    create() {
+      const material = new StandardMaterial("boss-warning", scene);
+      material.alpha = 0.4;
+      const circle = MeshBuilder.CreateCylinder("boss-circle", {
+        diameter: 2, height: 0.04, tessellation: 32,
+      }, scene);
+      const path = MeshBuilder.CreateBox("boss-charge", { width: 1, height: 0.04, depth: 1 }, scene);
+      for (const mesh of [circle, path]) {
+        mesh.material = material;
+        mesh.isPickable = false;
+      }
+      return { circle, path, material };
+    },
+    dispose(visual) { visual.circle.dispose(); visual.path.dispose(); visual.material.dispose(); },
+    setEnabled(visual, enabled) { visual.circle.setEnabled(enabled); visual.path.setEnabled(enabled); },
+  });
+
   return {
+    getStats: () => ({ active: active.size, ...pool.getStats() }),
     update(enemies, isVisible = () => true) {
       for (const id of active.keys()) {
         if (!enemies.has(id)) remove(id);
@@ -23,17 +43,7 @@ export const createBossVisuals = (scene) => {
         }
         let visual = active.get(id);
         if (!visual) {
-          const material = new StandardMaterial(`boss-warning-${id}`, scene);
-          material.alpha = 0.4;
-          const circle = MeshBuilder.CreateCylinder(`boss-circle-${id}`, {
-            diameter: 2, height: 0.04, tessellation: 32,
-          }, scene);
-          const path = MeshBuilder.CreateBox(`boss-charge-${id}`, { width: 1, height: 0.04, depth: 1 }, scene);
-          for (const mesh of [circle, path]) {
-            mesh.material = material;
-            mesh.isPickable = false;
-          }
-          visual = { circle, path, material };
+          visual = pool.acquire();
           active.set(id, visual);
         }
         const aoe = enemy.bossAction === "aoe";
@@ -55,7 +65,8 @@ export const createBossVisuals = (scene) => {
       }
     },
     destroy() {
-      for (const id of active.keys()) remove(id);
+      active.clear();
+      pool.destroy();
     },
   };
 };

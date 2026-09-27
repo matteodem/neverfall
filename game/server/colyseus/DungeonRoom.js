@@ -1,3 +1,4 @@
+import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { trackAchievements } from "../achievements";
 import { LOOT_RANGE } from "../../imports/game/inventory";
 import { PLAYER } from "../../imports/game/config";
@@ -31,6 +32,7 @@ export class DungeonRoom extends WorldRoom {
   };
 
   async onCreate({ accessKey } = {}) {
+    this.patchRate = PERFORMANCE.statePatchInterval;
     const access = getDungeonAccess(accessKey);
     if (!access || access.roomId) throw new Error("Dungeon access denied");
     access.roomId = this.roomId;

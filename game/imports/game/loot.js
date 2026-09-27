@@ -1,4 +1,6 @@
+import { QUALITY_PRESETS } from "./performanceConfig";
 import { Color3, GlowLayer, MeshBuilder, StandardMaterial } from "@babylonjs/core";
+import { createVisualPool } from "./visualPool";
 import { JUMP } from "./config";
 import { canCollectLoot } from "./inventory";
 import { useLootStore } from "../ui/stores/useLootStore";
@@ -12,25 +14,40 @@ export const createLoot = ({ scene, room, callbacks, player }) => {
   const material = new StandardMaterial("lootMaterial", scene);
   material.emissiveColor = Color3.White();
   material.disableLighting = true;
-  const glow = new GlowLayer("lootGlow", scene);
+  const quality = scene.metadata?.quality || QUALITY_PRESETS.standard;
+  const glow = new GlowLayer("lootGlow", scene, { mainTextureFixedSize: quality.glowTextureSize });
+  glow.isEnabled = false;
   glow.intensity = 0.8;
+
+  const pool = createVisualPool({
+    create() {
+      const orb = MeshBuilder.CreateSphere("loot-orb", { diameter: 0.3, segments: 8 }, scene);
+      orb.material = material;
+      orb.isPickable = false;
+      return orb;
+    },
+    dispose: (orb) => orb.dispose(),
+    setEnabled: (orb, enabled) => orb.setEnabled(enabled),
+  });
 
   const stopAdd = callbacks.onAdd("loot", (loot, id) => {
     const local = room.state?.players?.get(room.sessionId);
     if (loot.ownerId !== local?.userId || (loot.ownerCharacterId && loot.ownerCharacterId !== local?.characterId)) return;
-    const orb = MeshBuilder.CreateSphere(`loot-${id}`, { diameter: 0.3, segments: 12 }, scene);
+    const orb = pool.acquire();
     orb.position.set(loot.x, loot.y + 0.5, loot.z);
     orb.material = material;
     orb.isPickable = false;
     glow.addIncludedOnlyMesh(orb);
     orbs.set(id, orb);
+    glow.isEnabled = true;
   });
   const stopRemove = callbacks.onRemove("loot", (_loot, id) => {
     const orb = orbs.get(id);
     if (orb) {
       glow.removeIncludedOnlyMesh(orb);
-      orb.dispose();
+      pool.release(orb);
       orbs.delete(id);
+      glow.isEnabled = orbs.size > 0;
     }
     if (useLootStore.getState().nearbyId === id) {
       useLootStore.getState().setNearbyId(null);
@@ -103,10 +120,11 @@ export const createLoot = ({ scene, room, callbacks, player }) => {
   return {
     update,
     collect,
+    getStats: () => ({ active: orbs.size, ...pool.getStats() }),
     destroy() {
       stopAdd();
       stopRemove();
-      for (const orb of orbs.values()) orb.dispose();
+      pool.destroy();
       orbs.clear();
       glow.dispose();
       material.dispose();

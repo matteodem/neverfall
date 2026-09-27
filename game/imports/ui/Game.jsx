@@ -1,3 +1,5 @@
+import { useQualityStore } from "./stores/useQualityStore";
+import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getClassConfig } from "../game/classConfig";
 import { createPlayerSelection } from "../game/playerSelection";
@@ -90,6 +92,7 @@ export const Game = ({
   setMountedState,
 }) => {
   const location = useDungeonStore((state) => state.location);
+  const quality = useQualityStore((state) => state.quality);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const closePlayerDropdown = useCallback(() => setSelectedPlayer(null), []);
 
@@ -191,6 +194,7 @@ export const Game = ({
             );
 
 
+          engine.setHardwareScalingLevel(QUALITY_PRESETS[quality].resolutionScale);
           engine.loadingScreen =
             createLoadingScreen();
 
@@ -241,6 +245,7 @@ export const Game = ({
                   character.name,
                 gameClass: character.gameClass,
                 dungeon: location === "dungeon",
+                quality: QUALITY_PRESETS[quality],
               }
             );
 
@@ -394,7 +399,7 @@ export const Game = ({
             disposed
           ) {
             multiplayer
-              ?.destroy({ keepConnection: useDungeonStore.getState().location !== location });
+              ?.destroy({ keepConnection: useDungeonStore.getState().location !== location || useQualityStore.getState().quality !== quality });
 
             return;
           }
@@ -1075,7 +1080,7 @@ export const Game = ({
 
 
         multiplayer
-          ?.destroy({ keepConnection: useDungeonStore.getState().location !== location });
+          ?.destroy({ keepConnection: useDungeonStore.getState().location !== location || useQualityStore.getState().quality !== quality });
 
 
         combat
@@ -1102,7 +1107,7 @@ export const Game = ({
           ?.dispose();
       };
     },
-    [location]
+    [location, quality]
   );
 
 

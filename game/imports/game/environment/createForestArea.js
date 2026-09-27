@@ -28,6 +28,8 @@ const createMaterial = (
   hex,
   emissive = 0
 ) => {
+  const existing = scene.getMaterialByName(name);
+  if (existing) return existing;
   const material =
     new StandardMaterial(
       name,
@@ -315,7 +317,7 @@ const createPineTree = ({
 
 
   const trunk =
-    MeshBuilder.CreateCylinder(
+    leafSources.trunk?.createInstance("treeTrunk") || MeshBuilder.CreateCylinder(
       "treeTrunk",
       {
         height:
@@ -353,6 +355,8 @@ const createPineTree = ({
     trunk
   );
 
+
+  leafSources.trunk ||= trunk;
 
   const leaf1 =
     leafSources[1]?.createInstance("treeLeaf1") || MeshBuilder.CreateCylinder(
@@ -477,9 +481,10 @@ const createRock = ({
   parent,
   position,
   materials,
+  sources,
 }) => {
   const rock =
-    MeshBuilder.CreatePolyhedron(
+    sources.rock?.createInstance("rock") || MeshBuilder.CreatePolyhedron(
       "rock",
       {
         type:
@@ -553,6 +558,7 @@ const createRock = ({
   );
 
 
+  sources.rock ||= rock;
   return rock;
 };
 
@@ -562,9 +568,10 @@ const createBush = ({
   parent,
   position,
   materials,
+  sources,
 }) => {
   const bush =
-    MeshBuilder.CreateSphere(
+    sources.bush?.createInstance("bush") || MeshBuilder.CreateSphere(
       "bush",
       {
         diameter:
@@ -620,6 +627,7 @@ const createBush = ({
   );
 
 
+  sources.bush ||= bush;
   return bush;
 };
 
@@ -629,9 +637,10 @@ const createLog = ({
   parent,
   position,
   materials,
+  sources,
 }) => {
   const log =
-    MeshBuilder.CreateCylinder(
+    sources.log?.createInstance("log") || MeshBuilder.CreateCylinder(
       "log",
       {
         height:
@@ -688,6 +697,7 @@ const createLog = ({
   );
 
 
+  sources.log ||= log;
   return log;
 };
 
@@ -861,6 +871,7 @@ export const createForestArea =
 
 
     const leafSources = {};
+    const sources = {};
 
     /*
      * TREES
@@ -906,6 +917,7 @@ export const createForestArea =
     ) {
       createRock({
         scene,
+        sources,
 
         parent:
           root,
@@ -936,6 +948,7 @@ export const createForestArea =
     ) {
       createBush({
         scene,
+        sources,
 
         parent:
           root,
@@ -966,6 +979,7 @@ export const createForestArea =
     ) {
       createLog({
         scene,
+        sources,
 
         parent:
           root,

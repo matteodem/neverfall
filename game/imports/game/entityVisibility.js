@@ -41,7 +41,7 @@ export const createEntityVisibility = ({ root, targetPosition, nameplate, health
       distanceSquared = dx * dx + dz * dz;
       const limit = inRange ? config.disableDistance : config.enableDistance;
       inRange = distanceSquared <= limit * limit && (!config.chunks || areNearbyChunks(targetPosition, playerPosition));
-      labelsInRange = distanceSquared <= ENTITY_VISIBILITY.nameplateDistance ** 2;
+      labelsInRange = distanceSquared <= (config.labelDistance ?? ENTITY_VISIBILITY.nameplateDistance) ** 2;
       apply();
     },
   };
