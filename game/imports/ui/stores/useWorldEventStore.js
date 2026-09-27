@@ -7,11 +7,12 @@ export const useWorldEventStore = create((set, get) => ({
     const shared = world?.worldEvent;
     const event = shared?.status === "active" && player?.health > 0 && !player.inDungeon && player.worldEventId === shared.id
       ? { id: shared.id, name: shared.name, wave: shared.wave,
-        totalWaves: shared.totalWaves, enemiesRemaining: shared.enemiesRemaining }
+        totalWaves: shared.totalWaves, enemiesRemaining: shared.enemiesRemaining, nextWaveIn: shared.nextWaveIn }
       : null;
     const previous = get().event;
     if (previous?.id === event?.id && previous?.name === event?.name && previous?.wave === event?.wave &&
-        previous?.totalWaves === event?.totalWaves && previous?.enemiesRemaining === event?.enemiesRemaining) return;
+        previous?.totalWaves === event?.totalWaves && previous?.enemiesRemaining === event?.enemiesRemaining &&
+        previous?.nextWaveIn === event?.nextWaveIn) return;
     set({ event });
   },
   reset: () => set({ event: null }),

@@ -9,6 +9,7 @@ export const createWorldEvents = (room) => {
   let config = WORLD_EVENTS[configIndex];
   let run = 0;
   let stage = 0;
+  let nextWaveAt = 0;
   const enemies = new Set();
   const participants = new Map();
   const state = new WorldEventState({ nextStartAt: Date.now() + config.initialDelay });
@@ -31,6 +32,8 @@ export const createWorldEvents = (room) => {
   };
 
   const spawnStage = () => {
+    nextWaveAt = 0;
+    state.nextWaveIn = 0;
     const wave = config.waves[stage] || config.boss;
     const playerCount = Math.max(1, new Set(nearbyPlayers().map(([, player]) => player.characterId)).size);
     const extraPlayers = playerCount - 1;
@@ -58,6 +61,8 @@ export const createWorldEvents = (room) => {
     state.status = "cooldown";
     state.nextStartAt = Date.now() + config.cooldown;
     state.enemiesRemaining = 0;
+    nextWaveAt = 0;
+    state.nextWaveIn = 0;
     for (const id of enemies) {
       room.state.enemies.delete(id);
       room.enemyRuntime.delete(id);
@@ -106,6 +111,11 @@ export const createWorldEvents = (room) => {
       }
       if (now >= state.endsAt) { finish(false); return; }
       const nearby = trackParticipants();
+      if (nextWaveAt) {
+        state.nextWaveIn = Math.max(0, Math.ceil((nextWaveAt - now) / 1000));
+        if (now < nextWaveAt) return;
+        spawnStage();
+      }
       for (const id of enemies) {
         const enemy = room.state.enemies.get(id);
         const runtime = room.enemyRuntime.get(id);
@@ -123,7 +133,11 @@ export const createWorldEvents = (room) => {
       state.enemiesRemaining = enemies.size;
       if (enemies.size) return;
       stage++;
-      if (stage <= config.waves.length) spawnStage();
+      if (stage <= config.waves.length) {
+        nextWaveAt = Date.now() + config.waveDelay;
+        state.nextWaveIn = Math.ceil(config.waveDelay / 1000);
+        state.wave = stage + 1;
+      }
       else finish(true);
     },
   };

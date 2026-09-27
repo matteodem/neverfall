@@ -149,6 +149,7 @@ export const WorldEventState = schema({
   wave: t.number().default(0),
   totalWaves: t.number().default(0),
   enemiesRemaining: t.number().default(0),
+  nextWaveIn: t.number().default(0),
   endsAt: t.number().default(0),
   nextStartAt: t.number().default(0),
 }, "WorldEventState");

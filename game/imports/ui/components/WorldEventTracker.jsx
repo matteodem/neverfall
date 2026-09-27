@@ -11,7 +11,9 @@ export const WorldEventTracker = () => {
       <div className="mt-1 text-sm text-white/70">
         {event.wave > event.totalWaves ? "Final Boss" : `Wave ${event.wave} / ${event.totalWaves}`}
       </div>
-      <div className="mt-2 text-sm">Enemies remaining: {event.enemiesRemaining}</div>
+      <div className="mt-2 text-sm">
+        {event.nextWaveIn > 0 ? `Starts in ${event.nextWaveIn}s` : `Enemies remaining: ${event.enemiesRemaining}`}
+      </div>
     </div>
   );
 };
