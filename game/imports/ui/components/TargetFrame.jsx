@@ -10,7 +10,7 @@ export const TargetFrame = () => {
   return (
     <div className={`target-frame ${bossVisible ? "target-with-boss" : ""} pointer-events-none absolute left-1/2 top-4 z-[10000] w-64 -translate-x-1/2 rounded-box border border-white/30 bg-black/80 p-2 text-white shadow-lg`}>
       <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-        <span className="font-bold">{target.name}</span>
+        <span className="font-bold">{target.name} <span className="font-normal text-white/70">Level {target.level}</span></span>
         <span>{Math.ceil(target.health)} / {target.maxHealth} HP</span>
       </div>
       <div role="progressbar" aria-label={`${target.name} health`} aria-valuenow={target.health} aria-valuemin={0} aria-valuemax={target.maxHealth}
