@@ -1623,6 +1623,17 @@ export class WorldRoom
     deltaTime
   ) {
     const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
+    if (runtime.isBoss && !runtime.targetSessionId && enemy.health > 0) {
+      let nearestDistance = stats.aggroRadius;
+      for (const [sessionId, player] of this.state.players.entries()) {
+        if (player.inDungeon || player.health <= 0) continue;
+        const distance = Math.hypot(player.x - enemy.x, player.z - enemy.z);
+        if (distance <= nearestDistance) {
+          nearestDistance = distance;
+          runtime.targetSessionId = sessionId;
+        }
+      }
+    }
     /*
      * No aggro:
      * wander around this enemy's

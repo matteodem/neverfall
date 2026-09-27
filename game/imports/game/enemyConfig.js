@@ -47,6 +47,7 @@ export const ENEMY_TYPES = {
   },
   forestGiant: {
     bossMechanics: BOSS_MECHANICS,
+    aggroRadius: 12,
     accessoryDropChance: 0.50,
     name: "Forest Giant",
     model: "mini-boss-ogre.glb",
