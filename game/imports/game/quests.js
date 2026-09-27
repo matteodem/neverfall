@@ -41,6 +41,21 @@ export const HUNT_QUESTS = {
   boar: BOAR_HUNT_QUEST,
   wolf: WOLF_HUNT_QUEST,
   forestGiant: GIANT_HUNT_QUEST,
+  goat: {
+    ...BOAR_HUNT_QUEST,
+    id: "goat-hunt", title: "Goat Hunt", description: "Kill 5 Goats",
+    progressField: "goatQuestKills", rewardXp: 500,
+  },
+  rat: {
+    ...BOAR_HUNT_QUEST,
+    id: "rat-hunt", title: "Rat Hunt", description: "Kill 5 Rats",
+    progressField: "ratQuestKills", rewardXp: 750,
+  },
+  bee: {
+    ...BOAR_HUNT_QUEST,
+    id: "bee-hunt", title: "Bee Hunt", description: "Kill 5 Bees",
+    progressField: "beeQuestKills", rewardXp: 1000,
+  },
 };
 
 const boarSpawns = ENEMY_SPAWNS.filter(({ type }) => type === "boar");
@@ -55,7 +70,21 @@ const BOAR_AREA = {
 const giantSpawn = ENEMY_SPAWNS.find(({ type }) => type === "forestGiant");
 const GIANT_QUEST_RADIUS = 25;
 
+const newHuntAreas = ["goat", "rat", "bee"].map((type) => {
+  const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
+  return {
+    type,
+    minX: Math.min(...spawns.map(({ x }) => x)) - BOAR_AREA_PADDING,
+    maxX: Math.max(...spawns.map(({ x }) => x)) + BOAR_AREA_PADDING,
+    minZ: Math.min(...spawns.map(({ z }) => z)) - BOAR_AREA_PADDING,
+    maxZ: Math.max(...spawns.map(({ z }) => z)) + BOAR_AREA_PADDING,
+  };
+});
+
 export const getQuestArea = ({ x, z }) => {
+  const huntArea = newHuntAreas.find((area) =>
+    x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
+  if (huntArea) return huntArea.type;
   if (Math.hypot(x - giantSpawn.x, z - giantSpawn.z) <= GIANT_QUEST_RADIUS) {
     return "forestGiant";
   }

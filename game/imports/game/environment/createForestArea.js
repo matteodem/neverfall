@@ -792,6 +792,7 @@ export const createForestArea =
         8,
     },
 
+    floorColor = "#4B6B3C",
     path =
       null,
   } = {}) => {
@@ -835,7 +836,7 @@ export const createForestArea =
         createMaterial(
           scene,
           "forestFloorMaterial",
-          "#4B6B3C"
+          floorColor
         ),
     };
 

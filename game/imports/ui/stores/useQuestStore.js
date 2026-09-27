@@ -12,11 +12,17 @@ export const useQuestStore =
         0,
       wolfKills: 0,
       giantKills: 0,
+      goatKills: 0,
+      ratKills: 0,
+      beeKills: 0,
       area: null,
 
       setGiantKills(giantKills) { set({ giantKills }); },
       setWolfKills(wolfKills) { set({ wolfKills }); },
       setArea(area) { set({ area }); },
+      setGoatKills(goatKills) { set({ goatKills }); },
+      setRatKills(ratKills) { set({ ratKills }); },
+      setBeeKills(beeKills) { set({ beeKills }); },
 
       setBoarKills(
         boarKills
@@ -32,6 +38,9 @@ export const useQuestStore =
             0,
           wolfKills: 0,
           giantKills: 0,
+          goatKills: 0,
+          ratKills: 0,
+          beeKills: 0,
           area: null,
         });
       },

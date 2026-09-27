@@ -1,3 +1,5 @@
+export const ENEMY_COMBAT_SPEED_MULTIPLIER = 1.0;
+
 export const RARE_ENEMY = {
   chance: 0.05,
   healthMultiplier: 1.5,
@@ -16,14 +18,20 @@ const BASE_STATS = {
   health: 100,
   attackDamage: 10,
   healthPerLevel: 50,
-  damagePerLevel: 5,
+  damagePerLevel: 8,
   xpReward: 20,
-  speed: 2,
+  speed: 3.0,
   attackRange: 1.8,
   attackCooldown: 1000,
   respawnDelay: 5000,
   wanderRadius: 3,
   wanderWait: 1500,
+};
+
+const ANIMAL_ANIMATIONS = {
+  idle: { from: 0, to: 29 },
+  attack: { from: 30, to: 59 },
+  walk: { from: 90, to: 119 },
 };
 
 export const ENEMY_TYPES = {
@@ -32,11 +40,7 @@ export const ENEMY_TYPES = {
     model: "boar.glb",
     scale: 0.3,
     rotationY: 0,
-    animations: {
-      idle: { from: 0, to: 29 },
-      attack: { from: 30, to: 59 },
-      walk: { from: 90, to: 119 },
-    },
+    animations: ANIMAL_ANIMATIONS,
   },
   wolf: {
     name: "Wolf",
@@ -44,6 +48,36 @@ export const ENEMY_TYPES = {
     scale: 0.4,
     rotationY: 0,
     animations: { idle: "Idle", attack: "Attack", walk: "Walk" },
+  },
+  goat: {
+    name: "Goat",
+    model: "goat.glb",
+    scale: 0.3,
+    rotationY: 0,
+    health: 120,
+    healthPerLevel: 120,
+    xpReward: 25,
+    animations: ANIMAL_ANIMATIONS,
+  },
+  rat: {
+    name: "Rat",
+    model: "rat.glb",
+    scale: 0.18,
+    rotationY: 0,
+    health: 120,
+    healthPerLevel: 120,
+    xpReward: 15,
+    animations: ANIMAL_ANIMATIONS,
+  },
+  bee: {
+    name: "Bee",
+    model: "bee.glb",
+    scale: 0.15,
+    rotationY: 0,
+    health: 120,
+    healthPerLevel: 120,
+    xpReward: 15,
+    animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
     bossMechanics: BOSS_MECHANICS,
@@ -61,7 +95,6 @@ export const ENEMY_TYPES = {
     damagePerLevel: 0,
     attackRange: 2.5,
     attackCooldown: 1200,
-    speed: 4.5,
     wanderRadius: 4,
     respawnDelay: 180000,
     xpReward: 0,
@@ -78,12 +111,12 @@ export const ENEMY_TYPES = {
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
   accessoryDropChance: 0.20,
-  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0, speed: 2.5,
+  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0,
   healthPerLevel: 100, damagePerLevel: 5,
 };
 ENEMY_TYPES.dungeonWarden = {
   ...ENEMY_TYPES.forestGiant,
-  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, speed: 3, scale: 1.3,
+  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, scale: 1.3,
   healthPerLevel: 100, damagePerLevel: 5,
 };
 
@@ -101,7 +134,7 @@ export const getEnemyStats = (type = "boar", level = 1, rare = false) => {
 
 // North is +Z, west is -X, relative to the camp at the origin.
 export const WOLF_AREA = { minX: -95, maxX: -40, minZ: 40, maxZ: 95 };
-export const FOREST_SIZE = 200;
+export { WORLD_SIZE as FOREST_SIZE } from "./worldConfig";
 
 export const ENEMY_SPAWNS = [
   { id: "boar-1", type: "boar", level: 1, x: -20, y: 0, z: 16 },
@@ -115,4 +148,14 @@ export const ENEMY_SPAWNS = [
   { id: "wolf-4", type: "wolf", level: 3, x: -60, y: 0, z: 80 },
   { id: "wolf-5", type: "wolf", level: 3, x: -77, y: 0, z: 82 },
   { id: "forest-giant", type: "forestGiant", level: 5, x: 70, y: 0, z: 72 },
+  // Northern highlands: goats west, rats central, bees east.
+  { id: "goat-1", type: "goat", level: 5, x: -160, y: 0, z: 180 },
+  { id: "goat-2", type: "goat", level: 5, x: -176, y: 0, z: 198 },
+  { id: "goat-3", type: "goat", level: 5, x: -144, y: 0, z: 212 },
+  { id: "rat-1", type: "rat", level: 7, x: -12, y: 0, z: 200 },
+  { id: "rat-2", type: "rat", level: 7, x: 14, y: 0, z: 218 },
+  { id: "rat-3", type: "rat", level: 7, x: -16, y: 0, z: 234 },
+  { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
+  { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
+  { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
 ];

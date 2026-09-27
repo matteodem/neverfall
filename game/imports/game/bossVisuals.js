@@ -12,12 +12,12 @@ export const createBossVisuals = (scene) => {
   };
 
   return {
-    update(enemies) {
+    update(enemies, isVisible = () => true) {
       for (const id of active.keys()) {
         if (!enemies.has(id)) remove(id);
       }
       for (const [id, enemy] of enemies) {
-        if (!enemy.bossAction && !enemy.enraged) {
+        if (!isVisible(id) || (!enemy.bossAction && !enemy.enraged)) {
           remove(id);
           continue;
         }

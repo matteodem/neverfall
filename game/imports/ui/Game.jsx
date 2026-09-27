@@ -15,6 +15,7 @@ import React, {
 import {
   Engine,
   Scene,
+  Vector3,
 } from "@babylonjs/core";
 
 import {
@@ -360,6 +361,10 @@ export const Game = ({
                     0;
 
 
+                  if (!playerAlive) {
+                    input?.clear();
+                    setSelectedPlayer(null);
+                  }
                   if (
                     !playerAlive &&
                     mounted
@@ -430,7 +435,8 @@ export const Game = ({
 
           input =
             createInput(
-              canvas
+              canvas,
+              () => playerAlive
             );
 
 
@@ -505,6 +511,7 @@ export const Game = ({
             (
               code
             ) => {
+              if (!playerAlive) return;
               if (
                 mounted &&
                 /^Digit[1-4]$/.test(code)
@@ -535,7 +542,7 @@ export const Game = ({
            * =====================================================
            */
 
-          createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer });
+          createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer, canInteract: () => playerAlive });
 
           let previousTouch = null;
           input.on(canvas, "pointerdown", (event) => {
@@ -649,7 +656,7 @@ export const Game = ({
                 event.preventDefault();
 
 
-                if (!multiplayer?.interactDungeon()) multiplayer?.collectLoot();
+                executeSkill("KeyF");
 
 
                 return;
@@ -737,7 +744,7 @@ export const Game = ({
                 event.preventDefault();
 
 
-                jump.jump();
+                executeSkill("Space");
 
 
                 return;
@@ -843,7 +850,7 @@ export const Game = ({
                * ---------------------
                */
 
-              const movement =
+              const movement = playerAlive ?
                 updateMovement({
                   deltaTime,
 
@@ -856,7 +863,7 @@ export const Game = ({
 
                   speedMultiplier:
                     (mounted ? 2 : 1) * (multiplayer?.getMovementSpeedMultiplier() ?? 1),
-                });
+                }) : Vector3.Zero();
 
 
               mount
@@ -865,7 +872,7 @@ export const Game = ({
                 );
 
 
-              updateCameraFacing({
+              if (playerAlive) updateCameraFacing({
                 input:
                   input.state,
 
@@ -881,9 +888,7 @@ export const Game = ({
                * ---------------------
                */
 
-              jump.update(
-                deltaTime
-              );
+              if (playerAlive) jump.update(deltaTime);
 
 
               /*
@@ -896,7 +901,7 @@ export const Game = ({
                */
 
               if (
-                jump.isJumping()
+                playerAlive && jump.isJumping()
               ) {
                 animations
                   .setJumping(
@@ -911,7 +916,7 @@ export const Game = ({
 
                 animations
                   .setRunning(
-                    isMoving(
+                    playerAlive && isMoving(
                       input.state
                     )
                   );

@@ -406,6 +406,11 @@ const createCampfire = ({
   const flickerObserver =
     scene.onBeforeRenderObservable.add(
       () => {
+        if (!fireRoot.isEnabled()) {
+          fireLight.setEnabled(false);
+          return;
+        }
+        fireLight.setEnabled(true);
         const deltaTime =
           scene
             .getEngine()

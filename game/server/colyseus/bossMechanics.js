@@ -1,3 +1,5 @@
+import { ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
+
 // Special attacks use the same authoritative damage path as normal melee.
 const damageArea = (room, x, z, radius, damage, hitPlayers, start) => {
   for (const [sessionId, player] of room.state.players) {
@@ -63,7 +65,7 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
       }
     } else if (enemy.bossAction === "charge") {
       const start = { x: enemy.x, z: enemy.z };
-      const movement = Math.min(action.remaining, config.charge.speed * (enemy.enraged ? config.enrage.speedMultiplier : 1) * deltaTime / 1000);
+      const movement = Math.min(action.remaining, config.charge.speed * ENEMY_COMBAT_SPEED_MULTIPLIER * (enemy.enraged ? config.enrage.speedMultiplier : 1) * deltaTime / 1000);
       enemy.x += action.dx * movement;
       enemy.z += action.dz * movement;
       action.remaining -= movement;

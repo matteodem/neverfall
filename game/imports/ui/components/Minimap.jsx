@@ -3,7 +3,7 @@ import { useDungeonStore } from "../stores/useDungeonStore";
 import React from "react";
 import { Icon } from "./Icon";
 
-import { worldToPercent } from "../../game/worldMap";
+import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../game/worldMap";
 
 import {
   useMinimapStore,
@@ -12,12 +12,6 @@ import {
 const getEnemyColor = (
   type
 ) => {
-  if (
-    type === "wolf"
-  ) {
-    return "#f97316";
-  }
-
   if (
     type ===
     "forestGiant" || type === "dungeonGuardian" || type === "dungeonWarden"
@@ -36,11 +30,9 @@ const DotMarker = ({
   className = "",
   outlined = false,
 }) => {
+  const location = useDungeonStore((state) => state.location);
   const position =
-    worldToPercent({
-      x,
-      z,
-    });
+    worldToPercent({ x, z }, location === "dungeon" ? DUNGEON_MAP_RADIUS : undefined);
 
   return (
     <div
@@ -70,11 +62,9 @@ const LocalPlayerMarker = ({
   z,
   rotationY,
 }) => {
+  const location = useDungeonStore((state) => state.location);
   const position =
-    worldToPercent({
-      x,
-      z,
-    });
+    worldToPercent({ x, z }, location === "dungeon" ? DUNGEON_MAP_RADIUS : undefined);
 
   return (
     <div
@@ -118,15 +108,9 @@ const Legend = ({ location }) => {
     },
     {
       label:
-        "Boars",
+        "Enemy",
       color:
         "#ef4444",
-    },
-    {
-      label:
-        "Wolves",
-      color:
-        "#f97316",
     },
     {
       label:
@@ -301,8 +285,8 @@ export const Minimap =
                 size={
                   enemy.type ===
                   "forestGiant"
-                    ? 10
-                    : 7
+                    ? 8
+                    : 5
                 }
                 className="z-10"
               />

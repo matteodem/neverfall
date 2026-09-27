@@ -1,11 +1,9 @@
-import { FOREST_SIZE } from "./enemyConfig";
+import { WORLD_SIZE } from "./worldConfig";
 
-/*
- * Make the minimap a bit larger than
- * the forest so wolves / giant still fit.
- */
+// Map coordinates cover the full world, independently of active chunks.
 export const WORLD_RADIUS =
-  FOREST_SIZE / 2 + 30;
+  WORLD_SIZE / 2 + 30;
+export const DUNGEON_MAP_RADIUS = 130;
 
 const clamp = (
   value,
@@ -24,14 +22,14 @@ const clamp = (
 export const worldToPercent = ({
   x,
   z,
-}) => {
+}, radius = WORLD_RADIUS) => {
   const normalizedX =
     (
       x +
-      WORLD_RADIUS
+      radius
     ) /
     (
-      WORLD_RADIUS *
+      radius *
       2
     );
 
@@ -40,11 +38,11 @@ export const worldToPercent = ({
    */
   const normalizedY =
     (
-      WORLD_RADIUS -
+      radius -
       z
     ) /
     (
-      WORLD_RADIUS *
+      radius *
       2
     );
 
@@ -66,4 +64,3 @@ export const worldToPercent = ({
     }%`,
   };
 };
-
