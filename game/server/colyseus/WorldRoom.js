@@ -4,6 +4,7 @@ import { CAMP_PROTECTION } from "../../imports/game/campProtection";
 import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
+import { updateEnemyLeash } from "./enemyLeash";
 import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
@@ -974,7 +975,14 @@ export class WorldRoom
     return Boolean(player && !player.inDungeon && player.health > 0 && !this.isPlayerProtected(player));
   }
 
-  moveEnemy(enemy, x, z) {
+  moveEnemy(enemy, x, z, runtime) {
+    if (runtime?.chaseOrigin && !runtime.returning) {
+      const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
+      if (Math.hypot(x - runtime.chaseOrigin.x, z - runtime.chaseOrigin.z) >= stats.chaseRadius) {
+        runtime.returning = true;
+        return false;
+      }
+    }
     if (this.campSafeZoneEnabled && crossesCamp(enemy, { x, z })) return false;
     enemy.x = x;
     enemy.z = z;
@@ -1253,6 +1261,8 @@ export class WorldRoom
 
         spawn,
         isBoss: Boolean(stats.bossMechanics),
+        chaseOrigin: null,
+        returning: false,
 
         targetSessionId:
           null,
@@ -1368,7 +1378,10 @@ export class WorldRoom
      * towards this player.
      */
 
-    if (this.canEnemyTarget(player)) runtime.targetSessionId = sessionId;
+    if (!runtime.returning && this.canEnemyTarget(player)) {
+      runtime.chaseOrigin ||= { x: enemy.x, z: enemy.z };
+      runtime.targetSessionId = sessionId;
+    }
 
     runtime.lastCombatAt = Date.now();
 
@@ -1616,7 +1629,7 @@ export class WorldRoom
 
 
       runtime.aiElapsed = (runtime.aiElapsed || 0) + deltaTime;
-      let nearby = Boolean(runtime.targetSessionId);
+      let nearby = Boolean(runtime.targetSessionId || runtime.returning);
       if (!nearby) {
         for (const player of this.state.players.values()) {
           if (!player.inDungeon && player.health > 0 &&
@@ -1661,7 +1674,7 @@ export class WorldRoom
     deltaTime
   ) {
     const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare, runtime.spawn.scaling);
-    if (runtime.isBoss && !runtime.targetSessionId && enemy.health > 0) {
+    if (runtime.isBoss && !runtime.targetSessionId && !runtime.chaseOrigin && !runtime.returning && enemy.health > 0) {
       let nearestDistance = stats.aggroRadius;
       for (const [sessionId, player] of this.state.players.entries()) {
         if (!this.canEnemyTarget(player)) continue;
@@ -1672,6 +1685,7 @@ export class WorldRoom
         }
       }
     }
+    if (updateEnemyLeash(this, enemy, runtime, stats, deltaTime)) return;
     /*
      * No aggro:
      * wander around this enemy's
@@ -1774,7 +1788,7 @@ export class WorldRoom
         );
 
 
-      this.moveEnemy(enemy, enemy.x + dx / safeDistance * movement, enemy.z + dz / safeDistance * movement);
+      this.moveEnemy(enemy, enemy.x + dx / safeDistance * movement, enemy.z + dz / safeDistance * movement, runtime);
 
 
       return;

@@ -26,6 +26,7 @@ const BASE_STATS = {
   respawnDelay: 5000,
   wanderRadius: 3,
   wanderWait: 1500,
+  chaseRadius: 35,
 };
 
 const ANIMAL_ANIMATIONS = {

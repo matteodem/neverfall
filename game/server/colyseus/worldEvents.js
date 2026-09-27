@@ -124,7 +124,7 @@ export const createWorldEvents = (room) => {
       for (const id of enemies) {
         const enemy = room.state.enemies.get(id);
         const runtime = room.enemyRuntime.get(id);
-        if (!enemy || !runtime || runtime.targetSessionId) continue;
+        if (!enemy || !runtime || runtime.targetSessionId || runtime.returning || runtime.chaseOrigin) continue;
         let closest = Infinity;
         for (const [sessionId, player] of nearby) {
           const distance = Math.hypot(player.x - enemy.x, player.z - enemy.z);

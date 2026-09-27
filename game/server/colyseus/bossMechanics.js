@@ -66,7 +66,7 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
     } else if (enemy.bossAction === "charge") {
       const start = { x: enemy.x, z: enemy.z };
       const movement = Math.min(action.remaining, config.charge.speed * ENEMY_COMBAT_SPEED_MULTIPLIER * (enemy.enraged ? config.enrage.speedMultiplier : 1) * deltaTime / 1000);
-      if (!room.moveEnemy(enemy, enemy.x + action.dx * movement, enemy.z + action.dz * movement)) {
+      if (!room.moveEnemy(enemy, enemy.x + action.dx * movement, enemy.z + action.dz * movement, runtime)) {
         cancelBossAction(enemy, runtime);
         return true;
       }
