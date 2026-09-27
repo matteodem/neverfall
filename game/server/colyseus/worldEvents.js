@@ -15,20 +15,22 @@ export const createWorldEvents = (room) => {
   const state = new WorldEventState({ nextStartAt: Date.now() + config.initialDelay });
   room.state.worldEvent = state;
 
-  const nearbyPlayers = () => Array.from(room.state.players.entries()).filter(([, player]) =>
+  const nearbyPlayers = (targetableOnly = true) => Array.from(room.state.players.entries()).filter(([, player]) =>
     player.characterId && player.health > 0 && !player.inDungeon &&
+    (!targetableOnly || room.canEnemyTarget(player)) &&
     Math.hypot(player.x - config.center.x, player.z - config.center.z) <= config.participationRadius);
 
   const trackParticipants = () => {
-    const nearby = state.status === "active" ? nearbyPlayers() : [];
+    const nearby = state.status === "active" ? nearbyPlayers(false) : [];
     const sessions = new Set(nearby.map(([sessionId]) => sessionId));
     for (const [sessionId, player] of room.state.players) {
       player.worldEventId = sessions.has(sessionId) ? config.id : "";
     }
-    for (const [, player] of nearby) {
+    const eligible = nearby.filter(([, player]) => room.canEnemyTarget(player));
+    for (const [, player] of eligible) {
       participants.set(player.characterId, { userId: player.userId });
     }
-    return nearby;
+    return eligible;
   };
 
   const spawnStage = () => {
@@ -96,7 +98,7 @@ export const createWorldEvents = (room) => {
       const now = Date.now();
       if (state.status === "cooldown") {
         config = WORLD_EVENTS[configIndex];
-        if (now < state.nextStartAt || !nearbyPlayers().length) return;
+        if (now < state.nextStartAt) return;
         configIndex = (configIndex + 1) % WORLD_EVENTS.length;
         state.id = config.id;
         state.name = config.name;

@@ -11,6 +11,7 @@ import { collectLoot, spawnLoot } from "../inventory/loot";
 const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
 export class DungeonRoom extends WorldRoom {
+  campSafeZoneEnabled = false;
   mountsAllowed = false;
   state = new DungeonState();
   participants = new Map();
@@ -72,6 +73,7 @@ export class DungeonRoom extends WorldRoom {
       for (const key of COMBAT_TIMERS) runtime[key] = worldRuntime[key];
       player.groupId = source.groupId;
       player.health = Math.min(source.health, player.maxHealth);
+      player.respawnProtectedUntil = source.respawnProtectedUntil;
       this.respawnPosition(player);
       if (!this.participants.has(player.characterId)) {
         this.participants.set(player.characterId, { userId: player.userId, claimed: false });

@@ -34,6 +34,7 @@ export const PlayerState =
       groupId: t.string().default(""),
       inDungeon: t.boolean().default(false),
       worldEventId: t.string().default(""),
+      respawnProtectedUntil: t.number().default(0),
       worldSessionId: t.string().default(""),
       dungeonRewardClaimed: t.boolean().default(false),
 

@@ -1,5 +1,7 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
+import { CAMP_PROTECTION } from "../../imports/game/campProtection";
+import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
@@ -103,6 +105,7 @@ const getStatsForPlayer = (player) =>
 export class WorldRoom
   extends Room {
   mountsAllowed = true;
+  campSafeZoneEnabled = true;
 
   state =
     new WorldState();
@@ -587,6 +590,7 @@ export class WorldRoom
         ATTACK.cooldown;
 
       runtime[cooldownField] = now + skill.cooldown;
+      player.respawnProtectedUntil = 0;
       if (code !== "Digit1") {
         client.send("skillCooldown", { code, duration: skill.cooldown });
       }
@@ -962,6 +966,21 @@ export class WorldRoom
   }
 
 
+  isPlayerProtected(player) {
+    return player.respawnProtectedUntil > Date.now() || (this.campSafeZoneEnabled && isInsideCamp(player));
+  }
+
+  canEnemyTarget(player) {
+    return Boolean(player && !player.inDungeon && player.health > 0 && !this.isPlayerProtected(player));
+  }
+
+  moveEnemy(enemy, x, z) {
+    if (this.campSafeZoneEnabled && crossesCamp(enemy, { x, z })) return false;
+    enemy.x = x;
+    enemy.z = z;
+    return true;
+  }
+
   damagePlayer(
     sessionId,
     damage
@@ -975,6 +994,7 @@ export class WorldRoom
     if (
       !player ||
       player.inDungeon ||
+      this.isPlayerProtected(player) ||
       player.health <=
         0
     ) {
@@ -1036,16 +1056,14 @@ export class WorldRoom
   respawnPlayer(
     player
   ) {
-    player.x =
-      0;
+    player.x = CAMP_PROTECTION.center.x;
 
 
     player.y =
       0;
 
 
-    player.z =
-      0;
+    player.z = CAMP_PROTECTION.center.z;
 
 
     player.rotationY =
@@ -1054,6 +1072,7 @@ export class WorldRoom
 
     player.health =
       player.maxHealth;
+    player.respawnProtectedUntil = Date.now() + CAMP_PROTECTION.respawnProtectionMs;
   }
 
 
@@ -1189,6 +1208,7 @@ export class WorldRoom
   spawnEnemy(
     spawn
   ) {
+    if (this.campSafeZoneEnabled) spawn = { ...spawn, ...outsideCampPosition(spawn) };
     const rare = !getEnemyStats(spawn.type, spawn.level).bossMechanics && Math.random() < RARE_ENEMY.chance;
     const stats = this.getEnemyStats(spawn.type, spawn.level, rare, spawn.scaling);
     const enemy =
@@ -1348,8 +1368,7 @@ export class WorldRoom
      * towards this player.
      */
 
-    runtime.targetSessionId =
-      sessionId;
+    if (this.canEnemyTarget(player)) runtime.targetSessionId = sessionId;
 
     runtime.lastCombatAt = Date.now();
 
@@ -1645,7 +1664,7 @@ export class WorldRoom
     if (runtime.isBoss && !runtime.targetSessionId && enemy.health > 0) {
       let nearestDistance = stats.aggroRadius;
       for (const [sessionId, player] of this.state.players.entries()) {
-        if (player.inDungeon || player.health <= 0) continue;
+        if (!this.canEnemyTarget(player)) continue;
         const distance = Math.hypot(player.x - enemy.x, player.z - enemy.z);
         if (distance <= nearestDistance) {
           nearestDistance = distance;
@@ -1684,10 +1703,7 @@ export class WorldRoom
      */
 
     if (
-      !target ||
-      target.inDungeon ||
-      target.health <=
-        0
+      !this.canEnemyTarget(target)
     ) {
       cancelBossAction(enemy, runtime);
       runtime.targetSessionId =
@@ -1758,20 +1774,7 @@ export class WorldRoom
         );
 
 
-      enemy.x +=
-        (
-          dx /
-          safeDistance
-        ) *
-        movement;
-
-
-      enemy.z +=
-        (
-          dz /
-          safeDistance
-        ) *
-        movement;
+      this.moveEnemy(enemy, enemy.x + dx / safeDistance * movement, enemy.z + dz / safeDistance * movement);
 
 
       return;
@@ -1921,20 +1924,10 @@ export class WorldRoom
       );
 
 
-    enemy.x +=
-      (
-        dx /
-        safeDistance
-      ) *
-      movement;
-
-
-    enemy.z +=
-      (
-        dz /
-        safeDistance
-      ) *
-      movement;
+    if (!this.moveEnemy(enemy, enemy.x + dx / safeDistance * movement, enemy.z + dz / safeDistance * movement)) {
+      runtime.wanderTarget = null;
+      runtime.nextWanderAt = now + stats.wanderWait;
+    }
   }
 
 
