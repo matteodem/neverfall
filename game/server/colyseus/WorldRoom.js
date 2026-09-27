@@ -55,7 +55,7 @@ import {
 } from "../../imports/game/equipment";
 
 const MAX_PLAYERS =
-  50;
+  30;
 
 /*
  * =====================================================
