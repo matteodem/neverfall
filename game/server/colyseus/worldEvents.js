@@ -32,6 +32,12 @@ export const createWorldEvents = (room) => {
 
   const spawnStage = () => {
     const wave = config.waves[stage] || config.boss;
+    const playerCount = Math.max(1, new Set(nearbyPlayers().map(([, player]) => player.characterId)).size);
+    const extraPlayers = playerCount - 1;
+    const scaling = {
+      health: 1 + extraPlayers * (config.scaling?.healthPerExtraPlayer ?? 0),
+      damage: 1 + extraPlayers * (config.scaling?.damagePerExtraPlayer ?? 0),
+    };
     state.wave = Math.min(stage + 1, config.waves.length + 1);
     for (let index = 0; index < wave.count; index++) {
       const angle = index * Math.PI * 2 / wave.count + stage * 0.4;
@@ -39,7 +45,7 @@ export const createWorldEvents = (room) => {
       room.spawnEnemy({ id, type: wave.type, level: wave.level,
         x: config.center.x + Math.cos(angle) * config.spawnRadius,
         y: 0, z: config.center.z + Math.sin(angle) * config.spawnRadius,
-        eventId: config.id });
+        eventId: config.id, scaling });
       enemies.add(id);
     }
     state.enemiesRemaining = enemies.size;

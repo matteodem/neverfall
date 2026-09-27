@@ -1190,7 +1190,7 @@ export class WorldRoom
     spawn
   ) {
     const rare = !getEnemyStats(spawn.type, spawn.level).bossMechanics && Math.random() < RARE_ENEMY.chance;
-    const stats = this.getEnemyStats(spawn.type, spawn.level, rare);
+    const stats = this.getEnemyStats(spawn.type, spawn.level, rare, spawn.scaling);
     const enemy =
       new EnemyState({
         type: spawn.type,
@@ -1270,9 +1270,14 @@ export class WorldRoom
    * =====================================================
    */
 
-  getEnemyStats(type, level, rare = false) {
+  getEnemyStats(type, level, rare = false, scaling = {}) {
     const stats = getEnemyStats(type, level, rare);
-    return { ...stats, speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER };
+    return {
+      ...stats,
+      speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER,
+      health: stats.health * (scaling.health ?? 1),
+      attackDamage: stats.attackDamage * (scaling.damage ?? 1),
+    };
   }
 
   async attackEnemy(
@@ -1636,7 +1641,7 @@ export class WorldRoom
     runtime,
     deltaTime
   ) {
-    const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
+    const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare, runtime.spawn.scaling);
     if (runtime.isBoss && !runtime.targetSessionId && enemy.health > 0) {
       let nearestDistance = stats.aggroRadius;
       for (const [sessionId, player] of this.state.players.entries()) {

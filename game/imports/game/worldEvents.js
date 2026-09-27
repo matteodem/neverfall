@@ -9,6 +9,7 @@ export const WORLD_EVENTS = [
     initialDelay: 120000,
     duration: 600000,
     cooldown: 600000,
+    scaling: { healthPerExtraPlayer: 0.75, damagePerExtraPlayer: 0.15 },
     waves: [
       { type: "wolf", level: 3, count: 3 },
       { type: "wolf", level: 4, count: 5 },
