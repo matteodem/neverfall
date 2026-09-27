@@ -1,0 +1,18 @@
+import { create } from "zustand";
+
+export const useWorldEventStore = create((set, get) => ({
+  event: null,
+  sync(world, sessionId) {
+    const player = world?.players?.get(sessionId);
+    const shared = world?.worldEvent;
+    const event = shared?.status === "active" && player?.health > 0 && !player.inDungeon && player.worldEventId === shared.id
+      ? { id: shared.id, name: shared.name, wave: shared.wave,
+        totalWaves: shared.totalWaves, enemiesRemaining: shared.enemiesRemaining }
+      : null;
+    const previous = get().event;
+    if (previous?.id === event?.id && previous?.name === event?.name && previous?.wave === event?.wave &&
+        previous?.totalWaves === event?.totalWaves && previous?.enemiesRemaining === event?.enemiesRemaining) return;
+    set({ event });
+  },
+  reset: () => set({ event: null }),
+}));

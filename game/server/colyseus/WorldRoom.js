@@ -1,4 +1,5 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
+import { createWorldEvents } from "./worldEvents";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
@@ -241,6 +242,7 @@ export class WorldRoom
     this.patchRate = PERFORMANCE.statePatchInterval;
     this.groups = createGroups(this.state.players);
     this.dungeons = createDungeonInstances(this);
+    this.worldEvents = createWorldEvents(this);
     this.maxClients =
       MAX_PLAYERS;
 
@@ -1503,10 +1505,7 @@ export class WorldRoom
 
     // Remove the enemy before any await so simultaneous killing blows cannot
     // grant rewards twice. Schedule respawn independently of persistence.
-    this.clock.setTimeout(
-      () => this.spawnEnemy(spawn),
-      stats.respawnDelay
-    );
+    if (!spawn.eventId) this.clock.setTimeout(() => this.spawnEnemy(spawn), stats.respawnDelay);
 
     for (const characterId of contributors) {
       await trackAchievements(characterId, "kill", spawn.type || "boar");
@@ -1555,6 +1554,8 @@ export class WorldRoom
       }
     }
 
+    // Finish normal kill rewards before granting event-completion XP.
+    if (spawn.eventId) this.worldEvents?.onEnemyKilled(enemyId);
 
   }
 
@@ -1568,6 +1569,7 @@ export class WorldRoom
   updateEnemies(
     deltaTime
   ) {
+    this.worldEvents?.update();
     this.projectiles.update(deltaTime);
     for (
       const [

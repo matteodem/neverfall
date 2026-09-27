@@ -33,6 +33,7 @@ export const PlayerState =
 
       groupId: t.string().default(""),
       inDungeon: t.boolean().default(false),
+      worldEventId: t.string().default(""),
       worldSessionId: t.string().default(""),
       dungeonRewardClaimed: t.boolean().default(false),
 
@@ -141,6 +142,17 @@ export const LootState = schema(
   "LootState"
 );
 
+export const WorldEventState = schema({
+  id: t.string().default(""),
+  name: t.string().default(""),
+  status: t.string().default("cooldown"),
+  wave: t.number().default(0),
+  totalWaves: t.number().default(0),
+  enemiesRemaining: t.number().default(0),
+  endsAt: t.number().default(0),
+  nextStartAt: t.number().default(0),
+}, "WorldEventState");
+
 export const WorldState = schema(
   {
     players:
@@ -150,6 +162,7 @@ export const WorldState = schema(
       t.map(EnemyState),
 
     loot: t.map(LootState),
+    worldEvent: WorldEventState,
   },
   "WorldState"
 );
