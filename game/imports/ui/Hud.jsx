@@ -143,7 +143,7 @@ const getActionSlots = (
       icon: skills.Digit3?.icon,
       cooldown: skills.Digit3?.cooldown,
       tooltip:
-        skills.Digit3 ? `${skills.Digit3.name} (Causes ${playerStats.damage * skills.Digit3.damageMultiplier} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
+        skills.Digit3 ? `${skills.Digit3.name} (Causes ${playerStats.damage * skills.Digit3.damageMultiplier * (skills.Digit3.aoe ? playerStats.aoeDamageMultiplier : 1)} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
     },
 
     {

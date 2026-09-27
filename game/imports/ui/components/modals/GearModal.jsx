@@ -11,6 +11,7 @@ import {
 } from "../../../game/equipment";
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
 import { HudModal } from "../HudModal";
+import { formatClassBonus, getUnlockedClassBonuses } from "../../../game/classProgression";
 
 const EquipmentSlot = ({ slot, itemId }) => {
   const item = EQUIPMENT_ITEMS[itemId];
@@ -50,13 +51,13 @@ const EquipmentSlot = ({ slot, itemId }) => {
 };
 
 export const GearModal = () => {
-  const equipment = useTracker(() => {
+  const { equipment, bonuses } = useTracker(() => {
     const currentCharacterId = Meteor.user()?.profile?.currentCharacterId;
     const character = currentCharacterId ? Characters.findOne(currentCharacterId) : null;
 
     return {
-      ...DEFAULT_EQUIPMENT,
-      ...(character?.equipment || {}),
+      equipment: { ...DEFAULT_EQUIPMENT, ...(character?.equipment || {}) },
+      bonuses: getUnlockedClassBonuses(character?.gameClass, character?.currentLevel),
     };
   });
 
@@ -68,6 +69,14 @@ export const GearModal = () => {
           {EQUIPMENT_SLOTS.map((slot) => (
             <EquipmentSlot key={slot} slot={slot} itemId={equipment[slot]} />
           ))}
+        </div>
+        <div className="mt-3 border-t border-gray-200 pt-3">
+          <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Class Bonuses</h4>
+          {bonuses.length ? bonuses.map((bonus) => (
+            <div key={bonus.level} className="text-xs text-gray-600">
+              Level {bonus.level}: {formatClassBonus(bonus)}
+            </div>
+          )) : <p className="text-xs text-gray-500">First bonus unlocks at level 5.</p>}
         </div>
       </section>
     </HudModal>

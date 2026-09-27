@@ -1158,6 +1158,7 @@ export class WorldRoom
 
         player.maxHealth =
           stats.maxHealth;
+        player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
 
 
         /*
@@ -1306,11 +1307,11 @@ export class WorldRoom
 
     // Snapshot targets so killing a dungeon pack cannot hit the next stage.
     await Promise.all(targets.map(({ enemyId, enemy }) =>
-      this.damageEnemy(sessionId, enemyId, enemy, skill.damageMultiplier)));
+      this.damageEnemy(sessionId, enemyId, enemy, skill.damageMultiplier, skill.aoe)));
   }
 
 
-  async damageEnemy(sessionId, enemyId, enemy, damageMultiplier) {
+  async damageEnemy(sessionId, enemyId, enemy, damageMultiplier, aoe = false) {
     const player = this.state.players.get(sessionId);
     if (!player || player.inDungeon || player.health <= 0 || enemy.health <= 0 || this.state.enemies.get(enemyId) !== enemy) return;
 
@@ -1378,7 +1379,7 @@ export class WorldRoom
       Math.max(
         0,
         enemy.health -
-          stats.damage * damageMultiplier
+          stats.damage * damageMultiplier * (aoe ? stats.aoeDamageMultiplier : 1)
       );
 
 

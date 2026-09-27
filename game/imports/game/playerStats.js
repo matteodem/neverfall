@@ -1,5 +1,6 @@
 import { getEquipmentStats } from "./equipment";
 import { getClassConfig } from "./classConfig";
+import { getClassProgressionStats } from "./classProgression";
 
 const HEALTH_PER_LEVEL =
   25;
@@ -54,22 +55,24 @@ export const getPlayerStats = (
     1;
 
   const equipmentStats = getEquipmentStats(equipment);
+  const progression = getClassProgressionStats(gameClass, normalizedLevel);
 
 
   return {
     xpGainMultiplier: 1 + equipmentStats.xpGain,
-    movementSpeedMultiplier: 1 + equipmentStats.movementSpeed,
+    movementSpeedMultiplier: 1 + equipmentStats.movementSpeed + progression.movementSpeed,
+    aoeDamageMultiplier: 1 + progression.aoeDamage,
     maxHealth:
       classConfig.maxHealth +
       levelsGained *
         HEALTH_PER_LEVEL +
-      equipmentStats.maxHealth,
+      equipmentStats.maxHealth + progression.maxHealth,
 
     damage:
-      classConfig.attackDamage +
+      (classConfig.attackDamage +
       levelsGained *
         DAMAGE_PER_LEVEL +
-      equipmentStats.attackDamage,
+      equipmentStats.attackDamage) * (1 + progression.damage),
 
     healAmount:
       BASE_HEAL_AMOUNT +
