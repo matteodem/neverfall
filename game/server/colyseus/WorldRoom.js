@@ -3,7 +3,7 @@ import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { trackAchievements } from "../achievements";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
-import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY } from "../../imports/game/enemyConfig";
+import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getClassConfig } from "../../imports/game/classConfig";
 import { createProjectiles } from "./projectiles";
 import { spawnLoot, collectLoot } from "../inventory/loot";
@@ -1733,7 +1733,7 @@ export class WorldRoom
 
 
       const movement =
-        stats.speed * speedMultiplier *
+        stats.speed * speedMultiplier * ENEMY_COMBAT_SPEED_MULTIPLIER *
         (
           deltaTime /
           1000

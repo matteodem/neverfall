@@ -1,3 +1,5 @@
+export const ENEMY_COMBAT_SPEED_MULTIPLIER = 1.0;
+
 export const RARE_ENEMY = {
   chance: 0.05,
   healthMultiplier: 1.5,
@@ -18,7 +20,7 @@ const BASE_STATS = {
   healthPerLevel: 50,
   damagePerLevel: 5,
   xpReward: 20,
-  speed: 2,
+  speed: 3.0,
   attackRange: 1.8,
   attackCooldown: 1000,
   respawnDelay: 5000,
@@ -56,7 +58,6 @@ export const ENEMY_TYPES = {
     healthPerLevel: 120,
     attackDamage: 24,
     damagePerLevel: 12,
-    speed: 2.5,
     xpReward: 25,
     animations: ANIMAL_ANIMATIONS,
   },
@@ -69,7 +70,6 @@ export const ENEMY_TYPES = {
     healthPerLevel: 120,
     attackDamage: 20,
     damagePerLevel: 12,
-    speed: 3.5,
     xpReward: 15,
     animations: ANIMAL_ANIMATIONS,
   },
@@ -82,7 +82,6 @@ export const ENEMY_TYPES = {
     healthPerLevel: 120,
     attackDamage: 48,
     damagePerLevel: 15,
-    speed: 3.8,
     xpReward: 15,
     animations: ANIMAL_ANIMATIONS,
   },
@@ -102,7 +101,6 @@ export const ENEMY_TYPES = {
     damagePerLevel: 0,
     attackRange: 2.5,
     attackCooldown: 1200,
-    speed: 4.5,
     wanderRadius: 4,
     respawnDelay: 180000,
     xpReward: 0,
@@ -119,12 +117,12 @@ export const ENEMY_TYPES = {
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
   accessoryDropChance: 0.20,
-  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0, speed: 2.5,
+  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0,
   healthPerLevel: 100, damagePerLevel: 5,
 };
 ENEMY_TYPES.dungeonWarden = {
   ...ENEMY_TYPES.forestGiant,
-  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, speed: 3, scale: 1.3,
+  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, scale: 1.3,
   healthPerLevel: 100, damagePerLevel: 5,
 };
 
