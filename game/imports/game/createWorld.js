@@ -1,7 +1,8 @@
 import { DUNGEON } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { FOREST_SIZE } from "./enemyConfig";
+import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE } from "./worldConfig";
+import { createWorldChunks } from "./worldChunks";
 import "@babylonjs/loaders/glTF";
 
 import { getClassConfig } from "./classConfig";
@@ -153,10 +154,10 @@ export const createWorld =
         "ground",
         {
           width:
-            dungeon ? 26 : 500,
+            dungeon ? 26 : WORLD_SIZE + 60,
 
           height:
-            dungeon ? 118 : 500,
+            dungeon ? 118 : WORLD_SIZE + 60,
         },
         scene
       );
@@ -475,40 +476,25 @@ export const createWorld =
     if (dungeon) {
       dungeonVisuals = createDungeonEnvironment(scene);
     } else {
-      createDungeonPortal({ scene, ...DUNGEON.entrance, title: "Enter Dungeon" });
+      const chunks = createWorldChunks(scene, player);
+      const portal = createDungeonPortal({ scene, ...DUNGEON.entrance, title: "Enter Dungeon" });
+      chunks.add(portal.root, DUNGEON.entrance);
       /*
        * =====================================================
        * FOREST
        * =====================================================
        */
 
-      forest =
-        createForestArea({
+      for (const chunk of WORLD_CHUNKS) {
+        const area = createForestArea({
           scene,
-          size: FOREST_SIZE,
-          treeCount: 300,
-          bushCount: 150,
-
-          center:
-            new Vector3(
-              0,
-              0,
-              0
-            ),
-
-          clearing: {
-            center:
-              new Vector3(
-                0,
-                0,
-                0
-              ),
-
-            radius:
-              8,
-          },
+          size: CHUNK_SIZE,
+          center: new Vector3(chunk.x, 0, chunk.z),
+          ...WORLD_REGIONS[chunk.region],
         });
-
+        chunks.add(area, chunk);
+        if (chunk.x === 0 && chunk.z === 0) forest = area;
+      }
 
       /*
        * =====================================================
@@ -528,7 +514,7 @@ export const createWorld =
             ),
 
           size:
-            280,
+            WORLD_SIZE + 40,
 
           spacing:
             22,
@@ -568,7 +554,15 @@ export const createWorld =
         });
 
 
-      for (const mesh of mountainRing.getChildMeshes()) mesh.freezeWorldMatrix();
+      for (const mesh of mountainRing.getChildMeshes()) {
+        mesh.freezeWorldMatrix();
+        chunks.add(mesh, mesh.getAbsolutePosition());
+      }
+      chunks.add(clearingCamp, clearingCamp.position);
+      for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) {
+        chunks.add(mesh, mesh.getAbsolutePosition());
+      }
+      chunks.update();
       for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
     }
 

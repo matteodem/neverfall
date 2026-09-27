@@ -1509,7 +1509,7 @@ export const createMultiplayer =
 
         enemy.targetPosition.set(enemyState.x, enemyState.y, enemyState.z);
         enemy.setTargetRotation(enemyState.rotationY);
-        enemy.visibility.update(player.position, ENTITY_VISIBILITY.enemy);
+        enemy.visibility.update(player.position, { ...ENTITY_VISIBILITY.enemy, chunks: !dungeon });
 
         enemies.set(
           enemyId,
@@ -1681,7 +1681,7 @@ export const createMultiplayer =
         if (visibilityElapsed >= ENTITY_VISIBILITY.updateInterval) {
           visibilityElapsed %= ENTITY_VISIBILITY.updateInterval;
           for (const entity of remotePlayers.values()) entity.visibility.update(player.position, ENTITY_VISIBILITY.remotePlayer);
-          for (const enemy of enemies.values()) enemy.visibility.update(player.position, ENTITY_VISIBILITY.enemy);
+          for (const enemy of enemies.values()) enemy.visibility.update(player.position, { ...ENTITY_VISIBILITY.enemy, chunks: !dungeon });
         }
         if (minimapElapsed >= ENTITY_VISIBILITY.minimapInterval) {
           minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
@@ -1689,7 +1689,7 @@ export const createMultiplayer =
         }
         dungeonInteractions.update(deltaTime);
         projectiles.update(deltaTime);
-        bossVisuals.update(room.state.enemies);
+        bossVisuals.update(room.state.enemies, (id) => enemies.get(id)?.visibility.isVisible());
         useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
         useTargetStore.getState().sync(room.state);
         loot.update();

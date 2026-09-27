@@ -1,3 +1,5 @@
+import { areNearbyChunks } from "./worldConfig";
+
 export const ENTITY_VISIBILITY = {
   enemy: { enableDistance: 190, disableDistance: 210 },
   remotePlayer: { enableDistance: 220, disableDistance: 250 },
@@ -38,7 +40,7 @@ export const createEntityVisibility = ({ root, targetPosition, nameplate, health
       const dz = targetPosition.z - playerPosition.z;
       distanceSquared = dx * dx + dz * dz;
       const limit = inRange ? config.disableDistance : config.enableDistance;
-      inRange = distanceSquared <= limit * limit;
+      inRange = distanceSquared <= limit * limit && (!config.chunks || areNearbyChunks(targetPosition, playerPosition));
       labelsInRange = distanceSquared <= ENTITY_VISIBILITY.nameplateDistance ** 2;
       apply();
     },

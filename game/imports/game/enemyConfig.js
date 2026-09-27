@@ -101,7 +101,7 @@ export const getEnemyStats = (type = "boar", level = 1, rare = false) => {
 
 // North is +Z, west is -X, relative to the camp at the origin.
 export const WOLF_AREA = { minX: -95, maxX: -40, minZ: 40, maxZ: 95 };
-export const FOREST_SIZE = 200;
+export { WORLD_SIZE as FOREST_SIZE } from "./worldConfig";
 
 export const ENEMY_SPAWNS = [
   { id: "boar-1", type: "boar", level: 1, x: -20, y: 0, z: 16 },
