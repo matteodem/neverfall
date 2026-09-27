@@ -7,6 +7,14 @@ import { useMinimapStore } from "../../stores/useMinimapStore";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 
+const WORLD_LABELS = [
+  { label: "Camp", x: 0, z: -14 },
+  { label: "Forest", x: -60, z: 57.5 },
+  { label: "Forest", x: -200, z: 0 },
+  { label: "Forest", x: 200, z: 0 },
+  { label: "Forest", x: 0, z: -210 },
+];
+
 const MapContent = () => {
   const localPlayer = useMinimapStore((state) => state.localPlayer);
   const location = useDungeonStore((state) => state.location);
@@ -19,6 +27,10 @@ const MapContent = () => {
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
           alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall forest map"}
           className="block h-full w-full" draggable={false} />
+        {!dungeon && WORLD_LABELS.map((position, index) => (
+          <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
+            style={worldToPercent(position)}>{position.label}</span>
+        ))}
         <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entrance, dungeon ? DUNGEON_MAP_RADIUS : undefined)}>
           <span className="mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
           <span className="rounded bg-black/80 px-1 text-xs text-white">Dungeon Entrance</span>

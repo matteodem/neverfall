@@ -6,7 +6,7 @@
 <path d="M60 -340V860M460 -340V860M-340 60H860M-340 460H860" stroke="#ffffff" stroke-opacity="0.12" stroke-width="2"/>
 <g font-family="sans-serif" font-size="24" fill="#f1eed7" text-anchor="middle">
 <text x="260" y="-365">N</text><text x="260" y="-140">Highlands</text>
-<text x="-140" y="260">Forest</text><text x="660" y="260">Forest</text><text x="260" y="680">Forest</text>
+
 </g>
 <rect x="60" y="60" width="400" height="400" rx="20" fill="#517349"/>
 <defs><g id="tree"><circle r="7" fill="#2c573b"/><circle cx="-2" cy="-2" r="4" fill="#3e6948"/></g></defs>
@@ -310,5 +310,4 @@
 <path d="M268 254L260 210" stroke="#96825c" stroke-width="6"/>
 <rect x="264" y="252" width="8" height="6" rx="1" fill="#6e4636"/>
 <circle cx="261" cy="256" r="3" fill="#e5a65b"/>
-<g font-family="sans-serif" font-size="12" fill="#f1eed7" text-anchor="middle"><text x="260" y="288">Camp</text><text x="140" y="145">Forest</text></g>
 </svg>
