@@ -3,6 +3,7 @@ import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
 import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE } from "./worldConfig";
 import { createWorldChunks } from "./worldChunks";
+import { createHighlandsArea } from "./environment/createHighlandsArea";
 import "@babylonjs/loaders/glTF";
 
 import { getClassConfig } from "./classConfig";
@@ -493,6 +494,7 @@ export const createWorld =
           ...WORLD_REGIONS[chunk.region],
         });
         chunks.add(area, chunk);
+        if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
         if (chunk.x === 0 && chunk.z === 0) forest = area;
       }
 

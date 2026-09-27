@@ -8,6 +8,22 @@ export const WORLD_REGIONS = {
   highlands: { treeCount: 12, bushCount: 8, rockCount: 35, logCount: 2, floorColor: "#4B6B3C" },
 };
 
+// Positions are relative to the center of each highlands chunk.
+export const HIGHLANDS_SCENERY = {
+  spires: [
+    { x: -65, z: 65, height: 16 },
+    { x: -52, z: 73, height: 11 },
+    { x: 62, z: 58, height: 18 },
+    { x: 73, z: 70, height: 12 },
+  ],
+  cairns: [{ x: -52, z: -55 }, { x: 48, z: -42 }, { x: 12, z: 62 }],
+  landmarks: {
+    "-200": { type: "arch", x: -32, z: 22 },
+    "0": { type: "tower", x: 40, z: 45 },
+    "200": { type: "circle", x: 28, z: -30 },
+  },
+};
+
 export const WORLD_CHUNKS = [
   { x: -200, z: 200, region: "highlands" },
   { x: 0, z: 200, region: "highlands" },
