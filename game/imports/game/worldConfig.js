@@ -4,8 +4,8 @@ export const CHUNK_NEIGHBOR_RADIUS = 1;
 
 export const WORLD_REGIONS = {
   starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: "#4B6B3C" },
-  forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#45643B" },
-  highlands: { treeCount: 12, bushCount: 8, rockCount: 35, logCount: 2, floorColor: "#69715B" },
+  forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#4B6B3C" },
+  highlands: { treeCount: 12, bushCount: 8, rockCount: 35, logCount: 2, floorColor: "#4B6B3C" },
 };
 
 export const WORLD_CHUNKS = [

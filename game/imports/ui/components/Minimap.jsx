@@ -13,12 +13,6 @@ const getEnemyColor = (
   type
 ) => {
   if (
-    type === "wolf"
-  ) {
-    return "#f97316";
-  }
-
-  if (
     type ===
     "forestGiant" || type === "dungeonGuardian" || type === "dungeonWarden"
   ) {
@@ -114,15 +108,9 @@ const Legend = ({ location }) => {
     },
     {
       label:
-        "Boars",
+        "Enemy",
       color:
         "#ef4444",
-    },
-    {
-      label:
-        "Wolves",
-      color:
-        "#f97316",
     },
     {
       label:

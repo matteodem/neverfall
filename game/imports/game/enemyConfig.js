@@ -26,17 +26,19 @@ const BASE_STATS = {
   wanderWait: 1500,
 };
 
+const ANIMAL_ANIMATIONS = {
+  idle: { from: 0, to: 29 },
+  attack: { from: 30, to: 59 },
+  walk: { from: 90, to: 119 },
+};
+
 export const ENEMY_TYPES = {
   boar: {
     name: "Boar",
     model: "boar.glb",
     scale: 0.3,
     rotationY: 0,
-    animations: {
-      idle: { from: 0, to: 29 },
-      attack: { from: 30, to: 59 },
-      walk: { from: 90, to: 119 },
-    },
+    animations: ANIMAL_ANIMATIONS,
   },
   wolf: {
     name: "Wolf",
@@ -44,6 +46,45 @@ export const ENEMY_TYPES = {
     scale: 0.4,
     rotationY: 0,
     animations: { idle: "Idle", attack: "Attack", walk: "Walk" },
+  },
+  goat: {
+    name: "Goat",
+    model: "goat.glb",
+    scale: 0.3,
+    rotationY: 0,
+    health: 480,
+    healthPerLevel: 80,
+    attackDamage: 24,
+    damagePerLevel: 8,
+    speed: 2.5,
+    xpReward: 25,
+    animations: ANIMAL_ANIMATIONS,
+  },
+  rat: {
+    name: "Rat",
+    model: "rat.glb",
+    scale: 0.18,
+    rotationY: 0,
+    health: 180,
+    healthPerLevel: 60,
+    attackDamage: 20,
+    damagePerLevel: 8,
+    speed: 3.5,
+    xpReward: 15,
+    animations: ANIMAL_ANIMATIONS,
+  },
+  bee: {
+    name: "Bee",
+    model: "bee.glb",
+    scale: 0.15,
+    rotationY: 0,
+    health: 120,
+    healthPerLevel: 40,
+    attackDamage: 48,
+    damagePerLevel: 12,
+    speed: 3.8,
+    xpReward: 15,
+    animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
     bossMechanics: BOSS_MECHANICS,
@@ -115,4 +156,14 @@ export const ENEMY_SPAWNS = [
   { id: "wolf-4", type: "wolf", level: 3, x: -60, y: 0, z: 80 },
   { id: "wolf-5", type: "wolf", level: 3, x: -77, y: 0, z: 82 },
   { id: "forest-giant", type: "forestGiant", level: 5, x: 70, y: 0, z: 72 },
+  // Northern highlands: goats west, rats central, bees east.
+  { id: "goat-1", type: "goat", level: 8, x: -160, y: 0, z: 180 },
+  { id: "goat-2", type: "goat", level: 8, x: -176, y: 0, z: 198 },
+  { id: "goat-3", type: "goat", level: 8, x: -144, y: 0, z: 212 },
+  { id: "rat-1", type: "rat", level: 10, x: -12, y: 0, z: 200 },
+  { id: "rat-2", type: "rat", level: 10, x: 14, y: 0, z: 218 },
+  { id: "rat-3", type: "rat", level: 10, x: -16, y: 0, z: 234 },
+  { id: "bee-1", type: "bee", level: 12, x: 160, y: 0, z: 220 },
+  { id: "bee-2", type: "bee", level: 12, x: 176, y: 0, z: 238 },
+  { id: "bee-3", type: "bee", level: 12, x: 144, y: 0, z: 254 },
 ];
