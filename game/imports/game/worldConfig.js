@@ -5,7 +5,7 @@ export const CHUNK_NEIGHBOR_RADIUS = 1;
 export const WORLD_REGIONS = {
   starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: "#4B6B3C" },
   forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#4B6B3C" },
-  highlands: { treeCount: 12, bushCount: 8, rockCount: 35, logCount: 2, floorColor: "#4B6B3C" },
+  highlands: { treeCount: 70, bushCount: 55, rockCount: 80, logCount: 8, floorColor: "#4B6B3C" },
 };
 
 // Positions are relative to the center of each highlands chunk.
@@ -15,8 +15,25 @@ export const HIGHLANDS_SCENERY = {
     { x: -52, z: 73, height: 11 },
     { x: 62, z: 58, height: 18 },
     { x: 73, z: 70, height: 12 },
+    { x: -78, z: -68, height: 10 },
+    { x: -68, z: -60, height: 7 },
+    { x: 72, z: -52, height: 13 },
+    { x: 60, z: -62, height: 8 },
   ],
-  cairns: [{ x: -52, z: -55 }, { x: 48, z: -42 }, { x: 12, z: 62 }],
+  cairns: [
+    { x: -52, z: -55 }, { x: 48, z: -42 }, { x: 12, z: 62 },
+    { x: -72, z: 10 }, { x: 66, z: 18 }, { x: 20, z: -65 },
+    { x: -28, z: 80 }, { x: 82, z: 40 },
+  ],
+  boulderClusters: [
+    { x: -74, z: -20 }, { x: 76, z: -76 }, { x: -22, z: -76 },
+    { x: 25, z: 82 }, { x: -76, z: 38 }, { x: 72, z: 5 },
+  ],
+  ruinedWalls: [
+    { x: -35, z: -48, rotation: 0.3 },
+    { x: 55, z: 8, rotation: 1.2 },
+    { x: -20, z: 55, rotation: -0.4 },
+  ],
   landmarks: {
     "-200": { type: "arch", x: -32, z: 22 },
     "0": { type: "tower", x: 40, z: 45 },

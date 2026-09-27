@@ -51,6 +51,29 @@ export const createHighlandsArea = ({ scene, chunk }) => {
     }
   }
 
+  for (const { x, z } of HIGHLANDS_SCENERY.boulderClusters) {
+    rock(x, 1.6, z, 3.4, darkStone).scaling.y = 0.8;
+    for (let index = 0; index < 5; index++) {
+      const angle = index * Math.PI * 2 / 5;
+      const size = 1.2 + (index % 3) * 0.5;
+      rock(x + Math.cos(angle) * 5, size * 0.55, z + Math.sin(angle) * 4,
+        size, index % 2 ? moss : stone).scaling.y = 0.65;
+    }
+  }
+
+  for (const { x, z, rotation } of HIGHLANDS_SCENERY.ruinedWalls) {
+    for (let index = 0; index < 5; index++) {
+      const offset = (index - 2) * 1.9;
+      const height = index % 2 ? 2 : 3;
+      for (let layer = 0; layer < height; layer++) {
+        block("ruined-wall", x + Math.cos(rotation) * offset, 0.55 + layer * 1.1,
+          z + Math.sin(rotation) * offset, 1.8, 1, 1.2,
+          layer === 0 ? moss : stone, -rotation);
+      }
+    }
+    rock(x + 3, 0.5, z + 3, 1.2);
+  }
+
   const landmark = HIGHLANDS_SCENERY.landmarks[chunk.x];
   if (landmark) {
     const { x, z, type } = landmark;
