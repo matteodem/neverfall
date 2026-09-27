@@ -8,7 +8,7 @@ import { getClassConfig } from "./classConfig";
 import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
-import { getQuestArea } from "./quests";
+import { getQuestArea, HUNT_QUESTS } from "./quests";
 import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
@@ -913,6 +913,17 @@ export const createMultiplayer =
           callbacks.listen(playerState, "wolfQuestKills", () => {
             useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
           });
+
+          for (const [type, setter] of [
+            ["goat", "setGoatKills"],
+            ["rat", "setRatKills"],
+            ["bee", "setBeeKills"],
+          ]) {
+            const field = HUNT_QUESTS[type].progressField;
+            const syncKills = () => useQuestStore.getState()[setter](playerState[field] ?? 0);
+            syncKills();
+            callbacks.listen(playerState, field, syncKills);
+          }
 
           /*
            * LEVEL UP

@@ -85,6 +85,9 @@ export const PlayerState =
 
       giantQuestKills: t.number().default(0),
       wolfQuestKills: t.number().default(0),
+      goatQuestKills: t.number().default(0),
+      ratQuestKills: t.number().default(0),
+      beeQuestKills: t.number().default(0),
 
       boarQuestKills:
         t.number().default(0),

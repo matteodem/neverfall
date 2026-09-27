@@ -8,11 +8,19 @@ import {
   useQuestStore,
 } from "../stores/useQuestStore";
 
+const KILL_FIELDS = {
+  boar: "boarKills",
+  wolf: "wolfKills",
+  forestGiant: "giantKills",
+  goat: "goatKills",
+  rat: "ratKills",
+  bee: "beeKills",
+};
 
 export const QuestTracker =
   () => {
     const area = useQuestStore((state) => state.area);
-    const kills = useQuestStore((state) => area === "forestGiant" ? state.giantKills : area === "wolf" ? state.wolfKills : state.boarKills);
+    const kills = useQuestStore((state) => state[KILL_FIELDS[area]] ?? 0);
     const quest = HUNT_QUESTS[area];
     if (!quest) return null;
 
