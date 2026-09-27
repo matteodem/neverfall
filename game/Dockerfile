@@ -18,9 +18,9 @@ RUN curl https://install.meteor.com/ | sh
 RUN meteor npm install
 
 RUN meteor build \
+    --allow-superuser \
     --server-only \
     --directory /opt/meteor
-
 
 # Production stage
 FROM node:24-bookworm
