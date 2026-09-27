@@ -338,7 +338,7 @@ export class WorldRoom
     equipItem: async (client, { itemId, slot }) => {
       const player = this.state.players.get(client.sessionId);
       const item = EQUIPMENT_ITEMS[itemId];
-      if (!player || player.inDungeon || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
+      if (!player || player.inDungeon || player.health <= 0 || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
 
       const character = await Characters.findOneAsync({
         _id: player.characterId,
@@ -366,7 +366,7 @@ export class WorldRoom
 
     unequipItem: async (client, slot) => {
       const player = this.state.players.get(client.sessionId);
-      if (!player || player.inDungeon || !EQUIPMENT_SLOTS.includes(slot)) return;
+      if (!player || player.inDungeon || player.health <= 0 || !EQUIPMENT_SLOTS.includes(slot)) return;
 
       const character = await Characters.findOneAsync({
         _id: player.characterId,

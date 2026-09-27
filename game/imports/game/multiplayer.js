@@ -1885,6 +1885,7 @@ export const createMultiplayer =
 
     const sendAttack =
       (code = "Digit1") => {
+        if (!localPlayerState || localPlayerState.health <= 0) return;
         room.send(
           "attack", code
         );
@@ -1899,16 +1900,19 @@ export const createMultiplayer =
 
     const sendHeal =
       () => {
+        if (!localPlayerState || localPlayerState.health <= 0) return;
         room.send(
           "heal"
         );
       };
 
     const equipItem = (itemId, slot) => {
+      if (!localPlayerState || localPlayerState.health <= 0) return;
       room.send("equipItem", { itemId, slot });
     };
 
     const unequipItem = (slot) => {
+      if (!localPlayerState || localPlayerState.health <= 0) return;
       room.send("unequipItem", slot);
     };
 

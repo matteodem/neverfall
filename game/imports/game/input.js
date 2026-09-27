@@ -1,11 +1,12 @@
 import { useMobileControlsStore } from "../ui/stores/useMobileControlsStore";
 
 export const createInput = (
-  canvas
+  canvas,
+  isEnabled = () => true
 ) => {
   const state = {
     keys: {},
-    get joystick() { return useMobileControlsStore.getState().direction; },
+    get joystick() { return isEnabled() ? useMobileControlsStore.getState().direction : null; },
     leftMouseDown: false,
     rightMouseDown: false,
   };
@@ -36,7 +37,7 @@ export const createInput = (
   const handleKeyDown = (
     event
   ) => {
-    if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
+    if (!isEnabled() || event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
     state.keys[
       event.key.toLowerCase()
     ] = true;
@@ -53,6 +54,7 @@ export const createInput = (
   const handlePointerDown = (
     event
   ) => {
+    if (!isEnabled()) return;
     if (event.button === 0) {
       state.leftMouseDown = true;
     }
@@ -140,6 +142,12 @@ export const createInput = (
     state,
 
     on,
+    clear() {
+      state.keys = {};
+      state.leftMouseDown = false;
+      state.rightMouseDown = false;
+      useMobileControlsStore.getState().reset();
+    },
 
     destroy() {
       listeners.forEach(

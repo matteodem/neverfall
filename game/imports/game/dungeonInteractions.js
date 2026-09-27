@@ -25,6 +25,8 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
   };
 
   const interact = (action) => {
+    const local = room.state?.players?.get(room.sessionId);
+    if (!local || local.health <= 0) return false;
     if (action === "leave") {
       if (!dungeon || useDungeonStore.getState().busy) return false;
       leaveDungeon();
