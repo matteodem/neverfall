@@ -4,6 +4,7 @@ import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
+import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
@@ -554,6 +555,7 @@ const ActionSlot = ({
   slot,
   healCooldownUntil,
   onTrigger,
+  mobile = false,
 }) => {
   const skillCooldownUntil = useActionBarStore((state) => state.cooldownUntil[slot.code] || 0);
   const cooldownUntil =
@@ -575,12 +577,7 @@ const ActionSlot = ({
     >
       <button
         type="button"
-        onClick={
-          () =>
-            onTrigger(
-              slot.code
-            )
-        }
+        {...actionButtonHandlers(() => onTrigger(slot.code), mobile)}
         className="
           relative
 
@@ -664,6 +661,7 @@ const ActionBar = ({
   equipment,
   gameClass,
   healCooldownUntil,
+  mobile = false,
 }) => {
   const triggerSkill =
     useActionBarStore(
@@ -695,6 +693,7 @@ const ActionBar = ({
           slot
         ) => (
           <ActionSlot
+            mobile={mobile}
             key={
               slot.code
             }
@@ -736,12 +735,12 @@ const BottomHud = ({
     <>
       <div className="absolute bottom-3 right-3 z-[10000]">
         <div className="mb-2 flex gap-[5px]">
-          <button type="button" className="btn btn-sm" disabled={isDead} onClick={() => useActionBarStore.getState().triggerSkill("Space")}>Jump</button>
-          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon} onClick={() => useActionBarStore.getState().triggerSkill("KeyV")}>
+          <button type="button" className="btn btn-sm" disabled={isDead} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("Space"), true)}>Jump</button>
+          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
             {mounted ? "Dismount" : "Mount"}
           </button>
         </div>
-        <ActionBar gameClass={gameClass} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
+        <ActionBar mobile gameClass={gameClass} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
       </div>
       <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
         <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />

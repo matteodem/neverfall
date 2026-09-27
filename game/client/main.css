@@ -5,6 +5,49 @@ body {
     font-family: sans-serif;
 }
 
+.character-overview-mobile { height: 100dvh; }
+.character-overview-mobile .character-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: clamp(160px, 26vw, 240px);
+    flex-shrink: 0;
+    overflow: hidden;
+    padding: 12px;
+}
+.character-overview-mobile .character-sidebar h1 { flex-shrink: 0; margin-bottom: 12px; font-size: 20px; }
+.character-overview-mobile .character-list { min-height: 0; max-height: 50dvh; overflow-y: auto; }
+.character-overview-mobile .character-actions { flex-shrink: 0; }
+.character-overview-mobile .character-sidebar .space-y-3 > :not(:last-child) { margin-bottom: 8px; }
+.character-overview-mobile .character-sidebar .mt-6 { margin-top: 12px; }
+.character-overview-mobile .character-sidebar .btn { min-height: 40px; height: auto; padding: 8px; font-size: 12px; }
+.character-overview-mobile .character-sidebar .text-base { font-size: 14px; overflow-wrap: anywhere; }
+.character-overview-mobile .character-details { bottom: 64px; width: 100%; padding: 0 12px; }
+.character-overview-mobile .character-details .text-2xl { font-size: 18px; overflow-wrap: anywhere; }
+.character-overview-mobile .character-details .text-sm { font-size: 12px; }
+.character-overview-mobile .character-join { bottom: 12px; width: min(220px, 85%); }
+.character-overview-mobile .character-join .btn { width: 100%; min-width: 0; min-height: 40px; height: 40px; font-size: 14px; }
+.character-overview-mobile .modal-box { max-height: 85dvh; overflow-y: auto; padding: 16px; }
+
+.portrait-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    background: #09090b;
+    color: white;
+    text-align: center;
+    touch-action: none;
+}
+@media (orientation: portrait) {
+    .portrait-overlay.is-mobile { display: flex; }
+}
+@media (max-width: 767px) and (orientation: portrait) {
+    .portrait-overlay { display: flex; }
+}
+
 /* Mobile controls stay in landscape even where orientation locking is unavailable. */
 .mobile-game {
     width: 100dvw;

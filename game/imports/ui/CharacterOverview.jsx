@@ -7,6 +7,7 @@ import {
 } from "meteor/meteor";
 
 import startCase from "lodash.startcase";
+import { useMobileDevice } from "./hooks/useMobileDevice";
 
 import {
   CharacterPreview,
@@ -23,6 +24,7 @@ export const CharacterOverview = ({
   characters,
   currentCharacterId,
 }) => {
+  const { mobile } = useMobileDevice();
   const canCreateCharacter =
     characters.length <
     MAX_CHARACTERS;
@@ -101,13 +103,13 @@ export const CharacterOverview = ({
 
 
   return (
-    <div className="relative flex h-screen overflow-hidden bg-gradient-to-br from-zinc-800 via-slate-700 to-slate-500 text-white">
-      <aside className="z-10 w-80 border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
+    <div className={`relative flex h-screen overflow-hidden bg-gradient-to-br from-zinc-800 via-slate-700 to-slate-500 text-white ${mobile ? "character-overview-mobile" : ""}`}>
+      <aside className="character-sidebar z-10 w-80 border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
         <h1 className="mb-5 text-2xl font-bold">
           Characters
         </h1>
 
-        <div className="space-y-3">
+        <div className="character-list space-y-3">
           {characters.map(
             (
               character
@@ -173,7 +175,7 @@ export const CharacterOverview = ({
           )}
         </div>
 
-        <div className="mt-6 space-y-2">
+        <div className="character-actions mt-6 space-y-2">
           <div
             className={
               canCreateCharacter
@@ -228,8 +230,8 @@ export const CharacterOverview = ({
       </aside>
 
 
-      <main className="relative flex flex-1 flex-col">
-        <div className="flex-1">
+      <main className="relative flex min-w-0 flex-1 flex-col">
+        <div className="min-h-0 flex-1">
           {selected && (
             <CharacterPreview
               gameClass={selected.gameClass}
@@ -242,7 +244,7 @@ export const CharacterOverview = ({
 
 
         {selected && (
-          <div className="pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
+          <div className="character-details pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
             <div className="text-2xl font-bold drop-shadow-lg">
               {
                 selected.name
@@ -275,7 +277,7 @@ export const CharacterOverview = ({
 
 
         {selected && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <div className="character-join absolute bottom-8 left-1/2 -translate-x-1/2">
             <button
               type="button"
               onClick={

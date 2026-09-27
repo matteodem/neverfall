@@ -1,4 +1,5 @@
 import { useMobileDevice } from "./hooks/useMobileDevice";
+import { PortraitOverlay } from "./components/PortraitOverlay";
 import {
   Meteor,
 } from "meteor/meteor";
@@ -42,7 +43,14 @@ import {
 } from "./LoadingScreen";
 
 
-export const App = () => {
+export const App = () => (
+  <>
+    <AppContent />
+    <PortraitOverlay />
+  </>
+);
+
+const AppContent = () => {
   const { mobile, portrait } = useMobileDevice();
   const [
     playerHealth,
