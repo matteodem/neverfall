@@ -92,7 +92,16 @@ body {
 
 .mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
 .mobile-game .hud-trackers { display: flex; flex-direction: column; gap: 4px; }
-.mobile-game .hud-modal { font-size: 12px; transform: scale(0.5); transform-origin: top left; }
+.mobile-game .hud-modal { font-size: 24px; transform: scale(0.5); transform-origin: top left; }
+.mobile-game .hud-modal .btn { font-size: calc(var(--fontsize, 0.875rem) * 2); }
+.mobile-game .hud-modal .text-xs { font-size: 24px; line-height: 1.4; }
+.mobile-game .hud-modal .text-sm { font-size: 28px; line-height: 1.4; }
+.mobile-game .hud-modal .text-base { font-size: 32px; line-height: 1.4; }
+.mobile-game .hud-modal .text-lg { font-size: 36px; line-height: 1.4; }
+.mobile-game .hud-modal .text-xl { font-size: 32px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[9px]"] { font-size: 18px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[10px]"] { font-size: 20px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[11px]"] { font-size: 22px; line-height: 1.4; }
 .mobile-game .hud-modal .p-4 { padding: 10px; }
 
 .mobile-game .hud-minimap { order: 2; width: 170px; padding: 8px; flex-shrink: 0; }
