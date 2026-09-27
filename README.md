@@ -2,7 +2,7 @@
 
 **Heroes of Neverfall** is the working title for a browser-based 3D MMORPG currently in active development.
 
-The goal is to create a lightweight online RPG that runs directly in the browser, featuring real-time multiplayer, action combat, character progression, classes, equipment, group content, exploration, and an expanding game world.
+The goal is to create a lightweight online RPG that runs directly in the browser, featuring real-time multiplayer, action combat, character progression, classes, equipment, group content, exploration, dynamic events, and an expanding game world.
 
 > 🚧 Heroes of Neverfall is still in active development. Features, visuals, balancing, assets, systems, and the project name may change over time.
 
@@ -18,21 +18,30 @@ The goal is to create a lightweight online RPG that runs directly in the browser
 - 🏹 Class-specific combat abilities
 - 🔥 Projectile combat for Ranger and Mage
 - ❤️ Health, healing, death, and respawn
+- 🛡️ Camp safe zone and respawn protection
 - 🐗 Multiple enemy types with AI
-- 👹 Mini-boss encounters
+- ✨ Rare enemy variants
+- 👹 Mini-boss and boss encounters
+- 💥 Boss mechanics including telegraphed attacks and enrage
+- 🌐 Dynamic world events
 - ⭐ XP and level progression
-- 📈 Level-based health, damage, and healing scaling
+- 📈 Class-specific level progression bonuses
 - 📜 Quest / hunt system
 - 🎒 Loot and inventory
 - 💍 Lightweight equipment system
 - 💪 Equipment-based stat bonuses
+- 🧿 Accessories with gameplay bonuses
 - 🐎 Mount system
 - 🧑‍🤝‍🧑 Party system
+- 🏰 Instanced dungeon
+- 🏆 Achievement system
 - 🗺️ Minimap
+- 🌎 World Map
 - 🧙 Character creation and character selection
 - 🎨 Basic character appearance customization
 - 🕹️ Action bar with cooldowns
 - 🔊 Basic sound effects
+- 📱 Mobile controls and mobile support
 - 🌲 Procedurally assembled world environments
 - 🧗 Jumping puzzle
 - 💾 Persistent character progression
@@ -63,12 +72,16 @@ The current gameplay loop includes:
 4. Explore the environment
 5. Fight enemies using action combat
 6. Complete hunts and objectives
-7. Collect loot and equipment
-8. Improve character stats
-9. Earn XP and level up
-10. Group with other players
-11. Fight stronger enemies and mini-bosses
-12. Explore using mounts
+7. Participate in dynamic world events
+8. Collect loot and equipment
+9. Improve character stats
+10. Earn XP and level up
+11. Unlock class progression bonuses
+12. Group with other players
+13. Fight bosses and rare enemies
+14. Enter instanced dungeon content
+15. Complete achievements
+16. Explore using mounts
 
 The game is being developed iteratively, with new systems being added while existing gameplay is continuously refined.
 
@@ -78,9 +91,16 @@ Heroes of Neverfall currently supports three classes.
 
 ### ⚔️ Warrior
 
-A melee-focused class using close-range attacks.
+A melee-focused class built around close-range combat.
 
-Current abilities include basic melee combat and additional Warrior skills.
+Current abilities include:
+
+- Basic Attack
+- Heavy Strike
+- Cleave
+- Heal / utility ability
+
+The Warrior gains additional health and melee damage through class progression.
 
 ### 🏹 Ranger
 
@@ -91,6 +111,8 @@ Current Ranger abilities include:
 - Arrow Shot
 - Strong Arrow
 - Multi Shot
+
+The Ranger gains projectile damage and movement speed through class progression.
 
 The Ranger currently does not require a visible bow model.
 
@@ -104,9 +126,24 @@ Current Mage abilities include:
 - Fireball Burst
 - Fire Nova
 
+The Mage gains spell damage, AoE damage, and additional health through class progression.
+
 The Mage currently does not require a staff or wand model.
 
-The class system is intentionally lightweight for now and will continue expanding over time.
+## 📈 Character Progression
+
+Characters can currently progress up to **Level 20**.
+
+In addition to normal stat scaling, each class receives milestone bonuses at:
+
+- Level 5
+- Level 10
+- Level 15
+- Level 20
+
+These bonuses are class-specific and stack with equipment bonuses.
+
+Progression is persisted per character.
 
 ## 💍 Equipment
 
@@ -117,14 +154,20 @@ Current equipment slots include:
 - Ring
 - Accessory
 
-Equipment can modify character stats without changing the character's visual appearance.
+Equipment modifies character stats without changing the character's visual appearance.
 
 Examples include:
 
-- Rings that increase maximum health
-- Rings that increase attack damage
+- Maximum health bonuses
+- Attack damage bonuses
+- XP gain bonuses
+- Movement speed bonuses
 
-More equipment types may be added later.
+Current accessories include examples such as:
+
+- Lucky Charm
+- Guardian Talisman
+- Swift Feather
 
 ## 🐎 Mounts
 
@@ -143,33 +186,150 @@ The current mount system supports:
 
 Players can form parties for group gameplay.
 
-The party system is intended to support future group-focused content such as:
+Party gameplay currently integrates with systems such as:
 
+- Dungeon content
 - Boss encounters
-- Group events
-- Shared objectives
+- Dynamic world events
+- Shared group objectives
+
+## 🏰 Dungeons
+
+Heroes of Neverfall includes instanced dungeon gameplay.
+
+The current dungeon system supports:
+
+- Solo or party entry
+- Separate dungeon instances
+- Enemy groups
+- Mini-boss encounters
+- Final boss encounter
+- Dungeon rewards
+- Death and respawn handling
+- Returning to the open world
+
+Dungeon content will continue expanding over time.
+
+## 🌐 Dynamic World Events
+
+The world can contain server-driven events that players nearby can participate in together.
+
+Current event work includes:
+
+### 🐺 Wolf Invasion
+
+A multi-wave event where players defend against attacking wolves.
+
+The event includes:
+
+- Multiple waves
+- Shared progress
+- Automatic participation
+- Event rewards
+- Event cooldown
+- World announcements
+
+### 🟣 Forest Giant Awakening
+
+A stronger event version of the Forest Giant.
+
+The **Awakened Forest Giant**:
+
+- Is separate from the normal `Kill The Giant` quest boss
+- Reuses the existing Giant model
+- Has increased health and damage
+- Gives improved rewards
+- Has a subtle purple glow to distinguish it visually
+
+Dynamic events are designed to reuse a shared event system so additional world events can be added later.
+
+## 👹 Bosses & Rare Enemies
+
+Boss encounters can include additional mechanics beyond normal enemy combat.
+
+Current mechanics include:
+
+- Telegraphed area attacks
+- Charge attacks
+- Enrage behavior
+- Dedicated boss health bars
+- Increased rewards
+
+Rare enemy variants provide stronger versions of normal enemies and additional reward opportunities.
+
+## 🏆 Achievements
+
+Achievements are tracked per character.
+
+Current achievements include examples such as:
+
+- First Blood
+- Boar Slayer
+- Wolf Hunter
+- Getting Stronger
+- Treasure Hunter
+- Equipped
+- Mounted
+- Boss Killer
+- Legend of Neverfall
+
+Achievements currently focus on progression milestones rather than achievement points or currencies.
 
 ## 🌎 World & Enemies
 
-The current world contains multiple enemy types and gameplay areas.
+The current world contains multiple enemy types, bosses, and gameplay areas.
 
 Current content includes:
 
 - Boars
 - Wolves
+- Additional wildlife enemies
+- Rare enemies
 - Mini-boss encounters
+- Forest Giant encounters
 - Forest environments
 - Camps
 - Exploration areas
+- Dungeon entrance
 - Jumping puzzle content
 - Loot drops
 - Hunt objectives
+- Dynamic events
 
-The world will continue expanding with additional enemies, locations, and activities.
+The world will continue expanding with additional regions, enemies, encounters, and activities.
+
+## 🗺️ Maps & Exploration
+
+Players currently have access to:
+
+### Minimap
+
+Provides nearby gameplay information while exploring.
+
+### World Map
+
+A larger world overview using a lightweight static map with live player and location markers.
+
+The map system is intentionally independent from 3D world rendering to keep performance costs low.
+
+## 📱 Mobile Support
+
+Heroes of Neverfall includes initial mobile support.
+
+Mobile gameplay includes support for:
+
+- Character movement
+- Camera control
+- Combat abilities
+- HUD interaction
+- Game modals
+- Map UI
+
+Mobile support is still being refined as the game grows.
 
 ## ⚡ Performance
 
-As the world grows, Neverfall is also receiving dedicated performance optimization work.
+As the world grows, Neverfall is receiving dedicated performance optimization work.
 
 Current and planned optimizations include:
 
@@ -180,8 +340,15 @@ Current and planned optimizations include:
 - Throttled minimap updates
 - Optimized static environment meshes
 - Reuse / instancing of repeated world props
+- Projectile and VFX pooling
+- Reduced network update frequency
+- Client-side interpolation
+- Server-side AI throttling
+- Mobile quality adjustments
+- Shadow optimization
+- Distance-based world activation
 
-Gameplay state and minimap information remain independent from 3D rendering distance.
+Gameplay state and map information remain independent from 3D rendering distance where possible.
 
 ## 🚀 How to Run
 
@@ -207,9 +374,23 @@ http://localhost:3000
 
 Heroes of Neverfall is currently in active development.
 
-The project has moved beyond the initial prototype and now includes several interconnected MMORPG systems including multiplayer combat, classes, progression, equipment, loot, mounts, parties, and world content.
+The project has moved well beyond the initial prototype and now contains several interconnected MMORPG systems including:
 
-Development currently focuses on expanding gameplay while keeping systems small, maintainable, and performant.
+- Multiplayer combat
+- Classes
+- Character progression
+- Loot and equipment
+- Mounts
+- Parties
+- Dungeons
+- Achievements
+- Dynamic world events
+- Boss mechanics
+- Exploration
+- Mobile support
+- Persistent character progression
+
+Development currently focuses on expanding world content, improving performance, and making existing systems work together cleanly without overcomplicating the architecture.
 
 Some assets and visuals are temporary and are expected to change as development continues.
 
@@ -217,16 +398,21 @@ Some assets and visuals are temporary and are expected to change as development 
 
 Future development may include:
 
+- 🐺 More enemy types
 - 👹 More bosses and encounter mechanics
+- 🌐 More dynamic world events
+- 🏰 More dungeon content
 - 💍 More equipment and accessories
-- 🗺️ Larger and more varied world areas
-- 📜 More quests and progression systems
+- 🗺️ Larger and more varied world regions
+- 📜 More quests and progression content
 - 🧑‍🤝‍🧑 More group-oriented gameplay
 - 🎨 Improved visual effects and animations
 - 🔊 Expanded audio and ambience
 - 🎒 More loot and rewards
+- 💬 Player chat
+- 🧬 Additional playable species
 
-Larger systems such as crafting, trading, guilds, and advanced equipment progression may be explored later.
+Larger systems such as crafting, trading, guilds, advanced equipment progression, and larger-scale group content may be explored later.
 
 ## ❤️ Support the Project
 
