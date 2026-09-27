@@ -5,14 +5,17 @@ import { WorldEventState } from "./WorldState";
 
 // One active event per world room. Waves use the ordinary enemy lifecycle.
 export const createWorldEvents = (room) => {
-  let configIndex = 0;
-  let config = WORLD_EVENTS[configIndex];
+  const startedAt = Date.now();
+  const nextStarts = new Map(WORLD_EVENTS.map((event) => [event.id, startedAt + event.initialDelay]));
+  const nextConfig = () => WORLD_EVENTS.reduce((earliest, event) =>
+    nextStarts.get(event.id) < nextStarts.get(earliest.id) ? event : earliest);
+  let config = nextConfig();
   let run = 0;
   let stage = 0;
   let nextWaveAt = 0;
   const enemies = new Set();
   const participants = new Map();
-  const state = new WorldEventState({ nextStartAt: Date.now() + config.initialDelay });
+  const state = new WorldEventState({ nextStartAt: nextStarts.get(config.id) });
   room.state.worldEvent = state;
 
   const nearbyPlayers = (targetableOnly = true) => Array.from(room.state.players.entries()).filter(([, player]) =>
@@ -61,7 +64,8 @@ export const createWorldEvents = (room) => {
     const recipients = new Map(participants);
     const rewardConfig = config;
     state.status = "cooldown";
-    state.nextStartAt = Date.now() + config.cooldown;
+    nextStarts.set(config.id, Date.now() + config.cooldown);
+    state.nextStartAt = nextStarts.get(nextConfig().id);
     state.enemiesRemaining = 0;
     nextWaveAt = 0;
     state.nextWaveIn = 0;
@@ -97,9 +101,8 @@ export const createWorldEvents = (room) => {
     update() {
       const now = Date.now();
       if (state.status === "cooldown") {
-        config = WORLD_EVENTS[configIndex];
+        config = nextConfig();
         if (now < state.nextStartAt) return;
-        configIndex = (configIndex + 1) % WORLD_EVENTS.length;
         state.id = config.id;
         state.name = config.name;
         state.status = "active";

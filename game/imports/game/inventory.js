@@ -44,7 +44,8 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false)
     : ENEMY_TYPES[enemyType]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE;
   const lootMultiplier = rare && !bossDrop && enemyType !== "dungeonChest" ? RARE_ENEMY.lootChanceMultiplier : 1;
   const equipmentItemIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "ring").map(({ id }) => id);
-  const dropsEquipment = !bossDrop && random() < Math.min(1, EQUIPMENT_DROP_CHANCE * lootMultiplier);
+  const equipmentDropChance = ENEMY_TYPES[enemyType]?.equipmentDropChance ?? (bossDrop ? 0 : EQUIPMENT_DROP_CHANCE);
+  const dropsEquipment = equipmentDropChance > 0 && random() < Math.min(1, equipmentDropChance * lootMultiplier);
   const items = dropsEquipment
     ? [{ id: equipmentItemIds[Math.floor(random() * equipmentItemIds.length)] }]
     : !bossDrop && enemyType !== "dungeonChest" && random() < 0.7

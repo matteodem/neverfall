@@ -107,6 +107,18 @@ export const ENEMY_TYPES = {
   },
 };
 
+ENEMY_TYPES.awakenedForestGiant = {
+  ...ENEMY_TYPES.forestGiant,
+  name: "Awakened Forest Giant",
+  health: ENEMY_TYPES.forestGiant.health * 1.5,
+  attackDamage: ENEMY_TYPES.forestGiant.attackDamage * 1.25,
+  xpReward: 100,
+  moneyReward: 0,
+  equipmentDropChance: 0.35,
+  accessoryDropChance: 0.75,
+  emissiveColor: [0.10, 0.06, 0.14],
+};
+
 ENEMY_TYPES.alphaWolf = {
   ...ENEMY_TYPES.wolf,
   name: "Alpha Wolf",

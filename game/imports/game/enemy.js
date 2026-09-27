@@ -104,13 +104,14 @@ export const createEnemy = async ({
    */
 
   const rareMaterials = new Map();
-  if (state.rare) {
+  if (state.rare || config.emissiveColor) {
     for (const mesh of result.meshes) {
       const material = mesh.material;
       if (!material || !material.emissiveColor) continue;
       if (!rareMaterials.has(material)) {
         const tinted = material.clone(`${material.name}-rare-${id}`);
-        tinted.emissiveColor = new Color3(0.08, 0.065, 0.006);
+        tinted.emissiveColor = config.emissiveColor
+          ? new Color3(...config.emissiveColor) : new Color3(0.08, 0.065, 0.006);
         rareMaterials.set(material, tinted);
       }
       mesh.material = rareMaterials.get(material);

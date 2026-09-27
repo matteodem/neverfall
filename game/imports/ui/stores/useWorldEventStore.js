@@ -6,7 +6,7 @@ export const useWorldEventStore = create((set, get) => ({
   sync(world, sessionId) {
     const player = world?.players?.get(sessionId);
     const shared = world?.worldEvent;
-    const event = shared?.status === "active" && player?.health > 0 && !player.inDungeon && player.worldEventId === shared.id
+    const event = shared?.status === "active" && player && !player.inDungeon
       ? { id: shared.id, name: shared.name, wave: shared.wave,
         inSafeZone: isInsideCamp(player),
         totalWaves: shared.totalWaves, enemiesRemaining: shared.enemiesRemaining, nextWaveIn: shared.nextWaveIn }

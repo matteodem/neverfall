@@ -1,10 +1,12 @@
 import { DUNGEON } from "../../game/dungeonConfig";
 import { ENEMY_TYPES } from "../../game/enemyConfig";
+import { WORLD_EVENTS } from "../../game/worldEvents";
 import { useDungeonStore } from "../stores/useDungeonStore";
+import { useWorldEventStore } from "../stores/useWorldEventStore";
 import React from "react";
 import { Icon } from "./Icon";
 
-import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../game/worldMap";
+import { DUNGEON_MAP_RADIUS, WORLD_RADIUS, worldToPercent } from "../../game/worldMap";
 
 import {
   useMinimapStore,
@@ -92,7 +94,7 @@ const LocalPlayerMarker = ({
   );
 };
 
-const Legend = ({ location }) => {
+const Legend = ({ location, activeEvent }) => {
   const ITEMS = [
     {
       label:
@@ -123,6 +125,7 @@ const Legend = ({ location }) => {
       color: "#a78bfa",
       outlined: false,
     }] : []),
+    ...(activeEvent ? [{ label: "Event", color: "#fb923c", outlined: false }] : []),
   ];
 
   return (
@@ -158,6 +161,10 @@ const Legend = ({ location }) => {
 export const Minimap =
   () => {
     const location = useDungeonStore((state) => state.location);
+    const eventId = useWorldEventStore((state) => state.event?.id);
+    const activeEvent = location === "world" ? WORLD_EVENTS.find((event) => event.id === eventId) : null;
+    const eventPosition = activeEvent && worldToPercent(activeEvent.center);
+    const eventDiameter = activeEvent && `${activeEvent.participationRadius / WORLD_RADIUS * 100}%`;
     const localPlayer =
       useMinimapStore(
         (state) =>
@@ -234,6 +241,15 @@ export const Minimap =
           <div className="absolute left-1/2 top-1/2 h-[70%] w-[70%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
           <div className="absolute left-1/2 top-1/2 h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
 
+          {activeEvent && (
+            <div
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-orange-400 bg-orange-400/25"
+              title={activeEvent.name}
+              aria-label={`Active event: ${activeEvent.name}`}
+              style={{ ...eventPosition, width: eventDiameter, height: eventDiameter }}
+            />
+          )}
+
           <DotMarker {...(location === "dungeon" ? DUNGEON.exit : DUNGEON.entrance)} color="#a78bfa" size={10} className="z-10" outlined={location === "dungeon"} />
 
           {/*
@@ -284,7 +300,7 @@ export const Minimap =
                 outlined={false}
                 size={
                   enemy.type ===
-                  "forestGiant" || enemy.type === "alphaWolf"
+                  "forestGiant" || enemy.type === "alphaWolf" || enemy.type === "awakenedForestGiant"
                     ? 8
                     : 5
                 }
@@ -309,7 +325,7 @@ export const Minimap =
           />
         </div>
 
-        <Legend location={location} />
+        <Legend location={location} activeEvent={activeEvent} />
       </div>
     );
   };
