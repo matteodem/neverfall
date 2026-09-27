@@ -5,6 +5,7 @@ import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
 import { BossNotice } from "./components/BossNotice";
+import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getClassConfig } from "../game/classConfig";
@@ -877,6 +878,7 @@ export const Hud = ({
         )}
 
         {!inDungeon && <QuestTracker />}
+        {!inDungeon && <WorldEventTracker />}
       </div>
 
 

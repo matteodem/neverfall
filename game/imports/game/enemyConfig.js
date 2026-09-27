@@ -107,6 +107,22 @@ export const ENEMY_TYPES = {
   },
 };
 
+ENEMY_TYPES.alphaWolf = {
+  ...ENEMY_TYPES.wolf,
+  name: "Alpha Wolf",
+  scale: 0.65,
+  health: 1800,
+  healthPerLevel: 0,
+  attackDamage: 30,
+  damagePerLevel: 0,
+  speed: 3,
+  attackRange: 2.2,
+  aggroRadius: 40,
+  bossMechanics: BOSS_MECHANICS,
+  xpReward: 100,
+  accessoryDropChance: 0.2,
+};
+
 // Reuse the existing ogre asset and animations for the small dungeon bosses.
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,

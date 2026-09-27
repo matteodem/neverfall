@@ -220,7 +220,6 @@ Future development may include:
 - 👹 More bosses and encounter mechanics
 - 💍 More equipment and accessories
 - 🗺️ Larger and more varied world areas
-- 🌎 Dynamic world events
 - 📜 More quests and progression systems
 - 🧑‍🤝‍🧑 More group-oriented gameplay
 - 🎨 Improved visual effects and animations

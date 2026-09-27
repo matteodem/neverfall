@@ -4,6 +4,7 @@ import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
 import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
+import { useWorldEventStore } from "../ui/stores/useWorldEventStore";
 import { getGameSession, closeGameSession } from "./gameSession";
 import { getClassConfig } from "./classConfig";
 import { createProjectileVisuals } from "./projectiles";
@@ -1311,6 +1312,7 @@ export const createMultiplayer =
      */
 
     onMessage("bossNotice", (text) => useBossNoticeStore.getState().show(text));
+    onMessage("worldEventNotice", (text) => useBossNoticeStore.getState().show(text));
 
     onMessage("skillCooldown", ({ code, duration }) => {
       useActionBarStore.getState().setCooldown(code, duration);
@@ -1708,6 +1710,7 @@ export const createMultiplayer =
         if (minimapElapsed >= ENTITY_VISIBILITY.minimapInterval) {
           minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
           useMinimapStore.getState().syncEntities(room.state, room.sessionId);
+          useWorldEventStore.getState().sync(room.state, room.sessionId);
         }
         dungeonInteractions.update(deltaTime);
         projectiles.update(deltaTime);
@@ -1945,6 +1948,7 @@ export const createMultiplayer =
         useTargetStore.getState().clear();
         useChatStore.getState().disconnect();
         useBossNoticeStore.getState().reset();
+        useWorldEventStore.getState().reset();
         loot.destroy();
         useQuestStore.getState().reset();
 

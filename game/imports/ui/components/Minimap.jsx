@@ -1,4 +1,5 @@
 import { DUNGEON } from "../../game/dungeonConfig";
+import { ENEMY_TYPES } from "../../game/enemyConfig";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import React from "react";
 import { Icon } from "./Icon";
@@ -13,8 +14,7 @@ const getEnemyColor = (
   type
 ) => {
   if (
-    type ===
-    "forestGiant" || type === "dungeonGuardian" || type === "dungeonWarden"
+    ENEMY_TYPES[type]?.bossMechanics
   ) {
     return "#d8f710";
   }
@@ -284,7 +284,7 @@ export const Minimap =
                 outlined={false}
                 size={
                   enemy.type ===
-                  "forestGiant"
+                  "forestGiant" || enemy.type === "alphaWolf"
                     ? 8
                     : 5
                 }
