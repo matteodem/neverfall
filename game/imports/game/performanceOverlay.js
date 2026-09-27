@@ -1,10 +1,12 @@
 import { SceneInstrumentation } from "@babylonjs/core";
+import { getDevice } from "../ui/hooks/useMobileDevice";
 
 // Kept outside React and updated once per second to avoid HUD render work.
 export const createPerformanceOverlay = ({ scene, engine, multiplayer }) => {
   const instrumentation = new SceneInstrumentation(scene);
   const display = document.createElement("pre");
   display.style.cssText = "position:fixed;bottom:210px;left:8px;z-index:100;pointer-events:none;background:#000b;color:white;padding:8px;font:12px monospace";
+  if (getDevice().mobile) display.style.bottom = "150px";
   (document.querySelector(".game-chat")?.parentElement || document.body).appendChild(display);
   display.style.position = "absolute";
   let elapsed = 0;

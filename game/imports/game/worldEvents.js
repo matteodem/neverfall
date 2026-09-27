@@ -1,5 +1,5 @@
 export const WORLD_EVENTS = [
-  {
+  /* {
     id: "wolf-invasion",
     name: "Wolf Invasion",
     announcement: "World Event: Wolves are attacking the camp!",
@@ -18,7 +18,7 @@ export const WORLD_EVENTS = [
     ],
     boss: { type: "alphaWolf", level: 5, count: 1 },
     rewards: { xp: 500, money: 10000, lootType: "wolf" },
-  },
+  }, */
   {
     id: "forest-giant-awakening",
     name: "Forest Giant Awakening",
