@@ -77,8 +77,7 @@ Meteor.methods({
         userId:
           this.userId,
 
-        characterId:
-          character.id,
+        characterId,
 
         characterName:
           character.name,

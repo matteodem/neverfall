@@ -12,7 +12,7 @@ import {
   WorldRoom,
 } from "./WorldRoom";
 
-const COLYSEUS_PORT = 2567;
+const COLYSEUS_PORT = process.env.NODE_ENV === "production" ? process.env.PORT : 2567;
 
 let server = null;
 

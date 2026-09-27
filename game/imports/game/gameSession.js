@@ -83,7 +83,11 @@ export const getGameSession = async () => {
   if (connecting) return connecting;
   connecting = (async () => {
     await ensureGuestUser();
-    const client = new Client("ws://localhost:2567");
+    const client = new Client(
+      process.env.NODE_ENV === "production"
+        ? "wss://neverfall-ae1i.onrender.com"
+        : "ws://localhost:2567"
+    );
     client.auth.token = await Meteor.callAsync("colyseus.authToken");
     const worldRoom = await client.joinOrCreate("world");
     try {
