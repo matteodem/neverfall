@@ -361,20 +361,33 @@ export class WorldRoom
 
       const remainingItems = [...originalItems];
       remainingItems.splice(itemIndex, 1);
+      const now = Date.now();
+      const expiresAt = now + POTION_DURATION_MS;
+      const update = { "inventory.items": remainingItems };
+      if (itemId === "speed_potion") update.speedPotionUntil = expiresAt;
+      if (itemId === "power_potion") update.powerPotionUntil = expiresAt;
       const consumed = await Characters.updateAsync(
         { _id: player.characterId, userId: player.userId, "inventory.items": originalItems },
-        { $set: { "inventory.items": remainingItems } }
+        { $set: update }
       );
-      if (!consumed || this.state.players.get(client.sessionId) !== player || player.health <= 0) return;
+      if (!consumed) return;
+      if (this.state.players.get(client.sessionId) !== player || player.health <= 0) {
+        if (itemId !== "health_potion" && player.health <= 0) {
+          await Characters.updateAsync(
+            { _id: player.characterId, userId: player.userId },
+            { $set: { speedPotionUntil: 0, powerPotionUntil: 0 } }
+          );
+        }
+        return;
+      }
 
-      const now = Date.now();
       if (itemId === "health_potion") {
         player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
       } else if (itemId === "speed_potion") {
-        player.speedPotionUntil = now + POTION_DURATION_MS;
+        player.speedPotionUntil = expiresAt;
         player.movementSpeedMultiplier = getStatsForPlayer(player, now).movementSpeedMultiplier;
       } else if (itemId === "power_potion") {
-        player.powerPotionUntil = now + POTION_DURATION_MS;
+        player.powerPotionUntil = expiresAt;
       }
     },
 
@@ -705,6 +718,10 @@ export class WorldRoom
         character.species
       );
 
+    const now = Date.now();
+    const speedPotionUntil = character.speedPotionUntil > now ? character.speedPotionUntil : 0;
+    const powerPotionUntil = character.powerPotionUntil > now ? character.powerPotionUntil : 0;
+
 
     const player =
       new PlayerState({
@@ -722,7 +739,9 @@ export class WorldRoom
         species: character.species || "human",
 
         currentLevel,
-        movementSpeedMultiplier: stats.movementSpeedMultiplier,
+        movementSpeedMultiplier: stats.movementSpeedMultiplier * (speedPotionUntil ? 1.1 : 1),
+        speedPotionUntil,
+        powerPotionUntil,
 
         currentXp:
           character.currentXp ??
@@ -1045,6 +1064,10 @@ export class WorldRoom
     player.speedPotionUntil = 0;
     player.powerPotionUntil = 0;
     player.movementSpeedMultiplier = getStatsForPlayer(player).movementSpeedMultiplier;
+    void Characters.updateAsync(
+      { _id: player.characterId, userId: player.userId },
+      { $set: { speedPotionUntil: 0, powerPotionUntil: 0 } }
+    ).catch((error) => console.error("[Consumables] Could not clear potion buffs", error));
 
 
     this.clock.setTimeout(

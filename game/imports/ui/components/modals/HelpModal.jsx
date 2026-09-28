@@ -36,7 +36,7 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        Like Neverfall? Feel free to support me: <br />
+        Like Neverfall? Feel free to support me or report an issue / bug: <br />
 
         <div className="flex gap-4">
           <a target="_blank" className="btn mt-2 btn-soft btn-primary" href="https://patreon.com/MatteoDeMicheli">Patreon</a>

@@ -271,6 +271,9 @@ Meteor.methods({
         accessory: null,
       },
 
+      speedPotionUntil: 0,
+      powerPotionUntil: 0,
+
       lastPlayedAt:
         new Date(),
     });
