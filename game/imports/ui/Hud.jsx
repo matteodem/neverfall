@@ -756,7 +756,7 @@ const BottomHud = ({
   if (mobile) return (
     <>
       <div className="absolute bottom-3 right-3 z-[10000]">
-        <div className="mb-2 flex gap-[5px]">
+        <div className="mb-3 flex gap-2">
           <button type="button" className="btn btn-sm" disabled={isDead} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("Space"), true)}>Jump</button>
           <button type="button" className="btn btn-sm" disabled={isDead || inDungeon || (inCombat && !mounted)} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
             {mounted ? "Dismount" : "Mount"}
