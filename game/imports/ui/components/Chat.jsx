@@ -42,7 +42,7 @@ export const Chat = () => {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
   return (
-    <section className={`game-chat absolute bottom-2 left-2 z-[10002] w-80 rounded-box p-2 text-xs text-white ${visible ? "bg-black/65" : "pointer-events-none"}`} aria-label="Chat">
+    <section id="onboarding-chat" className={`game-chat absolute bottom-2 left-2 z-[10002] w-80 rounded-box p-2 text-xs text-white ${visible ? "bg-black/65" : "pointer-events-none"}`} aria-label="Chat">
       <button type="button" className="pointer-events-auto btn btn-xs mb-1" aria-expanded={visible}
         onClick={(event) => { useChatStore.getState().toggleVisible(); event.currentTarget.blur(); }}
         onKeyDown={(event) => { if (!visible && event.key === "Enter") { event.preventDefault(); event.stopPropagation(); } }}>

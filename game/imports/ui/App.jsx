@@ -41,13 +41,14 @@ import {
 import {
   LoadingScreen,
 } from "./LoadingScreen";
+import { OnboardingAutoStart, OnboardingTour } from "./OnboardingTour";
 
 
 export const App = () => (
-  <>
+  <OnboardingTour>
     <AppContent />
     <PortraitOverlay />
-  </>
+  </OnboardingTour>
 );
 
 const AppContent = () => {
@@ -393,6 +394,7 @@ const AppContent = () => {
 
 
       <LoadingScreen />
+      <OnboardingAutoStart completed={user.profile?.onboardingCompleted === true} />
     </div>
   );
 };

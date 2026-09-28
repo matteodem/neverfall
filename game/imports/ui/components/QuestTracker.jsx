@@ -73,7 +73,7 @@ export const QuestTracker =
         </div>
       </div>
       )}
-      <details className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
+      <details id="onboarding-quests" className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
         <summary className="cursor-pointer font-bold">Quest Log</summary>
         <div className="quest-log-list mt-2 max-h-60 space-y-2 overflow-y-auto text-sm">
           {orderedQuests.map((entry) => {

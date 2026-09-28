@@ -191,6 +191,7 @@ export const Minimap =
 
     return (
       <div
+        id="onboarding-map"
         className="
           hud-minimap
           rounded-3xl

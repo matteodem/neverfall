@@ -1,15 +1,32 @@
 import React from "react";
+import { useNextStep } from "nextstepjs";
+import { ONBOARDING_TOUR } from "../../OnboardingTour";
+import { useHudStore } from "../../stores/useHudStore";
 
 import {
   HudModal,
 } from "../HudModal";
 
 export const HelpModal = () => {
+  const { startNextStep } = useNextStep();
+  const closeModal = useHudStore((state) => state.closeModal);
+
   return (
     <HudModal
       id="help"
       title="Help"
     >
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        onClick={() => {
+          closeModal("help");
+          startNextStep(ONBOARDING_TOUR);
+        }}
+      >
+        Replay Onboarding
+      </button>
+
       <p className="mt-2 text-lg font-bold">
         Keyboard Controls
       </p>
@@ -28,7 +45,7 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        v0.6
+        v0.6.0-alpha
       </div>
 
       <p className="mt-5 text-lg font-bold">
