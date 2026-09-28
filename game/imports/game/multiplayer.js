@@ -793,6 +793,7 @@ export const createMultiplayer =
     scene,
     player,
     onLocalHealthChange,
+    onLocalCombatChange,
     onLocalBuffChange,
     onLocalRespawn,
     onHealCooldown,
@@ -1016,6 +1017,10 @@ export const createMultiplayer =
           syncPotionBuffs();
           callbacks.listen(playerState, "speedPotionUntil", syncPotionBuffs);
           callbacks.listen(playerState, "powerPotionUntil", syncPotionBuffs);
+
+          const syncCombat = () => onLocalCombatChange?.(playerState.inCombat);
+          syncCombat();
+          callbacks.listen(playerState, "inCombat", syncCombat);
 
 
           return;

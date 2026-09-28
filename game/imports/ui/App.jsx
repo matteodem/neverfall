@@ -72,6 +72,7 @@ const AppContent = () => {
   );
 
   const [mounted, setMounted] = useState(false);
+  const [inCombat, setInCombat] = useState(false);
   const [potionBuffs, setPotionBuffs] = useState({ speedPotionUntil: 0, powerPotionUntil: 0 });
 
 
@@ -367,6 +368,7 @@ const AppContent = () => {
           setHealCooldownUntil
         }
         setMountedState={setMounted}
+        setInCombatState={setInCombat}
         setPotionBuffs={setPotionBuffs}
       />
 
@@ -386,6 +388,7 @@ const AppContent = () => {
           healCooldownUntil
         }
         mounted={mounted}
+        inCombat={inCombat}
       />
 
 

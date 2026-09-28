@@ -47,6 +47,9 @@ export const PlayerState =
       mounted:
         t.boolean().default(false),
 
+      inCombat:
+        t.boolean().default(false),
+
       ring:
         t.string().default(""),
 

@@ -91,6 +91,7 @@ export const Game = ({
   setPlayerHealth,
   setHealCooldownUntil,
   setMountedState,
+  setInCombatState,
   setPotionBuffs,
 }) => {
   const location = useDungeonStore((state) => state.location);
@@ -162,6 +163,8 @@ export const Game = ({
 
       let mounted =
         false;
+
+      let inCombat = false;
 
       let playerAlive =
         true;
@@ -310,7 +313,7 @@ export const Game = ({
               mounted =
                 Boolean(
                   value &&
-                  playerAlive && location !== "dungeon"
+                  playerAlive && !inCombat && location !== "dungeon"
                 );
 
 
@@ -355,6 +358,11 @@ export const Game = ({
               dungeonVisuals: world.dungeonVisuals,
               onLocalRespawn: () => jump?.reset(),
               onLocalBuffChange: setPotionBuffs,
+              onLocalCombatChange: (active) => {
+                inCombat = active;
+                setInCombatState(active);
+                if (active && mounted) setMounted(false);
+              },
 
               onLocalHealthChange:
                 (

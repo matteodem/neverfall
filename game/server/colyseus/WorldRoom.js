@@ -428,7 +428,8 @@ export class WorldRoom
 
       if (typeof data.mounted === "boolean") {
         const wasMounted = player.mounted;
-        player.mounted = this.mountsAllowed && data.mounted;
+        player.inCombat = this.isPlayerInCombat(client.sessionId);
+        player.mounted = this.mountsAllowed && data.mounted && !player.inCombat;
         if (player.mounted && !wasMounted) {
           void trackAchievements(player.characterId, "mount");
         }
@@ -602,6 +603,7 @@ export class WorldRoom
         ATTACK.cooldown;
 
       runtime[cooldownField] = now + skill.cooldown;
+      this.markPlayerInCombat(client.sessionId);
       player.respawnProtectedUntil = 0;
       if (code !== "Digit1") {
         client.send("skillCooldown", { code, duration: skill.cooldown });
@@ -667,6 +669,21 @@ export class WorldRoom
 
     runtime.lastCombatAt =
       Date.now();
+
+    const player = this.state.players.get(sessionId);
+    if (player) {
+      player.inCombat = true;
+      player.mounted = false;
+    }
+  }
+
+  isPlayerInCombat(sessionId, now = Date.now()) {
+    const runtime = this.playerRuntime.get(sessionId);
+    if (runtime && now - runtime.lastCombatAt < HEALTH_REGEN.delay) return true;
+    for (const enemy of this.enemyRuntime.values()) {
+      if (enemy.targetSessionId === sessionId) return true;
+    }
+    return false;
   }
 
 
@@ -930,6 +947,9 @@ export class WorldRoom
       ]
       of this.state.players.entries()
     ) {
+      player.inCombat = player.health > 0 && this.isPlayerInCombat(sessionId, now);
+      if (player.inCombat) player.mounted = false;
+
       if (player.speedPotionUntil && player.speedPotionUntil <= now) {
         player.speedPotionUntil = 0;
         player.movementSpeedMultiplier = getStatsForPlayer(player, now).movementSpeedMultiplier;

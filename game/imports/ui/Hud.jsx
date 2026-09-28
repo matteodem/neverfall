@@ -741,13 +741,14 @@ const BottomHud = ({
   mounted,
   isDead,
   inDungeon,
+  inCombat,
 }) => {
   if (mobile) return (
     <>
       <div className="absolute bottom-3 right-3 z-[10000]">
         <div className="mb-2 flex gap-[5px]">
           <button type="button" className="btn btn-sm" disabled={isDead} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("Space"), true)}>Jump</button>
-          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
+          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon || (inCombat && !mounted)} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
             {mounted ? "Dismount" : "Mount"}
           </button>
         </div>
@@ -793,13 +794,13 @@ const BottomHud = ({
       <div className="relative">
         <div
           className="tooltip tooltip-top absolute left-[-60px] h-[45px] top-0"
-          data-tip={mounted ? "Dismount" : "Mount"}
+          data-tip={mounted ? "Dismount" : inCombat ? "Cannot mount in combat" : "Mount"}
         >
           <button
             type="button"
-            disabled={isDead || inDungeon}
+            disabled={isDead || inDungeon || (inCombat && !mounted)}
             onClick={() => useActionBarStore.getState().triggerSkill("KeyV")}
-            className={`btn btn-sm relative h-[45px] w-[55px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40 disabled:pointer-events-auto ${isDead || inDungeon ? "cursor-not-allowed" : ""}`}
+            className={`btn btn-sm relative h-[45px] w-[55px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40 disabled:pointer-events-auto ${isDead || inDungeon || (inCombat && !mounted) ? "cursor-not-allowed" : ""}`}
           >
             <Icon icon="horse" />
             <span className="
@@ -842,6 +843,7 @@ export const Hud = ({
   potionBuffs,
   healCooldownUntil,
   mounted = false,
+  inCombat = false,
 }) => {
   const { mobile, portrait } = useMobileDevice();
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
@@ -918,6 +920,7 @@ export const Hud = ({
           healCooldownUntil
         }
         mounted={mounted}
+        inCombat={inCombat}
         isDead={isDead}
         inDungeon={inDungeon}
       />
