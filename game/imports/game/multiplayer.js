@@ -1935,20 +1935,31 @@ export const createMultiplayer =
           targetStore.sync(room.state, localPlayerState);
           let targetId = useTargetStore.getState().selectedId;
           if (!targetId) {
-            let nearest = MOBILE_TARGETING.acquireRange;
+            const projectile = getClassConfig(localPlayerState.gameClass).skills[code]?.projectile;
+            const projectileRange = projectile && projectile.speed * projectile.lifetime / 1000;
+            let nearest = projectileRange || MOBILE_TARGETING.acquireRange;
             const forwardX = Math.sin(player.rotation.y);
             const forwardZ = Math.cos(player.rotation.y);
             for (const [enemyId, enemy] of room.state.enemies) {
               if (enemy.health <= 0) continue;
               const dx = enemy.x - player.position.x;
               const dz = enemy.z - player.position.z;
-              const distance = Math.hypot(dx, dz);
-              if (distance >= nearest || (distance > 0 &&
-                (dx * forwardX + dz * forwardZ) / distance < MOBILE_TARGETING.coneDot)) continue;
-              nearest = distance;
+              if (projectile) {
+                const along = dx * forwardX + dz * forwardZ;
+                const offset = Math.abs(dx * forwardZ - dz * forwardX);
+                if (along <= 0 || along >= nearest ||
+                  offset > projectile.radius + MOBILE_TARGETING.hitPadding + 1.5) continue;
+                nearest = along;
+              } else {
+                const distance = Math.hypot(dx, dz);
+                if (distance >= nearest || (distance > 0 &&
+                  (dx * forwardX + dz * forwardZ) / distance < MOBILE_TARGETING.coneDot)) continue;
+                nearest = distance;
+              }
               targetId = enemyId;
             }
-            if (targetId) targetStore.lock(targetId, room.state);
+            if (targetId) targetStore.lock(targetId, room.state,
+              projectileRange ? Math.max(projectileRange, MOBILE_TARGETING.retainRange) : MOBILE_TARGETING.retainRange);
           }
           if (targetId) {
             attackFacingTargetId = targetId;

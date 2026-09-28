@@ -7,16 +7,17 @@ export const useTargetStore = create((set, get) => ({
   target: null,
   autoLocked: false,
   lockedAt: 0,
+  lockRange: MOBILE_TARGETING.retainRange,
   select(id, world) {
-    set({ selectedId: id, target: null, autoLocked: false, lockedAt: 0 });
+    set({ selectedId: id, target: null, autoLocked: false, lockedAt: 0, lockRange: MOBILE_TARGETING.retainRange });
     get().sync(world);
   },
-  lock(id, world) {
-    set({ selectedId: id, target: null, autoLocked: true, lockedAt: Date.now() });
+  lock(id, world, range = MOBILE_TARGETING.retainRange) {
+    set({ selectedId: id, target: null, autoLocked: true, lockedAt: Date.now(), lockRange: range });
     get().sync(world);
   },
   sync(world, player) {
-    const { selectedId, target, autoLocked, lockedAt } = get();
+    const { selectedId, target, autoLocked, lockedAt, lockRange } = get();
     if (!selectedId) return;
     const enemy = world?.enemies?.get(selectedId);
     if (!enemy || enemy.health <= 0) {
@@ -24,7 +25,7 @@ export const useTargetStore = create((set, get) => ({
       return;
     }
     if (autoLocked && player && (player.health <= 0 ||
-      Math.hypot(enemy.x - player.x, enemy.z - player.z) > MOBILE_TARGETING.retainRange ||
+      Math.hypot(enemy.x - player.x, enemy.z - player.z) > lockRange ||
       (!player.inCombat && Date.now() - lockedAt > 1000))) {
       get().clear();
       return;
@@ -38,5 +39,5 @@ export const useTargetStore = create((set, get) => ({
     if (target?.id === selectedId && target.health === enemy.health && target.maxHealth === enemy.maxHealth && target.name === stats.name && target.level === level) return;
     set({ target: { id: selectedId, name: stats.name, level, health: enemy.health, maxHealth: enemy.maxHealth } });
   },
-  clear: () => set({ selectedId: null, target: null, autoLocked: false, lockedAt: 0 }),
+  clear: () => set({ selectedId: null, target: null, autoLocked: false, lockedAt: 0, lockRange: MOBILE_TARGETING.retainRange }),
 }));

@@ -695,7 +695,10 @@ export class WorldRoom
       }
 
       if (skill.projectile) {
-        const target = targetId && this.getTargetEnemy(player, targetId, MOBILE_TARGETING.retainRange);
+        const targetRange = mobileAttack
+          ? Math.max(MOBILE_TARGETING.retainRange, skill.projectile.speed * skill.projectile.lifetime / 1000)
+          : MOBILE_TARGETING.retainRange;
+        const target = targetId && this.getTargetEnemy(player, targetId, targetRange);
         this.projectiles.fire(client.sessionId, player, skill, target?.enemy);
         return;
       }
