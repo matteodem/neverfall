@@ -15,8 +15,8 @@ export const WORLD_EVENTS = [
     scaling: { healthPerExtraPlayer: 0.75, damagePerExtraPlayer: 0.15 },
     waves: [
       { type: "wolf", level: 5, count: 3 },
-      { type: "wolf", level: 7, count: 5 },
-      { type: "wolf", level: 9, count: 5 },
+      { type: "wolf", level: 7, count: 3 },
+      { type: "wolf", level: 9, count: 3 },
     ],
     boss: { type: "alphaWolf", level: 11, count: 1 },
     rewards: { xp: 500, money: 10000, lootType: "wolf" },
