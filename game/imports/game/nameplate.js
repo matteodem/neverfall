@@ -29,8 +29,8 @@ export const createNameplate = ({
     MeshBuilder.CreatePlane(
       "nameplate",
       {
-        width: mobile ? 3.15 : 1.8,
-        height: mobile ? 0.63 : 0.3,
+        width: mobile ? 3.6855 : 1.8,
+        height: mobile ? 0.7371 : 0.3,
       },
       scene
     );

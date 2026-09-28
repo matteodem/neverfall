@@ -563,26 +563,20 @@ export const Game = ({
           createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer, canInteract: () => playerAlive });
 
           let previousTouch = null;
-          input.on(canvas, "pointerdown", (event) => {
-            if (event.pointerType === "touch") previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+          input.on(window, "pointerdown", (event) => {
+            if (event.pointerType !== "touch" || previousTouch ||
+              (event.target !== canvas && !event.target?.closest?.(".mobile-joystick-area"))) return;
+            previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
           });
-          const clearTouch = () => { previousTouch = null; };
-          input.on(canvas, "pointerup", clearTouch);
-          input.on(canvas, "pointercancel", clearTouch);
+          const clearTouch = (event) => {
+            if (event.pointerId === previousTouch?.id) previousTouch = null;
+          };
+          input.on(window, "pointerup", clearTouch);
+          input.on(window, "pointercancel", clearTouch);
           const handlePointerMove =
             (
               event
             ) => {
-              if (
-                !input.state
-                  .leftMouseDown &&
-                !input.state
-                  .rightMouseDown
-              ) {
-                return;
-              }
-
-
               let dx = event.movementX;
               let dy = event.movementY;
               if (event.pointerType === "touch") {
@@ -591,17 +585,26 @@ export const Game = ({
                 dy = event.clientY - previousTouch.y;
                 previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
                 if (canvas.closest(".mobile-portrait")) [dx, dy] = [dy, -dx];
+              } else if (!input.state.leftMouseDown && !input.state.rightMouseDown) {
+                return;
               }
               rotateCamera(camera, dx, dy);
             };
 
 
           input.on(
+            window,
+
+            "pointermove",
+
+            (event) => { if (event.pointerType === "touch") handlePointerMove(event); }
+          );
+          input.on(
             canvas,
 
             "pointermove",
 
-            handlePointerMove
+            (event) => { if (event.pointerType !== "touch") handlePointerMove(event); }
           );
 
 

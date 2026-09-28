@@ -37,6 +37,7 @@ export const MobileJoystick = ({ portrait, disabled }) => {
     <div ref={area} className="mobile-joystick-area" style={{ pointerEvents: disabled || modalOpen ? "none" : "auto" }}
       onPointerDown={(event) => {
         if (pointer.current !== null) return;
+        event.stopPropagation();
         if (document.activeElement?.closest?.(".game-chat")) document.activeElement.blur();
         useChatStore.getState().close();
         pointer.current = event.pointerId;
