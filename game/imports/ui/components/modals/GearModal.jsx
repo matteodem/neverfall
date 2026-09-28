@@ -10,6 +10,7 @@ import {
   formatEquipmentStats,
 } from "../../../game/equipment";
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
+import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { formatClassBonus, getUnlockedClassBonuses } from "../../../game/classProgression";
 
@@ -51,6 +52,7 @@ const EquipmentSlot = ({ slot, itemId }) => {
 };
 
 export const GearModal = () => {
+  const { mobile } = useMobileDevice();
   const { equipment, bonuses } = useTracker(() => {
     const currentCharacterId = Meteor.user()?.profile?.currentCharacterId;
     const character = currentCharacterId ? Characters.findOne(currentCharacterId) : null;
@@ -62,7 +64,7 @@ export const GearModal = () => {
   });
 
   return (
-    <HudModal id="gear" title="Gear" scrollable={false}>
+    <HudModal id="gear" title="Gear" scrollable={mobile}>
       <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
         <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Equipped</h4>
         <div className="grid grid-cols-2 gap-2">

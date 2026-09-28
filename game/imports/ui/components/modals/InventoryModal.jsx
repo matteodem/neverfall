@@ -411,7 +411,7 @@ export const InventoryModal =
 
     return (
       <HudModal
-        scrollable={false}
+        scrollable={mobile}
         id="inventory"
         title="Inventory"
       >
