@@ -2,6 +2,7 @@ import React from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../api/characters/characters";
+import { getDevice } from "../hooks/useMobileDevice";
 
 import {
   HUNT_QUESTS,
@@ -25,6 +26,7 @@ const STORY_QUESTS = QUESTS.filter((quest) => !quest.repeatable);
 
 export const QuestTracker =
   () => {
+    const [questLogOpen, setQuestLogOpen] = React.useState(() => !getDevice().mobile);
     const area = useQuestStore((state) => state.area);
     const kills = useQuestStore((state) => state[KILL_FIELDS[area]] ?? 0);
     const quest = HUNT_QUESTS[area];
@@ -73,7 +75,9 @@ export const QuestTracker =
         </div>
       </div>
       )}
-      <details id="onboarding-quests" className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
+      <details id="onboarding-quests" open={questLogOpen}
+        onToggle={(event) => setQuestLogOpen(event.currentTarget.open)}
+        className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
         <summary className="cursor-pointer font-bold">Quest Log</summary>
         <div className="quest-log-list mt-2 max-h-60 space-y-2 overflow-y-auto text-sm">
           {orderedQuests.map((entry) => {
