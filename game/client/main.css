@@ -126,6 +126,7 @@ body {
 .mobile-game .mobile-player-bars { transform: translateX(-50%) scale(0.7); transform-origin: bottom center; }
 .mobile-game .hud-world-panel .w-64 { width: 170px; padding: 8px; font-size: 12px; }
 .mobile-game .hud-world-panel .w-64 .text-sm { font-size: 11px; }
+.mobile-game .quest-log-list { max-height: 150px; }
 .mobile-game [role="status"] { font-size: 12px; }
 .mobile-game .text-xl { font-size: 16px; }
 

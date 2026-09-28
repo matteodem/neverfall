@@ -32,6 +32,11 @@ export const QuestTracker =
       const id = Meteor.user()?.profile?.currentCharacterId;
       return id ? Characters.findOne(id)?.questProgress || {} : {};
     }, []);
+    const isCompleted = (entry) => (progress[entry.id] || 0) >= entry.objective.amount;
+    const orderedQuests = [
+      ...STORY_QUESTS.filter((entry) => !isCompleted(entry)),
+      ...STORY_QUESTS.filter(isCompleted),
+    ];
 
     return (
       <>
@@ -70,8 +75,8 @@ export const QuestTracker =
       )}
       <details className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
         <summary className="cursor-pointer font-bold">Quest Log</summary>
-        <div className="mt-2 max-h-60 space-y-2 overflow-y-auto text-sm">
-          {STORY_QUESTS.map((entry) => {
+        <div className="quest-log-list mt-2 max-h-60 space-y-2 overflow-y-auto text-sm">
+          {orderedQuests.map((entry) => {
             const amount = entry.objective.amount;
             const count = Math.min(progress[entry.id] || 0, amount);
             return (
