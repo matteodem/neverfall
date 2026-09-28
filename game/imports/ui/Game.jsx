@@ -899,6 +899,8 @@ export const Game = ({
                 player,
               });
 
+              if (playerAlive) multiplayer?.faceAttackTarget();
+
 
               /*
                * ---------------------

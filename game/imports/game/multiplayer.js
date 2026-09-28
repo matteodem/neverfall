@@ -32,6 +32,7 @@ import {
 } from "@babylonjs/core";
 
 import {
+  ATTACK,
   JUMP,
   MOBILE_TARGETING,
 } from "./config";
@@ -806,6 +807,8 @@ export const createMultiplayer =
     const room = session.room;
     const dungeon = room !== session.worldRoom;
     const mobile = getDevice().mobile;
+    let attackFacingTargetId = null;
+    let attackFacingUntil = 0;
     const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, dungeon });
     let destroyed = false;
     const disposers = [];
@@ -1915,6 +1918,15 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    const faceAttackTarget = () => {
+      if (!mobile || !attackFacingTargetId || Date.now() >= attackFacingUntil) return;
+      const target = room.state.enemies.get(attackFacingTargetId);
+      if (!target || target.health <= 0) return;
+      const dx = target.x - player.position.x;
+      const dz = target.z - player.position.z;
+      if (dx * dx + dz * dz > 0.001) player.rotation.y = Math.atan2(dx, dz);
+    };
+
     const sendAttack =
       (code = "Digit1") => {
         if (!localPlayerState || localPlayerState.health <= 0) return;
@@ -1937,6 +1949,12 @@ export const createMultiplayer =
               targetId = enemyId;
             }
             if (targetId) targetStore.lock(targetId, room.state);
+          }
+          if (targetId) {
+            attackFacingTargetId = targetId;
+            attackFacingUntil = Date.now() + ATTACK.duration;
+            faceAttackTarget();
+            sendMovement(player, 0, localPlayerState.mounted, true);
           }
           room.send("attack", { code, targetId });
           return;
@@ -2075,6 +2093,7 @@ export const createMultiplayer =
 
       sendMovement,
       sendAttack,
+      faceAttackTarget,
       sendHeal,
       equipItem,
       unequipItem,
