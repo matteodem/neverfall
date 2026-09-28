@@ -6,6 +6,7 @@ import {
 
 import "./methods/colyseusAuth";
 import "./methods/characters";
+import "./methods/shop";
 
 import "./publications/characters";
 

@@ -2,6 +2,7 @@ import { TargetFrame } from "./components/TargetFrame";
 import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
+import { ShopModal } from "./components/modals/ShopModal";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
@@ -197,6 +198,8 @@ const HUD_BUTTONS = [
     label:
       "Inventory",
   },
+
+  { id: "shop", icon: "shop", label: "Shop" },
 
   {
     id:
@@ -917,6 +920,8 @@ export const Hud = ({
 
 
       <InventoryModal />
+
+      <ShopModal />
 
 
       <GearModal />
