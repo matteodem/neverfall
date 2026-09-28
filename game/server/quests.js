@@ -36,6 +36,11 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       }
 
       if (!completed) continue;
+      for (const client of room.clients) {
+        if (room.state.players.get(client.sessionId)?.characterId === characterId) {
+          client.send("questCompleted", { title: quest.title, rewards: quest.rewards });
+        }
+      }
       if (quest.rewards?.xp) await room.awardXp(characterId, quest.rewards.xp);
       if (quest.rewards?.gold) {
         await Meteor.users.updateAsync(character.userId, {

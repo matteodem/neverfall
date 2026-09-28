@@ -4,6 +4,7 @@ import { Client } from "@colyseus/sdk";
 import { Meteor } from "meteor/meteor";
 import { ensureGuestUser } from "../auth/guest";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
+import { useQuestCompletionStore } from "../ui/stores/useQuestCompletionStore";
 
 let session = null;
 let connecting = null;
@@ -35,6 +36,7 @@ const finishEntry = async (current, { roomId, worldSessionId }) => {
     current.client.auth.token = await Meteor.callAsync("colyseus.authToken");
     const room = await current.client.joinById(roomId, { worldSessionId });
     if (session !== current) { await leaveRoom(room); return; }
+    room.onMessage("questCompleted", (quest) => useQuestCompletionStore.getState().show(quest));
     current.pendingRoom = room;
     await waitForState(room, (state) => state?.players?.has(room.sessionId));
     if (session !== current) { await leaveRoom(room); return; }
@@ -100,6 +102,7 @@ export const getGameSession = async () => {
 
     client.auth.token = await Meteor.callAsync("colyseus.authToken");
     const worldRoom = await client.joinOrCreate("world");
+    worldRoom.onMessage("questCompleted", (quest) => useQuestCompletionStore.getState().show(quest));
     try {
       await waitForState(worldRoom, (state) => state?.players?.has(worldRoom.sessionId));
     } catch (error) { await leaveRoom(worldRoom); throw error; }
@@ -120,6 +123,7 @@ export const getGameSession = async () => {
       clearTimeout(current.entryTimeout);
       if (current.room !== worldRoom) leaveRoom(current.room);
       useDungeonStore.getState().reset();
+      useQuestCompletionStore.getState().reset();
       useDungeonStore.getState().setError("World connection closed.");
     });
     return current;
@@ -149,6 +153,7 @@ export const closeGameSession = async () => {
   const current = session;
   session = null;
   useActionBarStore.getState().resetCooldowns();
+  useQuestCompletionStore.getState().reset();
   if (!current) return;
   clearTimeout(current.entryTimeout);
   current.disconnectGroups();
