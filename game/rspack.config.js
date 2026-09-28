@@ -13,6 +13,12 @@ const { defineConfig } = require('@meteorjs/rspack');
 module.exports = defineConfig(Meteor => {
   return {
     ...Meteor.isClient && {
+      resolve: {
+        alias: {
+          // NextStep.js reexports its Next.js adapter; this app uses NextStepReact.
+          "next/navigation": false,
+        },
+      },
       module: {
         rules: [
           {

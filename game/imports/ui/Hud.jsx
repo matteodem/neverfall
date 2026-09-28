@@ -437,6 +437,7 @@ const MenuButtons =
                 key={
                   id
                 }
+                id={id === "inventory" ? "onboarding-inventory" : undefined}
                 type="button"
                 title={
                   shortcut ? `${label} (Press ${shortcut})` : label
@@ -491,6 +492,7 @@ const PlayerHealthBar = ({
 
   return (
     <div
+      id="onboarding-health"
       className="
         w-72
 
@@ -698,6 +700,7 @@ const ActionBar = ({
 
   return (
     <div
+      id="onboarding-action-bar"
       className="
         hud-action-bar
         flex
