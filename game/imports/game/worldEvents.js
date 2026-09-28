@@ -8,7 +8,7 @@ export const WORLD_EVENTS = [
     center: NORTHERN_CAMP.center,
     participationRadius: 65,
     spawnRadius: 28,
-    initialDelay: 0,
+    initialDelay: 120000,
     duration: 600000,
     cooldown: 600000,
     waveDelay: 10000,
