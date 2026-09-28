@@ -5,6 +5,45 @@ body {
     font-family: sans-serif;
 }
 
+@media (max-width: 767px), (max-height: 500px) {
+    .character-creator { padding: 12px; }
+    .character-creator-card { padding: 16px; }
+    .character-creator-step { overflow: hidden; }
+    .character-creator-screen { min-height: min(280px, 48dvh); }
+    .character-creator-screen h2 { margin-bottom: 16px; font-size: 24px; line-height: 1.2; }
+    .character-creator-nav { padding-top: 12px; }
+    .character-creator-appearance { margin-bottom: 0; }
+    .character-creator-appearance h2 { margin-bottom: 12px; font-size: 22px; line-height: 1.2; }
+    .character-creator-appearance-grid { min-height: 0; gap: 12px; }
+    .character-creator-settings { gap: 12px; }
+    .character-creator-settings h3 { margin-bottom: 6px; }
+    .character-creator-skin-tones { gap: 8px; }
+    .character-creator-skin-tone { width: 32px; height: 32px; }
+    .character-creator-body-types { gap: 6px; }
+    .character-creator-body-type { min-height: 38px; height: 38px; padding: 0 10px; }
+    .character-creator-preview { height: clamp(80px, 24dvh, 170px); }
+    .character-creator-classes { gap: 8px; }
+    .character-creator-create { margin-top: 16px; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+    .character-creator-appearance-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 180px); }
+    .character-creator-preview { height: clamp(90px, 40dvh, 170px); }
+    .character-creator-classes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-height: 350px) {
+    .character-creator { padding: 8px; }
+    .character-creator-card { padding: 12px; }
+    .character-creator-screen h2 { margin-bottom: 8px; }
+    .character-creator-nav { padding-top: 8px; }
+    .character-creator-appearance h2 { margin-bottom: 8px; }
+    .character-creator-settings { gap: 8px; }
+    .character-creator-settings h3 { margin-bottom: 4px; }
+    .character-creator-preview { height: 90px; }
+    .character-creator-create { margin-top: 8px; }
+}
+
 .character-overview-mobile { height: 100dvh; }
 .character-overview-mobile .character-sidebar {
     display: flex;

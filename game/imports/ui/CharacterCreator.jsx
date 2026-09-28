@@ -85,8 +85,8 @@ const Screen = ({
   children,
 }) => {
   return (
-    <div className="flex min-h-[400px] flex-col items-center justify-center">
-      <h2 className="mb-8 text-3xl font-bold">
+    <div className="character-creator-screen flex min-h-[400px] flex-col items-center justify-center">
+      <h2 className="mb-8 text-center text-3xl font-bold">
         {title}
       </h2>
 
@@ -129,7 +129,7 @@ const Navigation = () => {
 
 
   return (
-    <div className="flex justify-between">
+    <div className="character-creator-nav flex shrink-0 justify-between pt-4">
       <button
         type="button"
         onClick={
@@ -187,12 +187,12 @@ const AppearanceStep =
 
 
     return (
-      <div className="mb-12">
+      <div className="character-creator-appearance mb-12">
         <h2 className="mb-8 text-center text-3xl font-bold">
           Character Appearance
         </h2>
 
-        <div className="grid min-h-[440px] grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+        <div className="character-creator-appearance-grid grid min-h-[440px] grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
 
           {/*
            * ==========================================
@@ -200,7 +200,7 @@ const AppearanceStep =
            * ==========================================
            */}
 
-          <div className="space-y-8">
+          <div className="character-creator-settings flex flex-col gap-8">
 
             {/*
              * ==========================================
@@ -226,7 +226,7 @@ const AppearanceStep =
                 Skin Tone
               </h3>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="character-creator-skin-tones flex flex-wrap gap-3">
                 {SKIN_TONES.map(
                   (
                     skin
@@ -250,7 +250,7 @@ const AppearanceStep =
                           )
                       }
                       className={[
-                        "h-10 w-10 cursor-pointer rounded-full border-4 transition",
+                        "character-creator-skin-tone h-10 w-10 cursor-pointer rounded-full border-4 transition",
 
                         creator.skinTone ===
                         skin.id
@@ -281,7 +281,7 @@ const AppearanceStep =
                 Body Type
               </h3>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="character-creator-body-types flex flex-wrap gap-2">
                 {BODY_TYPES.map(
                   (
                     bodyType
@@ -299,7 +299,7 @@ const AppearanceStep =
                           )
                       }
                       className={[
-                        "btn cursor-pointer capitalize",
+                        "character-creator-body-type btn cursor-pointer capitalize",
 
                         creator.bodyType ===
                         bodyType
@@ -338,7 +338,7 @@ const AppearanceStep =
            */}
 
           <div className="flex items-center justify-center">
-            <div className="h-[380px] w-[280px] overflow-hidden rounded-xl border border-white/10 bg-black/20">
+            <div className="character-creator-preview h-[280px] w-full max-w-[280px] overflow-hidden rounded-xl border border-white/10 bg-black/20 sm:h-[380px]">
               <CharacterPreview
                 gameClass={creator.gameClass}
                 appearance={
@@ -378,13 +378,13 @@ const ClassStep =
       <Screen
         title="Class"
       >
-        <div className="grid grid-cols-3 gap-4">
+        <div className="character-creator-classes grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           {Object.entries(CLASS_CONFIG).map(([id, config]) => (
             <button
               key={id}
               type="button"
               onClick={() => setCreatorField("gameClass", id)}
-              className={`btn w-full cursor-pointer px-8 py-5 ${gameClass === id ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
+              className={`btn w-full cursor-pointer px-4 py-5 sm:px-8 ${gameClass === id ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
             >
               {config.name}
             </button>
@@ -558,7 +558,7 @@ const NameStep = ({
     <Screen
       title="Name"
     >
-      <div className="w-96">
+      <div className="w-full max-w-96">
         <div className="relative">
           <input
             value={
@@ -627,7 +627,7 @@ const NameStep = ({
           onClick={
             create
           }
-          className="btn btn-success mt-8 w-full cursor-pointer text-lg disabled:cursor-not-allowed"
+          className="character-creator-create btn btn-success mt-8 w-full cursor-pointer text-lg disabled:cursor-not-allowed"
         >
           {creating
             ? "Creating..."
@@ -665,9 +665,10 @@ export const CharacterCreator =
 
 
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-white">
-        <div className="w-full max-w-5xl rounded-xl border border-white/10 bg-white/15 p-8">
+      <div className="character-creator flex h-screen h-dvh items-center justify-center bg-zinc-950 p-4 text-white">
+        <div className="character-creator-card flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-white/10 bg-white/15 p-4 sm:p-8">
           <Wizard
+            wrapper={<div className="character-creator-step min-h-0 flex-1 overflow-y-auto" />}
             footer={
               <Navigation />
             }
