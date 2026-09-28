@@ -10,12 +10,12 @@ const steps = [{
   tour: ONBOARDING_TOUR,
   steps: [
     { title: "Movement", content: "Move with WASD. Hold right or left mouse button to rotate the camera." },
-    { title: "Combat", content: "Use keys 1–4 to activate your abilities.", selector: "#onboarding-action-bar", side: "top" },
+    { title: "Combat", content: "Use keys 1–4 to activate your abilities.", selector: "#onboarding-action-bar", side: "top-right", pointerPadding: 12, cardOffset: 12 },
     { title: "Health", content: "Watch your health. You respawn at camp when defeated.", selector: "#onboarding-health", side: "top" },
     { title: "Inventory", content: "Loot, equipment and consumables are stored here.", selector: "#onboarding-inventory", side: "bottom-left" },
     { title: "Quests", content: "Complete quests, hunts and world events for rewards.", selector: "#onboarding-quests", side: "left" },
-    { title: "Map", content: "Explore regions, dungeons and objectives with the map.", selector: "#onboarding-map", side: "left" },
-    { title: "Multiplayer", content: "Group with other players for dungeons and world events.", selector: "#onboarding-chat", side: "top" },
+    { title: "Map", content: "Explore regions, dungeons and objectives with the map.", selector: "#onboarding-map", side: "bottom-right", pointerPadding: 12, cardOffset: 12 },
+    { title: "Multiplayer", content: "Group with other players for dungeons and world events.", selector: "#onboarding-chat", side: "top-left", pointerPadding: 12, cardOffset: 12 },
     { title: "You're ready", content: "Explore Neverfall and have fun!" },
   ],
 }];
@@ -49,6 +49,7 @@ export const OnboardingTour = ({ children }) => (
       shadowOpacity="0.35"
       overlayZIndex={40000}
       scrollToTop={false}
+      noInViewScroll
       onComplete={saveCompletion}
       onSkip={saveCompletion}
     >
