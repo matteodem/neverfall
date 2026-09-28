@@ -25,6 +25,7 @@ import {
 } from "./stores/useActionBarStore";
 
 import { useEquipmentStore } from "./stores/useEquipmentStore";
+import { useConsumableStore } from "./stores/useConsumableStore";
 
 import {
   createMultiplayer,
@@ -90,6 +91,7 @@ export const Game = ({
   setPlayerHealth,
   setHealCooldownUntil,
   setMountedState,
+  setPotionBuffs,
 }) => {
   const location = useDungeonStore((state) => state.location);
   const quality = useQualityStore((state) => state.quality);
@@ -352,6 +354,7 @@ export const Game = ({
               player,
               dungeonVisuals: world.dungeonVisuals,
               onLocalRespawn: () => jump?.reset(),
+              onLocalBuffChange: setPotionBuffs,
 
               onLocalHealthChange:
                 (
@@ -412,6 +415,7 @@ export const Game = ({
               multiplayer.unequipItem(payload);
             }
           });
+          useConsumableStore.getState().setUseHandler(multiplayer.useConsumable);
 
 
           useLoadingStore
@@ -698,7 +702,7 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB"
               ) {
                 if (
                   event.target?.closest?.(
@@ -716,7 +720,7 @@ export const Game = ({
                   useHudStore
                     .getState();
 
-                const modal = event.code === "KeyM" ? "map" : event.code === "KeyZ" ? "achievements" : event.code === "KeyG" ? "gear" : "inventory";
+                const modal = event.code === "KeyB" ? "shop" : event.code === "KeyM" ? "map" : event.code === "KeyZ" ? "achievements" : event.code === "KeyG" ? "gear" : "inventory";
 
 
                 if (hudStore.openModals.includes(modal)) {
@@ -1066,6 +1070,7 @@ export const Game = ({
         );
 
         useEquipmentStore.getState().setChangeHandler(null);
+        useConsumableStore.getState().setUseHandler(null);
 
 
         setMountedState(

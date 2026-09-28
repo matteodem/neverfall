@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { EQUIPMENT_ITEMS, formatEquipmentStats } from "../../../game/equipment";
+import { CONSUMABLES } from "../../../game/consumables";
 import { SHOP_STOCK } from "../../../game/shop";
 import { HudModal } from "../HudModal";
 
@@ -16,7 +17,7 @@ export const ShopModal = () => {
     setFeedback(null);
     try {
       await Meteor.callAsync("shop.buy", itemId);
-      setFeedback({ text: `${EQUIPMENT_ITEMS[itemId].name} added to your inventory.`, error: false });
+      setFeedback({ text: `${(EQUIPMENT_ITEMS[itemId] || CONSUMABLES[itemId]).name} added to your inventory.`, error: false });
     } catch (error) {
       setFeedback({ text: error.reason || "Could not buy this item.", error: true });
     } finally {
@@ -34,12 +35,12 @@ export const ShopModal = () => {
       )}
       <div className="space-y-2">
         {SHOP_STOCK.map(({ id, priceGold }) => {
-          const item = EQUIPMENT_ITEMS[id];
+          const item = EQUIPMENT_ITEMS[id] || CONSUMABLES[id];
           return (
             <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3">
               <div className="min-w-0">
                 <div className="font-semibold">{item.name}</div>
-                <div className="text-xs opacity-70">{formatEquipmentStats(item).join(" · ")}</div>
+                <div className="text-xs opacity-70">{item.description || formatEquipmentStats(item).join(" · ")}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <span className="text-sm font-semibold">{priceGold} Gold</span>

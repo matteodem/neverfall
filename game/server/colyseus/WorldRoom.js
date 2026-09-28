@@ -11,6 +11,7 @@ import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getClassConfig } from "../../imports/game/classConfig";
+import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
 import { spawnLoot, collectLoot } from "../inventory/loot";
 import {
@@ -94,8 +95,12 @@ const getEquipmentForPlayer = (player) => ({
   accessory: player.accessory || null,
 });
 
-const getStatsForPlayer = (player) =>
-  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species);
+const getStatsForPlayer = (player, now = Date.now()) => {
+  const stats = getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species);
+  if (player.speedPotionUntil > now) stats.movementSpeedMultiplier *= 1.1;
+  if (player.powerPotionUntil > now) stats.damage *= 1.1;
+  return stats;
+};
 
 
 /*
@@ -241,7 +246,7 @@ export class WorldRoom
     player.ring = equipment.ring || "";
     player.accessory = equipment.accessory || "";
 
-    const stats = getPlayerStats(player.currentLevel, equipment, player.gameClass, player.species);
+    const stats = getStatsForPlayer(player);
     player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
@@ -342,6 +347,35 @@ export class WorldRoom
       equipment[slot] = null;
 
       await this.persistPlayerEquipment(player, equipment, inventoryItems);
+    },
+
+    useConsumable: async (client, itemId) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || player.inDungeon || player.health <= 0 || !Object.hasOwn(CONSUMABLES, itemId)) return;
+
+      const character = await Characters.findOneAsync({ _id: player.characterId, userId: player.userId });
+      const originalItems = character?.inventory?.items;
+      if (!Array.isArray(originalItems)) return;
+      const itemIndex = originalItems.findIndex((item) => item.id === itemId);
+      if (itemIndex < 0 || this.state.players.get(client.sessionId) !== player || player.health <= 0) return;
+
+      const remainingItems = [...originalItems];
+      remainingItems.splice(itemIndex, 1);
+      const consumed = await Characters.updateAsync(
+        { _id: player.characterId, userId: player.userId, "inventory.items": originalItems },
+        { $set: { "inventory.items": remainingItems } }
+      );
+      if (!consumed || this.state.players.get(client.sessionId) !== player || player.health <= 0) return;
+
+      const now = Date.now();
+      if (itemId === "health_potion") {
+        player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
+      } else if (itemId === "speed_potion") {
+        player.speedPotionUntil = now + POTION_DURATION_MS;
+        player.movementSpeedMultiplier = getStatsForPlayer(player, now).movementSpeedMultiplier;
+      } else if (itemId === "power_potion") {
+        player.powerPotionUntil = now + POTION_DURATION_MS;
+      }
     },
 
     move: (
@@ -877,6 +911,14 @@ export class WorldRoom
       ]
       of this.state.players.entries()
     ) {
+      if (player.speedPotionUntil && player.speedPotionUntil <= now) {
+        player.speedPotionUntil = 0;
+        player.movementSpeedMultiplier = getStatsForPlayer(player, now).movementSpeedMultiplier;
+      }
+      if (player.powerPotionUntil && player.powerPotionUntil <= now) {
+        player.powerPotionUntil = 0;
+      }
+
       if (
         player.inDungeon ||
         player.health <=
@@ -999,6 +1041,10 @@ export class WorldRoom
     ) {
       return;
     }
+
+    player.speedPotionUntil = 0;
+    player.powerPotionUntil = 0;
+    player.movementSpeedMultiplier = getStatsForPlayer(player).movementSpeedMultiplier;
 
 
     this.clock.setTimeout(
@@ -1160,7 +1206,7 @@ export class WorldRoom
 
         player.maxHealth =
           stats.maxHealth;
-        player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
+        player.movementSpeedMultiplier = getStatsForPlayer(player).movementSpeedMultiplier;
 
 
         /*

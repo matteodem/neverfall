@@ -41,6 +41,8 @@ export const PlayerState =
       dungeonRewardClaimed: t.boolean().default(false),
 
       movementSpeedMultiplier: t.number().default(1),
+      speedPotionUntil: t.number().default(0),
+      powerPotionUntil: t.number().default(0),
 
       mounted:
         t.boolean().default(false),

@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../../imports/api/characters/characters";
 import { EQUIPMENT_ITEMS } from "../../imports/game/equipment";
+import { CONSUMABLES } from "../../imports/game/consumables";
 import { SHOP_STOCK } from "../../imports/game/shop";
 
 Meteor.methods({
@@ -8,7 +9,7 @@ Meteor.methods({
     if (!this.userId) throw new Meteor.Error("not-authorized", "Sign in to buy items.");
 
     const stock = SHOP_STOCK.find((entry) => entry.id === itemId);
-    if (!stock || !EQUIPMENT_ITEMS[itemId]) {
+    if (!stock || (!EQUIPMENT_ITEMS[itemId] && !CONSUMABLES[itemId])) {
       throw new Meteor.Error("item-not-for-sale", "This item is not for sale.");
     }
 

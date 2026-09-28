@@ -72,6 +72,7 @@ const AppContent = () => {
   );
 
   const [mounted, setMounted] = useState(false);
+  const [potionBuffs, setPotionBuffs] = useState({ speedPotionUntil: 0, powerPotionUntil: 0 });
 
 
   const [
@@ -366,6 +367,7 @@ const AppContent = () => {
           setHealCooldownUntil
         }
         setMountedState={setMounted}
+        setPotionBuffs={setPotionBuffs}
       />
 
 
@@ -379,6 +381,7 @@ const AppContent = () => {
         playerHealth={
           playerHealth
         }
+        potionBuffs={potionBuffs}
         healCooldownUntil={
           healCooldownUntil
         }

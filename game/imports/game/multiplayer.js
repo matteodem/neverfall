@@ -793,6 +793,7 @@ export const createMultiplayer =
     scene,
     player,
     onLocalHealthChange,
+    onLocalBuffChange,
     onLocalRespawn,
     onHealCooldown,
     onBoarQuestChange,
@@ -1007,6 +1008,14 @@ export const createMultiplayer =
               });
             }
           );
+
+          const syncPotionBuffs = () => onLocalBuffChange?.({
+            speedPotionUntil: playerState.speedPotionUntil ?? 0,
+            powerPotionUntil: playerState.powerPotionUntil ?? 0,
+          });
+          syncPotionBuffs();
+          callbacks.listen(playerState, "speedPotionUntil", syncPotionBuffs);
+          callbacks.listen(playerState, "powerPotionUntil", syncPotionBuffs);
 
 
           return;
@@ -1930,6 +1939,11 @@ export const createMultiplayer =
       room.send("unequipItem", slot);
     };
 
+    const useConsumable = (itemId) => {
+      if (!localPlayerState || localPlayerState.health <= 0) return;
+      room.send("useConsumable", itemId);
+    };
+
 
     /*
      * =========================================================
@@ -2032,6 +2046,7 @@ export const createMultiplayer =
       sendHeal,
       equipItem,
       unequipItem,
+      useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,
 

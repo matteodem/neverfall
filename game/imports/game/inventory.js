@@ -5,6 +5,7 @@ import {
   ACCESSORY_DROP_CHANCE,
   EQUIPMENT_ITEMS,
 } from "./equipment";
+import { CONSUMABLES } from "./consumables";
 
 export const LOOT_RANGE = 2.5;
 
@@ -13,6 +14,9 @@ export const ITEM_NAMES = {
   wolf_skin: "Wolf Skin",
   ...Object.fromEntries(
     Object.values(EQUIPMENT_ITEMS).map(({ id, name }) => [id, name])
+  ),
+  ...Object.fromEntries(
+    Object.entries(CONSUMABLES).map(([id, item]) => [id, item.name])
   ),
 };
 

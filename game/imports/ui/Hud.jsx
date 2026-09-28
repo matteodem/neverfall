@@ -3,6 +3,7 @@ import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { ShopModal } from "./components/modals/ShopModal";
+import { PotionBuffs } from "./components/PotionBuffs";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
@@ -735,6 +736,7 @@ const BottomHud = ({
   gameClass,
   species,
   playerHealth,
+  potionBuffs,
   healCooldownUntil,
   mounted,
   isDead,
@@ -752,7 +754,10 @@ const BottomHud = ({
         <ActionBar mobile gameClass={gameClass} species={species} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
       </div>
       <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
-        <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />
+        <div className="relative">
+          <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />
+          <PotionBuffs buffs={potionBuffs} isDead={isDead} />
+        </div>
         <XpBar />
       </div>
     </>
@@ -785,9 +790,9 @@ const BottomHud = ({
       />
 
 
-      <div className="flex items-center gap-2 relative">
+      <div className="relative">
         <div
-          className="tooltip tooltip-top absolute left-[-60px] h-[45px]"
+          className="tooltip tooltip-top absolute left-[-60px] h-[45px] top-0"
           data-tip={mounted ? "Dismount" : "Mount"}
         >
           <button
@@ -812,6 +817,7 @@ const BottomHud = ({
           health={playerHealth.health}
           maxHealth={playerHealth.maxHealth}
         />
+        <PotionBuffs buffs={potionBuffs} isDead={isDead} />
       </div>
 
 
@@ -833,6 +839,7 @@ export const Hud = ({
   species = "human",
   equipment,
   playerHealth,
+  potionBuffs,
   healCooldownUntil,
   mounted = false,
 }) => {
@@ -906,6 +913,7 @@ export const Hud = ({
         playerHealth={
           playerHealth
         }
+        potionBuffs={potionBuffs}
         healCooldownUntil={
           healCooldownUntil
         }

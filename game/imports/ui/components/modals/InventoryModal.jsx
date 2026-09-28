@@ -30,6 +30,8 @@ import {
   formatEquipmentStats,
 } from "../../../game/equipment";
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
+import { useConsumableStore } from "../../stores/useConsumableStore";
+import { CONSUMABLES } from "../../../game/consumables";
 
 
 const INVENTORY_SLOTS =
@@ -43,6 +45,18 @@ const ITEM_DISPLAY = {
   wolf_skin: {
     icon: "wolfSkin",
     iconClass: "h-7 w-7 text-blue-600",
+  },
+  health_potion: {
+    icon: "healthCapsule",
+    iconClass: "h-7 w-7 text-red-600",
+  },
+  speed_potion: {
+    icon: "healthCapsule",
+    iconClass: "h-7 w-7 text-green-600",
+  },
+  power_potion: {
+    icon: "healthCapsule",
+    iconClass: "h-7 w-7 text-purple-600",
   },
 };
 
@@ -201,6 +215,7 @@ const InventorySlot = ({
   const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
   const itemDisplay = ITEM_DISPLAY[item.id];
   const itemDefinition = EQUIPMENT_ITEMS[item.id];
+  const consumable = CONSUMABLES[item.id];
 
 
   return (
@@ -208,7 +223,7 @@ const InventorySlot = ({
       className="tooltip tooltip-top block aspect-square min-w-0"
       data-tip={name}
     >
-      {itemDefinition ? (
+      {itemDefinition || consumable ? (
         <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${mobile && open ? "dropdown-open z-[100]" : ""}`}>
           <button type="button" className="block h-full w-full" aria-expanded={mobile ? open : undefined}
             {...(mobile ? actionButtonHandlers(onToggle, true) : {})}>
@@ -222,8 +237,8 @@ const InventorySlot = ({
           {(!mobile || open) && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
             <li>
               <div className="pointer-events-none block">
-                <strong className="block text-xs">{itemDefinition.name}</strong>
-                {formatEquipmentStats(itemDefinition).map((stat) => (
+                <strong className="block text-xs">{(itemDefinition || consumable).name}</strong>
+                {(consumable ? [consumable.description] : formatEquipmentStats(itemDefinition)).map((stat) => (
                   <span key={stat} className="mt-1 block text-[11px] text-gray-600">{stat}</span>
                 ))}
               </div>
@@ -232,11 +247,12 @@ const InventorySlot = ({
               <button
                 type="button"
                 {...actionButtonHandlers(() => {
-                  useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot });
+                  if (consumable) useConsumableStore.getState().requestUse(item.id);
+                  else useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot });
                   onClose();
                 }, mobile)}
               >
-                Equip item
+                {consumable ? "Use" : "Equip item"}
               </button>
             </li>
           </ul>}

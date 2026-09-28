@@ -80,6 +80,9 @@ export class DungeonRoom extends WorldRoom {
       for (const key of COMBAT_TIMERS) runtime[key] = worldRuntime[key];
       player.groupId = source.groupId;
       player.health = Math.min(source.health, player.maxHealth);
+      player.speedPotionUntil = source.speedPotionUntil;
+      player.powerPotionUntil = source.powerPotionUntil;
+      player.movementSpeedMultiplier = source.movementSpeedMultiplier;
       player.respawnProtectedUntil = source.respawnProtectedUntil;
       this.respawnPosition(player);
       if (!this.participants.has(player.characterId)) {
