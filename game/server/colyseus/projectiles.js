@@ -1,4 +1,6 @@
 // Projectiles use server positions and skill stats; clients only request attacks.
+import { MOBILE_TARGETING } from "../../imports/game/config";
+
 export const createProjectiles = (room) => {
   const active = new Map();
   let nextId = 0;
@@ -9,19 +11,21 @@ export const createProjectiles = (room) => {
   };
 
   return {
-    fire(sessionId, player, skill) {
+    fire(sessionId, player, skill, target = null) {
       const { type, speed, lifetime, radius, scale = 1 } = skill.projectile;
       const hitEnemies = new Set();
       const count = skill.projectiles || 1;
       for (let index = 0; index < count; index++) {
-        const angle = player.rotationY + (index - (count - 1) / 2) * (skill.spreadAngle || 0) * Math.PI / 180;
+        const aim = target ? Math.atan2(target.x - player.x, target.z - player.z) : player.rotationY;
+        const angle = aim + (index - (count - 1) / 2) * (skill.spreadAngle || 0) * Math.PI / 180;
         const projectile = {
           id: `${room.roomId}-${++nextId}`,
           sessionId, type, speed, lifetime, scale,
           x: player.x, y: player.y + 1, z: player.z,
           dx: Math.sin(angle), dz: Math.cos(angle),
         };
-        active.set(projectile.id, { ...projectile, radius, remaining: lifetime, multiplier: skill.damageMultiplier, hitEnemies });
+        active.set(projectile.id, { ...projectile, radius: radius + (target ? MOBILE_TARGETING.hitPadding : 0),
+          remaining: lifetime, multiplier: skill.damageMultiplier, hitEnemies });
         room.broadcast("attack", { sessionId, projectile });
       }
     },

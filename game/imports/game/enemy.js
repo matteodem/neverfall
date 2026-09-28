@@ -21,6 +21,7 @@ export const createEnemy = async ({
   scene,
   state,
   id,
+  mobile = false,
 }) => {
   const config = getEnemyStats(state.type, state.level, state.rare);
   /*
@@ -42,7 +43,7 @@ export const createEnemy = async ({
 
   if (!config.bossMechanics) {
     const selectionArea = MeshBuilder.CreateBox(`enemy-selection-${id}`, {
-      width: 2.4, height: 2, depth: 2.4,
+      width: mobile ? 3 : 2.4, height: mobile ? 2.5 : 2, depth: mobile ? 3 : 2.4,
     }, scene);
     selectionArea.parent = root;
     selectionArea.position.y = 1;

@@ -1,5 +1,6 @@
 import { PERFORMANCE, QUALITY_PRESETS } from "./performanceConfig";
 import { useTargetStore } from "../ui/stores/useTargetStore";
+import { getDevice } from "../ui/hooks/useMobileDevice";
 import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
@@ -32,6 +33,7 @@ import {
 
 import {
   JUMP,
+  MOBILE_TARGETING,
 } from "./config";
 
 import {
@@ -803,6 +805,7 @@ export const createMultiplayer =
     const session = await getGameSession();
     const room = session.room;
     const dungeon = room !== session.worldRoom;
+    const mobile = getDevice().mobile;
     const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, dungeon });
     let destroyed = false;
     const disposers = [];
@@ -1524,6 +1527,7 @@ export const createMultiplayer =
 
             id:
               enemyId,
+            mobile,
           });
 
 
@@ -1730,7 +1734,7 @@ export const createMultiplayer =
         projectiles.update(deltaTime);
         bossVisuals.update(room.state.enemies, (id) => enemies.get(id)?.visibility.isVisible());
         useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
-        useTargetStore.getState().sync(room.state);
+        useTargetStore.getState().sync(room.state, localPlayerState);
         loot.update();
         if (!dungeon) {
           const area = getQuestArea(player.position);
@@ -1914,6 +1918,29 @@ export const createMultiplayer =
     const sendAttack =
       (code = "Digit1") => {
         if (!localPlayerState || localPlayerState.health <= 0) return;
+        if (mobile) {
+          const targetStore = useTargetStore.getState();
+          targetStore.sync(room.state, localPlayerState);
+          let targetId = useTargetStore.getState().selectedId;
+          if (!targetId) {
+            let nearest = MOBILE_TARGETING.acquireRange;
+            const forwardX = Math.sin(player.rotation.y);
+            const forwardZ = Math.cos(player.rotation.y);
+            for (const [enemyId, enemy] of room.state.enemies) {
+              if (enemy.health <= 0) continue;
+              const dx = enemy.x - player.position.x;
+              const dz = enemy.z - player.position.z;
+              const distance = Math.hypot(dx, dz);
+              if (distance >= nearest || (distance > 0 &&
+                (dx * forwardX + dz * forwardZ) / distance < MOBILE_TARGETING.coneDot)) continue;
+              nearest = distance;
+              targetId = enemyId;
+            }
+            if (targetId) targetStore.lock(targetId, room.state);
+          }
+          room.send("attack", { code, targetId });
+          return;
+        }
         room.send(
           "attack", code
         );

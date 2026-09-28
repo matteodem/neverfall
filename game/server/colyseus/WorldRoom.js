@@ -33,6 +33,7 @@ import {
 
 import {
   ATTACK,
+  MOBILE_TARGETING,
   PLAYER,
 } from "../../imports/game/config";
 
@@ -636,8 +637,11 @@ export class WorldRoom
 
     attack: async (
       client,
-      code = "Digit1"
+      request = "Digit1"
     ) => {
+      const mobileAttack = request && typeof request === "object";
+      const code = mobileAttack ? request.code : request;
+      const targetId = mobileAttack && typeof request.targetId === "string" ? request.targetId : null;
       if (!["Digit1", "Digit2", "Digit3"].includes(code)) return;
       const cooldownField = ATTACK_COOLDOWN_FIELDS[code];
       const player =
@@ -691,7 +695,8 @@ export class WorldRoom
       }
 
       if (skill.projectile) {
-        this.projectiles.fire(client.sessionId, player, skill);
+        const target = targetId && this.getTargetEnemy(player, targetId, MOBILE_TARGETING.retainRange);
+        this.projectiles.fire(client.sessionId, player, skill, target?.enemy);
         return;
       }
 
@@ -700,7 +705,7 @@ export class WorldRoom
           sessionId: client.sessionId,
           effect: { id: `nova-${client.sessionId}-${now}`, type: skill.effect, x: player.x, y: player.y + 0.05, z: player.z, dx: 0, dz: 0, speed: 0, lifetime: 500, radius: skill.range },
         });
-        await this.attackEnemy(client.sessionId, skill);
+        await this.attackEnemy(client.sessionId, skill, targetId, mobileAttack);
         return;
       }
 
@@ -720,7 +725,9 @@ export class WorldRoom
 
       await this.attackEnemy(
         client.sessionId,
-        skill
+        skill,
+        targetId,
+        mobileAttack
       );
     },
   };
@@ -1455,7 +1462,9 @@ export class WorldRoom
 
   async attackEnemy(
     sessionId,
-    skill
+    skill,
+    targetId = null,
+    mobileAttack = false
   ) {
     const player =
       this.state.players.get(
@@ -1474,11 +1483,10 @@ export class WorldRoom
 
 
     skill = skill || getClassConfig(player.gameClass).skills.Digit1;
+    const range = skill.range + (mobileAttack ? MOBILE_TARGETING.hitPadding : 0);
     const target = skill.aoe ? null :
-      this.findClosestEnemy(
-        player,
-        skill.range
-      );
+      (targetId && this.getTargetEnemy(player, targetId, range)) ||
+      this.findClosestEnemy(player, range, mobileAttack ? MOBILE_TARGETING.coneDot : null);
 
 
     const targets = skill.aoe
@@ -1578,9 +1586,16 @@ export class WorldRoom
   }
 
 
+  getTargetEnemy(player, enemyId, maxDistance) {
+    const enemy = this.state.enemies.get(enemyId);
+    return enemy?.health > 0 && this.getHorizontalDistance(player, enemy) <= maxDistance
+      ? { enemyId, enemy } : null;
+  }
+
   findClosestEnemy(
     player,
-    maxDistance
+    maxDistance,
+    coneDot = null
   ) {
     let closest =
       null;
@@ -1603,6 +1618,10 @@ export class WorldRoom
           enemy
         );
 
+      if (enemy.health <= 0) continue;
+      if (coneDot !== null && distance > 0 &&
+        ((enemy.x - player.x) * Math.sin(player.rotationY) +
+          (enemy.z - player.z) * Math.cos(player.rotationY)) / distance < coneDot) continue;
 
       if (
         distance >
