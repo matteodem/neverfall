@@ -10,12 +10,14 @@ import { Icon } from "../Icon";
 
 const WORLD_LABELS = [
   { label: "Camp", x: 0, z: -14 },
-  { label: "Northern Camp", ...NORTHERN_CAMP.center, z: NORTHERN_CAMP.center.z + 35 },
+  { label: "Northern Camp", ...NORTHERN_CAMP.center },
   { label: "Forest", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: 0 },
   { label: "Forest", x: 0, z: -210 },
 ];
+
+const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
 
 const MapContent = () => {
   const localPlayer = useMinimapStore((state) => state.localPlayer);
@@ -38,6 +40,14 @@ const MapContent = () => {
           <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
             style={worldToPercent(position)}>{position.label}</span>
         ))}
+        {!dungeon && (
+          <div className="absolute z-10" style={worldToPercent(HIGHLANDS_LOOKOUT)} title="Highlands Lookout">
+            <span className="absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#e0c99a] bg-[#59646b]" />
+            <span className="absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
+              Highlands Lookout
+            </span>
+          </div>
+        )}
         {!dungeon && DUNGEONS.map((entry) => (
           <div key={entry.id} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entry.entrance)}>
             <span className="mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
