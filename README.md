@@ -396,8 +396,6 @@ Future development may include:
 - 🎨 Improved visual effects and animations
 - 🔊 Expanded audio and ambience
 - 🎒 More loot and rewards
-- 💬 Player chat
-- 🧬 Additional playable species
 
 Larger systems such as crafting, trading, guilds, advanced equipment progression, and larger-scale group content may be explored later.
 
