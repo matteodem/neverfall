@@ -26,8 +26,12 @@ const MapContent = () => {
     <>
       <div className="relative aspect-square overflow-hidden rounded-box border border-base-300">
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
-          alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall forest map"}
+          alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall world map"}
           className="block h-full w-full" draggable={false} />
+        {!dungeon && ["edge-forests", "highlands"].map((region) => (
+          <img key={region} src={`/maps/${region}.svg`} alt="" aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full" draggable={false} />
+        ))}
         {!dungeon && WORLD_LABELS.map((position, index) => (
           <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
             style={worldToPercent(position)}>{position.label}</span>

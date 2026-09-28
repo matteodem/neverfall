@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 660">
+  <defs>
+    <g id="pine"><path d="M0-14-11 7h5l-4 7h20L6 7h5Z" fill="#254c36"/><path d="M0-14 0 14h10L6 7h5Z" fill="#3d6947"/></g>
+    <pattern id="forest" width="44" height="46" patternUnits="userSpaceOnUse">
+      <use href="#pine" x="12" y="17"/><use href="#pine" x="35" y="39"/>
+    </pattern>
+  </defs>
+  <path d="M30 230h200v400H30Zm400 0h200v400H430ZM230 430h200v200H230Z" fill="#456b45"/>
+  <path d="M30 230h200v400H30Zm400 0h200v400H430ZM230 430h200v200H230Z" fill="url(#forest)"/>
+  <path d="M30 430h600M230 230v400M430 230v400" stroke="#f0ead2" stroke-opacity=".16" stroke-width="2"/>
+</svg>

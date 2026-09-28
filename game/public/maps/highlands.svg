@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 660">
+  <defs>
+    <g id="peak"><path d="M-19 16 0-20 20 16Z" fill="#788078" stroke="#a4aaa0" stroke-width="2"/><path d="M0-20 8-5 0 0-7-6Z" fill="#c6c9ba"/></g>
+    <pattern id="peaks" width="80" height="68" patternUnits="userSpaceOnUse">
+      <use href="#peak" x="22" y="27"/><use href="#peak" x="62" y="57" transform="translate(62 57) scale(.7) translate(-62 -57)"/>
+    </pattern>
+  </defs>
+  <path d="M30 30h600v200H30Z" fill="#727b65"/>
+  <path d="M30 30h600v200H30Z" fill="url(#peaks)"/>
+  <path d="M30 230h600" stroke="#4b6149" stroke-width="5"/>
+  <path d="M230 30v200M430 30v200" stroke="#f0ead2" stroke-opacity=".16" stroke-width="2"/>
+  <text x="330" y="129" text-anchor="middle" fill="#f1eed7" font-family="sans-serif" font-size="22" paint-order="stroke" stroke="#3e493f" stroke-width="4">Highlands</text>
+</svg>

@@ -37,6 +37,11 @@ export const HelpModal = () => {
           <li>1 to 4 to use skills.</li>
           <li>V to Mount / Dismount.</li>
           <li>F to Loot.</li>
+          <li>Press "I" to toggle Inventory.</li>
+          <li>Press "B" to toggle Shop.</li>
+          <li>Press "G" to toggle Gear.</li>
+          <li>Press "Z" to toggle Achievements.</li>
+          <li>Press "M" to toggle Map.</li>
         </ul>
       </div>
 

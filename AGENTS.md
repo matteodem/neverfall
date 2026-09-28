@@ -23,6 +23,7 @@ Browser-based 3D MMORPG.
 - Do not add dependencies unless necessary.
 - Preserve existing behavior during refactors.
 - Always mention which files were changed.
+- Do not run Meteor build commands or tests unless explicitly requested.
 
 ## External documentation
 
