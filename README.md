@@ -10,7 +10,8 @@ The goal is to create a lightweight online RPG that runs directly in the browser
 
 - Real-time multiplayer
 - Action combat
-- Three playable classes: Warrior, Ranger, and Mage
+- Three classes: Warrior, Ranger, and Mage
+- Three species: Human, Ashborn and Sylvan
 - Character progression up to Level 20
 - Quests, hunts, bosses, rare enemies, and dynamic world events
 - Loot, equipment, consumables, and a vendor shop
@@ -87,7 +88,6 @@ Future updates may include:
 - More quests and world events
 - More dungeon content
 - More equipment and progression
-- Additional playable species
 - Larger world areas
 - More social and group features
 
