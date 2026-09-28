@@ -1,8 +1,11 @@
 import { create } from "zustand";
 
 export const useHudStore = create((set) => ({
+  uiVisible: true,
   activeModal: null,
   openModals: [],
+
+  toggleUi: () => set((state) => ({ uiVisible: !state.uiVisible })),
 
   openModal: (modal) => set((state) => {
     const openModals = state.openModals.filter((openModal) => openModal !== modal);

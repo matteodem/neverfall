@@ -1,4 +1,5 @@
 import { useMobileDevice } from "./hooks/useMobileDevice";
+import { useHudStore } from "./stores/useHudStore";
 import { PortraitOverlay } from "./components/PortraitOverlay";
 import {
   Meteor,
@@ -53,6 +54,7 @@ export const App = () => (
 
 const AppContent = () => {
   const { mobile, portrait } = useMobileDevice();
+  const uiVisible = useHudStore((state) => state.uiVisible);
   const [
     playerHealth,
     setPlayerHealth,
@@ -374,23 +376,25 @@ const AppContent = () => {
       />
 
 
-      <Hud
-        gameClass={currentCharacter?.gameClass}
-        species={currentCharacter?.species}
-        currentLevel={
-          currentLevel
-        }
-        equipment={currentCharacter?.equipment}
-        playerHealth={
-          playerHealth
-        }
-        potionBuffs={potionBuffs}
-        healCooldownUntil={
-          healCooldownUntil
-        }
-        mounted={mounted}
-        inCombat={inCombat}
-      />
+      <div className={uiVisible ? "" : "hidden"}>
+        <Hud
+          gameClass={currentCharacter?.gameClass}
+          species={currentCharacter?.species}
+          currentLevel={
+            currentLevel
+          }
+          equipment={currentCharacter?.equipment}
+          playerHealth={
+            playerHealth
+          }
+          potionBuffs={potionBuffs}
+          healCooldownUntil={
+            healCooldownUntil
+          }
+          mounted={mounted}
+          inCombat={inCombat}
+        />
+      </div>
 
 
       <LoadingScreen />

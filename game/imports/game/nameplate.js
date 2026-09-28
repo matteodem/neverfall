@@ -9,6 +9,7 @@ import {
 } from "@babylonjs/gui";
 
 import { getDevice } from "../ui/hooks/useMobileDevice";
+import { useHudStore } from "../ui/stores/useHudStore";
 
 const MAX_TEXTURE_WIDTH = 2048;
 
@@ -124,14 +125,25 @@ export const createNameplate = ({
 
   setName(name);
 
+  let visible = true;
+  const setVisible = (value) => {
+    visible = value;
+    plane.setEnabled(visible && useHudStore.getState().uiVisible);
+  };
+  const unsubscribe = useHudStore.subscribe((state) => {
+    plane.setEnabled(visible && state.uiVisible);
+  });
+  setVisible(true);
+
   const destroy = () => {
+    unsubscribe();
     texture.dispose();
     plane.dispose();
   };
 
   return {
     setName,
-    setVisible: (visible) => plane.setEnabled(visible),
+    setVisible,
     destroy,
   };
 };

@@ -657,6 +657,12 @@ export const Game = ({
                 return;
               }
 
+              if (event.code === "KeyP" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                event.preventDefault();
+                useHudStore.getState().toggleUi();
+                return;
+              }
+
 
               if (
                 event.code ===

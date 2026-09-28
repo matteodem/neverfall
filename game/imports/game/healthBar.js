@@ -9,6 +9,8 @@ import {
   Rectangle,
 } from "@babylonjs/gui";
 
+import { useHudStore } from "../ui/stores/useHudStore";
+
 const WIDTH =
   1.5;
 
@@ -131,15 +133,20 @@ export const createHealthBar = ({
       `${percentage * 100}%`;
   };
 
-  const setVisible = (
-    visible
-  ) => {
+  let visible = true;
+  const setVisible = (value) => {
+    visible = value;
     plane.setEnabled(
-      visible
+      visible && useHudStore.getState().uiVisible
     );
   };
+  const unsubscribe = useHudStore.subscribe((state) => {
+    plane.setEnabled(visible && state.uiVisible);
+  });
+  setVisible(true);
 
   const destroy = () => {
+    unsubscribe();
     texture.dispose();
     plane.dispose();
   };

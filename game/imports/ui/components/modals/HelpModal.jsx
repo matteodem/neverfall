@@ -17,6 +17,7 @@ const KEYBOARD_CONTROLS = [
   ["G", "Toggle Gear"],
   ["Z", "Toggle Achievements"],
   ["M", "Toggle Map"],
+  ["P", "Toggle UI"],
 ];
 
 export const HelpModal = () => {
