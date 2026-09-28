@@ -876,12 +876,10 @@ export const Hud = ({
           </button>
         )}
 
-        {!inDungeon && (
-          <div className="hud-trackers contents">
-            <QuestTracker />
-            <WorldEventTracker />
-          </div>
-        )}
+        <div className="hud-trackers contents">
+          <QuestTracker />
+          {!inDungeon && <WorldEventTracker />}
+        </div>
       </div>
 
 

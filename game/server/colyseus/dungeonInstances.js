@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { matchMaker } from "colyseus";
 import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
+import { recordQuestEvent } from "../quests";
 
 // Server-only capabilities prevent clients from creating an authorized instance.
 const accessKeys = new Map();
@@ -17,6 +18,8 @@ export const createDungeonInstances = (world) => {
         client.send("dungeonError", "Move closer to the dungeon entrance to enter.");
         return;
       }
+      void recordQuestEvent(world, player.characterId, "Interact", "dungeon-entrance")
+        .catch((error) => console.error("[Quests] Could not save interaction progress", error));
       const groupId = player.groupId;
       const key = groupId ? `party:${groupId}` : `solo:${player.characterId}`;
       try {

@@ -1,7 +1,11 @@
 import React from "react";
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { Characters } from "../../api/characters/characters";
 
 import {
   HUNT_QUESTS,
+  QUESTS,
 } from "../../game/quests";
 
 import {
@@ -17,14 +21,21 @@ const KILL_FIELDS = {
   bee: "beeKills",
 };
 
+const STORY_QUESTS = QUESTS.filter((quest) => !quest.repeatable);
+
 export const QuestTracker =
   () => {
     const area = useQuestStore((state) => state.area);
     const kills = useQuestStore((state) => state[KILL_FIELDS[area]] ?? 0);
     const quest = HUNT_QUESTS[area];
-    if (!quest) return null;
+    const progress = useTracker(() => {
+      const id = Meteor.user()?.profile?.currentCharacterId;
+      return id ? Characters.findOne(id)?.questProgress || {} : {};
+    }, []);
 
     return (
+      <>
+      {quest && (
       <div className="w-64 rounded-lg border border-white/10 bg-black/50 p-4 text-white shadow-lg">
         <div className="font-bold">
           {
@@ -56,5 +67,25 @@ export const QuestTracker =
           Repeatable
         </div>
       </div>
+      )}
+      <details className="w-64 rounded-lg border border-white/10 bg-black/50 p-3 text-white shadow-lg">
+        <summary className="cursor-pointer font-bold">Quest Log</summary>
+        <div className="mt-2 max-h-60 space-y-2 overflow-y-auto text-sm">
+          {STORY_QUESTS.map((entry) => {
+            const amount = entry.objective.amount;
+            const count = Math.min(progress[entry.id] || 0, amount);
+            return (
+              <div key={entry.id} className="border-t border-white/10 pt-2">
+                <div className="font-semibold">{entry.title}</div>
+                <div className="text-white/70">{entry.description}</div>
+                <div className="text-yellow-300">
+                  {count >= amount ? "Completed" : `${count} / ${amount}`}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </details>
+      </>
     );
   };

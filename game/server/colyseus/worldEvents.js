@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import { WORLD_EVENTS } from "../../imports/game/worldEvents";
 import { spawnLoot } from "../inventory/loot";
 import { WorldEventState } from "./WorldState";
+import { recordQuestEvent } from "../quests";
 
 // One active event per world room. Waves use the ordinary enemy lifecycle.
 export const createWorldEvents = (room) => {
@@ -89,6 +90,8 @@ export const createWorldEvents = (room) => {
         }
       }
       void (async () => {
+        await recordQuestEvent(room, characterId, "CompleteEvent", rewardConfig.id)
+          .catch((error) => console.error("[Quests] Could not save event progress", error));
         await room.awardXp(characterId, rewardConfig.rewards.xp);
         await Meteor.users.updateAsync(participant.userId, {
           $inc: { "profile.inventory.money": rewardConfig.rewards.money },

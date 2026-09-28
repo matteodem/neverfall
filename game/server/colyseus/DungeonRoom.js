@@ -7,6 +7,10 @@ import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
 import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
 import { collectLoot, spawnLoot } from "../inventory/loot";
+import { recordQuestEvent } from "../quests";
+import { QUESTS } from "../../imports/game/quests";
+
+const HUNT_FIELDS = QUESTS.map((quest) => quest.progressField).filter(Boolean);
 
 const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
@@ -126,6 +130,10 @@ export class DungeonRoom extends WorldRoom {
     }
     for (const characterId of runtime.contributors) {
       void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
+      void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar")
+        .catch((error) => console.error("[Quests] Could not save kill progress", error));
+      void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar")
+        .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
     this.state.enemies.delete(enemyId);
     this.enemyRuntime.delete(enemyId);
@@ -137,6 +145,10 @@ export class DungeonRoom extends WorldRoom {
       this.state.bossDefeated = true;
       this.state.completed = true;
       for (const [characterId, participant] of this.participants) this.addChestLoot(characterId, participant);
+      for (const characterId of this.participants.keys()) {
+        void recordQuestEvent(this, characterId, "CompleteDungeon", DUNGEON.id)
+          .catch((error) => console.error("[Quests] Could not save dungeon progress", error));
+      }
     }
   }
 
@@ -160,6 +172,7 @@ export class DungeonRoom extends WorldRoom {
       if (!source) continue;
       player.groupId = source.groupId;
       for (const key of DUNGEON_PLAYER_FIELDS) source[key] = player[key];
+      for (const key of HUNT_FIELDS) source[key] = player[key];
     }
   }
 

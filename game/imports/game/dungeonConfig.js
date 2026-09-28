@@ -1,4 +1,5 @@
 export const DUNGEON = {
+  id: "dungeon-01",
   entrance: { x: 0, z: -90 },
   spawn: { x: 0, z: 0 },
   chest: { x: 0, z: 86 },
