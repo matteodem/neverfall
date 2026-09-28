@@ -200,9 +200,12 @@ const HUD_BUTTONS = [
 
     label:
       "Inventory",
+
+    shortcut:
+      "I",
   },
 
-  { id: "shop", icon: "shop", label: "Shop" },
+  { id: "shop", icon: "shop", label: "Shop", shortcut: "B" },
 
   {
     id:
@@ -213,11 +216,14 @@ const HUD_BUTTONS = [
 
     label:
       "Gear",
+
+    shortcut:
+      "G",
   },
 
-  { id: "achievements", icon: "trophy", label: "Achievements" },
+  { id: "achievements", icon: "trophy", label: "Achievements", shortcut: "Z" },
 
-  { id: "map", icon: "map", label: "Map" },
+  { id: "map", icon: "map", label: "Map", shortcut: "M" },
 
   {
     id:
@@ -425,6 +431,7 @@ const MenuButtons =
               id,
               icon,
               label,
+              shortcut,
             }) => (
               <button
                 key={
@@ -432,9 +439,9 @@ const MenuButtons =
                 }
                 type="button"
                 title={
-                  label
+                  shortcut ? `${label} (Press ${shortcut})` : label
                 }
-                aria-label={label}
+                aria-label={shortcut ? `${label} (Press ${shortcut})` : label}
                 onClick={
                   () => openModals.includes(id) ? closeModal(id) : openModal(id)
                 }
