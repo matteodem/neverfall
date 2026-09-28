@@ -19,6 +19,8 @@ export const PlayerState =
 
       gameClass: t.string().default("warrior"),
 
+      species: t.string().default("human"),
+
       x:
         t.number().default(0),
 

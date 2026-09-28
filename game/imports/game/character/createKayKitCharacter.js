@@ -6,31 +6,11 @@ import {
 
 import "@babylonjs/loaders/glTF";
 import { getClassConfig } from "../classConfig";
+import { SKIN_TONES } from "../species";
 
 
 const KAYKIT_ROOT =
   "/models/characters/kaykit/";
-
-
-const SKIN_TONES = {
-  light:
-    "#F1C7A5",
-
-  fair:
-    "#E5B08A",
-
-  medium:
-    "#C68662",
-
-  tan:
-    "#A96F4C",
-
-  brown:
-    "#7B4F35",
-
-  dark:
-    "#4A2D22",
-};
 
 
 const BODY_TYPES = {

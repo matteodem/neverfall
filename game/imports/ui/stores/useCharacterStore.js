@@ -63,6 +63,17 @@ export const useCharacterStore =
         );
       },
 
+      setCreatorSpecies(species, defaults) {
+        set((state) => ({
+          creator: {
+            ...state.creator,
+            species,
+            skinTone: defaults.defaultSkinTone,
+            bodyType: defaults.defaultBodyType,
+          },
+        }));
+      },
+
       resetCreator() {
         set({
           creator: {

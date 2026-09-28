@@ -371,6 +371,7 @@ const AppContent = () => {
 
       <Hud
         gameClass={currentCharacter?.gameClass}
+        species={currentCharacter?.species}
         currentLevel={
           currentLevel
         }

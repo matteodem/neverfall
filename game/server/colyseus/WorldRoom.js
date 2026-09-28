@@ -95,7 +95,7 @@ const getEquipmentForPlayer = (player) => ({
 });
 
 const getStatsForPlayer = (player) =>
-  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass);
+  getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species);
 
 
 /*
@@ -241,7 +241,7 @@ export class WorldRoom
     player.ring = equipment.ring || "";
     player.accessory = equipment.accessory || "";
 
-    const stats = getPlayerStats(player.currentLevel, equipment, player.gameClass);
+    const stats = getPlayerStats(player.currentLevel, equipment, player.gameClass, player.species);
     player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
@@ -667,7 +667,8 @@ export class WorldRoom
       getPlayerStats(
         currentLevel,
         equipment,
-        character.gameClass
+        character.gameClass,
+        character.species
       );
 
 
@@ -683,6 +684,8 @@ export class WorldRoom
           character.name,
 
         gameClass: character.gameClass || "warrior",
+
+        species: character.species || "human",
 
         currentLevel,
         movementSpeedMultiplier: stats.movementSpeedMultiplier,
@@ -1150,7 +1153,8 @@ export class WorldRoom
         const stats = getPlayerStats(
           progress.currentLevel,
           getEquipmentForPlayer(player),
-          player.gameClass
+          player.gameClass,
+          player.species
         );
 
 

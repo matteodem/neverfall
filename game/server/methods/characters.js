@@ -11,6 +11,7 @@ import {
 } from "../../imports/api/characters/characters";
 import { migrateUserItems } from "../inventory/characters";
 import { isValidGameClass } from "../../imports/game/classConfig";
+import { SPECIES } from "../../imports/game/species";
 
 const MAX_CHARACTERS =
   5;
@@ -19,15 +20,6 @@ const VALID_APPEARANCE = {
   gender: [
     "female",
     "male",
-  ],
-
-  skinTone: [
-    "light",
-    "fair",
-    "medium",
-    "tan",
-    "brown",
-    "dark",
   ],
 
   bodyType: [
@@ -49,12 +41,6 @@ const VALID_APPEARANCE = {
 const DEFAULT_APPEARANCE = {
   gender:
     "female",
-
-  skinTone:
-    "medium",
-
-  bodyType:
-    "medium",
 
   head:
     "head1",
@@ -85,7 +71,8 @@ const requireUser = (
 
 
 const normalizeAppearance = (
-  appearance
+  appearance,
+  species
 ) => {
   return {
     gender:
@@ -94,11 +81,11 @@ const normalizeAppearance = (
 
     skinTone:
       appearance?.skinTone ||
-      DEFAULT_APPEARANCE.skinTone,
+      SPECIES[species].defaultSkinTone,
 
     bodyType:
       appearance?.bodyType ||
-      DEFAULT_APPEARANCE.bodyType,
+      SPECIES[species].defaultBodyType,
 
     head:
       appearance?.head ||
@@ -108,7 +95,8 @@ const normalizeAppearance = (
 
 
 const validateAppearance = (
-  appearance
+  appearance,
+  species
 ) => {
   for (
     const [
@@ -132,6 +120,10 @@ const validateAppearance = (
     throw new Meteor.Error(
       `invalid-${key}`
     );
+  }
+
+  if (!SPECIES[species].skinTones.includes(appearance.skinTone)) {
+    throw new Meteor.Error("invalid-skinTone");
   }
 };
 
@@ -211,8 +203,7 @@ Meteor.methods({
     }
 
     if (
-      species !==
-      "human"
+      !Object.hasOwn(SPECIES, species)
     ) {
       throw new Meteor.Error(
         "invalid-species"
@@ -229,11 +220,13 @@ Meteor.methods({
 
     const normalizedAppearance =
       normalizeAppearance(
-        appearance
+        appearance,
+        species
       );
 
     validateAppearance(
-      normalizedAppearance
+      normalizedAppearance,
+      species
     );
 
     const id =
@@ -254,7 +247,7 @@ Meteor.methods({
       nameLower,
 
       species:
-        "human",
+        species,
 
       gameClass,
 

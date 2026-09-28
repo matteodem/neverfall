@@ -3,6 +3,7 @@ import React, {
   useState,
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
+import { SPECIES, SKIN_TONES } from "../game/species";
 
 import {
   Meteor,
@@ -20,39 +21,6 @@ import {
 import {
   CharacterPreview,
 } from "./CharacterPreview";
-
-
-const SKIN_TONES = [
-  {
-    id: "light",
-    color: "#F1C7A5",
-  },
-
-  {
-    id: "fair",
-    color: "#E5B08A",
-  },
-
-  {
-    id: "medium",
-    color: "#C68662",
-  },
-
-  {
-    id: "tan",
-    color: "#A96F4C",
-  },
-
-  {
-    id: "brown",
-    color: "#7B4F35",
-  },
-
-  {
-    id: "dark",
-    color: "#4A2D22",
-  },
-];
 
 
 const BODY_TYPES = [
@@ -227,33 +195,33 @@ const AppearanceStep =
               </h3>
 
               <div className="character-creator-skin-tones flex flex-wrap gap-3">
-                {SKIN_TONES.map(
+                {SPECIES[creator.species].skinTones.map(
                   (
-                    skin
+                    skinTone
                   ) => (
                     <button
                       key={
-                        skin.id
+                        skinTone
                       }
                       type="button"
                       title={
-                        skin.id
+                        skinTone
                       }
                       aria-label={
-                        `Skin tone ${skin.id}`
+                        `Skin tone ${skinTone}`
                       }
                       onClick={
                         () =>
                           setCreatorField(
                             "skinTone",
-                            skin.id
+                            skinTone
                           )
                       }
                       className={[
                         "character-creator-skin-tone h-10 w-10 cursor-pointer rounded-full border-4 transition",
 
                         creator.skinTone ===
-                        skin.id
+                        skinTone
                           ? "border-primary"
                           : "border-white/20",
                       ].join(
@@ -261,7 +229,7 @@ const AppearanceStep =
                       )}
                       style={{
                         backgroundColor:
-                          skin.color,
+                          SKIN_TONES[skinTone],
                       }}
                     />
                   )
@@ -355,16 +323,27 @@ const AppearanceStep =
 
 const SpeciesStep =
   () => {
+    const species = useCharacterStore((state) => state.creator.species);
+    const setCreatorSpecies = useCharacterStore((state) => state.setCreatorSpecies);
+
     return (
       <Screen
         title="Species"
       >
-        <button
-          type="button"
-          className="btn btn-primary cursor-pointer px-8 py-5"
-        >
-          Human
-        </button>
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+          {Object.entries(SPECIES).map(([id, config]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setCreatorSpecies(id, config)}
+              aria-pressed={species === id}
+              className={`flex min-h-16 cursor-pointer flex-col items-center justify-center rounded-lg border px-4 py-2 text-center sm:min-h-20 ${species === id ? "border-primary bg-primary text-primary-content" : "border-white/20 hover:border-primary"}`}
+            >
+              <span className="font-bold">{config.name}</span>
+              <span className="text-sm">{config.passive}</span>
+            </button>
+          ))}
+        </div>
       </Screen>
     );
   };

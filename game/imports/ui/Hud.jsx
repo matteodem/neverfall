@@ -98,14 +98,16 @@ const HEAL_COOLDOWN =
 const getActionSlots = (
   currentLevel,
   equipment,
-  gameClass
+  gameClass,
+  species
 ) => {
   const skills = getClassConfig(gameClass).skills;
   const playerStats =
     getPlayerStats(
       currentLevel,
       equipment,
-      gameClass
+      gameClass,
+      species
     );
 
 
@@ -664,6 +666,7 @@ const ActionBar = ({
   currentLevel,
   equipment,
   gameClass,
+  species,
   healCooldownUntil,
   mobile = false,
 }) => {
@@ -680,7 +683,8 @@ const ActionBar = ({
     getActionSlots(
       currentLevel,
       equipment,
-      gameClass
+      gameClass,
+      species
     );
 
 
@@ -729,6 +733,7 @@ const BottomHud = ({
   currentLevel,
   equipment,
   gameClass,
+  species,
   playerHealth,
   healCooldownUntil,
   mounted,
@@ -744,7 +749,7 @@ const BottomHud = ({
             {mounted ? "Dismount" : "Mount"}
           </button>
         </div>
-        <ActionBar mobile gameClass={gameClass} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
+        <ActionBar mobile gameClass={gameClass} species={species} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
       </div>
       <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
         <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />
@@ -769,6 +774,7 @@ const BottomHud = ({
     >
       <ActionBar
         gameClass={gameClass}
+        species={species}
         currentLevel={
           currentLevel
         }
@@ -824,6 +830,7 @@ const BottomHud = ({
 export const Hud = ({
   currentLevel = 1,
   gameClass = "warrior",
+  species = "human",
   equipment,
   playerHealth,
   healCooldownUntil,
@@ -891,6 +898,7 @@ export const Hud = ({
       <BottomHud
         mobile={mobile}
         gameClass={gameClass}
+        species={species}
         currentLevel={
           currentLevel
         }
