@@ -12,6 +12,9 @@ import { SKIN_TONES } from "../species";
 const KAYKIT_ROOT =
   "/models/characters/kaykit/";
 
+// The head texture's skin area is peach, so a direct tint washes out green.
+const BASE_SKIN_COLOR = Color3.FromHexString("#F8CAA9");
+
 
 const BODY_TYPES = {
   slim: {
@@ -53,6 +56,12 @@ const applySkinTone =
           SKIN_TONES.medium
       );
 
+    const tint = new Color3(
+      Math.min(color.r / BASE_SKIN_COLOR.r, 1),
+      Math.min(color.g / BASE_SKIN_COLOR.g, 1),
+      Math.min(color.b / BASE_SKIN_COLOR.b, 1)
+    );
+
 
     knight.meshes.forEach(
       (
@@ -93,13 +102,13 @@ const applySkinTone =
           in material
         ) {
           material.albedoColor =
-            color;
+            tint;
         } else if (
           "diffuseColor"
           in material
         ) {
           material.diffuseColor =
-            color;
+            tint;
         }
 
 

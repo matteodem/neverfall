@@ -8,9 +8,9 @@ export const SKIN_TONES = {
   ash: "#8D5750",
   ember: "#A96254",
   cinder: "#614140",
-  leaf: "#A9BC9A",
-  moss: "#83A083",
-  pale: "#CED8B6",
+  leaf: "#75BD75",
+  moss: "#5AA26C",
+  pale: "#A4C89A",
 };
 
 export const SPECIES = {
