@@ -3,6 +3,7 @@ import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
 import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE } from "./worldConfig";
+import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import "@babylonjs/loaders/glTF";
@@ -495,16 +496,28 @@ export const createWorld =
        */
 
       for (const chunk of WORLD_CHUNKS) {
+        const northernCampChunk = chunk.x === NORTHERN_CAMP.center.x && chunk.z === NORTHERN_CAMP.center.z;
         const area = createForestArea({
           scene,
           size: CHUNK_SIZE,
           center: new Vector3(chunk.x, 0, chunk.z),
           ...WORLD_REGIONS[chunk.region],
+          ...(northernCampChunk ? { clearing: {
+            center: new Vector3(NORTHERN_CAMP.center.x, 0, NORTHERN_CAMP.center.z),
+            radius: NORTHERN_CAMP.clearingRadius,
+          } } : {}),
           ...Object.fromEntries(["treeCount", "bushCount", "rockCount", "logCount"].map((key) =>
             [key, Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
         });
         chunks.add(area, chunk);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
+        if (northernCampChunk) {
+          const camp = createClearingCamp({
+            scene,
+            center: new Vector3(NORTHERN_CAMP.center.x, 0, NORTHERN_CAMP.center.z),
+          });
+          chunks.add(camp, NORTHERN_CAMP.center);
+        }
         if (chunk.x === 0 && chunk.z === 0) forest = area;
       }
 

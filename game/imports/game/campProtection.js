@@ -4,5 +4,10 @@ export const CAMP_PROTECTION = {
   respawnProtectionMs: 5000,
 };
 
+export const NORTHERN_CAMP = {
+  center: { x: 0, z: 200 },
+  clearingRadius: 16,
+};
+
 export const isInsideCamp = ({ x, z }) =>
   Math.hypot(x - CAMP_PROTECTION.center.x, z - CAMP_PROTECTION.center.z) <= CAMP_PROTECTION.safeZoneRadius;

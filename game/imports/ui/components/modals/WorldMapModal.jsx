@@ -1,4 +1,5 @@
 import React from "react";
+import { NORTHERN_CAMP } from "../../../game/campProtection";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
@@ -9,6 +10,7 @@ import { Icon } from "../Icon";
 
 const WORLD_LABELS = [
   { label: "Camp", x: 0, z: -14 },
+  { label: "Northern Camp", ...NORTHERN_CAMP.center, z: NORTHERN_CAMP.center.z + 35 },
   { label: "Forest", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: 0 },
