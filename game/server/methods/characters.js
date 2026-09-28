@@ -269,6 +269,8 @@ Meteor.methods({
 
       achievements: {},
 
+      questProgress: {},
+
       inventory: { items: [] },
 
       equipment: {

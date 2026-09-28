@@ -58,6 +58,47 @@ export const HUNT_QUESTS = {
   },
 };
 
+// New quests are available automatically; NPC quest givers can use the same
+// definitions later without changing how objectives advance.
+export const QUESTS = [
+  ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
+    ...hunt,
+    objective: { type: type === "forestGiant" ? "Boss" : "Kill", target: type, amount: hunt.target },
+    rewards: { xp: hunt.rewardXp },
+    repeatable: true,
+  })),
+  {
+    id: "wolf-problem", title: "Wolf Problem", description: "Kill 10 Wolves",
+    objective: { type: "Kill", target: "wolf", amount: 10 },
+    rewards: { xp: 300, gold: 1 },
+  },
+  {
+    id: "giant-threat", title: "Giant Threat", description: "Defeat the Forest Giant",
+    objective: { type: "Boss", target: "forestGiant", amount: 1 },
+    rewards: { xp: 500, gold: 2 },
+  },
+  {
+    id: "explore-highlands", title: "Explore the Highlands", description: "Reach the Highlands lookout",
+    objective: { type: "ReachLocation", target: "highlands-lookout", amount: 1, x: 40, z: 245, radius: 12 },
+    rewards: { xp: 200, gold: 1 },
+  },
+  {
+    id: "find-the-depths", title: "Find the Depths", description: "Use the dungeon entrance",
+    objective: { type: "Interact", target: "dungeon-entrance", amount: 1 },
+    rewards: { xp: 100 },
+  },
+  {
+    id: "awakened-threat", title: "Awakened Threat", description: "Complete Forest Giant Awakening",
+    objective: { type: "CompleteEvent", target: "forest-giant-awakening", amount: 1 },
+    rewards: { xp: 500, gold: 2 },
+  },
+  {
+    id: "into-the-depths", title: "Into the Depths", description: "Complete the dungeon",
+    objective: { type: "CompleteDungeon", target: "dungeon-01", amount: 1 },
+    rewards: { xp: 250, gold: 2 },
+  },
+];
+
 const boarSpawns = ENEMY_SPAWNS.filter(({ type }) => type === "boar");
 const BOAR_AREA_PADDING = 20;
 const BOAR_AREA = {

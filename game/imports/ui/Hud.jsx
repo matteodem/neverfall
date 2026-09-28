@@ -6,6 +6,7 @@ import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
+import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
@@ -846,6 +847,7 @@ export const Hud = ({
 
 
       <LevelUpOverlay />
+      <QuestCompletionOverlay />
       <BossNotice />
       <BossHealthBar />
       <TargetFrame />
@@ -876,12 +878,10 @@ export const Hud = ({
           </button>
         )}
 
-        {!inDungeon && (
-          <div className="hud-trackers contents">
-            <QuestTracker />
-            <WorldEventTracker />
-          </div>
-        )}
+        <div className="hud-trackers contents">
+          {!inDungeon && <WorldEventTracker />}
+          <QuestTracker />
+        </div>
       </div>
 
 

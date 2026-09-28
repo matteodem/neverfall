@@ -6,6 +6,7 @@ import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { updateEnemyLeash } from "./enemyLeash";
 import { trackAchievements } from "../achievements";
+import { recordQuestEvent } from "../quests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
@@ -41,9 +42,7 @@ import {
   addXpToProgress,
 } from "../../imports/game/xp";
 
-import {
-  HUNT_QUESTS,
-} from "../../imports/game/quests";
+import { QUESTS } from "../../imports/game/quests";
 
 import {
   getPlayerStats,
@@ -57,6 +56,8 @@ import {
 
 const MAX_PLAYERS =
   30;
+
+const LOCATION_QUESTS = QUESTS.filter((quest) => quest.objective.type === "ReachLocation");
 
 /*
  * =====================================================
@@ -127,58 +128,6 @@ export class WorldRoom
 
   playerRuntime =
     new Map();
-
-
-  /*
-   * =====================================================
-   * QUESTS
-   * =====================================================
-   */
-
-  advanceHuntQuest(
-    characterId,
-    type
-  ) {
-    const quest = HUNT_QUESTS[type];
-    const field = quest.progressField;
-    for (
-      const player
-      of this.state.players.values()
-    ) {
-      if (
-        player.characterId !==
-        characterId
-      ) {
-        continue;
-      }
-
-
-      player[field] =
-        (
-          player[field] ??
-          0
-        ) +
-        1;
-
-
-      if (
-        player[field] <
-        quest.target
-      ) {
-        return false;
-      }
-
-
-      player[field] =
-        0;
-
-
-      return true;
-    }
-
-
-    return false;
-  }
 
 
   /*
@@ -457,6 +406,21 @@ export class WorldRoom
       player.rotationY = data.rotationY;
       runtime.moveAllowance = Math.max(0, allowance - distance);
       if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+
+      if (!player.inDungeon) {
+        runtime.reachedQuestLocations ||= new Set();
+        for (const quest of LOCATION_QUESTS) {
+          if (runtime.reachedQuestLocations.has(quest.id)) continue;
+          const { x, z, radius = 10 } = quest.objective;
+          if (Math.hypot(player.x - x, player.z - z) > radius) continue;
+          runtime.reachedQuestLocations.add(quest.id);
+          void recordQuestEvent(this, player.characterId, "ReachLocation", quest.objective.target)
+            .catch((error) => {
+              runtime.reachedQuestLocations.delete(quest.id);
+              console.error("[Quests] Could not save location progress", error);
+            });
+        }
+      }
 
     },
 
@@ -766,6 +730,9 @@ export class WorldRoom
         head:
           appearance.head ||
           "head1",
+
+        ...Object.fromEntries(QUESTS.filter((quest) => quest.progressField).map((quest) =>
+          [quest.progressField, character.questProgress?.[quest.id] || 0])),
       });
 
 
@@ -1515,7 +1482,6 @@ export class WorldRoom
 
 
     const stats = this.getEnemyStats(spawn.type, spawn.level);
-    const quest = HUNT_QUESTS[spawn.type || "boar"];
     const lootOwners = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
@@ -1574,21 +1540,10 @@ export class WorldRoom
       }
 
 
-      const completed =
-        quest && this.advanceHuntQuest(
-          characterId,
-          spawn.type || "boar"
-        );
-
-
-      if (
-        completed
-      ) {
-        await this.awardXp(
-          characterId,
-          quest.rewardXp
-        );
-      }
+      await recordQuestEvent(this, characterId, "Kill", spawn.type || "boar")
+        .catch((error) => console.error("[Quests] Could not save kill progress", error));
+      await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar")
+        .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
 
     // Finish normal kill rewards before granting event-completion XP.
