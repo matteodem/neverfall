@@ -143,6 +143,9 @@ body {
 .mobile-game .hud-modal [class~="text-[10px]"] { font-size: 20px; line-height: 1.4; }
 .mobile-game .hud-modal [class~="text-[11px]"] { font-size: 22px; line-height: 1.4; }
 .mobile-game .hud-modal .p-4 { padding: 10px; }
+.mobile-game .hud-modal .help-controls thead { font-size: 28px; }
+.mobile-game .hud-modal .help-controls tbody tr { font-size: 24px; }
+.mobile-game .hud-modal .help-controls .kbd { font-size: 24px; --size: 40px; }
 
 .mobile-game .hud-minimap { order: 2; width: 170px; padding: 8px; flex-shrink: 0; }
 .mobile-game .hud-minimap .text-sm { font-size: 11px; }

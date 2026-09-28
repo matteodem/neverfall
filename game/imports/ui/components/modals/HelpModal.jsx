@@ -7,6 +7,18 @@ import {
   HudModal,
 } from "../HudModal";
 
+const KEYBOARD_CONTROLS = [
+  ["WASD", "Move"],
+  ["1–4", "Use skills"],
+  ["V", "Mount / Dismount"],
+  ["F", "Loot"],
+  ["I", "Toggle Inventory"],
+  ["B", "Toggle Shop"],
+  ["G", "Toggle Gear"],
+  ["Z", "Toggle Achievements"],
+  ["M", "Toggle Map"],
+];
+
 export const HelpModal = () => {
   const { startNextStep } = useNextStep();
   const closeModal = useHudStore((state) => state.closeModal);
@@ -31,18 +43,20 @@ export const HelpModal = () => {
         Keyboard Controls
       </p>
 
-      <div className="mt-2">
-        <ul>
-          <li>WASD to move.</li>
-          <li>1 to 4 to use skills.</li>
-          <li>V to Mount / Dismount.</li>
-          <li>F to Loot.</li>
-          <li>Press "I" to toggle Inventory.</li>
-          <li>Press "B" to toggle Shop.</li>
-          <li>Press "G" to toggle Gear.</li>
-          <li>Press "Z" to toggle Achievements.</li>
-          <li>Press "M" to toggle Map.</li>
-        </ul>
+      <div className="mt-2 overflow-x-auto">
+        <table className="help-controls table table-zebra table-sm">
+          <thead>
+            <tr><th scope="col">Key</th><th scope="col">Action</th></tr>
+          </thead>
+          <tbody>
+            {KEYBOARD_CONTROLS.map(([key, action]) => (
+              <tr key={key}>
+                <th scope="row"><kbd className="kbd kbd-sm">{key}</kbd></th>
+                <td>{action}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       <p className="mt-2 text-lg font-bold">
@@ -58,11 +72,22 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        Like Neverfall? Feel free to support me or report an issue / bug: <br />
+        Like Neverfall? Feel free to support me: <br />
 
         <div className="flex gap-4">
           <a target="_blank" className="btn mt-2 btn-soft btn-primary" href="https://patreon.com/MatteoDeMicheli">Patreon</a>
           {/* <a target="_blank" className="btn mt-2 btn-soft btn-secondary" href="">Buy Me a Coffee</a>*/}
+        </div>
+      </div>
+
+      <p className="mt-5 text-lg font-bold">
+        Recommend features or report a bug
+      </p>
+
+      <div className="mt-2">
+        Check out the github repository: <br />
+
+        <div className="flex gap-4">
           <a target="_blank" className="btn mt-2 btn-soft btn-secondary" href="https://github.com/matteodem/neverfall">Github Repository</a>
         </div>       
       </div>
