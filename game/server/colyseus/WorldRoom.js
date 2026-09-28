@@ -272,7 +272,7 @@ export class WorldRoom
 
   messages = {
     chat: (client, text) => sendChat(this, client, text),
-    dungeonEnter: (client) => this.dungeons.enter(client),
+    dungeonEnter: (client, dungeonId) => this.dungeons.enter(client, dungeonId),
     groupInvite: (client, targetId) => {
       const target = this.clients.find((candidate) => candidate.sessionId === targetId);
       if (!target) {

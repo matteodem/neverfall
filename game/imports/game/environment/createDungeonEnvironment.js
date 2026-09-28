@@ -1,11 +1,10 @@
 import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
-import { DUNGEON } from "../dungeonConfig";
 import { createNameplate } from "../nameplate";
 import { createDungeonPortal } from "./createDungeonPortal";
 
-export const createDungeonEnvironment = (scene) => {
+export const createDungeonEnvironment = (scene, dungeon) => {
   const stone = new StandardMaterial("dungeonStone", scene);
-  stone.diffuseColor = Color3.FromHexString("#404654");
+  stone.diffuseColor = Color3.FromHexString(dungeon.environment.stone);
   stone.specularColor = Color3.Black();
   const box = (name, dimensions, position) => {
     const mesh = MeshBuilder.CreateBox(name, dimensions, scene);
@@ -22,9 +21,9 @@ export const createDungeonEnvironment = (scene) => {
   for (const z of [12, 32, 52, 72, 92]) {
     for (const x of [-10, 10]) box("dungeonPillar", { width: 1.4, height: 6, depth: 1.4 }, [x, 3, z]);
   }
-  createDungeonPortal({ scene, ...DUNGEON.exit, title: "Exit Dungeon" });
+  createDungeonPortal({ scene, ...dungeon.exit, title: "Exit Dungeon" });
   const chestRoot = new TransformNode("dungeonRewardChest", scene);
-  chestRoot.position.set(DUNGEON.chest.x, 0, DUNGEON.chest.z);
+  chestRoot.position.set(dungeon.chest.x, 0, dungeon.chest.z);
   const chest = MeshBuilder.CreateBox("rewardChest", { width: 2, height: 1.2, depth: 1.3 }, scene);
   chest.parent = chestRoot;
   chest.position.y = 0.6;

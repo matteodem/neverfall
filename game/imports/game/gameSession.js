@@ -29,7 +29,7 @@ const waitForState = (room, ready) => {
   });
 };
 
-const finishEntry = async (current, { roomId, worldSessionId }) => {
+const finishEntry = async (current, { roomId, worldSessionId, dungeonId }) => {
   if (session !== current || !current.entering) return;
   clearTimeout(current.entryTimeout);
   try {
@@ -50,7 +50,7 @@ const finishEntry = async (current, { roomId, worldSessionId }) => {
       useDungeonStore.getState().setLocation("world");
       useDungeonStore.getState().setError("You left the dungeon.");
     });
-    useDungeonStore.getState().setLocation("dungeon");
+    useDungeonStore.getState().setLocation("dungeon", dungeonId);
   } catch (error) {
     await leaveRoom(current.pendingRoom);
     current.pendingRoom = null;
@@ -132,16 +132,16 @@ export const getGameSession = async () => {
   finally { connecting = null; }
 };
 
-export const enterDungeon = () => {
+export const enterDungeon = (dungeonId) => {
   const current = session;
-  if (!current || current.entering || current.room !== current.worldRoom) return;
+  if (!dungeonId || !current || current.entering || current.room !== current.worldRoom) return;
   current.entering = true;
   useDungeonStore.getState().setBusy(true);
   current.entryTimeout = setTimeout(() => {
     current.entering = false;
     useDungeonStore.getState().setError("Could not enter the dungeon. Please try again.");
   }, 15000);
-  current.worldRoom.send("dungeonEnter");
+  current.worldRoom.send("dungeonEnter", dungeonId);
 };
 
 export const leaveDungeon = () => {

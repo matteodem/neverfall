@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { matchMaker } from "colyseus";
-import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
+import { getDungeonConfig, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
 import { recordQuestEvent } from "../quests";
 
 // Server-only capabilities prevent clients from creating an authorized instance.
@@ -12,24 +12,26 @@ export const createDungeonInstances = (world) => {
   const instances = new Map();
 
   return {
-    async enter(client) {
+    async enter(client, dungeonId) {
+      const config = getDungeonConfig(dungeonId);
       const player = world.state.players.get(client.sessionId);
-      if (!player || player.inDungeon || player.health <= 0 || !nearDungeonObject(player, DUNGEON.entrance)) {
+      if (!config || !player || player.inDungeon || player.health <= 0 ||
+        !nearDungeonObject(player, config.entrance, config.interactionDistance)) {
         client.send("dungeonError", "Move closer to the dungeon entrance to enter.");
         return;
       }
-      void recordQuestEvent(world, player.characterId, "Interact", "dungeon-entrance")
+      void recordQuestEvent(world, player.characterId, "Interact", config.interactionTarget)
         .catch((error) => console.error("[Quests] Could not save interaction progress", error));
       const groupId = player.groupId;
-      const key = groupId ? `party:${groupId}` : `solo:${player.characterId}`;
+      const key = groupId ? `${dungeonId}:party:${groupId}` : `${dungeonId}:solo:${player.characterId}`;
       try {
         let pending = instances.get(key);
         if (pending && !matchMaker.getLocalRoomById((await pending).roomId)) pending = null;
         if (!pending) {
           const accessKey = randomUUID();
-          const access = { world, groupId, soloCharacterId: groupId ? null : player.characterId, roomId: null };
+          const access = { world, dungeonId, groupId, soloCharacterId: groupId ? null : player.characterId, roomId: null };
           accessKeys.set(accessKey, access);
-          pending = matchMaker.createRoom("dungeon", { accessKey }).catch((error) => {
+          pending = matchMaker.createRoom(config.roomName, { accessKey }).catch((error) => {
             accessKeys.delete(accessKey);
             instances.delete(key);
             throw error;
@@ -41,7 +43,7 @@ export const createDungeonInstances = (world) => {
           client.send("dungeonError", "Your group changed. Please enter again.");
           return;
         }
-        client.send("dungeonReady", { roomId: instance.roomId, worldSessionId: client.sessionId });
+        client.send("dungeonReady", { roomId: instance.roomId, worldSessionId: client.sessionId, dungeonId });
       } catch (error) {
         console.error("[Dungeon] Could not create instance", error);
         client.send("dungeonError", "Could not enter the dungeon. Please try again.");

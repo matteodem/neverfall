@@ -1,5 +1,5 @@
 import React from "react";
-import { DUNGEON } from "../../../game/dungeonConfig";
+import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
 import { useHudStore } from "../../stores/useHudStore";
@@ -18,8 +18,9 @@ const WORLD_LABELS = [
 const MapContent = () => {
   const localPlayer = useMinimapStore((state) => state.localPlayer);
   const location = useDungeonStore((state) => state.location);
+  const dungeonId = useDungeonStore((state) => state.dungeonId);
   const dungeon = location === "dungeon";
-  const entrance = dungeon ? DUNGEON.spawn : DUNGEON.entrance;
+  const dungeonConfig = getDungeonConfig(dungeonId);
 
   return (
     <>
@@ -31,10 +32,18 @@ const MapContent = () => {
           <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
             style={worldToPercent(position)}>{position.label}</span>
         ))}
-        <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entrance, dungeon ? DUNGEON_MAP_RADIUS : undefined)}>
-          <span className="mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
-          <span className="rounded bg-black/80 px-1 text-xs text-white">Dungeon Entrance</span>
-        </div>
+        {!dungeon && DUNGEONS.map((entry) => (
+          <div key={entry.id} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entry.entrance)}>
+            <span className="mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
+            <span className="rounded bg-black/80 px-1 text-xs text-white">{entry.name}</span>
+          </div>
+        ))}
+        {dungeon && dungeonConfig && (
+          <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(dungeonConfig.spawn, DUNGEON_MAP_RADIUS)}>
+            <span className="mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
+            <span className="rounded bg-black/80 px-1 text-xs text-white">{dungeonConfig.name}</span>
+          </div>
+        )}
         <div className="absolute z-20" title="You" aria-label="Your position" style={{
           ...worldToPercent(localPlayer, dungeon ? DUNGEON_MAP_RADIUS : undefined),
           transform: `translate(-50%, -50%) rotate(${localPlayer.rotationY - Math.PI / 4}rad)`,

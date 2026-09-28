@@ -1,5 +1,5 @@
 import { QUALITY_PRESETS } from "./performanceConfig";
-import { DUNGEON } from "./dungeonConfig";
+import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
 import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE } from "./worldConfig";
@@ -63,9 +63,12 @@ export const createWorld =
       name,
       gameClass = "warrior",
       dungeon = false,
+      dungeonId = null,
       quality = QUALITY_PRESETS.standard,
     }
   ) => {
+    const dungeonConfig = dungeon ? getDungeonConfig(dungeonId) : null;
+    if (dungeon && !dungeonConfig) throw new Error("Unknown dungeon");
 
     /*
      * =====================================================
@@ -168,8 +171,8 @@ export const createWorld =
 
     if (dungeon) {
       ground.position.z = 48;
-      scene.clearColor = Color3.FromHexString("#1b202b").toColor4();
-      scene.fogColor = Color3.FromHexString("#1b202b");
+      scene.clearColor = Color3.FromHexString(dungeonConfig.environment.sky).toColor4();
+      scene.fogColor = Color3.FromHexString(dungeonConfig.environment.sky);
     }
 
     ground.checkCollisions =
@@ -183,7 +186,7 @@ export const createWorld =
 
     groundMaterial.diffuseColor =
       Color3.FromHexString(
-        dungeon ? "#333946" : "#4B6B3C"
+        dungeon ? dungeonConfig.environment.ground : "#4B6B3C"
       );
 
     groundMaterial.specularColor =
@@ -478,11 +481,13 @@ export const createWorld =
     let forest, mountainRing, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
     if (dungeon) {
-      dungeonVisuals = createDungeonEnvironment(scene);
+      dungeonVisuals = createDungeonEnvironment(scene, dungeonConfig);
     } else {
       const chunks = createWorldChunks(scene, player);
-      const portal = createDungeonPortal({ scene, ...DUNGEON.entrance, title: "Enter Dungeon" });
-      chunks.add(portal.root, DUNGEON.entrance);
+      for (const config of DUNGEONS) {
+        const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name });
+        chunks.add(portal.root, config.entrance);
+      }
       /*
        * =====================================================
        * FOREST

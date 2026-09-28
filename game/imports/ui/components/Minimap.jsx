@@ -1,4 +1,4 @@
-import { DUNGEON } from "../../game/dungeonConfig";
+import { DUNGEONS, getDungeonConfig } from "../../game/dungeonConfig";
 import { ENEMY_TYPES } from "../../game/enemyConfig";
 import { WORLD_EVENTS } from "../../game/worldEvents";
 import { useDungeonStore } from "../stores/useDungeonStore";
@@ -161,6 +161,8 @@ const Legend = ({ location, activeEvent }) => {
 export const Minimap =
   () => {
     const location = useDungeonStore((state) => state.location);
+    const dungeonId = useDungeonStore((state) => state.dungeonId);
+    const dungeonConfig = getDungeonConfig(dungeonId);
     const eventId = useWorldEventStore((state) => state.event?.id);
     const activeEvent = location === "world" ? WORLD_EVENTS.find((event) => event.id === eventId) : null;
     const eventPosition = activeEvent && worldToPercent(activeEvent.center);
@@ -250,7 +252,10 @@ export const Minimap =
             />
           )}
 
-          <DotMarker {...(location === "dungeon" ? DUNGEON.exit : DUNGEON.entrance)} color="#a78bfa" size={10} className="z-10" outlined={location === "dungeon"} />
+          {location === "dungeon" && dungeonConfig &&
+            <DotMarker {...dungeonConfig.exit} color="#a78bfa" size={10} className="z-10" outlined />}
+          {location === "world" && DUNGEONS.map((entry) =>
+            <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size={10} className="z-10" />)}
 
           {/*
            * Remote players

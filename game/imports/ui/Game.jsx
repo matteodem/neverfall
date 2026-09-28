@@ -245,6 +245,7 @@ export const Game = ({
                   character.name,
                 gameClass: character.gameClass,
                 dungeon: location === "dungeon",
+                dungeonId: useDungeonStore.getState().dungeonId,
                 quality: QUALITY_PRESETS[quality],
               }
             );

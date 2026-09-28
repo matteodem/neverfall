@@ -97,6 +97,11 @@ export const QUESTS = [
     objective: { type: "CompleteDungeon", target: "dungeon-01", amount: 1 },
     rewards: { xp: 250, gold: 2 },
   },
+  {
+    id: "northern-ruins-quest", title: "Northern Ruins", description: "Complete Northern Ruins",
+    objective: { type: "CompleteDungeon", target: "northern-ruins", amount: 1 },
+    rewards: { xp: 400, gold: 2 },
+  },
 ];
 
 const boarSpawns = ENEMY_SPAWNS.filter(({ type }) => type === "boar");

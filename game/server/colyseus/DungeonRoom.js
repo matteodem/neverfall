@@ -5,7 +5,7 @@ import { PLAYER } from "../../imports/game/config";
 import { WorldRoom } from "./WorldRoom";
 import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
-import { DUNGEON, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
+import { getDungeonConfig, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
 import { collectLoot, spawnLoot } from "../inventory/loot";
 import { recordQuestEvent } from "../quests";
 import { QUESTS } from "../../imports/game/quests";
@@ -26,12 +26,12 @@ export class DungeonRoom extends WorldRoom {
       !["groupInvite", "groupAccept", "groupIgnore", "groupLeave", "dungeonEnter"].includes(name))),
     dungeonExit: (client) => {
       const player = this.state.players.get(client.sessionId);
-      if (player?.health > 0 && nearDungeonObject(player, DUNGEON.exit)) client.send("dungeonExitReady");
+      if (player?.health > 0 && nearDungeonObject(player, this.config.exit, this.config.interactionDistance)) client.send("dungeonExitReady");
       else client.send("dungeonError", "Move closer to the exit portal.");
     },
     dungeonReward: async (client) => {
       const player = this.state.players.get(client.sessionId);
-      if (!this.state.completed || !player || !nearDungeonObject(player, DUNGEON.chest, LOOT_RANGE)) return;
+      if (!this.state.completed || !player || !nearDungeonObject(player, this.config.chest, LOOT_RANGE)) return;
       await collectLoot(this, client, `chest-${player.characterId}`);
     },
   };
@@ -40,6 +40,8 @@ export class DungeonRoom extends WorldRoom {
     this.patchRate = PERFORMANCE.statePatchInterval;
     const access = getDungeonAccess(accessKey);
     if (!access || access.roomId) throw new Error("Dungeon access denied");
+    this.config = getDungeonConfig(access.dungeonId);
+    if (!this.config) throw new Error("Unknown dungeon");
     access.roomId = this.roomId;
     this.access = access;
     this.accessKey = accessKey;
@@ -57,7 +59,8 @@ export class DungeonRoom extends WorldRoom {
     const source = this.access.world.state.players.get(options.worldSessionId);
     const allowed = source && source.userId === auth.userId && source.characterId === auth.characterId
       && (this.access.groupId ? source.groupId === this.access.groupId : !source.groupId && source.characterId === this.access.soloCharacterId);
-    if (!allowed || source.inDungeon || source.health <= 0 || !nearDungeonObject(source, DUNGEON.entrance)) {
+    if (!allowed || source.inDungeon || source.health <= 0 ||
+      !nearDungeonObject(source, this.config.entrance, this.config.interactionDistance)) {
       throw new Error("You cannot enter this dungeon instance.");
     }
     if (this.state.completed && !this.participants.has(source.characterId)) throw new Error("This dungeon is already completed.");
@@ -93,9 +96,9 @@ export class DungeonRoom extends WorldRoom {
   }
 
   respawnPosition(player) {
-    player.x = DUNGEON.spawn.x;
+    player.x = this.config.spawn.x;
     player.y = 0;
-    player.z = DUNGEON.spawn.z;
+    player.z = this.config.spawn.z;
     player.rotationY = 0;
   }
 
@@ -105,16 +108,16 @@ export class DungeonRoom extends WorldRoom {
   }
 
   spawnStage() {
-    for (const spawn of DUNGEON.stages[this.state.stage].enemies) this.spawnEnemy(spawn);
+    for (const spawn of this.config.stages[this.state.stage].enemies) this.spawnEnemy(spawn);
   }
 
   getEnemyStats(type, level, rare = false) {
     const stats = super.getEnemyStats(type, level, rare);
     return {
       ...stats,
-      health: stats.health * DUNGEON.enemyHealthMultiplier,
-      attackDamage: stats.attackDamage * DUNGEON.enemyDamageMultiplier,
-      speed: PLAYER.speed * DUNGEON.enemySpeedMultiplier,
+      health: stats.health * this.config.enemyHealthMultiplier,
+      attackDamage: stats.attackDamage * this.config.enemyDamageMultiplier,
+      speed: PLAYER.speed * this.config.enemySpeedMultiplier,
     };
   }
 
@@ -123,7 +126,7 @@ export class DungeonRoom extends WorldRoom {
     if (!runtime) return;
     // The final boss's accessory roll belongs to the existing reward chest.
     const enemy = this.state.enemies.get(enemyId);
-    if (runtime.spawn.type === "dungeonGuardian" || enemy?.rare) {
+    if (runtime.spawn.type === this.config.miniBoss?.type || enemy?.rare) {
       for (const [sessionId, player] of this.state.players) {
         if (runtime.contributors.has(player.characterId)) spawnLoot(this, enemy, sessionId);
       }
@@ -138,7 +141,7 @@ export class DungeonRoom extends WorldRoom {
     this.state.enemies.delete(enemyId);
     this.enemyRuntime.delete(enemyId);
     if (this.state.enemies.size) return;
-    if (this.state.stage < DUNGEON.stages.length - 1) {
+    if (this.state.stage < this.config.stages.length - 1) {
       this.state.stage++;
       this.spawnStage();
     } else if (!this.state.completed) {
@@ -146,7 +149,7 @@ export class DungeonRoom extends WorldRoom {
       this.state.completed = true;
       for (const [characterId, participant] of this.participants) this.addChestLoot(characterId, participant);
       for (const characterId of this.participants.keys()) {
-        void recordQuestEvent(this, characterId, "CompleteDungeon", DUNGEON.id)
+        void recordQuestEvent(this, characterId, "CompleteDungeon", this.config.id)
           .catch((error) => console.error("[Quests] Could not save dungeon progress", error));
       }
     }
@@ -155,13 +158,14 @@ export class DungeonRoom extends WorldRoom {
   addChestLoot(characterId, participant) {
     if (participant.claimed) return;
     this.state.loot.set(`chest-${characterId}`, new LootState({
-      ownerId: participant.userId, ownerCharacterId: characterId, enemyType: "dungeonChest", xpReward: DUNGEON.rewardXp,
-      x: DUNGEON.chest.x, y: 0, z: DUNGEON.chest.z,
+      ownerId: participant.userId, ownerCharacterId: characterId,
+      enemyType: this.config.rewards.lootType, xpReward: this.config.rewards.xp,
+      x: this.config.chest.x, y: 0, z: this.config.chest.z,
     }));
   }
 
   onLootCollected(player, loot) {
-    if (loot.enemyType !== "dungeonChest") return;
+    if (loot.enemyType !== this.config.rewards.lootType) return;
     this.participants.get(player.characterId).claimed = true;
     player.dungeonRewardClaimed = true;
   }
@@ -191,9 +195,9 @@ export class DungeonRoom extends WorldRoom {
         for (const key of COMBAT_TIMERS) runtime[key] = activeRuntime[key];
       }
       if (source.health <= 0) source.health = source.maxHealth;
-      source.x = DUNGEON.entrance.x;
+      source.x = this.config.entrance.x;
       source.y = 0;
-      source.z = DUNGEON.entrance.z + 4;
+      source.z = this.config.entrance.z + 4;
       source.rotationY = 0;
       source.inDungeon = false;
     }

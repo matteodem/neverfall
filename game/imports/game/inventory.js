@@ -1,5 +1,5 @@
 import { ENEMY_TYPES, RARE_ENEMY } from "./enemyConfig";
-import { DUNGEON } from "./dungeonConfig";
+import { DUNGEONS } from "./dungeonConfig";
 import {
   EQUIPMENT_DROP_CHANCE,
   ACCESSORY_DROP_CHANCE,
@@ -39,16 +39,17 @@ export const canCollectLoot = (player, loot) => Boolean(
 
 export const rollLoot = (random = Math.random, enemyType = "boar", rare = false) => {
   const bossDrop = Boolean(ENEMY_TYPES[enemyType]?.bossMechanics);
-  const accessoryDropChance = enemyType === "dungeonChest"
-    ? ENEMY_TYPES.dungeonWarden.accessoryDropChance
+  const chestDungeon = DUNGEONS.find((dungeon) => dungeon.rewards.lootType === enemyType);
+  const accessoryDropChance = chestDungeon
+    ? ENEMY_TYPES[chestDungeon.finalBoss?.type]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE
     : ENEMY_TYPES[enemyType]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE;
-  const lootMultiplier = rare && !bossDrop && enemyType !== "dungeonChest" ? RARE_ENEMY.lootChanceMultiplier : 1;
+  const lootMultiplier = rare && !bossDrop && !chestDungeon ? RARE_ENEMY.lootChanceMultiplier : 1;
   const equipmentItemIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "ring").map(({ id }) => id);
   const equipmentDropChance = ENEMY_TYPES[enemyType]?.equipmentDropChance ?? (bossDrop ? 0 : EQUIPMENT_DROP_CHANCE);
   const dropsEquipment = equipmentDropChance > 0 && random() < Math.min(1, equipmentDropChance * lootMultiplier);
   const items = dropsEquipment
     ? [{ id: equipmentItemIds[Math.floor(random() * equipmentItemIds.length)] }]
-    : !bossDrop && enemyType !== "dungeonChest" && random() < 0.7
+    : !bossDrop && !chestDungeon && random() < 0.7
       ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
       : [];
 
@@ -58,7 +59,7 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false)
   }
 
   return {
-    money: bossDrop ? 0 : enemyType === "dungeonChest" ? DUNGEON.rewardMoney : enemyType === "wolf" ? 200 : 50,
+    money: bossDrop ? 0 : chestDungeon ? chestDungeon.rewards.money : enemyType === "wolf" ? 200 : 50,
     items,
   };
 };
