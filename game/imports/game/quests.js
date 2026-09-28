@@ -83,7 +83,7 @@ export const QUESTS = [
     rewards: { xp: 200, gold: 1 },
   },
   {
-    id: "find-the-depths", title: "Find the Depths", description: "Use the dungeon entrance",
+    id: "find-the-depths", title: "Find the Depths", description: "Use the Forest Dungeon entrance",
     objective: { type: "Interact", target: "dungeon-entrance", amount: 1 },
     rewards: { xp: 100 },
   },
@@ -93,7 +93,7 @@ export const QUESTS = [
     rewards: { xp: 500, gold: 2 },
   },
   {
-    id: "into-the-depths", title: "Into the Depths", description: "Complete the dungeon",
+    id: "into-the-depths", title: "Into the Depths", description: "Complete Forest Dungeon",
     objective: { type: "CompleteDungeon", target: "dungeon-01", amount: 1 },
     rewards: { xp: 250, gold: 2 },
   },
