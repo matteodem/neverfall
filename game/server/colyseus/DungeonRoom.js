@@ -26,12 +26,14 @@ export class DungeonRoom extends WorldRoom {
       !["groupInvite", "groupAccept", "groupIgnore", "groupLeave", "dungeonEnter"].includes(name))),
     dungeonExit: (client) => {
       const player = this.state.players.get(client.sessionId);
+      if (player) this.recordActivity(client.sessionId);
       if (player?.health > 0 && nearDungeonObject(player, this.config.exit, this.config.interactionDistance)) client.send("dungeonExitReady");
       else client.send("dungeonError", "Move closer to the exit portal.");
     },
     dungeonReward: async (client) => {
       const player = this.state.players.get(client.sessionId);
       if (!this.state.completed || !player || !nearDungeonObject(player, this.config.chest, LOOT_RANGE)) return;
+      this.recordActivity(client.sessionId);
       await collectLoot(this, client, `chest-${player.characterId}`);
     },
   };
@@ -53,6 +55,7 @@ export class DungeonRoom extends WorldRoom {
       this.updatePlayerRegeneration(deltaTime);
       this.syncPartyState();
     }, 50);
+    this.startAfkChecks();
   }
 
   async onJoin(client, options, auth) {
@@ -78,6 +81,7 @@ export class DungeonRoom extends WorldRoom {
       worldRuntime.dungeonRoomId = this.roomId;
       const runtime = this.playerRuntime.get(client.sessionId);
       for (const key of COMBAT_TIMERS) runtime[key] = worldRuntime[key];
+      this.recordActivity(client.sessionId);
       player.groupId = source.groupId;
       player.health = Math.min(source.health, player.maxHealth);
       player.speedPotionUntil = source.speedPotionUntil;

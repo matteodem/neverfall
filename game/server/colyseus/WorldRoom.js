@@ -20,6 +20,7 @@ import {
 
 import {
   Room,
+  matchMaker,
 } from "colyseus";
 
 import jwt from "jsonwebtoken";
@@ -89,6 +90,9 @@ const HEAL_COOLDOWN =
 
 const PLAYER_RESPAWN_DELAY =
   2000;
+
+const AFK_TIMEOUT_MS = 15 * 60 * 1000;
+const AFK_CHECK_INTERVAL_MS = 1000;
 
 const getEquipmentForPlayer = (player) => ({
   ring: player.ring || null,
@@ -233,6 +237,57 @@ export class WorldRoom
       },
       50
     );
+    this.startAfkChecks();
+  }
+
+  startAfkChecks() {
+    this.clock.setInterval(() => {
+      const now = Date.now();
+      for (const [sessionId, runtime] of this.playerRuntime) {
+        if (runtime.afkDisconnecting || now - runtime.lastActivityAt < AFK_TIMEOUT_MS) continue;
+        const client = this.clients.find((candidate) => candidate.sessionId === sessionId);
+        if (client) void this.disconnectAfk(client);
+      }
+    }, AFK_CHECK_INTERVAL_MS);
+  }
+
+  recordActivity(sessionId) {
+    const player = this.state.players.get(sessionId);
+    const runtime = this.playerRuntime.get(sessionId);
+    if (!player || !runtime || runtime.afkDisconnecting) return;
+    runtime.lastActivityAt = Date.now();
+    if (this.access?.world && player.worldSessionId) {
+      const worldRuntime = this.access.world.playerRuntime.get(player.worldSessionId);
+      if (worldRuntime && !worldRuntime.afkDisconnecting) worldRuntime.lastActivityAt = runtime.lastActivityAt;
+    } else if (player.inDungeon && runtime.dungeonRoomId) {
+      const dungeon = matchMaker.getLocalRoomById(runtime.dungeonRoomId);
+      const dungeonPlayer = dungeon && [...dungeon.state.players.entries()]
+        .find(([, member]) => member.worldSessionId === sessionId);
+      const dungeonRuntime = dungeonPlayer && dungeon.playerRuntime.get(dungeonPlayer[0]);
+      if (dungeonRuntime && !dungeonRuntime.afkDisconnecting) dungeonRuntime.lastActivityAt = runtime.lastActivityAt;
+    }
+  }
+
+  async disconnectAfk(client) {
+    const player = this.state.players.get(client.sessionId);
+    const runtime = this.playerRuntime.get(client.sessionId);
+    if (!player || !runtime || runtime.afkDisconnecting) return;
+    runtime.afkDisconnecting = true;
+    if (this.access?.world && player.worldSessionId) {
+      const world = this.access.world;
+      const worldClient = world.clients.find((candidate) => candidate.sessionId === player.worldSessionId);
+      if (worldClient && world.playerRuntime.has(player.worldSessionId)) {
+        await world.disconnectAfk(worldClient);
+        return;
+      }
+    }
+    try {
+      await Meteor.users.updateAsync(player.userId, { $set: { "profile.isPlaying": false } });
+    } catch (error) {
+      console.error("[AFK] Could not clear playing status", error);
+    } finally {
+      client.leave();
+    }
   }
 
 
@@ -276,9 +331,16 @@ export class WorldRoom
   }
 
   messages = {
-    chat: (client, text) => sendChat(this, client, text),
-    dungeonEnter: (client, dungeonId) => this.dungeons.enter(client, dungeonId),
+    chat: (client, text) => {
+      if (typeof text === "string" && text.trim()) this.recordActivity(client.sessionId);
+      return sendChat(this, client, text);
+    },
+    dungeonEnter: (client, dungeonId) => {
+      this.recordActivity(client.sessionId);
+      return this.dungeons.enter(client, dungeonId);
+    },
     groupInvite: (client, targetId) => {
+      this.recordActivity(client.sessionId);
       const target = this.clients.find((candidate) => candidate.sessionId === targetId);
       if (!target) {
         client.send("groupError", "That player is no longer connected.");
@@ -289,15 +351,26 @@ export class WorldRoom
       else target.send("groupInvitation", invitation);
     },
     groupAccept: (client, invitationId) => {
+      this.recordActivity(client.sessionId);
       const error = this.groups.accept(client.sessionId, invitationId);
       if (error) client.send("groupError", error);
     },
-    groupIgnore: (client, invitationId) => this.groups.ignore(client.sessionId, invitationId),
-    groupLeave: (client) => this.leaveGroup(client.sessionId),
+    groupIgnore: (client, invitationId) => {
+      this.recordActivity(client.sessionId);
+      return this.groups.ignore(client.sessionId, invitationId);
+    },
+    groupLeave: (client) => {
+      this.recordActivity(client.sessionId);
+      return this.leaveGroup(client.sessionId);
+    },
 
-    loot: (client, id) => collectLoot(this, client, id),
+    loot: (client, id) => {
+      this.recordActivity(client.sessionId);
+      return collectLoot(this, client, id);
+    },
 
     equipItem: async (client, { itemId, slot }) => {
+      this.recordActivity(client.sessionId);
       const player = this.state.players.get(client.sessionId);
       const item = EQUIPMENT_ITEMS[itemId];
       if (!player || player.inDungeon || player.health <= 0 || !item || item.slot !== slot || !EQUIPMENT_SLOTS.includes(slot)) return;
@@ -327,6 +400,7 @@ export class WorldRoom
     },
 
     unequipItem: async (client, slot) => {
+      this.recordActivity(client.sessionId);
       const player = this.state.players.get(client.sessionId);
       if (!player || player.inDungeon || player.health <= 0 || !EQUIPMENT_SLOTS.includes(slot)) return;
 
@@ -350,6 +424,7 @@ export class WorldRoom
     },
 
     useConsumable: async (client, itemId) => {
+      this.recordActivity(client.sessionId);
       const player = this.state.players.get(client.sessionId);
       if (!player || player.inDungeon || player.health <= 0 || !Object.hasOwn(CONSUMABLES, itemId)) return;
 
@@ -426,8 +501,8 @@ export class WorldRoom
       }
 
 
+      const wasMounted = player.mounted;
       if (typeof data.mounted === "boolean") {
-        const wasMounted = player.mounted;
         player.inCombat = this.isPlayerInCombat(client.sessionId);
         player.mounted = this.mountsAllowed && data.mounted && !player.inCombat;
         if (player.mounted && !wasMounted) {
@@ -447,6 +522,10 @@ export class WorldRoom
       const dz = data.z - player.z;
       const distance = Math.hypot(dx, dz);
       const ratio = distance > allowance ? allowance / distance : 1;
+      if (distance * ratio > 0.05 || Math.abs(data.y - player.y) > 0.05 ||
+        Math.abs(data.rotationY - player.rotationY) > 0.02 || player.mounted !== wasMounted) {
+        this.recordActivity(client.sessionId);
+      }
       if (distance > 0.01) player.chatAnimation = "";
       player.x += dx * ratio;
       player.z += dz * ratio;
@@ -520,6 +599,7 @@ export class WorldRoom
       }
 
       const stats = getStatsForPlayer(player);
+      this.recordActivity(client.sessionId);
 
 
       player.health =
@@ -586,6 +666,7 @@ export class WorldRoom
 
       const skill = getClassConfig(player.gameClass).skills[code];
       if (!skill) return;
+      this.recordActivity(client.sessionId);
       const now =
         Date.now();
 
@@ -829,6 +910,8 @@ export class WorldRoom
 
         lastCombatAt:
           0,
+
+        lastActivityAt: Date.now(),
       }
     );
 
