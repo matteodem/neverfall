@@ -121,7 +121,7 @@ const getActionSlots = (
         skills.Digit1.icon,
 
       tooltip:
-        `${skills.Digit1.name} (Causes ${playerStats.damage} damage)`,
+        `${skills.Digit1.name} (Causes ${parseInt(playerStats.damage, 10)} damage)`,
     },
 
     {
@@ -134,7 +134,7 @@ const getActionSlots = (
       icon: skills.Digit2?.icon,
       cooldown: skills.Digit2?.cooldown,
       tooltip:
-        skills.Digit2 ? `${skills.Digit2.name} (Causes ${playerStats.damage * skills.Digit2.damageMultiplier} damage)` : "No ability assigned",
+        skills.Digit2 ? `${skills.Digit2.name} (Causes ${parseInt(playerStats.damage * skills.Digit2.damageMultiplier, 10)} damage)` : "No ability assigned",
     },
 
     {
@@ -147,7 +147,7 @@ const getActionSlots = (
       icon: skills.Digit3?.icon,
       cooldown: skills.Digit3?.cooldown,
       tooltip:
-        skills.Digit3 ? `${skills.Digit3.name} (Causes ${playerStats.damage * skills.Digit3.damageMultiplier * (skills.Digit3.aoe ? playerStats.aoeDamageMultiplier : 1)} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
+        skills.Digit3 ? `${skills.Digit3.name} (Causes ${parseInt(playerStats.damage * skills.Digit3.damageMultiplier * (skills.Digit3.aoe ? playerStats.aoeDamageMultiplier : 1), 10)} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
     },
 
     {
