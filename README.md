@@ -216,19 +216,6 @@ The world can contain server-driven events that players nearby can participate i
 
 Current event work includes:
 
-### 🐺 Wolf Invasion
-
-A multi-wave event where players defend against attacking wolves.
-
-The event includes:
-
-- Multiple waves
-- Shared progress
-- Automatic participation
-- Event rewards
-- Event cooldown
-- World announcements
-
 ### 🟣 Forest Giant Awakening
 
 A stronger event version of the Forest Giant.
