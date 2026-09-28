@@ -862,10 +862,16 @@ export const Hud = ({
   const isDead =
     playerHealth.health <=
     0;
+  const lowHealth = playerHealth.maxHealth > 0 &&
+    playerHealth.health / playerHealth.maxHealth < 0.25;
 
 
   return (
     <>
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-0 bg-red-900/30 transition-opacity duration-300 ${lowHealth ? "opacity-100" : "opacity-0"}`}
+      />
       <Chat />
       <LootPrompt />
       <DungeonPrompt />
