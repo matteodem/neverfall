@@ -75,7 +75,7 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
       className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col ${scrollable ? "overflow-hidden" : "overflow-visible"} rounded-box bg-base-100 text-base-content shadow-2xl`}
       style={{
         ...(backdrop ? {} : { left: position.x, top: position.y }),
-        ...(maxHeight ? { maxHeight: `min(${maxHeight}px, calc(var(--game-height, 100vh) - 16px))` } : {}),
+        ...(maxHeight ? { maxHeight: `min(${typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight}, calc(var(--game-height, 100vh) - 16px))` } : {}),
       }}
       onPointerDown={() => openModal(id)}
     >

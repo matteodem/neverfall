@@ -1,4 +1,7 @@
 import React from "react";
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { Characters } from "../../../api/characters/characters";
 import { NORTHERN_CAMP } from "../../../game/campProtection";
 import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
@@ -26,6 +29,15 @@ const MapContent = () => {
   const dungeonId = useDungeonStore((state) => state.dungeonId);
   const dungeon = location === "dungeon";
   const dungeonConfig = getDungeonConfig(dungeonId);
+  const character = useTracker(() => {
+    const id = Meteor.user()?.profile?.currentCharacterId;
+    return id ? Characters.findOne(id) : null;
+  });
+  React.useEffect(() => {
+    if (dungeon || !character || character.adventureGuide?.openedMap) return;
+    Meteor.callAsync("adventureGuide.openMap").catch((error) =>
+      console.error("[Adventure Guide] Could not save map visit", error));
+  }, [dungeon, character?._id, character?.adventureGuide?.openedMap]);
 
   return (
     <>
