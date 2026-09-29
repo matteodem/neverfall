@@ -12,6 +12,7 @@ export const SellItemModal = ({ itemId, available, itemDisplay, onClose }) => {
   const price = ITEM_SELL_PRICES[itemId];
   const amount = Number(quantity);
   const valid = /^\d+$/.test(quantity) && Number.isSafeInteger(amount) && amount >= 1 && amount <= available;
+  const totalGold = valid ? (price * 10000 * amount) / 10000 : 0;
   const close = () => {
     useHudStore.getState().closeModal("sell-item");
     onClose();
@@ -46,7 +47,7 @@ export const SellItemModal = ({ itemId, available, itemDisplay, onClose }) => {
           className="input input-bordered mt-1 w-full" value={quantity} disabled={selling}
           onChange={(event) => setQuantity(event.target.value)} />
       </label>
-      <div className="mt-3 font-semibold">Total: {valid ? price * amount : 0} Gold</div>
+      <div className="mt-3 font-semibold">Total: {totalGold} Gold</div>
       {error && <p className="mt-3 text-sm text-error" role="alert">{error}</p>}
       <div className="mt-5 flex justify-end gap-2">
         <button type="button" className="btn btn-ghost" disabled={selling} onClick={close}>Cancel</button>

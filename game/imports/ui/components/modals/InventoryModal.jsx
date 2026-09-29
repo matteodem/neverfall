@@ -221,7 +221,7 @@ const InventorySlot = ({
   const itemDefinition = EQUIPMENT_ITEMS[item.id];
   const consumable = CONSUMABLES[item.id];
   const sellPrice = ITEM_SELL_PRICES[item.id];
-  const sellable = Number.isSafeInteger(sellPrice) && sellPrice > 0;
+  const sellable = Number.isFinite(sellPrice) && sellPrice > 0 && Number.isSafeInteger(sellPrice * 10000);
 
 
   return (
@@ -230,9 +230,9 @@ const InventorySlot = ({
       data-tip={name}
     >
       {itemDefinition || consumable || sellable ? (
-        <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${mobile && open ? "dropdown-open z-[100]" : ""}`}>
-          <button type="button" className="block h-full w-full" aria-expanded={mobile ? open : undefined}
-            {...(mobile ? actionButtonHandlers(onToggle, true) : {})}>
+        <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${open ? "dropdown-open z-[100]" : ""}`}>
+          <button type="button" className="block h-full w-full" aria-expanded={open}
+            {...actionButtonHandlers(onToggle, mobile)}>
             <InventorySlotContent
               item={item}
               name={name}
@@ -240,7 +240,7 @@ const InventorySlot = ({
               rarityClass={rarityClass}
             />
           </button>
-          {(!mobile || open) && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+          {open && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
             {(itemDefinition || consumable) && <li>
               <div className="pointer-events-none block">
                 <strong className="block text-xs">{(itemDefinition || consumable).name}</strong>
@@ -356,13 +356,13 @@ export const InventoryModal =
       useHudStore.getState().openModal("sell-item");
     };
     useEffect(() => {
-      if (!mobile || openItem === null) return;
+      if (openItem === null) return;
       const closeOutside = (event) => {
         if (!event.target.closest?.(".inventory-item-dropdown")) setOpenItem(null);
       };
       window.addEventListener("pointerdown", closeOutside);
       return () => window.removeEventListener("pointerdown", closeOutside);
-    }, [mobile, openItem]);
+    }, [openItem]);
     const {
       money,
       items,

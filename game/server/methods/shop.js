@@ -10,13 +10,13 @@ Meteor.methods({
     if (!this.userId) throw new Meteor.Error("not-authorized", "Sign in to sell items.");
     const price = typeof itemId === "string" && Object.prototype.hasOwnProperty.call(ITEM_SELL_PRICES, itemId)
       ? ITEM_SELL_PRICES[itemId] : null;
-    if (!Number.isSafeInteger(price) || price <= 0) {
+    if (!Number.isFinite(price) || price <= 0 || !Number.isSafeInteger(price * 10000)) {
       throw new Meteor.Error("item-not-sellable", "This item cannot be sold.");
     }
     if (!Number.isSafeInteger(quantity) || quantity < 1) {
       throw new Meteor.Error("invalid-quantity", "Choose a valid quantity.");
     }
-    const payout = price * quantity * 10000;
+    const payout = (price * 10000) * quantity;
     if (!Number.isSafeInteger(payout)) {
       throw new Meteor.Error("invalid-quantity", "Choose a valid quantity.");
     }

@@ -11,16 +11,16 @@ export const LOOT_RANGE = 2.5;
 
 // Prices are in Gold per item. Items absent from this list cannot be sold.
 export const ITEM_SELL_PRICES = {
-  boar_skin: 1,
-  wolf_skin: 1,
-  health_potion: 1,
-  speed_potion: 1,
-  power_potion: 2,
-  lucky_charm: 5,
-  guardian_talisman: 6,
-  swift_feather: 7,
-  ring_vitality: 2,
-  ring_strength: 4,
+  boar_skin: 0.1,
+  wolf_skin: 0.1,
+  health_potion: 0.5,
+  speed_potion: 0.5,
+  power_potion: 0.5,
+  lucky_charm: 1,
+  guardian_talisman: 1,
+  swift_feather: 1,
+  ring_vitality: 1,
+  ring_strength: 1,
 };
 
 export const ITEM_NAMES = {
