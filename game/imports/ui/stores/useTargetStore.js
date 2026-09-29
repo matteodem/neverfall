@@ -5,6 +5,7 @@ import { MOBILE_TARGETING } from "../../game/config";
 export const useTargetStore = create((set, get) => ({
   selectedId: null,
   target: null,
+  attackedEnemy: null,
   autoLocked: false,
   lockedAt: 0,
   lockRange: MOBILE_TARGETING.retainRange,
@@ -15,6 +16,9 @@ export const useTargetStore = create((set, get) => ({
   lock(id, world, range = MOBILE_TARGETING.retainRange) {
     set({ selectedId: id, target: null, autoLocked: true, lockedAt: Date.now(), lockRange: range });
     get().sync(world);
+  },
+  recordAttack(id, level) {
+    set({ attackedEnemy: { id, level } });
   },
   sync(world, player) {
     const { selectedId, target, autoLocked, lockedAt, lockRange } = get();

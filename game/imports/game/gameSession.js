@@ -5,11 +5,21 @@ import { Meteor } from "meteor/meteor";
 import { ensureGuestUser } from "../auth/guest";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useQuestCompletionStore } from "../ui/stores/useQuestCompletionStore";
+import { useQuestStore } from "../ui/stores/useQuestStore";
+import { useTargetStore } from "../ui/stores/useTargetStore";
 
 let session = null;
 let connecting = null;
 
 const leaveRoom = (room) => room?.connection?.isOpen ? room.leave() : Promise.resolve();
+
+const showHuntProgress = ({ title, count, target, completed }) => {
+  const quests = useQuestStore.getState();
+  if (completed) quests.hideHuntProgress();
+  else quests.showHuntProgress(title, count, target);
+};
+
+const recordEnemyAttack = ({ id, level }) => useTargetStore.getState().recordAttack(id, level);
 
 const waitForState = (room, ready) => {
   if (ready(room.state)) return Promise.resolve();
@@ -37,6 +47,8 @@ const finishEntry = async (current, { roomId, worldSessionId, dungeonId }) => {
     const room = await current.client.joinById(roomId, { worldSessionId });
     if (session !== current) { await leaveRoom(room); return; }
     room.onMessage("questCompleted", (quest) => useQuestCompletionStore.getState().show(quest));
+    room.onMessage("huntProgress", showHuntProgress);
+    room.onMessage("enemyEngaged", recordEnemyAttack);
     current.pendingRoom = room;
     await waitForState(room, (state) => state?.players?.has(room.sessionId));
     if (session !== current) { await leaveRoom(room); return; }
@@ -103,6 +115,8 @@ export const getGameSession = async () => {
     client.auth.token = await Meteor.callAsync("colyseus.authToken");
     const worldRoom = await client.joinOrCreate("world");
     worldRoom.onMessage("questCompleted", (quest) => useQuestCompletionStore.getState().show(quest));
+    worldRoom.onMessage("huntProgress", showHuntProgress);
+    worldRoom.onMessage("enemyEngaged", recordEnemyAttack);
     try {
       await waitForState(worldRoom, (state) => state?.players?.has(worldRoom.sessionId));
     } catch (error) { await leaveRoom(worldRoom); throw error; }

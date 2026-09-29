@@ -1,6 +1,6 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
-import { CAMP_PROTECTION } from "../../imports/game/campProtection";
+import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
 import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
@@ -537,6 +537,16 @@ export class WorldRoom
       if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
 
       if (!player.inDungeon) {
+        if (!runtime.visitedNorthernCamp &&
+          Math.hypot(player.x - NORTHERN_CAMP.center.x, player.z - NORTHERN_CAMP.center.z) <= NORTHERN_CAMP.clearingRadius) {
+          runtime.visitedNorthernCamp = true;
+          void Characters.updateAsync({ _id: player.characterId, userId: player.userId }, {
+            $set: { "adventureGuide.visitedNorthernCamp": true },
+          }).catch((error) => {
+            runtime.visitedNorthernCamp = false;
+            console.error("[Adventure Guide] Could not save Northern Camp visit", error);
+          });
+        }
         runtime.reachedQuestLocations ||= new Set();
         for (const quest of LOCATION_QUESTS) {
           if (runtime.reachedQuestLocations.has(quest.id)) continue;
@@ -923,6 +933,7 @@ export class WorldRoom
           0,
 
         lastActivityAt: Date.now(),
+        visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
       }
     );
 
@@ -1522,6 +1533,9 @@ export class WorldRoom
     ) {
       return;
     }
+
+    this.clients.find((client) => client.sessionId === sessionId)
+      ?.send("enemyEngaged", { id: enemyId, level: enemy.level });
 
 
     this.markPlayerInCombat(

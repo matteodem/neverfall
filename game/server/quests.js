@@ -23,8 +23,14 @@ export const recordQuestEvent = (room, characterId, type, target) => {
 
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
+      const update = { [`questProgress.${quest.id}`]: next };
+      if (completed && quest.repeatable && !character.adventureGuide?.firstHunt) {
+        update["adventureGuide.firstHunt"] = true;
+        character.adventureGuide ||= {};
+        character.adventureGuide.firstHunt = true;
+      }
       await Characters.updateAsync(characterId, {
-        $set: { [`questProgress.${quest.id}`]: next },
+        $set: update,
       });
       character.questProgress ||= {};
       character.questProgress[quest.id] = next;
@@ -32,6 +38,11 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       if (quest.progressField) {
         for (const player of room.state.players.values()) {
           if (player.characterId === characterId) player[quest.progressField] = next;
+        }
+        for (const client of room.clients) {
+          if (room.state.players.get(client.sessionId)?.characterId === characterId) {
+            client.send("huntProgress", { title: quest.title, count: next, target: amount, completed });
+          }
         }
       }
 

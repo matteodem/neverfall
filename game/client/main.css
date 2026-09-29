@@ -112,8 +112,8 @@ body {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50%;
-    height: 50%;
+    width: 40%;
+    height: 45%;
     z-index: 30;
     touch-action: none;
 }
@@ -136,6 +136,7 @@ body {
 .mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
 .mobile-game .hud-trackers { display: flex; flex-direction: column; gap: 10px; }
 .mobile-game .hud-modal { font-size: 24px; transform: scale(0.5); transform-origin: top left; }
+.mobile-game .hud-modal.world-map-modal { max-height: calc(var(--game-height) * 2 - 16px); }
 .mobile-game .hud-modal .btn { font-size: calc(var(--fontsize, 0.875rem) * 2); }
 .mobile-game .hud-modal .text-xs { font-size: 24px; line-height: 1.4; }
 .mobile-game .hud-modal .text-sm { font-size: 28px; line-height: 1.4; }
@@ -146,6 +147,9 @@ body {
 .mobile-game .hud-modal [class~="text-[10px]"] { font-size: 20px; line-height: 1.4; }
 .mobile-game .hud-modal [class~="text-[11px]"] { font-size: 22px; line-height: 1.4; }
 .mobile-game .hud-modal .p-4 { padding: 10px; }
+.mobile-game .world-map-modal .world-map-point { width: 8px; height: 8px; border-width: 1px; }
+.mobile-game .world-map-modal .world-map-player-point { width: 12px; height: 12px; }
+.mobile-game .world-map-modal .world-map-marker-label { font-size: 14px; line-height: 1.1; }
 .mobile-game .hud-modal .help-controls thead { font-size: 28px; }
 .mobile-game .hud-modal .help-controls tbody tr { font-size: 24px; }
 .mobile-game .hud-modal .help-controls .kbd { font-size: 24px; --size: 40px; }

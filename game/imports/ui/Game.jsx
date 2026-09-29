@@ -719,8 +719,9 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ"
               ) {
+                if (event.code === "KeyQ" && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
                   event.target?.closest?.(
                     "input, textarea, select, [contenteditable='true']"
@@ -737,7 +738,7 @@ export const Game = ({
                   useHudStore
                     .getState();
 
-                const modal = event.code === "KeyB" ? "shop" : event.code === "KeyM" ? "map" : event.code === "KeyZ" ? "achievements" : event.code === "KeyG" ? "gear" : "inventory";
+                const modal = event.code === "KeyQ" ? "quests" : event.code === "KeyB" ? "shop" : event.code === "KeyM" ? "map" : event.code === "KeyZ" ? "achievements" : event.code === "KeyG" ? "gear" : "inventory";
 
 
                 if (hudStore.openModals.includes(modal)) {

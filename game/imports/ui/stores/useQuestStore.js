@@ -2,6 +2,7 @@ import {
   create,
 } from "zustand";
 
+let popupTimeout = null;
 
 export const useQuestStore =
   create(
@@ -17,6 +18,23 @@ export const useQuestStore =
       beeKills: 0,
       sealKills: 0,
       area: null,
+      huntPopup: null,
+      huntPopupVisible: false,
+
+      showHuntProgress(title, count, target) {
+        clearTimeout(popupTimeout);
+        set({ huntPopup: `${title}: ${count} / ${target} defeated`, huntPopupVisible: true });
+        popupTimeout = setTimeout(() => {
+          set({ huntPopupVisible: false });
+          popupTimeout = null;
+        }, 2500);
+      },
+
+      hideHuntProgress() {
+        clearTimeout(popupTimeout);
+        popupTimeout = null;
+        set({ huntPopup: null, huntPopupVisible: false });
+      },
 
       setGiantKills(giantKills) { set({ giantKills }); },
       setWolfKills(wolfKills) { set({ wolfKills }); },
@@ -35,6 +53,8 @@ export const useQuestStore =
       },
 
       reset() {
+        clearTimeout(popupTimeout);
+        popupTimeout = null;
         set({
           boarKills:
             0,
@@ -45,6 +65,8 @@ export const useQuestStore =
           beeKills: 0,
           sealKills: 0,
           area: null,
+          huntPopup: null,
+          huntPopupVisible: false,
         });
       },
     })

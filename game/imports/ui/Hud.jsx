@@ -9,7 +9,10 @@ import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
 import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
+import { HuntProgressPopup } from "./components/HuntProgressPopup";
 import { WorldEventTracker } from "./components/WorldEventTracker";
+import { AdventureGuide } from "./components/AdventureGuide";
+import { QuestsModal } from "./components/modals/QuestsModal";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getClassConfig } from "../game/classConfig";
@@ -57,10 +60,6 @@ import {
 import {
   XpBar,
 } from "./components/XpBar";
-
-import {
-  QuestTracker,
-} from "./components/QuestTracker";
 
 import {
   CombatBorder,
@@ -220,6 +219,8 @@ const HUD_BUTTONS = [
     shortcut:
       "G",
   },
+
+  { id: "quests", icon: "quests", label: "Quests", shortcut: "Q" },
 
   { id: "achievements", icon: "trophy", label: "Achievements", shortcut: "Z" },
 
@@ -437,7 +438,7 @@ const MenuButtons =
                 key={
                   id
                 }
-                id={id === "inventory" ? "onboarding-inventory" : undefined}
+                id={id === "inventory" ? "onboarding-inventory" : id === "quests" ? "onboarding-quests" : undefined}
                 type="button"
                 title={
                   shortcut ? `${label} (Press ${shortcut})` : label
@@ -882,10 +883,11 @@ export const Hud = ({
 
 
       <LevelUpOverlay />
+      <HuntProgressPopup />
       <QuestCompletionOverlay />
       <BossNotice />
       <BossHealthBar />
-      <TargetFrame />
+      <TargetFrame currentLevel={currentLevel} />
 
 
       <MenuButtons />
@@ -915,7 +917,7 @@ export const Hud = ({
 
         <div className="hud-trackers contents">
           {!inDungeon && <WorldEventTracker />}
-          <QuestTracker />
+          <AdventureGuide currentLevel={currentLevel} />
         </div>
       </div>
 
@@ -948,6 +950,7 @@ export const Hud = ({
 
 
       <WorldMapModal />
+      <QuestsModal />
       <AchievementModal />
       <AchievementToast />
 

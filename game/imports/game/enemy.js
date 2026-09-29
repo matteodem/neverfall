@@ -42,7 +42,7 @@ export const createEnemy = async ({
   root.metadata = { enemyId: id };
 
   if (!config.bossMechanics) {
-    const hitboxScale = 1.5625;
+    const hitboxScale = 3.45;
     const hitboxHeight = (mobile ? 2.5 : 2) * hitboxScale;
     const selectionArea = MeshBuilder.CreateBox(`enemy-selection-${id}`, {
       width: (mobile ? 3 : 2.4) * hitboxScale,
