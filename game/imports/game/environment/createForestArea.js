@@ -223,6 +223,7 @@ const createForestPosition = ({
   center,
   halfSize,
   clearing,
+  extraClearings,
   path,
 }) => {
   for (
@@ -244,7 +245,7 @@ const createForestPosition = ({
         position,
         clearing.center,
         clearing.radius
-      );
+      ) || extraClearings.some((area) => isInsideArea(position, area.center, area.radius));
 
 
     const insidePath =
@@ -802,6 +803,8 @@ export const createForestArea =
         8,
     },
 
+    extraClearings = [],
+
     floorColor = "#4B6B3C",
     path =
       null,
@@ -896,6 +899,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            extraClearings,
             path,
           }),
 
@@ -927,6 +931,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            extraClearings,
             path,
           }),
 
@@ -958,6 +963,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            extraClearings,
             path,
           }),
 
@@ -989,6 +995,7 @@ export const createForestArea =
             center,
             halfSize,
             clearing,
+            extraClearings,
             path,
           }),
 

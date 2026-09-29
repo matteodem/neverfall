@@ -34,6 +34,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
     const source = blockSources.get(key);
     const mesh = source ? source.createInstance(name) : MeshBuilder.CreateBox(name, { width, height, depth }, scene);
     if (!source) blockSources.set(key, mesh);
+    mesh.checkCollisions = true;
     return place(mesh, x, y, z, surface, rotation);
   };
 

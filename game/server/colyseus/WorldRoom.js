@@ -10,6 +10,7 @@ import { recordQuestEvent } from "../quests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
+import { getForestGiantHillHeight } from "../../imports/game/worldConfig";
 import { getClassConfig } from "../../imports/game/classConfig";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
@@ -1130,6 +1131,7 @@ export class WorldRoom
     if (this.campSafeZoneEnabled && crossesCamp(enemy, { x, z })) return false;
     enemy.x = x;
     enemy.z = z;
+    if (enemy.type === "forestGiant") enemy.y = getForestGiantHillHeight(x, z);
     return true;
   }
 

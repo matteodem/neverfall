@@ -1,5 +1,6 @@
 import React from "react";
 import { NORTHERN_CAMP } from "../../../game/campProtection";
+import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
@@ -45,6 +46,14 @@ const MapContent = () => {
             <span className="absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#e0c99a] bg-[#59646b]" />
             <span className="absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
               Highlands Lookout
+            </span>
+          </div>
+        )}
+        {!dungeon && (
+          <div className="absolute z-10" style={worldToPercent(SOUTHWEST_LAKE.center)} title="Southwest Lake">
+            <span className="absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-white bg-sky-500" />
+            <span className="absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
+              Southwest Lake
             </span>
           </div>
         )}

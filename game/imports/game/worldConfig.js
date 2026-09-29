@@ -2,6 +2,17 @@ export const WORLD_SIZE = 600;
 export const CHUNK_SIZE = 200;
 export const CHUNK_NEIGHBOR_RADIUS = 1;
 
+export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 16, summitRadius: 5, height: 2.4 };
+export const SOUTHWEST_LAKE = { center: { x: -200, z: -200 }, radius: 14 };
+
+export const getForestGiantHillHeight = (x, z) => {
+  const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);
+  if (distance >= FOREST_GIANT_HILL.radius) return 0;
+  const slope = Math.max(0, (distance - FOREST_GIANT_HILL.summitRadius) /
+    (FOREST_GIANT_HILL.radius - FOREST_GIANT_HILL.summitRadius));
+  return 0.03 + FOREST_GIANT_HILL.height * (1 - slope * slope * (3 - 2 * slope));
+};
+
 export const WORLD_REGIONS = {
   starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: "#4B6B3C" },
   forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#4B6B3C" },

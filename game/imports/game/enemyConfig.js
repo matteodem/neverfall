@@ -1,3 +1,5 @@
+import { FOREST_GIANT_HILL, getForestGiantHillHeight } from "./worldConfig";
+
 export const ENEMY_COMBAT_SPEED_MULTIPLIER = 1.0;
 
 export const RARE_ENEMY = {
@@ -176,7 +178,8 @@ export const ENEMY_SPAWNS = [
   { id: "wolf-3", type: "wolf", level: 3, x: -80, y: 0, z: 65 },
   { id: "wolf-4", type: "wolf", level: 3, x: -60, y: 0, z: 80 },
   { id: "wolf-5", type: "wolf", level: 3, x: -77, y: 0, z: 82 },
-  { id: "forest-giant", type: "forestGiant", level: 5, x: 70, y: 0, z: 72 },
+  { id: "forest-giant", type: "forestGiant", level: 5, ...FOREST_GIANT_HILL.center,
+    y: getForestGiantHillHeight(FOREST_GIANT_HILL.center.x, FOREST_GIANT_HILL.center.z) },
   // Northern highlands: goats west, rats central, bees east.
   { id: "goat-1", type: "goat", level: 5, x: -160, y: 0, z: 180 },
   { id: "goat-2", type: "goat", level: 5, x: -176, y: 0, z: 198 },
