@@ -18,7 +18,7 @@ const BOSS_MECHANICS = {
 
 const BASE_STATS = {
   health: 100,
-  attackDamage: 10,
+  attackDamage: 5,
   healthPerLevel: 50,
   damagePerLevel: 8,
   xpReward: 20,
