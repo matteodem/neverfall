@@ -16,7 +16,7 @@ const QuestList = ({ quests, progress }) => (
         <div key={quest.id} className={`rounded-lg border p-3 text-sm ${quest.nearby ? "border-blue-600 bg-blue-600 text-white" : "border-base-300"}`}>
           <div className="font-semibold">{quest.title}{quest.nearby ? " · Nearby" : ""}</div>
           <div className="opacity-70">{quest.description}</div>
-          <div className={`mt-1 text-xs ${quest.nearby ? "text-white" : "text-warning"}`}>
+          <div className={`mt-1 text-xs ${quest.nearby ? "text-white" : "text-primary"}`}>
             {count >= quest.objective.amount && !quest.repeatable ? "Completed" : `${count} / ${quest.objective.amount}`}
             {quest.repeatable ? " · Repeatable" : ""}
           </div>

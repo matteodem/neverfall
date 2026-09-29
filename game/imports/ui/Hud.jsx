@@ -886,7 +886,7 @@ export const Hud = ({
       <QuestCompletionOverlay />
       <BossNotice />
       <BossHealthBar />
-      <TargetFrame />
+      <TargetFrame currentLevel={currentLevel} />
 
 
       <MenuButtons />
