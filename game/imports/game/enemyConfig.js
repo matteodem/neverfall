@@ -21,7 +21,7 @@ const BASE_STATS = {
   attackDamage: 5,
   healthPerLevel: 50,
   damagePerLevel: 8,
-  xpReward: 20,
+  xpReward: 40,
   speed: 3.0,
   attackRange: 1.8,
   attackCooldown: 1000,
@@ -43,6 +43,7 @@ export const ENEMY_TYPES = {
     model: "boar.glb",
     scale: 0.3,
     rotationY: 0,
+    xpReward: 20,
     animations: ANIMAL_ANIMATIONS,
   },
   wolf: {
@@ -59,7 +60,7 @@ export const ENEMY_TYPES = {
     rotationY: 0,
     health: 120,
     healthPerLevel: 120,
-    xpReward: 25,
+    xpReward: 50,
     animations: ANIMAL_ANIMATIONS,
   },
   rat: {
@@ -69,7 +70,6 @@ export const ENEMY_TYPES = {
     rotationY: 0,
     health: 120,
     healthPerLevel: 120,
-    xpReward: 15,
     animations: ANIMAL_ANIMATIONS,
   },
   bee: {
@@ -79,7 +79,6 @@ export const ENEMY_TYPES = {
     rotationY: 0,
     health: 120,
     healthPerLevel: 120,
-    xpReward: 15,
     animations: ANIMAL_ANIMATIONS,
   },
   seal: {
@@ -122,7 +121,7 @@ ENEMY_TYPES.awakenedForestGiant = {
   name: "Awakened Forest Giant",
   health: ENEMY_TYPES.forestGiant.health * 1.5,
   attackDamage: ENEMY_TYPES.forestGiant.attackDamage * 1.25,
-  xpReward: 100,
+  xpReward: 200,
   moneyReward: 0,
   equipmentDropChance: 0.35,
   accessoryDropChance: 0.75,
@@ -141,7 +140,7 @@ ENEMY_TYPES.alphaWolf = {
   attackRange: 2.2,
   aggroRadius: 40,
   bossMechanics: BOSS_MECHANICS,
-  xpReward: 100,
+  xpReward: 200,
   accessoryDropChance: 0.2,
 };
 
