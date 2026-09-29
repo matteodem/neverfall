@@ -9,6 +9,7 @@ import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
 import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
+import { HuntProgressPopup } from "./components/HuntProgressPopup";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { QuestsModal } from "./components/modals/QuestsModal";
@@ -881,6 +882,7 @@ export const Hud = ({
 
 
       <LevelUpOverlay />
+      <HuntProgressPopup />
       <QuestCompletionOverlay />
       <BossNotice />
       <BossHealthBar />

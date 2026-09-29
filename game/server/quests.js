@@ -39,6 +39,11 @@ export const recordQuestEvent = (room, characterId, type, target) => {
         for (const player of room.state.players.values()) {
           if (player.characterId === characterId) player[quest.progressField] = next;
         }
+        for (const client of room.clients) {
+          if (room.state.players.get(client.sessionId)?.characterId === characterId) {
+            client.send("huntProgress", { title: quest.title, count: next, target: amount, completed });
+          }
+        }
       }
 
       if (!completed) continue;
