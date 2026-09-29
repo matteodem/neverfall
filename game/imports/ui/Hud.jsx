@@ -220,10 +220,11 @@ const HUD_BUTTONS = [
       "G",
   },
 
+  { id: "quests", icon: "quests", label: "Quests", shortcut: "Q" },
+
   { id: "achievements", icon: "trophy", label: "Achievements", shortcut: "Z" },
 
   { id: "map", icon: "map", label: "Map", shortcut: "M" },
-  { id: "quests", icon: "quests", label: "Quests", shortcut: "Q" },
 
   {
     id:

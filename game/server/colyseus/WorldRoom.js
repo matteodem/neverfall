@@ -1534,6 +1534,9 @@ export class WorldRoom
       return;
     }
 
+    this.clients.find((client) => client.sessionId === sessionId)
+      ?.send("enemyEngaged", { id: enemyId, level: enemy.level });
+
 
     this.markPlayerInCombat(
       sessionId
