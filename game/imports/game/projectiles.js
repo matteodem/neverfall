@@ -70,7 +70,7 @@ export const createProjectileVisuals = (scene) => {
       root.position.set(data.x, data.y, data.z);
       root.rotation.set(0, Math.atan2(data.dx, data.dz), 0);
       if (data.type === "fireNova") root.scaling.set(data.radius, 1, data.radius);
-      else root.scaling.setAll(data.scale || 1);
+      else root.scaling.setAll((data.scale || 1) * (data.type === "arrow" ? 1.5 : 1));
       active.set(data.id, { ...data, root, visual, remaining: data.lifetime });
     },
     getStats() {

@@ -31,9 +31,9 @@ export const CLASS_CONFIG = {
     attackDamage: 30,
     swordVisible: false,
     skills: {
-      Digit1: projectileAttack("Arrow Shot", "arrow", "arrow", 0.6),
-      Digit2: { ...projectileAttack("Strong Arrow", "strongArrow", "arrow", 0.6), damageMultiplier: 2, cooldown: 4000, requiresUnmounted: true },
-      Digit3: { ...projectileAttack("Multi Shot", "multiShot", "arrow", 0.6), damageMultiplier: 0.9, cooldown: 6000, projectiles: 3, spreadAngle: 12, requiresUnmounted: true },
+      Digit1: projectileAttack("Arrow Shot", "arrow", "arrow", 0.9),
+      Digit2: { ...projectileAttack("Strong Arrow", "strongArrow", "arrow", 0.9), damageMultiplier: 2, cooldown: 4000, requiresUnmounted: true },
+      Digit3: { ...projectileAttack("Multi Shot", "multiShot", "arrow", 0.9), damageMultiplier: 0.9, cooldown: 6000, projectiles: 3, spreadAngle: 12, requiresUnmounted: true },
     },
   },
   mage: {

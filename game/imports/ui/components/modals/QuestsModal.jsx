@@ -44,7 +44,7 @@ export const QuestsModal = () => {
         <QuestList quests={active} progress={progress} />
       </section>
       <section className="mt-5">
-        <h4 className="mb-2 font-bold">Hunts</h4>
+        <h4 className="mb-2 font-bold">Hunts (Repeatable)</h4>
         <QuestList quests={hunts} progress={progress} />
       </section>
       {completed.length > 0 && <section className="mt-5">
