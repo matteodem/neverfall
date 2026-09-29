@@ -499,7 +499,8 @@ export const createWorld =
       for (const chunk of WORLD_CHUNKS) {
         const northernCampChunk = chunk.x === NORTHERN_CAMP.center.x && chunk.z === NORTHERN_CAMP.center.z;
         const giantHillChunk = chunk.x === 0 && chunk.z === 0;
-        const lakeChunk = chunk.x === SOUTHWEST_LAKE.center.x && chunk.z === SOUTHWEST_LAKE.center.z;
+        const lakeChunk = Math.abs(chunk.x - SOUTHWEST_LAKE.center.x) < CHUNK_SIZE / 2 &&
+          Math.abs(chunk.z - SOUTHWEST_LAKE.center.z) < CHUNK_SIZE / 2;
         const area = createForestArea({
           scene,
           size: CHUNK_SIZE,

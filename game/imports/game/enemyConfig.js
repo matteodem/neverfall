@@ -1,4 +1,4 @@
-import { FOREST_GIANT_HILL, getForestGiantHillHeight } from "./worldConfig";
+import { FOREST_GIANT_HILL, SOUTHWEST_LAKE, getForestGiantHillHeight } from "./worldConfig";
 
 export const ENEMY_COMBAT_SPEED_MULTIPLIER = 1.0;
 
@@ -80,6 +80,13 @@ export const ENEMY_TYPES = {
     health: 120,
     healthPerLevel: 120,
     xpReward: 15,
+    animations: ANIMAL_ANIMATIONS,
+  },
+  seal: {
+    name: "Seal",
+    model: "seal.glb",
+    scale: 0.3,
+    rotationY: 0,
     animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
@@ -190,4 +197,12 @@ export const ENEMY_SPAWNS = [
   { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
   { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
   { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
+  ...Array.from({ length: 5 }, (_, index) => {
+    const angle = index * Math.PI * 2 / 5;
+    const distance = SOUTHWEST_LAKE.radius + 7;
+    return { id: `seal-${index + 1}`, type: "seal", level: 15,
+      x: SOUTHWEST_LAKE.center.x + Math.cos(angle) * distance,
+      y: 0,
+      z: SOUTHWEST_LAKE.center.z + Math.sin(angle) * distance };
+  }),
 ];

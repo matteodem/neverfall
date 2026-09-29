@@ -3,7 +3,7 @@ export const CHUNK_SIZE = 200;
 export const CHUNK_NEIGHBOR_RADIUS = 1;
 
 export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 16, summitRadius: 5, height: 2.4 };
-export const SOUTHWEST_LAKE = { center: { x: -200, z: -200 }, radius: 14 };
+export const SOUTHWEST_LAKE = { center: { x: -160, z: -160 }, radius: 14 };
 
 export const getForestGiantHillHeight = (x, z) => {
   const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);

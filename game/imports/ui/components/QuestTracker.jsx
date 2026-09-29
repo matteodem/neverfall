@@ -20,6 +20,7 @@ const KILL_FIELDS = {
   goat: "goatKills",
   rat: "ratKills",
   bee: "beeKills",
+  seal: "sealKills",
 };
 
 const STORY_QUESTS = QUESTS.filter((quest) => !quest.repeatable);

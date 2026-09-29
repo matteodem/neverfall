@@ -56,6 +56,11 @@ export const HUNT_QUESTS = {
     id: "bee-hunt", title: "Bee Hunt", description: "Kill 5 Bees",
     progressField: "beeQuestKills", rewardXp: 1000,
   },
+  seal: {
+    ...BOAR_HUNT_QUEST,
+    id: "seal-hunt", title: "Seal Hunt", description: "Kill 5 Seals",
+    progressField: "sealQuestKills", rewardXp: 1250,
+  },
 };
 
 // New quests are available automatically; NPC quest givers can use the same
@@ -116,7 +121,7 @@ const BOAR_AREA = {
 const giantSpawn = ENEMY_SPAWNS.find(({ type }) => type === "forestGiant");
 const GIANT_QUEST_RADIUS = 25;
 
-const newHuntAreas = ["goat", "rat", "bee"].map((type) => {
+const newHuntAreas = ["goat", "rat", "bee", "seal"].map((type) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
   return {
     type,
