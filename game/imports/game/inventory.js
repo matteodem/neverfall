@@ -9,6 +9,20 @@ import { CONSUMABLES } from "./consumables";
 
 export const LOOT_RANGE = 2.5;
 
+// Prices are in Gold per item. Items absent from this list cannot be sold.
+export const ITEM_SELL_PRICES = {
+  boar_skin: 1,
+  wolf_skin: 1,
+  health_potion: 1,
+  speed_potion: 1,
+  power_potion: 2,
+  lucky_charm: 5,
+  guardian_talisman: 6,
+  swift_feather: 7,
+  ring_vitality: 2,
+  ring_strength: 4,
+};
+
 export const ITEM_NAMES = {
   boar_skin: "Boar Skin",
   wolf_skin: "Wolf Skin",

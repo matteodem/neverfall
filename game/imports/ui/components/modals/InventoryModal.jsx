@@ -16,6 +16,7 @@ import {
 
 import {
   ITEM_NAMES,
+  ITEM_SELL_PRICES,
   splitMoney,
   stackItems,
 } from "../../../game/inventory";
@@ -32,6 +33,8 @@ import {
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
 import { useConsumableStore } from "../../stores/useConsumableStore";
 import { CONSUMABLES } from "../../../game/consumables";
+import { useHudStore } from "../../stores/useHudStore";
+import { SellItemModal } from "./SellItemModal";
 
 
 const INVENTORY_SLOTS =
@@ -177,6 +180,7 @@ const InventorySlot = ({
   open,
   onToggle,
   onClose,
+  onSell,
 }) => {
   if (
     !item
@@ -216,6 +220,8 @@ const InventorySlot = ({
   const itemDisplay = ITEM_DISPLAY[item.id];
   const itemDefinition = EQUIPMENT_ITEMS[item.id];
   const consumable = CONSUMABLES[item.id];
+  const sellPrice = ITEM_SELL_PRICES[item.id];
+  const sellable = Number.isSafeInteger(sellPrice) && sellPrice > 0;
 
 
   return (
@@ -223,7 +229,7 @@ const InventorySlot = ({
       className="tooltip tooltip-top block aspect-square min-w-0"
       data-tip={name}
     >
-      {itemDefinition || consumable ? (
+      {itemDefinition || consumable || sellable ? (
         <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${mobile && open ? "dropdown-open z-[100]" : ""}`}>
           <button type="button" className="block h-full w-full" aria-expanded={mobile ? open : undefined}
             {...(mobile ? actionButtonHandlers(onToggle, true) : {})}>
@@ -235,15 +241,15 @@ const InventorySlot = ({
             />
           </button>
           {(!mobile || open) && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
-            <li>
+            {(itemDefinition || consumable) && <li>
               <div className="pointer-events-none block">
                 <strong className="block text-xs">{(itemDefinition || consumable).name}</strong>
                 {(consumable ? [consumable.description] : formatEquipmentStats(itemDefinition)).map((stat) => (
                   <span key={stat} className="mt-1 block text-[11px] text-gray-600">{stat}</span>
                 ))}
               </div>
-            </li>
-            <li>
+            </li>}
+            {(itemDefinition || consumable) && <li>
               <button
                 type="button"
                 {...actionButtonHandlers(() => {
@@ -254,7 +260,13 @@ const InventorySlot = ({
               >
                 {consumable ? "Use" : "Equip item"}
               </button>
-            </li>
+            </li>}
+            {sellable && <li>
+              <button type="button" {...actionButtonHandlers(() => {
+                onSell(item);
+                onClose();
+              }, mobile)}>Sell</button>
+            </li>}
           </ul>}
         </div>
       ) : (
@@ -338,6 +350,11 @@ export const InventoryModal =
   () => {
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
+    const [sellingItem, setSellingItem] = useState(null);
+    const openSell = (item) => {
+      setSellingItem(item);
+      useHudStore.getState().openModal("sell-item");
+    };
     useEffect(() => {
       if (!mobile || openItem === null) return;
       const closeOutside = (event) => {
@@ -410,6 +427,7 @@ export const InventoryModal =
 
 
     return (
+      <>
       <HudModal
         scrollable={mobile}
         id="inventory"
@@ -527,6 +545,7 @@ export const InventoryModal =
                   open={openItem === item?.id}
                   onToggle={() => setOpenItem((previous) => previous === item.id ? null : item.id)}
                   onClose={() => setOpenItem(null)}
+                  onSell={openSell}
                   key={
                     item
                       ? `${item.id}-${index}`
@@ -579,5 +598,8 @@ export const InventoryModal =
           </div>
         </div>
       </HudModal>
+      {sellingItem && <SellItemModal itemId={sellingItem.id} available={sellingItem.count}
+        itemDisplay={ITEM_DISPLAY[sellingItem.id]} onClose={() => setSellingItem(null)} />}
+      </>
     );
   };
