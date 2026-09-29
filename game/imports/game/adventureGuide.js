@@ -7,7 +7,7 @@ export const getAdventureGuideObjective = (character, level) => {
   const steps = [
     { id: "boars", title: "Defeat 5 Boars", progress: `${Math.min(boarKills, 5)} / 5`, done: boarKills >= 5 },
     { id: "loot", title: "Loot an item", done: achievements.treasureHunter?.unlocked },
-    { id: "equip", title: "Equip your first item", hint: "Open your Inventory and equip an item.", done: achievements.equipped?.unlocked },
+    /* { id: "equip", title: "Equip your first item", hint: "Open your Inventory and equip an item.", done: achievements.equipped?.unlocked },*/
     { id: "hunt", title: "Complete your first Hunt", hint: "Find a Hunt in the Quests menu.", done: guide.firstHunt },
     { id: "map", title: "Open the World Map", hint: "Press M or use the Map button.", done: guide.openedMap },
     { id: "wolf-hunt", title: "Complete the Wolf Hunt", progress: `${Math.min(wolfKills, 5)} / 5`, hint: "Find wolves northwest of the starting camp.", done: wolfKills >= 5 },
