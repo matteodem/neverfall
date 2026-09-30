@@ -16,6 +16,7 @@ const KEYBOARD_CONTROLS = [
   ["B", "Toggle Shop"],
   ["G", "Toggle Gear"],
   ["Z", "Toggle Achievements"],
+  ["T", "Toggle Talents"],
   ["M", "Toggle Map"],
   ["P", "Toggle UI"],
 ];
