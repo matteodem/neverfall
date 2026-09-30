@@ -58,9 +58,7 @@ import {
   createKayKitAnimationController,
 } from "./character/createKayKitAnimationController";
 
-import {
-  createJumpingPuzzle,
-} from "./environment/createJumpingPuzzle";
+// import { createJumpingPuzzle } from "./environment/createJumpingPuzzle";
 
 export const createWorld =
   async (
@@ -613,10 +611,7 @@ export const createWorld =
       * =====================================================
       */
 
-      jumpingPuzzle =
-        createJumpingPuzzle({
-          scene,
-        });
+      // jumpingPuzzle = createJumpingPuzzle({ scene });
 
 
       /*
@@ -643,11 +638,11 @@ export const createWorld =
         chunks.add(mesh, mesh.getAbsolutePosition());
       }
       chunks.add(clearingCamp, clearingCamp.position);
-      for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) {
-        chunks.add(mesh, mesh.getAbsolutePosition());
-      }
+      // for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) {
+      //   chunks.add(mesh, mesh.getAbsolutePosition());
+      // }
       chunks.update();
-      for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
+      // for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
     }
 
     /*
