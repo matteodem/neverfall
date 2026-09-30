@@ -7,6 +7,7 @@ import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
+import { loadCampAssets } from "./environment/createAssetCamp";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import "@babylonjs/loaders/glTF";
@@ -527,6 +528,8 @@ export const createWorld =
     } else {
       const chunks = createWorldChunks(scene, player);
       const forestProps = await loadForestProps(scene);
+      const campAssets = await loadCampAssets(scene);
+      const createCamp = campAssets.available ? campAssets.createCamp : createClearingCamp;
       for (const config of DUNGEONS) {
         const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name });
         chunks.add(portal.root, config.entrance);
@@ -567,9 +570,10 @@ export const createWorld =
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
         if (northernCampChunk) {
-          const camp = createClearingCamp({
+          const camp = createCamp({
             scene,
             center: new Vector3(NORTHERN_CAMP.center.x, 0, NORTHERN_CAMP.center.z),
+            rugged: true,
           });
           chunks.add(camp, NORTHERN_CAMP.center);
         }
@@ -622,7 +626,7 @@ export const createWorld =
        */
 
       clearingCamp =
-        createClearingCamp({
+        createCamp({
           scene,
 
           center:
