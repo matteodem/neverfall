@@ -16,6 +16,7 @@ import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 
 const WORLD_LABELS = [
+  { label: "Highlands", x: 0, z: 120 },
   { label: "Forest", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: 0 },
