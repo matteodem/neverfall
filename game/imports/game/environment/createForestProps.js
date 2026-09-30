@@ -4,13 +4,16 @@ import { ENEMY_SPAWNS } from "../enemyConfig";
 import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WORLD_EVENTS } from "../worldEvents";
-import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getWorldHeight } from "../worldConfig";
+import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getWorldHeight } from "../worldConfig";
 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
   conifers: ["pine_1", "pine_2"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
+  scrub: ["bush_3", "grass_2"],
   rocks: ["rock_1", "rock_2"],
+  boulders: ["rock_3", "rock_4"],
+  deadTrees: ["dry_tree_1", "dry_tree_2"],
   accents: ["log_1", "stump_1", "dry_tree_1"],
 };
 
@@ -18,6 +21,14 @@ const CIRCLES = [
   ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
   ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
   ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: 8 })),
+  ...["goat", "rat", "bee"].map((type) => {
+    const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
+    return {
+      x: spawns.reduce((sum, spawn) => sum + spawn.x, 0) / spawns.length,
+      z: spawns.reduce((sum, spawn) => sum + spawn.z, 0) / spawns.length,
+      radius: 28,
+    };
+  }),
   ...QUESTS.filter((quest) => quest.objective.type === "ReachLocation")
     .map((quest) => ({ ...quest.objective, radius: (quest.objective.radius || 10) + 5 })),
   ...WORLD_EVENTS.map((event) => ({ ...event.center, radius: Math.max(30, event.spawnRadius + 8) })),
@@ -38,6 +49,7 @@ const PATHS = [
   { from: DEFAULT_SPAWN_POINT.position, to: DUNGEONS[0].entrance, width: 8 },
   { from: DEFAULT_SPAWN_POINT.position, to: FOREST_GIANT_HILL.center, width: 8 },
   { from: DEFAULT_SPAWN_POINT.position, to: NORTHERN_SPAWN_POINT.position, width: 8 },
+  { from: NORTHERN_SPAWN_POINT.position, to: DUNGEONS[1].entrance, width: 8 },
 ];
 
 const randomForChunk = ({ x, z }) => {
@@ -68,11 +80,6 @@ const nearby = (center, radius, random) => {
   const angle = random() * Math.PI * 2;
   const distance = Math.sqrt(random()) * radius;
   return { x: center.x + Math.cos(angle) * distance, z: center.z + Math.sin(angle) * distance };
-};
-
-const highlandMix = (z) => {
-  const distance = Math.max(0, Math.min(1, (z - 50) / 220));
-  return distance * distance * (3 - 2 * distance);
 };
 
 export const loadForestProps = async (scene) => {
@@ -135,9 +142,9 @@ export const loadForestProps = async (scene) => {
           x: center.x - size / 2 + (column + 0.5 + (random() - 0.5) * 0.8) * spacing,
           z: center.z - size / 2 + (row + 0.5 + (random() - 0.5) * 0.8) * spacing,
         };
-        const mix = highlandMix(position.z);
+        const mix = getHighlandMix(position.z);
         const treeChance = density * (0.84 - 0.76 * mix);
-        const rockChance = density * (0.18 + 0.3 * mix);
+        const rockChance = density * (0.18 + 0.34 * mix);
 
         const treePlaced = random() < treeChance && isOpen(position, 2, CIRCLES);
         if (treePlaced) {
@@ -146,7 +153,7 @@ export const loadForestProps = async (scene) => {
           if (random() < 0.7) {
             const undergrowth = nearby(position, 5, random);
             if (isOpen(undergrowth, 1, CIRCLES))
-              place(root, "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
+              place(root, random() < mix ? "scrub" : "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
           }
           if (random() < 0.025 * (1 - mix)) {
             const accent = nearby(position, 6, random);
@@ -155,19 +162,30 @@ export const loadForestProps = async (scene) => {
           }
         }
 
-        if (!treePlaced && random() < rockChance && isOpen(position, 3, CIRCLES)) {
+        const rockPlaced = !treePlaced && random() < rockChance && isOpen(position, 3, CIRCLES);
+        if (rockPlaced) {
           const rockCenter = nearby(position, 5, random);
-          for (let i = 0; i < 2; i++) {
-            const rock = nearby(rockCenter, 3, random);
-            if (isOpen(rock, 2, CIRCLES))
-              place(root, "rocks", rock, random, 0.65 + random() * 0.45);
+          if (random() < 0.22 * mix) {
+            if (isOpen(rockCenter, 4, CIRCLES))
+              place(root, "boulders", rockCenter, random, 0.7 + random() * 0.3);
+          } else {
+            for (let i = 0; i < 2; i++) {
+              const rock = nearby(rockCenter, 3, random);
+              if (isOpen(rock, 2, CIRCLES))
+                place(root, "rocks", rock, random, 0.65 + random() * 0.45);
+            }
           }
           if (random() < 0.45) {
-            const undergrowth = nearby(rockCenter, 5, random);
-            if (isOpen(undergrowth, 1, CIRCLES))
-              place(root, "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
+            for (let i = 0; i < 2; i++) {
+              const undergrowth = nearby(rockCenter, 5, random);
+              if (isOpen(undergrowth, 1, CIRCLES))
+                place(root, random() < mix ? "scrub" : "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
+            }
           }
         }
+
+        if (!treePlaced && !rockPlaced && random() < 0.06 * mix && isOpen(position, 4, CIRCLES))
+          place(root, "deadTrees", position, random, 0.7 + random() * 0.3);
       }
     }
 

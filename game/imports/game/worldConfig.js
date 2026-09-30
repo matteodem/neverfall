@@ -11,16 +11,19 @@ const TERRAIN_FEATURES = [
   { x: -205, z: 12, width: 78, depth: 82, height: 4.5 },
   { x: 205, z: -25, width: 85, depth: 80, height: 5 },
   { x: 0, z: -235, width: 72, depth: 60, height: 3.5 },
-  { x: -220, z: 170, width: 100, depth: 92, height: 7 },
-  { x: 210, z: 170, width: 100, depth: 95, height: 7 },
+  { x: -220, z: 170, width: 100, depth: 92, height: 7, plateau: 0.25 },
+  { x: 210, z: 170, width: 100, depth: 95, height: 7, plateau: 0.25 },
   { x: -95, z: 270, width: 78, depth: 66, height: 5 },
   { x: 115, z: 275, width: 78, depth: 66, height: 5 },
+  { x: -245, z: 270, width: 58, depth: 24, height: 2.2 },
+  { x: 230, z: 265, width: 70, depth: 24, height: 2.3 },
   { x: -105, z: -145, width: 68, depth: 25, height: 1.7 },
   { x: 130, z: 105, width: 75, depth: 28, height: 1.8 },
 ];
 
 const smooth = (value) => value * value * (3 - 2 * value);
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
+export const getHighlandMix = (z) => smooth(clamp01((z - 50) / 220));
 
 export const getForestGiantHillHeight = (x, z) => {
   const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);
@@ -36,7 +39,8 @@ export const getWorldHeight = (x, z) => {
     (1 - smooth(clamp01((lakeDistance - 80) / 40)));
   return TERRAIN_FEATURES.reduce((height, feature) => {
     const distance = Math.hypot((x - feature.x) / feature.width, (z - feature.z) / feature.depth);
-    return distance < 1 ? height + feature.height * smooth(1 - distance) : height;
+    const slope = (1 - distance) / (1 - (feature.plateau || 0));
+    return distance < 1 ? height + feature.height * smooth(clamp01(slope)) : height;
   }, getForestGiantHillHeight(x, z) + lakeRise);
 };
 

@@ -2,7 +2,7 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SOUTHWEST_LAKE, getWorldHeight } from "./worldConfig";
+import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SOUTHWEST_LAKE, getHighlandMix, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -180,12 +180,23 @@ export const createWorld =
     if (!dungeon) {
       const positions = ground.getVerticesData(VertexBuffer.PositionKind);
       const normals = ground.getVerticesData(VertexBuffer.NormalKind);
+      const colors = new Float32Array(positions.length / 3 * 4);
+      const forestColor = Color3.FromHexString("#809B54");
+      const highlandColor = Color3.FromHexString("#A0AC79");
       for (let index = 0; index < positions.length; index += 3) {
         positions[index + 1] = getWorldHeight(positions[index], positions[index + 2]);
+        const mix = getHighlandMix(positions[index + 2]);
+        const colorIndex = index / 3 * 4;
+        colors[colorIndex] = forestColor.r + (highlandColor.r - forestColor.r) * mix;
+        colors[colorIndex + 1] = forestColor.g + (highlandColor.g - forestColor.g) * mix;
+        colors[colorIndex + 2] = forestColor.b + (highlandColor.b - forestColor.b) * mix;
+        colors[colorIndex + 3] = 1;
       }
       VertexData.ComputeNormals(positions, ground.getIndices(), normals);
       ground.updateVerticesData(VertexBuffer.PositionKind, positions);
       ground.updateVerticesData(VertexBuffer.NormalKind, normals);
+      ground.setVerticesData(VertexBuffer.ColorKind, colors);
+      ground.useVertexColors = true;
       ground.refreshBoundingInfo();
     }
 
@@ -206,7 +217,7 @@ export const createWorld =
 
     groundMaterial.diffuseColor =
       Color3.FromHexString(
-        dungeon ? dungeonConfig.environment.ground : "#4B6B3C"
+        dungeon ? dungeonConfig.environment.ground : "#FFFFFF"
       );
 
     groundMaterial.specularColor =
