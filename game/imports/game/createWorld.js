@@ -2,12 +2,12 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SOUTHWEST_LAKE } from "./worldConfig";
+import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SOUTHWEST_LAKE, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
-import { createGiantHill, createSouthwestLake } from "./environment/createWorldLandmarks";
+import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import "@babylonjs/loaders/glTF";
 
 import { getClassConfig } from "./classConfig";
@@ -20,6 +20,8 @@ import {
   StandardMaterial,
   TransformNode,
   Vector3,
+  VertexBuffer,
+  VertexData,
 } from "@babylonjs/core";
 
 import {
@@ -168,9 +170,24 @@ export const createWorld =
 
           height:
             dungeon ? 118 : WORLD_SIZE + 60,
+
+          subdivisions: dungeon ? 1 : 96,
+          updatable: !dungeon,
         },
         scene
       );
+
+    if (!dungeon) {
+      const positions = ground.getVerticesData(VertexBuffer.PositionKind);
+      const normals = ground.getVerticesData(VertexBuffer.NormalKind);
+      for (let index = 0; index < positions.length; index += 3) {
+        positions[index + 1] = getWorldHeight(positions[index], positions[index + 2]);
+      }
+      VertexData.ComputeNormals(positions, ground.getIndices(), normals);
+      ground.updateVerticesData(VertexBuffer.PositionKind, positions);
+      ground.updateVerticesData(VertexBuffer.NormalKind, normals);
+      ground.refreshBoundingInfo();
+    }
 
     if (dungeon) {
       ground.position.z = 48;
@@ -508,9 +525,10 @@ export const createWorld =
           scene,
           size: CHUNK_SIZE,
           center: new Vector3(chunk.x, 0, chunk.z),
+          includeFloor: false,
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
-            ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: FOREST_GIANT_HILL.radius + 3 }] : []),
+            ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
           ],
           ...(northernCampChunk ? { clearing: {
@@ -524,7 +542,6 @@ export const createWorld =
         if (assetForest) chunks.add(forestProps.placeChunk({
           center: chunk, size: CHUNK_SIZE, density: quality.density,
         }), chunk);
-        if (giantHillChunk) chunks.add(createGiantHill(scene), FOREST_GIANT_HILL.center);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
         if (northernCampChunk) {

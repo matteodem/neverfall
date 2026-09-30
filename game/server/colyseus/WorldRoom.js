@@ -11,7 +11,7 @@ import { recordQuestEvent } from "../quests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
-import { getForestGiantHillHeight } from "../../imports/game/worldConfig";
+import { getWorldHeight } from "../../imports/game/worldConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
@@ -1205,7 +1205,7 @@ export class WorldRoom
     if (this.campSafeZoneEnabled && crossesCamp(enemy, { x, z })) return false;
     enemy.x = x;
     enemy.z = z;
-    if (enemy.type === "forestGiant") enemy.y = getForestGiantHillHeight(x, z);
+    enemy.y = getWorldHeight(x, z);
     return true;
   }
 
@@ -1463,7 +1463,7 @@ export class WorldRoom
           spawn.x,
 
         y:
-          spawn.y,
+          getWorldHeight(spawn.x, spawn.z),
 
         z:
           spawn.z,

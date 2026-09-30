@@ -1,5 +1,5 @@
 import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
-import { HIGHLANDS_SCENERY } from "../worldConfig";
+import { HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
 
 export const createHighlandsArea = ({ scene, chunk }) => {
   const root = new TransformNode(`highlands-scenery-${chunk.x}`, scene);
@@ -21,7 +21,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
 
   const place = (mesh, x, y, z, surface = stone, rotation = 0) => {
     mesh.parent = root;
-    mesh.position.set(x, y, z);
+    mesh.position.set(x, y + getWorldHeight(chunk.x + x, chunk.z + z), z);
     mesh.rotation.y = rotation;
     mesh.material = surface;
     mesh.receiveShadows = true;

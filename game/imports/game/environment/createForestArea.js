@@ -5,6 +5,7 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { getWorldHeight } from "../worldConfig";
 
 
 const randomBetween = (
@@ -174,21 +175,9 @@ const createScatterPosition =
     center,
     halfSize
   ) => {
-    return new Vector3(
-      center.x +
-        randomBetween(
-          -halfSize,
-          halfSize
-        ),
-
-      center.y,
-
-      center.z +
-        randomBetween(
-          -halfSize,
-          halfSize
-        )
-    );
+    const x = center.x + randomBetween(-halfSize, halfSize);
+    const z = center.z + randomBetween(-halfSize, halfSize);
+    return new Vector3(x, getWorldHeight(x, z), z);
   };
 
 
@@ -806,6 +795,7 @@ export const createForestArea =
     extraClearings = [],
 
     floorColor = "#4B6B3C",
+    includeFloor = true,
     path =
       null,
   } = {}) => {
@@ -854,7 +844,7 @@ export const createForestArea =
     };
 
 
-    createForestFloor({
+    if (includeFloor) createForestFloor({
       scene,
 
       parent:

@@ -2,15 +2,42 @@ export const WORLD_SIZE = 600;
 export const CHUNK_SIZE = 200;
 export const CHUNK_NEIGHBOR_RADIUS = 1;
 
-export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 16, summitRadius: 5, height: 2.4 };
+export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 58, summitRadius: 12, height: 6 };
 export const SOUTHWEST_LAKE = { center: { x: -160, z: -160 }, radius: 14 };
+
+// Broad, authored slopes leave the camps, portals, and main routes on easy terrain.
+const TERRAIN_FEATURES = [
+  { x: -225, z: -210, width: 78, depth: 72, height: 5 },
+  { x: -205, z: 12, width: 78, depth: 82, height: 4.5 },
+  { x: 205, z: -25, width: 85, depth: 80, height: 5 },
+  { x: 0, z: -235, width: 72, depth: 60, height: 3.5 },
+  { x: -220, z: 170, width: 100, depth: 92, height: 7 },
+  { x: 210, z: 170, width: 100, depth: 95, height: 7 },
+  { x: -95, z: 270, width: 78, depth: 66, height: 5 },
+  { x: 115, z: 275, width: 78, depth: 66, height: 5 },
+  { x: -105, z: -145, width: 68, depth: 25, height: 1.7 },
+  { x: 130, z: 105, width: 75, depth: 28, height: 1.8 },
+];
+
+const smooth = (value) => value * value * (3 - 2 * value);
+const clamp01 = (value) => Math.max(0, Math.min(1, value));
 
 export const getForestGiantHillHeight = (x, z) => {
   const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);
   if (distance >= FOREST_GIANT_HILL.radius) return 0;
   const slope = Math.max(0, (distance - FOREST_GIANT_HILL.summitRadius) /
     (FOREST_GIANT_HILL.radius - FOREST_GIANT_HILL.summitRadius));
-  return 0.03 + FOREST_GIANT_HILL.height * (1 - slope * slope * (3 - 2 * slope));
+  return FOREST_GIANT_HILL.height * (1 - smooth(slope));
+};
+
+export const getWorldHeight = (x, z) => {
+  const lakeDistance = Math.hypot(x - SOUTHWEST_LAKE.center.x, z - SOUTHWEST_LAKE.center.z);
+  const lakeRise = 1.8 * smooth(clamp01((lakeDistance - 22) / 34)) *
+    (1 - smooth(clamp01((lakeDistance - 80) / 40)));
+  return TERRAIN_FEATURES.reduce((height, feature) => {
+    const distance = Math.hypot((x - feature.x) / feature.width, (z - feature.z) / feature.depth);
+    return distance < 1 ? height + feature.height * smooth(1 - distance) : height;
+  }, getForestGiantHillHeight(x, z) + lakeRise);
 };
 
 export const WORLD_REGIONS = {

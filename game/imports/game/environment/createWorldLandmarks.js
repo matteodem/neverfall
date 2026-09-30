@@ -1,37 +1,11 @@
-import { Color3, MeshBuilder, StandardMaterial, TransformNode, VertexBuffer } from "@babylonjs/core";
-import { FOREST_GIANT_HILL, SOUTHWEST_LAKE, getForestGiantHillHeight } from "../worldConfig";
+import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
+import { SOUTHWEST_LAKE } from "../worldConfig";
 
 const material = (scene, name, color) => {
   const result = new StandardMaterial(name, scene);
   result.diffuseColor = Color3.FromHexString(color);
   result.specularColor = Color3.Black();
   return result;
-};
-
-export const createGiantHill = (scene) => {
-  const hill = MeshBuilder.CreateGround("forest-giant-hill", {
-    width: FOREST_GIANT_HILL.radius * 2,
-    height: FOREST_GIANT_HILL.radius * 2,
-    subdivisions: 32,
-    updatable: true,
-  }, scene);
-  const positions = hill.getVerticesData(VertexBuffer.PositionKind);
-  for (let index = 0; index < positions.length; index += 3) {
-    positions[index + 1] = getForestGiantHillHeight(
-      FOREST_GIANT_HILL.center.x + positions[index],
-      FOREST_GIANT_HILL.center.z + positions[index + 2]
-    );
-  }
-  hill.updateVerticesData(VertexBuffer.PositionKind, positions);
-  hill.convertToFlatShadedMesh();
-  hill.refreshBoundingInfo();
-  hill.position.set(FOREST_GIANT_HILL.center.x, 0, FOREST_GIANT_HILL.center.z);
-  hill.material = material(scene, "forest-giant-hill-grass", "#557442");
-  hill.receiveShadows = true;
-  hill.isPickable = false;
-  hill.checkCollisions = true;
-  hill.freezeWorldMatrix();
-  return hill;
 };
 
 export const createSouthwestLake = (scene) => {

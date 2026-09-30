@@ -4,7 +4,7 @@ import { ENEMY_SPAWNS } from "../enemyConfig";
 import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WORLD_EVENTS } from "../worldEvents";
-import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS } from "../worldConfig";
+import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getWorldHeight } from "../worldConfig";
 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
@@ -21,7 +21,7 @@ const CIRCLES = [
   ...QUESTS.filter((quest) => quest.objective.type === "ReachLocation")
     .map((quest) => ({ ...quest.objective, radius: (quest.objective.radius || 10) + 5 })),
   ...WORLD_EVENTS.map((event) => ({ ...event.center, radius: Math.max(30, event.spawnRadius + 8) })),
-  { ...FOREST_GIANT_HILL.center, radius: FOREST_GIANT_HILL.radius + 6 },
+  { ...FOREST_GIANT_HILL.center, radius: 20 },
   { ...SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 8 },
   ...WORLD_CHUNKS.filter((chunk) => chunk.region === "highlands").flatMap((chunk) => [
     ...HIGHLANDS_SCENERY.spires.map(({ x, z }) => ({ x: chunk.x + x, z: chunk.z + z, radius: 5 })),
@@ -112,7 +112,7 @@ export const loadForestProps = async (scene) => {
       }
       baseHeights.set(name, Number.isFinite(bottom) ? -bottom : 0);
     }
-    prop.position.set(position.x, baseHeights.get(name) * scale, position.z);
+    prop.position.set(position.x, getWorldHeight(position.x, position.z) + baseHeights.get(name) * scale, position.z);
     prop.rotation.y = random() * Math.PI * 2;
     prop.scaling.setAll(scale);
     for (const mesh of meshes) {
