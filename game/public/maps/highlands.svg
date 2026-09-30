@@ -10,5 +10,5 @@
   <path d="M30 230h600" stroke="#4b6149" stroke-width="5"/>
   <path d="M230 30v200M430 30v200" stroke="#f0ead2" stroke-opacity=".16" stroke-width="2"/>
   <circle cx="330" cy="130" r="17" fill="#b2a078" stroke="#e0c99a" stroke-width="2"/>
-  <text x="145" y="129" text-anchor="middle" fill="#f1eed7" font-family="sans-serif" font-size="22" paint-order="stroke" stroke="#3e493f" stroke-width="4">Highlands</text>
+  <text x="330" y="216" text-anchor="middle" fill="#f1eed7" font-family="sans-serif" font-size="22" paint-order="stroke" stroke="#3e493f" stroke-width="4">Highlands</text>
 </svg>
