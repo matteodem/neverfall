@@ -18,8 +18,8 @@ const CENTRAL_PROPS = [
 
 const NORTHERN_PROPS = [
   ["campfire", -9, -5, 0, 3.5],
-  ["tent", -15, 5, 0.7, 1.3],
-  ["tent", 15, 6, -0.8, 1.3],
+  ["tent", -12, 5, 0.7, 1.3],
+  ["tent", 12, 6, -0.8, 1.3],
   ["logBench", -11, -1, 0.5, 1.6],
   ["campingPot", -6, -3.5, 0, 1.1],
   ["flashlight", -12, 2.5, 0, 1.8],
@@ -77,11 +77,15 @@ export const loadCampAssets = async (scene) => {
     const root = new TransformNode(rugged ? "northernCamp" : "clearingCamp", scene);
     root.position.copyFrom(center);
     const props = rugged ? NORTHERN_PROPS : CENTRAL_PROPS;
-    for (const [name, x, z, rotation, scale] of props) place(root, name, x, z, rotation, scale);
+    const offsetScale = rugged ? 0.85 : 1;
+    for (const [name, x, z, rotation, scale] of props)
+      place(root, name, x * offsetScale, z * offsetScale, rotation, scale);
 
     const fire = props[0];
-    const fireHeight = getWorldHeight(center.x + fire[1], center.z + fire[2]);
-    const light = new PointLight("campfireLight", new Vector3(fire[1], fireHeight + 1.2 * CAMP_SCALE, fire[2]), scene);
+    const fireX = fire[1] * offsetScale;
+    const fireZ = fire[2] * offsetScale;
+    const fireHeight = getWorldHeight(center.x + fireX, center.z + fireZ);
+    const light = new PointLight("campfireLight", new Vector3(fireX, fireHeight + 1.2 * CAMP_SCALE, fireZ), scene);
     light.parent = root;
     light.diffuse = Color3.FromHexString("#FFB347");
     light.range = 14;
