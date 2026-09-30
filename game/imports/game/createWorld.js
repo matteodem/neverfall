@@ -7,6 +7,7 @@ import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
+import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import "@babylonjs/loaders/glTF";
 
@@ -183,13 +184,23 @@ export const createWorld =
       const colors = new Float32Array(positions.length / 3 * 4);
       const forestColor = Color3.FromHexString("#809B54");
       const highlandColor = Color3.FromHexString("#A0AC79");
+      const oliveColor = Color3.FromHexString("#93A264");
+      const brownColor = Color3.FromHexString("#917F61");
       for (let index = 0; index < positions.length; index += 3) {
-        positions[index + 1] = getWorldHeight(positions[index], positions[index + 2]);
-        const mix = getHighlandMix(positions[index + 2]);
+        const x = positions[index];
+        const z = positions[index + 2];
+        positions[index + 1] = getWorldHeight(x, z);
+        const mix = getHighlandMix(z);
+        const variation = getTerrainColorVariation(x, z);
+        const baseWeight = 1 - variation.olive - variation.brown;
+        const shade = 1 + variation.shade;
         const colorIndex = index / 3 * 4;
-        colors[colorIndex] = forestColor.r + (highlandColor.r - forestColor.r) * mix;
-        colors[colorIndex + 1] = forestColor.g + (highlandColor.g - forestColor.g) * mix;
-        colors[colorIndex + 2] = forestColor.b + (highlandColor.b - forestColor.b) * mix;
+        colors[colorIndex] = (forestColor.r + (highlandColor.r - forestColor.r) * mix) * shade * baseWeight +
+          oliveColor.r * variation.olive + brownColor.r * variation.brown;
+        colors[colorIndex + 1] = (forestColor.g + (highlandColor.g - forestColor.g) * mix) * shade * baseWeight +
+          oliveColor.g * variation.olive + brownColor.g * variation.brown;
+        colors[colorIndex + 2] = (forestColor.b + (highlandColor.b - forestColor.b) * mix) * shade * baseWeight +
+          oliveColor.b * variation.olive + brownColor.b * variation.brown;
         colors[colorIndex + 3] = 1;
       }
       VertexData.ComputeNormals(positions, ground.getIndices(), normals);
