@@ -1,0 +1,179 @@
+import { SceneLoader, TransformNode } from "@babylonjs/core";
+import { DUNGEONS } from "../dungeonConfig";
+import { ENEMY_SPAWNS } from "../enemyConfig";
+import { QUESTS } from "../quests";
+import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
+import { WORLD_EVENTS } from "../worldEvents";
+import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS } from "../worldConfig";
+
+const MODELS = {
+  broadleaf: ["birch_1", "oak_2"],
+  conifers: ["pine_1", "pine_2"],
+  undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
+  rocks: ["rock_1", "rock_2"],
+  accents: ["log_1", "stump_1", "dry_tree_1"],
+};
+
+const CIRCLES = [
+  ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
+  ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
+  ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: 8 })),
+  ...QUESTS.filter((quest) => quest.objective.type === "ReachLocation")
+    .map((quest) => ({ ...quest.objective, radius: (quest.objective.radius || 10) + 5 })),
+  ...WORLD_EVENTS.map((event) => ({ ...event.center, radius: Math.max(30, event.spawnRadius + 8) })),
+  { ...FOREST_GIANT_HILL.center, radius: FOREST_GIANT_HILL.radius + 6 },
+  { ...SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 8 },
+  ...WORLD_CHUNKS.filter((chunk) => chunk.region === "highlands").flatMap((chunk) => [
+    ...HIGHLANDS_SCENERY.spires.map(({ x, z }) => ({ x: chunk.x + x, z: chunk.z + z, radius: 5 })),
+    ...HIGHLANDS_SCENERY.ruinedWalls.map(({ x, z }) => ({ x: chunk.x + x, z: chunk.z + z, radius: 7 })),
+    ...(HIGHLANDS_SCENERY.landmarks[chunk.x] ? [{
+      x: chunk.x + HIGHLANDS_SCENERY.landmarks[chunk.x].x,
+      z: chunk.z + HIGHLANDS_SCENERY.landmarks[chunk.x].z,
+      radius: 13,
+    }] : []),
+  ]),
+];
+
+const PATHS = [
+  { from: DEFAULT_SPAWN_POINT.position, to: DUNGEONS[0].entrance, width: 8 },
+  { from: DEFAULT_SPAWN_POINT.position, to: FOREST_GIANT_HILL.center, width: 8 },
+  { from: DEFAULT_SPAWN_POINT.position, to: NORTHERN_SPAWN_POINT.position, width: 8 },
+];
+
+const randomForChunk = ({ x, z }) => {
+  let seed = ((x + 400) * 73856093 ^ (z + 400) * 19349663) >>> 0;
+  return () => {
+    seed += 0x6D2B79F5;
+    let value = seed;
+    value = Math.imul(value ^ value >>> 15, value | 1);
+    value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+    return ((value ^ value >>> 14) >>> 0) / 4294967296;
+  };
+};
+
+const distanceToPath = (position, { from, to }) => {
+  const dx = to.x - from.x;
+  const dz = to.z - from.z;
+  const t = Math.max(0, Math.min(1,
+    ((position.x - from.x) * dx + (position.z - from.z) * dz) / (dx * dx + dz * dz)));
+  return Math.hypot(position.x - from.x - t * dx, position.z - from.z - t * dz);
+};
+
+const isOpen = (position, clearance, areas) =>
+  areas.every((area) =>
+    Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
+  PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance);
+
+const nearby = (center, radius, random) => {
+  const angle = random() * Math.PI * 2;
+  const distance = Math.sqrt(random()) * radius;
+  return { x: center.x + Math.cos(angle) * distance, z: center.z + Math.sin(angle) * distance };
+};
+
+const highlandMix = (z) => {
+  const distance = Math.max(0, Math.min(1, (z - 50) / 220));
+  return distance * distance * (3 - 2 * distance);
+};
+
+export const loadForestProps = async (scene) => {
+  const names = [...new Set(Object.values(MODELS).flat())];
+  const loaded = await Promise.allSettled(names.map((name) =>
+    SceneLoader.LoadAssetContainerAsync("/models/environment/", `${name}.glb`, scene)));
+  const models = new Map();
+  loaded.forEach((result, index) => {
+    if (result.status === "fulfilled") models.set(names[index], result.value);
+    else console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
+  });
+  scene.onDisposeObservable.addOnce(() => {
+    for (const container of models.values()) container.dispose();
+  });
+
+  const variants = Object.fromEntries(Object.entries(MODELS).map(([kind, ids]) =>
+    [kind, ids.filter((id) => models.has(id))]));
+  const baseHeights = new Map();
+  const available = variants.broadleaf.length + variants.conifers.length > 0;
+
+  const place = (root, kind, position, random, scale = 1) => {
+    const choices = variants[kind]?.length ? variants[kind] :
+      (kind === "broadleaf" ? variants.conifers : kind === "conifers" ? variants.broadleaf : []);
+    if (!choices.length) return;
+    const name = choices[Math.floor(random() * choices.length)];
+    const entries = models.get(name).instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+    const prop = new TransformNode(`forest-${name}`, scene);
+    prop.parent = root;
+    for (const node of entries.rootNodes) node.parent = prop;
+    const meshes = prop.getChildMeshes();
+    if (!baseHeights.has(name)) {
+      let bottom = Infinity;
+      for (const mesh of meshes) {
+        if (!(mesh.getTotalVertices() || mesh.sourceMesh?.getTotalVertices())) continue;
+        mesh.computeWorldMatrix(true);
+        bottom = Math.min(bottom, mesh.getBoundingInfo().boundingBox.minimumWorld.y);
+      }
+      baseHeights.set(name, Number.isFinite(bottom) ? -bottom : 0);
+    }
+    prop.position.set(position.x, baseHeights.get(name) * scale, position.z);
+    prop.rotation.y = random() * Math.PI * 2;
+    prop.scaling.setAll(scale);
+    for (const mesh of meshes) {
+      mesh.isPickable = false;
+      mesh.checkCollisions = false;
+      mesh.receiveShadows = true;
+    }
+  };
+
+  const placeChunk = ({ center, size, density }) => {
+    if (!available) return null;
+    const random = randomForChunk(center);
+    const root = new TransformNode(`forest-props-${center.x}-${center.z}`, scene);
+    const cells = Math.ceil(size / 14);
+    const spacing = size / cells;
+
+    for (let row = 0; row < cells; row++) {
+      for (let column = 0; column < cells; column++) {
+        const position = {
+          x: center.x - size / 2 + (column + 0.5 + (random() - 0.5) * 0.8) * spacing,
+          z: center.z - size / 2 + (row + 0.5 + (random() - 0.5) * 0.8) * spacing,
+        };
+        const mix = highlandMix(position.z);
+        const treeChance = density * (0.84 - 0.76 * mix);
+        const rockChance = density * (0.18 + 0.3 * mix);
+
+        const treePlaced = random() < treeChance && isOpen(position, 2, CIRCLES);
+        if (treePlaced) {
+          const kind = random() < 0.4 + 0.55 * mix ? "conifers" : "broadleaf";
+          place(root, kind, position, random, 0.75 + random() * 0.35);
+          if (random() < 0.7) {
+            const undergrowth = nearby(position, 5, random);
+            if (isOpen(undergrowth, 1, CIRCLES))
+              place(root, "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
+          }
+          if (random() < 0.025 * (1 - mix)) {
+            const accent = nearby(position, 6, random);
+            if (isOpen(accent, 3, CIRCLES))
+              place(root, "accents", accent, random, 0.65 + random() * 0.3);
+          }
+        }
+
+        if (!treePlaced && random() < rockChance && isOpen(position, 3, CIRCLES)) {
+          const rockCenter = nearby(position, 5, random);
+          for (let i = 0; i < 2; i++) {
+            const rock = nearby(rockCenter, 3, random);
+            if (isOpen(rock, 2, CIRCLES))
+              place(root, "rocks", rock, random, 0.65 + random() * 0.45);
+          }
+          if (random() < 0.45) {
+            const undergrowth = nearby(rockCenter, 5, random);
+            if (isOpen(undergrowth, 1, CIRCLES))
+              place(root, "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
+          }
+        }
+      }
+    }
+
+    for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();
+    return root;
+  };
+
+  return { available, placeChunk };
+};

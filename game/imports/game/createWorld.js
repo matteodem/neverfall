@@ -6,6 +6,7 @@ import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL,
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
+import { loadForestProps } from "./environment/createForestProps";
 import { createGiantHill, createSouthwestLake } from "./environment/createWorldLandmarks";
 import "@babylonjs/loaders/glTF";
 
@@ -486,6 +487,7 @@ export const createWorld =
       dungeonVisuals = createDungeonEnvironment(scene, dungeonConfig);
     } else {
       const chunks = createWorldChunks(scene, player);
+      const forestProps = await loadForestProps(scene);
       for (const config of DUNGEONS) {
         const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name });
         chunks.add(portal.root, config.entrance);
@@ -497,6 +499,7 @@ export const createWorld =
        */
 
       for (const chunk of WORLD_CHUNKS) {
+        const assetForest = forestProps.available;
         const northernCampChunk = chunk.x === NORTHERN_CAMP.center.x && chunk.z === NORTHERN_CAMP.center.z;
         const giantHillChunk = chunk.x === 0 && chunk.z === 0;
         const lakeChunk = Math.abs(chunk.x - SOUTHWEST_LAKE.center.x) < CHUNK_SIZE / 2 &&
@@ -515,9 +518,12 @@ export const createWorld =
             radius: NORTHERN_CAMP.clearingRadius,
           } } : {}),
           ...Object.fromEntries(["treeCount", "bushCount", "rockCount", "logCount"].map((key) =>
-            [key, Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
+            [key, assetForest ? 0 : Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
         });
         chunks.add(area, chunk);
+        if (assetForest) chunks.add(forestProps.placeChunk({
+          center: chunk, size: CHUNK_SIZE, density: quality.density,
+        }), chunk);
         if (giantHillChunk) chunks.add(createGiantHill(scene), FOREST_GIANT_HILL.center);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
