@@ -1,6 +1,7 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
+import { SPAWN_POINTS, DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, getNearestUnlockedSpawnPoint } from "../../imports/game/spawnPoints";
 import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
@@ -570,6 +571,20 @@ export class WorldRoom
       if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
 
       if (!player.inDungeon) {
+        for (const point of SPAWN_POINTS) {
+          if (!point.discoveryRadius || runtime.unlockedSpawnPoints.has(point.id) ||
+            Math.hypot(player.x - point.position.x, player.z - point.position.z) > point.discoveryRadius) continue;
+          runtime.unlockedSpawnPoints.add(point.id);
+          void Characters.updateAsync(
+            { _id: player.characterId, userId: player.userId, unlockedSpawnPoints: { $ne: point.id } },
+            { $addToSet: { unlockedSpawnPoints: point.id } }
+          ).then((updated) => {
+            if (updated) client.send("spawnPointUnlocked", point.name);
+          }).catch((error) => {
+            runtime.unlockedSpawnPoints.delete(point.id);
+            console.error("[Spawn Points] Could not save discovery", error);
+          });
+        }
         if (!runtime.visitedNorthernCamp &&
           Math.hypot(player.x - NORTHERN_CAMP.center.x, player.z - NORTHERN_CAMP.center.z) <= NORTHERN_CAMP.clearingRadius) {
           runtime.visitedNorthernCamp = true;
@@ -845,6 +860,18 @@ export class WorldRoom
       );
     }
 
+    const unlockedSpawnPoints = new Set(character.unlockedSpawnPoints || []);
+    const legacyIds = [DEFAULT_SPAWN_POINT.id];
+    if (character.adventureGuide?.visitedNorthernCamp) legacyIds.push(NORTHERN_SPAWN_POINT.id);
+    const missingIds = legacyIds.filter((id) => !unlockedSpawnPoints.has(id));
+    if (missingIds.length) {
+      await Characters.updateAsync(
+        { _id: character._id, userId: auth.userId },
+        { $addToSet: { unlockedSpawnPoints: { $each: missingIds } } }
+      );
+      missingIds.forEach((id) => unlockedSpawnPoints.add(id));
+    }
+
 
     await trackAchievements(character._id, "level", character.currentLevel ?? 1);
 
@@ -969,6 +996,7 @@ export class WorldRoom
 
         lastActivityAt: Date.now(),
         visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
+        unlockedSpawnPoints,
       }
     );
 
@@ -1249,7 +1277,8 @@ export class WorldRoom
 
 
         this.respawnPlayer(
-          currentPlayer
+          currentPlayer,
+          sessionId
         );
         this.clients.find((client) => client.sessionId === sessionId)?.send("respawn", {
           x: currentPlayer.x, y: currentPlayer.y, z: currentPlayer.z,
@@ -1262,16 +1291,20 @@ export class WorldRoom
 
 
   respawnPlayer(
-    player
+    player,
+    sessionId
   ) {
-    player.x = CAMP_PROTECTION.center.x;
+    const unlocked = this.playerRuntime.get(sessionId)?.unlockedSpawnPoints;
+    const spawnPoint = this.campSafeZoneEnabled
+      ? getNearestUnlockedSpawnPoint(player, unlocked ? [...unlocked] : [])
+      : DEFAULT_SPAWN_POINT;
+    player.x = spawnPoint.position.x;
 
 
-    player.y =
-      0;
+    player.y = spawnPoint.position.y;
 
 
-    player.z = CAMP_PROTECTION.center.z;
+    player.z = spawnPoint.position.z;
 
 
     player.rotationY =

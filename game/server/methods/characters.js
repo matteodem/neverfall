@@ -12,6 +12,7 @@ import {
 import { migrateUserItems } from "../inventory/characters";
 import { isValidGameClass } from "../../imports/game/classConfig";
 import { SPECIES } from "../../imports/game/species";
+import { DEFAULT_SPAWN_POINT } from "../../imports/game/spawnPoints";
 
 const MAX_CHARACTERS =
   5;
@@ -261,6 +262,8 @@ Meteor.methods({
         0,
 
       talents: {},
+
+      unlockedSpawnPoints: [DEFAULT_SPAWN_POINT.id],
 
       achievements: {},
 

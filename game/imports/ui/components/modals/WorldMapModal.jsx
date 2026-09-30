@@ -2,7 +2,7 @@ import React from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../../api/characters/characters";
-import { NORTHERN_CAMP } from "../../../game/campProtection";
+import { getUnlockedSpawnPoints } from "../../../game/spawnPoints";
 import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS } from "../../../game/enemyConfig";
@@ -16,8 +16,6 @@ import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 
 const WORLD_LABELS = [
-  { label: "Camp", x: 0, z: -14 },
-  { label: "Northern Camp", ...NORTHERN_CAMP.center },
   { label: "Forest", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: 0 },
@@ -134,6 +132,17 @@ const MapContent = () => {
         {!dungeon && WORLD_LABELS.map((position, index) => (
           <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
             style={worldToPercent(position)}>{position.label}</span>
+        ))}
+        {!dungeon && getUnlockedSpawnPoints(character?.unlockedSpawnPoints).map((point) => (
+          <div key={point.id} className="pointer-events-none absolute z-[15]" style={worldToPercent(point.position)}
+            role="img" aria-label={`${point.name}, Respawn Point, Unlocked`}>
+            <span className="flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-xs font-bold text-white shadow">✚</span>
+            <span className="world-map-marker-label absolute right-6 top-2 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-right text-emerald-100"
+              style={{ fontSize: 10, lineHeight: 1.15 }}>
+              <strong className="block">{point.name}</strong>
+              <span className="block">Respawn Point · Unlocked</span>
+            </span>
+          </div>
         ))}
         {!dungeon && (
           <div className="absolute z-10" style={worldToPercent(HIGHLANDS_LOOKOUT)} title="Highlands Lookout">

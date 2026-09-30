@@ -66,7 +66,7 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        v0.7.0-alpha
+        v0.8.0-alpha
       </div>
 
       <p className="mt-5 text-lg font-bold">
