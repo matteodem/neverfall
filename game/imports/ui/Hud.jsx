@@ -2,7 +2,7 @@ import { TargetFrame } from "./components/TargetFrame";
 import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
-import { ShopModal } from "./components/modals/ShopModal";
+import { ItemsModal, HeroModal } from "./components/modals/GroupedHudModals";
 import { PotionBuffs } from "./components/PotionBuffs";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
@@ -12,9 +12,7 @@ import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
 import { HuntProgressPopup } from "./components/HuntProgressPopup";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
-import { QuestsModal } from "./components/modals/QuestsModal";
-import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
-import { TalentsModal } from "./components/modals/TalentsModal";
+import { AchievementToast } from "./components/modals/AchievementModal";
 import { getTalentSkill } from "../game/talents";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { DungeonPrompt } from "./components/DungeonPrompt";
@@ -41,14 +39,6 @@ import {
 import {
   HelpModal,
 } from "./components/modals/HelpModal";
-
-import {
-  InventoryModal,
-} from "./components/modals/InventoryModal";
-
-import {
-  GearModal,
-} from "./components/modals/GearModal";
 
 import {
   SettingsModal,
@@ -194,41 +184,9 @@ const HUD_BUTTONS = [
       "Settings",
   },
 
-  {
-    id:
-      "inventory",
+  { id: "items", icon: "backpack", label: "Items", shortcut: "I / B", defaultTab: "inventory" },
 
-    icon:
-      "backpack",
-
-    label:
-      "Inventory",
-
-    shortcut:
-      "I",
-  },
-
-  { id: "shop", icon: "shop", label: "Shop", shortcut: "B" },
-
-  {
-    id:
-      "gear",
-
-    icon:
-      "sword",
-
-    label:
-      "Gear",
-
-    shortcut:
-      "G",
-  },
-
-  { id: "quests", icon: "quests", label: "Quests", shortcut: "Q" },
-
-  { id: "achievements", icon: "trophy", label: "Achievements", shortcut: "Z" },
-
-  { id: "talents", icon: "talents", label: "Talents" },
+  { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / Z", defaultTab: "gear" },
 
   { id: "map", icon: "map", label: "Map", shortcut: "M" },
 
@@ -408,6 +366,7 @@ const MenuButtons =
 
     const openModals = useHudStore((state) => state.openModals);
     const closeModal = useHudStore((state) => state.closeModal);
+    const openSection = useHudStore((state) => state.openSection);
 
     return (
       <div
@@ -439,19 +398,20 @@ const MenuButtons =
               icon,
               label,
               shortcut,
+              defaultTab,
             }) => (
               <button
                 key={
                   id
                 }
-                id={id === "inventory" ? "onboarding-inventory" : id === "quests" ? "onboarding-quests" : undefined}
+                id={id === "items" ? "onboarding-inventory" : id === "hero" ? "onboarding-quests" : undefined}
                 type="button"
                 title={
                   shortcut ? `${label} (Press ${shortcut})` : label
                 }
                 aria-label={shortcut ? `${label} (Press ${shortcut})` : label}
                 onClick={
-                  () => openModals.includes(id) ? closeModal(id) : openModal(id)
+                  () => openModals.includes(id) ? closeModal(id) : defaultTab ? openSection(id, defaultTab) : openModal(id)
                 }
                 className="
                   btn
@@ -962,20 +922,11 @@ export const Hud = ({
 
 
       <WorldMapModal />
-      <QuestsModal />
-      <AchievementModal />
-      <TalentsModal />
+      <ItemsModal />
+      <HeroModal />
       <AchievementToast />
 
       <HelpModal />
-
-
-      <InventoryModal />
-
-      <ShopModal />
-
-
-      <GearModal />
 
 
       <SettingsModal />

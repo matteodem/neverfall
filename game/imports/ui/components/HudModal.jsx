@@ -6,7 +6,7 @@ const getInitialPosition = (id) => {
   const game = typeof document === "undefined" ? null : document.querySelector(".mobile-game");
   const viewportWidth = game?.clientWidth || (typeof window === "undefined" ? 1024 : window.innerWidth);
   const viewportHeight = game?.clientHeight || (typeof window === "undefined" ? 768 : window.innerHeight);
-  const offset = { inventory: 0, gear: 40, help: 80, settings: 120 }[id] || 0;
+  const offset = { items: 0, hero: 40, help: 80, settings: 120 }[id] || 0;
 
   return {
     x: Math.max(8, Math.min(viewportWidth - 120, viewportWidth * 0.28 + offset)),
@@ -14,7 +14,7 @@ const getInitialPosition = (id) => {
   };
 };
 
-export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHeight, width, scrollable = true, className = "" }) => {
+export const HudModal = ({ id, title, children, embedded = false, backdrop = false, onClose, maxHeight, width, scrollable = true, className = "" }) => {
   const openModals = useHudStore((state) => state.openModals);
   const openModal = useHudStore((state) => state.openModal);
   const closeModal = useHudStore((state) => state.closeModal);
@@ -56,6 +56,7 @@ export const HudModal = ({ id, title, children, backdrop = false, onClose, maxHe
     };
   }, [drag]);
 
+  if (embedded) return <>{children}</>;
   if (!isOpen) return null;
 
   const startDragging = (event) => {

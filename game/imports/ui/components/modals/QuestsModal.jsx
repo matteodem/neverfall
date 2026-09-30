@@ -26,7 +26,7 @@ const QuestList = ({ quests, progress }) => (
   </div>
 );
 
-export const QuestsModal = () => {
+export const QuestsModal = ({ embedded = false }) => {
   const area = useQuestStore((state) => state.area);
   const progress = useTracker(() => {
     const id = Meteor.user()?.profile?.currentCharacterId;
@@ -38,7 +38,7 @@ export const QuestsModal = () => {
     .map(([type, quest]) => ({ ...quest, objective: { amount: quest.target }, nearby: type === area }));
 
   return (
-    <HudModal id="quests" title="Quests" maxHeight="calc(var(--game-height, 100vh) * 0.5)">
+    <HudModal id="quests" title="Quests" embedded={embedded} maxHeight="calc(var(--game-height, 100vh) * 0.5)">
       <section>
         <h4 className="mb-2 font-bold">Active Quests</h4>
         <QuestList quests={active} progress={progress} />

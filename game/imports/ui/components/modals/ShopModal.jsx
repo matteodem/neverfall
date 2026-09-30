@@ -6,7 +6,7 @@ import { CONSUMABLES } from "../../../game/consumables";
 import { SHOP_STOCK } from "../../../game/shop";
 import { HudModal } from "../HudModal";
 
-export const ShopModal = () => {
+export const ShopModal = ({ embedded = false }) => {
   const [buyingId, setBuyingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const gold = useTracker(() => Math.floor((Meteor.user()?.profile?.inventory?.money || 0) / 10000));
@@ -26,7 +26,7 @@ export const ShopModal = () => {
   };
 
   return (
-    <HudModal id="shop" title="Shop" onClose={() => setFeedback(null)}>
+    <HudModal id="shop" title="Shop" embedded={embedded} onClose={() => setFeedback(null)}>
       <div className="mb-3 text-sm font-semibold">Your Gold: {gold}</div>
       {feedback && (
         <p className={`mb-3 text-sm ${feedback.error ? "text-error" : "text-success"}`} role={feedback.error ? "alert" : "status"}>

@@ -51,7 +51,7 @@ const EquipmentSlot = ({ slot, itemId }) => {
   );
 };
 
-export const GearModal = () => {
+export const GearModal = ({ embedded = false }) => {
   const { mobile } = useMobileDevice();
   const { equipment, bonuses } = useTracker(() => {
     const currentCharacterId = Meteor.user()?.profile?.currentCharacterId;
@@ -64,7 +64,7 @@ export const GearModal = () => {
   });
 
   return (
-    <HudModal id="gear" title="Gear" scrollable={mobile}>
+    <HudModal id="gear" title="Gear" embedded={embedded} scrollable={mobile}>
       <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
         <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Equipped</h4>
         <div className="grid grid-cols-2 gap-2">

@@ -347,7 +347,7 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass }) => (
 );
 
 export const InventoryModal =
-  () => {
+  ({ embedded = false }) => {
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
     const [sellingItem, setSellingItem] = useState(null);
@@ -429,6 +429,7 @@ export const InventoryModal =
     return (
       <>
       <HudModal
+        embedded={embedded}
         scrollable={mobile}
         id="inventory"
         title="Inventory"

@@ -6,7 +6,7 @@ import { TALENT_LEVELS, TALENTS } from "../../../game/talents";
 import { useTalentStore } from "../../stores/useTalentStore";
 import { HudModal } from "../HudModal";
 
-export const TalentsModal = () => {
+export const TalentsModal = ({ embedded = false }) => {
   const [confirmReset, setConfirmReset] = useState(false);
   const character = useTracker(() => {
     const id = Meteor.user()?.profile?.currentCharacterId;
@@ -17,7 +17,7 @@ export const TalentsModal = () => {
   const level = character?.currentLevel || 1;
 
   return (
-    <HudModal id="talents" title="Talents" onClose={() => setConfirmReset(false)} maxHeight={680}>
+    <HudModal id="talents" title="Talents" embedded={embedded} onClose={() => setConfirmReset(false)} maxHeight={680}>
       <div className="space-y-3">
         {TALENT_LEVELS.map((milestone) => {
           const locked = level < milestone;

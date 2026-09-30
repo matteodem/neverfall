@@ -743,10 +743,18 @@ export const Game = ({
                   useHudStore
                     .getState();
 
-                const modal = event.code === "KeyQ" ? "quests" : event.code === "KeyB" ? "shop" : event.code === "KeyM" ? "map" : event.code === "KeyZ" ? "achievements" : event.code === "KeyG" ? "gear" : "inventory";
+                const destination = {
+                  KeyI: ["items", "inventory"],
+                  KeyB: ["items", "shop"],
+                  KeyG: ["hero", "gear"],
+                  KeyQ: ["hero", "quests"],
+                  KeyZ: ["hero", "achievements"],
+                  KeyM: ["map"],
+                }[event.code];
+                const [modal, tab] = destination;
 
 
-                if (hudStore.openModals.includes(modal)) {
+                if (hudStore.openModals.includes(modal) && (!tab || hudStore.tabs[modal] === tab)) {
                   hudStore
                     .closeModal(modal);
 
@@ -754,10 +762,8 @@ export const Game = ({
                 }
 
 
-                hudStore
-                  .openModal(
-                    modal
-                  );
+                if (tab) hudStore.openSection(modal, tab);
+                else hudStore.openModal(modal);
 
 
                 return;
