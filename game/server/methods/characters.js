@@ -260,6 +260,8 @@ Meteor.methods({
       currentXp:
         0,
 
+      talents: {},
+
       achievements: {},
 
       questProgress: {},

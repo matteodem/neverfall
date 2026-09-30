@@ -2001,6 +2001,11 @@ export const createMultiplayer =
       room.send("unequipItem", slot);
     };
 
+    const changeTalents = (action, payload) => {
+      if (!localPlayerState) return;
+      room.send(action, payload);
+    };
+
     const useConsumable = (itemId) => {
       if (!localPlayerState || localPlayerState.health <= 0) return;
       room.send("useConsumable", itemId);
@@ -2109,6 +2114,7 @@ export const createMultiplayer =
       sendHeal,
       equipItem,
       unequipItem,
+      changeTalents,
       useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,

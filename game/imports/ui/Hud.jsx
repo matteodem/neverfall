@@ -14,8 +14,9 @@ import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { QuestsModal } from "./components/modals/QuestsModal";
 import { AchievementModal, AchievementToast } from "./components/modals/AchievementModal";
+import { TalentsModal } from "./components/modals/TalentsModal";
+import { getTalentSkill } from "../game/talents";
 import { useDungeonStore } from "./stores/useDungeonStore";
-import { getClassConfig } from "../game/classConfig";
 import { DungeonPrompt } from "./components/DungeonPrompt";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
@@ -99,15 +100,18 @@ const getActionSlots = (
   currentLevel,
   equipment,
   gameClass,
-  species
+  species,
+  talents
 ) => {
-  const skills = getClassConfig(gameClass).skills;
+  const skills = Object.fromEntries(["Digit1", "Digit2", "Digit3"].map((code) =>
+    [code, getTalentSkill(gameClass, code, currentLevel, talents)]));
   const playerStats =
     getPlayerStats(
       currentLevel,
       equipment,
       gameClass,
-      species
+      species,
+      talents
     );
 
 
@@ -123,7 +127,7 @@ const getActionSlots = (
         skills.Digit1.icon,
 
       tooltip:
-        `${skills.Digit1.name} (Causes ${parseInt(playerStats.damage, 10)} damage)`,
+        `${skills.Digit1.name} (Causes ${parseInt(playerStats.damage * skills.Digit1.damageMultiplier, 10)} damage)`,
     },
 
     {
@@ -223,6 +227,8 @@ const HUD_BUTTONS = [
   { id: "quests", icon: "quests", label: "Quests", shortcut: "Q" },
 
   { id: "achievements", icon: "trophy", label: "Achievements", shortcut: "Z" },
+
+  { id: "talents", icon: "talents", label: "Talents" },
 
   { id: "map", icon: "map", label: "Map", shortcut: "M" },
 
@@ -678,6 +684,7 @@ const ActionBar = ({
   equipment,
   gameClass,
   species,
+  talents,
   healCooldownUntil,
   mobile = false,
 }) => {
@@ -695,7 +702,8 @@ const ActionBar = ({
       currentLevel,
       equipment,
       gameClass,
-      species
+      species,
+      talents
     );
 
 
@@ -746,6 +754,7 @@ const BottomHud = ({
   equipment,
   gameClass,
   species,
+  talents,
   playerHealth,
   potionBuffs,
   healCooldownUntil,
@@ -763,7 +772,7 @@ const BottomHud = ({
             {mounted ? "Dismount" : "Mount"}
           </button>
         </div>
-        <ActionBar mobile gameClass={gameClass} species={species} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
+        <ActionBar mobile gameClass={gameClass} species={species} talents={talents} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
       </div>
       <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
         <div className="relative">
@@ -792,6 +801,7 @@ const BottomHud = ({
       <ActionBar
         gameClass={gameClass}
         species={species}
+        talents={talents}
         currentLevel={
           currentLevel
         }
@@ -849,6 +859,7 @@ export const Hud = ({
   currentLevel = 1,
   gameClass = "warrior",
   species = "human",
+  talents,
   equipment,
   playerHealth,
   potionBuffs,
@@ -926,6 +937,7 @@ export const Hud = ({
         mobile={mobile}
         gameClass={gameClass}
         species={species}
+        talents={talents}
         currentLevel={
           currentLevel
         }
@@ -952,6 +964,7 @@ export const Hud = ({
       <WorldMapModal />
       <QuestsModal />
       <AchievementModal />
+      <TalentsModal />
       <AchievementToast />
 
       <HelpModal />

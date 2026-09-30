@@ -1,7 +1,6 @@
 import { useQualityStore } from "./stores/useQualityStore";
 import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
-import { getClassConfig } from "../game/classConfig";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
@@ -25,6 +24,8 @@ import {
 } from "./stores/useActionBarStore";
 
 import { useEquipmentStore } from "./stores/useEquipmentStore";
+import { useTalentStore } from "./stores/useTalentStore";
+import { getTalentSkill } from "../game/talents";
 import { useConsumableStore } from "./stores/useConsumableStore";
 
 import {
@@ -103,6 +104,8 @@ export const Game = ({
     useRef(
       null
     );
+  const characterRef = useRef(character);
+  characterRef.current = character;
 
 
   const setSkillHandler =
@@ -423,6 +426,7 @@ export const Game = ({
               multiplayer.unequipItem(payload);
             }
           });
+          useTalentStore.getState().setChangeHandler(multiplayer.changeTalents);
           useConsumableStore.getState().setUseHandler(multiplayer.useConsumable);
 
 
@@ -484,7 +488,8 @@ export const Game = ({
            */
 
           const performAttack = (code) => {
-            const skill = getClassConfig(character.gameClass).skills[code];
+            const activeCharacter = characterRef.current;
+            const skill = getTalentSkill(activeCharacter.gameClass, code, activeCharacter.currentLevel, activeCharacter.talents);
             const actionBar = useActionBarStore.getState();
             if (!skill || !playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
             if (skill.projectile || skill.effect) {
@@ -1090,6 +1095,7 @@ export const Game = ({
         );
 
         useEquipmentStore.getState().setChangeHandler(null);
+        useTalentStore.getState().setChangeHandler(null);
         useConsumableStore.getState().setUseHandler(null);
 
 

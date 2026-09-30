@@ -11,7 +11,7 @@ import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getForestGiantHillHeight } from "../../imports/game/worldConfig";
-import { getClassConfig } from "../../imports/game/classConfig";
+import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
 import { spawnLoot, collectLoot } from "../inventory/loot";
@@ -102,7 +102,7 @@ const getEquipmentForPlayer = (player) => ({
 });
 
 const getStatsForPlayer = (player, now = Date.now()) => {
-  const stats = getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species);
+  const stats = getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species, getSelectedTalents(player));
   if (player.speedPotionUntil > now) stats.movementSpeedMultiplier *= 1.1;
   if (player.powerPotionUntil > now) stats.damage *= 1.1;
   return stats;
@@ -310,6 +310,15 @@ export class WorldRoom
     if (player.inDungeon) this.dungeons?.syncPlayer(player);
   }
 
+  applyPlayerTalents(player, talents) {
+    for (const level of TALENT_LEVELS) player[`talent${level}`] = talents?.[level] || "";
+    const stats = getStatsForPlayer(player);
+    player.movementSpeedMultiplier = stats.movementSpeedMultiplier;
+    player.maxHealth = stats.maxHealth;
+    player.health = Math.min(player.health, player.maxHealth);
+    if (player.inDungeon) this.dungeons?.syncPlayer(player);
+  }
+
   async persistPlayerEquipment(player, equipment, inventoryItems) {
     const updated = await Characters.updateAsync(
       { _id: player.characterId, userId: player.userId },
@@ -333,6 +342,30 @@ export class WorldRoom
   }
 
   messages = {
+    selectTalent: async (client, { level, talentId } = {}) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || !Number.isInteger(level) || player.currentLevel < level ||
+        !TALENTS[player.gameClass]?.[level]?.some((talent) => talent.id === talentId)) return;
+      const updated = await Characters.updateAsync(
+        { _id: player.characterId, userId: player.userId, [`talents.${level}`]: { $exists: false } },
+        { $set: { [`talents.${level}`]: talentId } }
+      );
+      if (!updated) return;
+      this.recordActivity(client.sessionId);
+      player[`talent${level}`] = talentId;
+      this.applyPlayerTalents(player, getSelectedTalents(player));
+    },
+    resetTalents: async (client) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player) return;
+      const updated = await Characters.updateAsync(
+        { _id: player.characterId, userId: player.userId },
+        { $set: { talents: {} } }
+      );
+      if (!updated) return;
+      this.recordActivity(client.sessionId);
+      this.applyPlayerTalents(player, {});
+    },
     chat: (client, text) => {
       if (typeof text === "string" && text.trim()) this.recordActivity(client.sessionId);
       return sendChat(this, client, text);
@@ -679,7 +712,7 @@ export class WorldRoom
       }
 
 
-      const skill = getClassConfig(player.gameClass).skills[code];
+      const skill = getTalentSkill(player.gameClass, code, player.currentLevel, getSelectedTalents(player));
       if (!skill) return;
       this.recordActivity(client.sessionId);
       const now =
@@ -834,7 +867,8 @@ export class WorldRoom
         currentLevel,
         equipment,
         character.gameClass,
-        character.species
+        character.species,
+        character.talents
       );
 
     const now = Date.now();
@@ -858,6 +892,7 @@ export class WorldRoom
         species: character.species || "human",
 
         currentLevel,
+        ...Object.fromEntries(TALENT_LEVELS.map((level) => [`talent${level}`, character.talents?.[level] || ""])),
         movementSpeedMultiplier: stats.movementSpeedMultiplier * (speedPotionUntil ? 1.1 : 1),
         speedPotionUntil,
         powerPotionUntil,
@@ -1349,7 +1384,8 @@ export class WorldRoom
           progress.currentLevel,
           getEquipmentForPlayer(player),
           player.gameClass,
-          player.species
+          player.species,
+          getSelectedTalents(player)
         );
 
 
@@ -1498,7 +1534,7 @@ export class WorldRoom
     }
 
 
-    skill = skill || getClassConfig(player.gameClass).skills.Digit1;
+    skill = skill || getTalentSkill(player.gameClass, "Digit1", player.currentLevel, getSelectedTalents(player));
     const range = skill.range + (mobileAttack ? MOBILE_TARGETING.hitPadding : 0);
     const target = skill.aoe ? null :
       (targetId && this.getTargetEnemy(player, targetId, range)) ||

@@ -71,6 +71,11 @@ export const PlayerState =
         t.number().default(
           0
         ),
+
+      talent5: t.string().default(""),
+      talent10: t.string().default(""),
+      talent15: t.string().default(""),
+      talent20: t.string().default(""),
       
       gender:
         t.string().default(

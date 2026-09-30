@@ -2,6 +2,7 @@ import { getEquipmentStats } from "./equipment";
 import { getClassConfig } from "./classConfig";
 import { getClassProgressionStats } from "./classProgression";
 import { getSpecies } from "./species";
+import { getTalentBonuses } from "./talents";
 
 const HEALTH_PER_LEVEL =
   25;
@@ -43,7 +44,8 @@ export const getPlayerStats = (
   level,
   equipment,
   gameClass = "warrior",
-  species = "human"
+  species = "human",
+  talents = {}
 ) => {
   const classConfig = getClassConfig(gameClass);
   const speciesConfig = getSpecies(species);
@@ -59,23 +61,24 @@ export const getPlayerStats = (
 
   const equipmentStats = getEquipmentStats(equipment);
   const progression = getClassProgressionStats(gameClass, normalizedLevel);
+  const talentBonuses = getTalentBonuses(gameClass, normalizedLevel, talents);
 
 
   return {
     xpGainMultiplier: 1 + equipmentStats.xpGain,
-    movementSpeedMultiplier: (1 + equipmentStats.movementSpeed + progression.movementSpeed) * speciesConfig.movementSpeedMultiplier,
-    aoeDamageMultiplier: 1 + progression.aoeDamage,
+    movementSpeedMultiplier: (1 + equipmentStats.movementSpeed + progression.movementSpeed + talentBonuses.movementSpeed) * speciesConfig.movementSpeedMultiplier,
+    aoeDamageMultiplier: 1 + progression.aoeDamage + talentBonuses.aoeDamage,
     maxHealth:
       classConfig.maxHealth +
       levelsGained *
         HEALTH_PER_LEVEL +
-      equipmentStats.maxHealth + progression.maxHealth,
+      equipmentStats.maxHealth + progression.maxHealth + talentBonuses.maxHealth,
 
     damage:
       (classConfig.attackDamage +
       levelsGained *
         DAMAGE_PER_LEVEL +
-      equipmentStats.attackDamage) * (1 + progression.damage) * speciesConfig.damageMultiplier,
+      equipmentStats.attackDamage) * (1 + progression.damage + talentBonuses.damage) * speciesConfig.damageMultiplier,
 
     healAmount:
       BASE_HEAL_AMOUNT +

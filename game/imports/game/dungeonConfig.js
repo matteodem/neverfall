@@ -82,4 +82,4 @@ export const nearDungeonObject = (position, object, distance = 3) => {
 };
 
 // Fields mirrored between an active dungeon player and their party presence.
-export const DUNGEON_PLAYER_FIELDS = ["health", "maxHealth", "currentLevel", "currentXp", "ring", "accessory", "movementSpeedMultiplier", "speedPotionUntil", "powerPotionUntil", "respawnProtectedUntil"];
+export const DUNGEON_PLAYER_FIELDS = ["health", "maxHealth", "currentLevel", "currentXp", "ring", "accessory", "movementSpeedMultiplier", "speedPotionUntil", "powerPotionUntil", "respawnProtectedUntil", "talent5", "talent10", "talent15", "talent20"];
