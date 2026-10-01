@@ -4,6 +4,7 @@ export const CHUNK_NEIGHBOR_RADIUS = 1;
 
 export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 58, summitRadius: 12, height: 6 };
 export const SOUTHWEST_LAKE = { center: { x: -160, z: -160 }, radius: 14 };
+export const SNOWY_MOUNTAINS = { boss: { x: 262, z: 0 } };
 
 // Broad, authored slopes leave the camps, portals, and main routes on easy terrain.
 const TERRAIN_FEATURES = [
@@ -24,6 +25,8 @@ const TERRAIN_FEATURES = [
 const smooth = (value) => value * value * (3 - 2 * value);
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
 export const getHighlandMix = (z) => smooth(clamp01((z - 50) / 220));
+export const getSnowMix = (x, z) =>
+  smooth(clamp01((x - 145) / 95)) * (1 - smooth(clamp01((Math.abs(z) - 115) / 85)));
 
 export const getForestGiantHillHeight = (x, z) => {
   const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);
@@ -37,17 +40,25 @@ export const getWorldHeight = (x, z) => {
   const lakeDistance = Math.hypot(x - SOUTHWEST_LAKE.center.x, z - SOUTHWEST_LAKE.center.z);
   const lakeRise = 1.8 * smooth(clamp01((lakeDistance - 22) / 34)) *
     (1 - smooth(clamp01((lakeDistance - 80) / 40)));
-  return TERRAIN_FEATURES.reduce((height, feature) => {
+  const existingHeight = TERRAIN_FEATURES.reduce((height, feature) => {
     const distance = Math.hypot((x - feature.x) / feature.width, (z - feature.z) / feature.depth);
     const slope = (1 - distance) / (1 - (feature.plateau || 0));
     return distance < 1 ? height + feature.height * smooth(clamp01(slope)) : height;
   }, getForestGiantHillHeight(x, z) + lakeRise);
+  // The approach is walkable; the last few ground segments form the eastern cliff.
+  const snowSlope = 18 * smooth(clamp01((x - 145) / 145)) *
+    (0.35 + 0.65 * (1 - smooth(clamp01((Math.abs(z) - 125) / 75))));
+  const easternCliff = 180 * smooth(clamp01((x - 295) / 35));
+  const bossRise = 5 * (1 - smooth(clamp01(
+    (Math.hypot(x - SNOWY_MOUNTAINS.boss.x, z - SNOWY_MOUNTAINS.boss.z) - 15) / 25)));
+  return existingHeight + snowSlope + easternCliff + bossRise;
 };
 
 export const WORLD_REGIONS = {
   starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: "#4B6B3C" },
   forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#4B6B3C" },
   highlands: { treeCount: 70, bushCount: 55, rockCount: 80, logCount: 8, floorColor: "#4B6B3C" },
+  snowyMountains: { treeCount: 0, bushCount: 0, rockCount: 18, logCount: 0, floorColor: "#D7E2E6" },
 };
 
 // Positions are relative to the center of each highlands chunk.
@@ -89,7 +100,7 @@ export const WORLD_CHUNKS = [
   { x: 200, z: 200, region: "highlands" },
   { x: -200, z: 0, region: "forest" },
   { x: 0, z: 0, region: "starterForest" },
-  { x: 200, z: 0, region: "forest" },
+  { x: 200, z: 0, region: "snowyMountains" },
   { x: -200, z: -200, region: "forest" },
   { x: 0, z: -200, region: "forest" },
   { x: 200, z: -200, region: "forest" },

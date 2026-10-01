@@ -5,7 +5,7 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
-import { getWorldHeight } from "../worldConfig";
+import { getSnowMix, getWorldHeight } from "../worldConfig";
 
 
 const randomBetween = (
@@ -214,6 +214,7 @@ const createForestPosition = ({
   clearing,
   extraClearings,
   path,
+  exclude,
 }) => {
   for (
     let attempt = 0;
@@ -249,14 +250,15 @@ const createForestPosition = ({
 
     if (
       !insideClearing &&
-      !insidePath
+      !insidePath &&
+      !exclude?.(position)
     ) {
       return position;
     }
   }
 
 
-  return createScatterPosition(
+  return exclude ? null : createScatterPosition(
     center,
     halfSize
   );
@@ -877,6 +879,15 @@ export const createForestArea =
       i +=
         1
     ) {
+      const position = createForestPosition({
+        center,
+        halfSize,
+        clearing,
+        extraClearings,
+        path,
+        exclude: (point) => getSnowMix(point.x, point.z) > 0,
+      });
+      if (!position) continue;
       createPineTree({
         scene,
         leafSources,
@@ -884,14 +895,7 @@ export const createForestArea =
         parent:
           root,
 
-        position:
-          createForestPosition({
-            center,
-            halfSize,
-            clearing,
-            extraClearings,
-            path,
-          }),
+        position,
 
         materials,
       });

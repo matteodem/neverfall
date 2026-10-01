@@ -21,11 +21,16 @@ const WORLD_LABELS = [
   { label: "Highlands", x: 0, z: 120 },
   { label: "Forest", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
-  { label: "Forest", x: 200, z: 0 },
+  { label: "Forest", x: 200, z: -200 },
   { label: "Forest", x: 0, z: -210 },
+  { label: "Snowy Mountains", x: 238, z: -30 },
 ];
 
 const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
+const isStandaloneWaypoint = (point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id);
+const waypointLabelPosition = (point) => point.id === "snowy-mountains-waypoint"
+  ? "bottom-[-20px] right-[-75px]"
+  : isStandaloneWaypoint(point) ? "left-5 top-3" : "left-5 bottom-4";
 const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
   const position = type === "seal"
@@ -134,7 +139,7 @@ const MapContent = () => {
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
           alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall world map"}
           className="block h-full w-full" draggable={false} />
-        {!dungeon && ["edge-forests", "highlands"].map((region) => (
+        {!dungeon && ["edge-forests", "highlands", "snowy-mountains"].map((region) => (
           <img key={region} src={`/maps/${region}.svg`} alt="" aria-hidden="true"
             className="pointer-events-none absolute inset-0 h-full w-full" draggable={false} />
         ))}
@@ -155,21 +160,21 @@ const MapContent = () => {
         ))}
         {!dungeon && unlockedWaypoints.map((point) => (
           <button key={point.id} type="button" className="absolute z-[16] cursor-pointer border-0 bg-transparent p-0"
-            style={{ ...worldToPercent(point.position), transform: point.id === "lake-waypoint" ? undefined : "translateX(18px)" }}
+            style={{ ...worldToPercent(point.position), transform: isStandaloneWaypoint(point) ? undefined : "translateX(18px)" }}
             aria-label={`Travel to ${point.name}`}
             onPointerDown={(event) => event.stopPropagation()}
             onPointerUp={(event) => event.stopPropagation()}
             onClick={() => setSelectedWaypointId(point.id)}>
             <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-sky-700 text-[10px] font-bold text-white shadow">◆</span>
-            <span className={`world-map-marker-label absolute left-5 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-sky-100 ${point.id === "lake-waypoint" ? "top-2" : "bottom-3"}`}>{point.name} · Waypoint</span>
+            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-sky-100 ${waypointLabelPosition(point)}`}>{point.name} · Waypoint</span>
           </button>
         ))}
         {!dungeon && undiscoveredWaypoints.map((point) => (
           <div key={point.id} className="pointer-events-none absolute z-[16]"
-            style={{ ...worldToPercent(point.position), transform: point.id === "lake-waypoint" ? undefined : "translateX(18px)" }}
+            style={{ ...worldToPercent(point.position), transform: isStandaloneWaypoint(point) ? undefined : "translateX(18px)" }}
             role="img" aria-label={`${point.name}, undiscovered`}>
             <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-slate-600 text-[10px] text-white shadow">◆</span>
-            <span className={`world-map-marker-label absolute left-5 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-slate-100 ${point.id === "lake-waypoint" ? "top-2" : "bottom-3"}`}>{point.name} · Undiscovered</span>
+            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-slate-100 ${waypointLabelPosition(point)}`}>{point.name} · Undiscovered</span>
           </div>
         ))}
         {!dungeon && (

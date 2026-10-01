@@ -2,10 +2,11 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SOUTHWEST_LAKE, getHighlandMix, getWorldHeight } from "./worldConfig";
+import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
+import { createSnowyMountainsArea } from "./environment/createSnowyMountainsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
 import { getTerrainColorVariation } from "./environment/terrainColor";
@@ -186,6 +187,8 @@ export const createWorld =
       const highlandColor = Color3.FromHexString("#A0AC79");
       const oliveColor = Color3.FromHexString("#93A264");
       const brownColor = Color3.FromHexString("#917F61");
+      const snowColor = Color3.FromHexString("#DCE8EB");
+      const coldStoneColor = Color3.FromHexString("#8997A2");
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];
@@ -194,13 +197,15 @@ export const createWorld =
         const variation = getTerrainColorVariation(x, z);
         const baseWeight = 1 - variation.olive - variation.brown;
         const shade = 1 + variation.shade;
+        const snow = getSnowMix(x, z);
+        const stoneMix = Math.max(0, Math.min(1, (x - 275) / 45));
         const colorIndex = index / 3 * 4;
-        colors[colorIndex] = (forestColor.r + (highlandColor.r - forestColor.r) * mix) * shade * baseWeight +
-          oliveColor.r * variation.olive + brownColor.r * variation.brown;
-        colors[colorIndex + 1] = (forestColor.g + (highlandColor.g - forestColor.g) * mix) * shade * baseWeight +
-          oliveColor.g * variation.olive + brownColor.g * variation.brown;
-        colors[colorIndex + 2] = (forestColor.b + (highlandColor.b - forestColor.b) * mix) * shade * baseWeight +
-          oliveColor.b * variation.olive + brownColor.b * variation.brown;
+        for (const [offset, channel] of ["r", "g", "b"].entries()) {
+          const warm = (forestColor[channel] + (highlandColor[channel] - forestColor[channel]) * mix) *
+            shade * baseWeight + oliveColor[channel] * variation.olive + brownColor[channel] * variation.brown;
+          const cold = snowColor[channel] + (coldStoneColor[channel] - snowColor[channel]) * stoneMix;
+          colors[colorIndex + offset] = warm * (1 - snow) + cold * snow * shade;
+        }
         colors[colorIndex + 3] = 1;
       }
       VertexData.ComputeNormals(positions, ground.getIndices(), normals);
@@ -554,7 +559,10 @@ export const createWorld =
           extraClearings: [
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
+            ...(chunk.region === "snowyMountains" ? [{ center: SNOWY_MOUNTAINS.boss, radius: 24 }] : []),
             ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")
+              .map((point) => ({ center: point.position, radius: 9 })) : []),
+            ...(chunk.region === "snowyMountains" ? WAYPOINTS.filter((point) => point.id === "snowy-mountains-waypoint")
               .map((point) => ({ center: point.position, radius: 9 })) : []),
           ],
           ...(northernCampChunk ? { clearing: {
@@ -570,6 +578,7 @@ export const createWorld =
         }), chunk);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
+        if (chunk.region === "snowyMountains") chunks.add(createSnowyMountainsArea({ scene, chunk }), chunk);
         if (northernCampChunk) {
           const camp = createCamp({
             scene,

@@ -5,7 +5,7 @@ import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WAYPOINTS } from "../waypoints";
 import { WORLD_EVENTS } from "../worldEvents";
-import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getWorldHeight } from "../worldConfig";
+import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight } from "../worldConfig";
 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
@@ -20,10 +20,10 @@ const MODELS = {
 
 const CIRCLES = [
   ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
-  ...WAYPOINTS.filter((point) => point.id === "lake-waypoint")
+  ...WAYPOINTS.filter((point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id))
     .map((point) => ({ ...point.position, radius: 9 })),
   ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
-  ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: 8 })),
+  ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: spawn.type === "frostOgre" ? 24 : 8 })),
   ...["goat", "rat", "bee"].map((type) => {
     const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
     return {
@@ -146,19 +146,20 @@ export const loadForestProps = async (scene) => {
           z: center.z - size / 2 + (row + 0.5 + (random() - 0.5) * 0.8) * spacing,
         };
         const mix = getHighlandMix(position.z);
-        const treeChance = density * (0.84 - 0.76 * mix);
-        const rockChance = density * (0.18 + 0.34 * mix);
+        const snowy = center.region === "snowyMountains" || getSnowMix(position.x, position.z) > 0;
+        const treeChance = snowy ? 0 : density * (0.84 - 0.76 * mix);
+        const rockChance = density * (snowy ? 0.38 : 0.18 + 0.34 * mix);
 
         const treePlaced = random() < treeChance && isOpen(position, 2, CIRCLES);
         if (treePlaced) {
           const kind = random() < 0.4 + 0.55 * mix ? "conifers" : "broadleaf";
           place(root, kind, position, random, 0.75 + random() * 0.35);
-          if (random() < 0.7) {
+          if (!snowy && random() < 0.7) {
             const undergrowth = nearby(position, 5, random);
             if (isOpen(undergrowth, 1, CIRCLES))
               place(root, random() < mix ? "scrub" : "undergrowth", undergrowth, random, 0.7 + random() * 0.4);
           }
-          if (random() < 0.025 * (1 - mix)) {
+          if (!snowy && random() < 0.025 * (1 - mix)) {
             const accent = nearby(position, 6, random);
             if (isOpen(accent, 3, CIRCLES))
               place(root, "accents", accent, random, 0.65 + random() * 0.3);
@@ -178,7 +179,7 @@ export const loadForestProps = async (scene) => {
                 place(root, "rocks", rock, random, 0.65 + random() * 0.45);
             }
           }
-          if (random() < 0.45) {
+          if (!snowy && random() < 0.45) {
             for (let i = 0; i < 2; i++) {
               const undergrowth = nearby(rockCenter, 5, random);
               if (isOpen(undergrowth, 1, CIRCLES))
@@ -187,7 +188,7 @@ export const loadForestProps = async (scene) => {
           }
         }
 
-        if (!treePlaced && !rockPlaced && random() < 0.06 * mix && isOpen(position, 4, CIRCLES))
+        if (!snowy && !treePlaced && !rockPlaced && random() < 0.06 * mix && isOpen(position, 4, CIRCLES))
           place(root, "deadTrees", position, random, 0.7 + random() * 0.3);
       }
     }

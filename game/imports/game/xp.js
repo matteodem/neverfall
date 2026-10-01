@@ -1,5 +1,5 @@
 export const MAX_LEVEL =
-  20;
+  15;
 
 const BASE_XP =
   100;

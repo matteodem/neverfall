@@ -1,4 +1,4 @@
-import { FOREST_GIANT_HILL, SOUTHWEST_LAKE, getForestGiantHillHeight } from "./worldConfig";
+import { FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getForestGiantHillHeight } from "./worldConfig";
 
 export const ENEMY_COMBAT_SPEED_MULTIPLIER = 1.0;
 
@@ -144,6 +144,33 @@ ENEMY_TYPES.alphaWolf = {
   accessoryDropChance: 0.2,
 };
 
+ENEMY_TYPES.snowWolf = {
+  ...ENEMY_TYPES.wolf,
+  name: "Snow Wolf",
+  health: 240,
+  healthPerLevel: 80,
+  attackDamage: 10,
+  damagePerLevel: 8,
+  xpReward: 140,
+};
+ENEMY_TYPES.mountainGoat = {
+  ...ENEMY_TYPES.goat,
+  name: "Mountain Goat",
+  health: 300,
+  attackDamage: 12,
+  xpReward: 180,
+};
+ENEMY_TYPES.frostOgre = {
+  ...ENEMY_TYPES.forestGiant,
+  name: "Frost Ogre",
+  health: 3200,
+  attackDamage: 55,
+  xpReward: 500,
+  moneyReward: 20000,
+  accessoryDropChance: 0.6,
+  emissiveColor: [0.06, 0.13, 0.18],
+};
+
 // Reuse the existing ogre asset and animations for the small dungeon bosses.
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
@@ -196,6 +223,13 @@ export const ENEMY_SPAWNS = [
   { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
   { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
   { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
+  { id: "snow-wolf-1", type: "snowWolf", level: 10, x: 188, y: 0, z: -42 },
+  { id: "snow-wolf-2", type: "snowWolf", level: 10, x: 202, y: 0, z: -52 },
+  { id: "snow-wolf-3", type: "snowWolf", level: 10, x: 219, y: 0, z: -38 },
+  { id: "mountain-goat-1", type: "mountainGoat", level: 12, x: 224, y: 0, z: 43 },
+  { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 240, y: 0, z: 55 },
+  { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 252, y: 0, z: 39 },
+  { id: "frost-ogre", type: "frostOgre", level: 14, y: 0, ...SNOWY_MOUNTAINS.boss },
   ...Array.from({ length: 5 }, (_, index) => {
     const angle = index * Math.PI * 2 / 5;
     const distance = SOUTHWEST_LAKE.radius + 7;
