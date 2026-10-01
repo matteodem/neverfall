@@ -18,12 +18,12 @@ import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 
 const WORLD_LABELS = [
-  { label: "Highlands", x: 0, z: 120 },
-  { label: "Forest", x: -60, z: 57.5 },
+  { label: "Highlands (Level 5 - 10)", x: 0, z: 120 },
+  { label: "Forest (Level 1 - 5)", x: -60, z: 57.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: -200 },
   { label: "Forest", x: 0, z: -210 },
-  { label: "Snowy Mountains", x: 238, z: -85 },
+  { label: "Snowy Mountains (Level 10 - 15)", x: 238, z: -85 },
 ];
 
 const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
@@ -149,7 +149,7 @@ const MapContent = () => {
             className="pointer-events-none absolute inset-0 h-full w-full" draggable={false} />
         ))}
         {!dungeon && WORLD_LABELS.map((position, index) => (
-          <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7]"
+          <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7] text-shadow-lg"
             style={worldToPercent(position)}>{position.label}</span>
         ))}
         {!dungeon && getUnlockedSpawnPoints(character?.unlockedSpawnPoints).map((point) => (
@@ -194,7 +194,7 @@ const MapContent = () => {
           <div className="absolute z-10" style={worldToPercent(SOUTHWEST_LAKE.center)} title="Southwest Lake">
             <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-white bg-sky-500" />
             <span className="world-map-marker-label absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
-              Southwest Lake
+              Southwest Lake (Level 15)
             </span>
           </div>
         )}

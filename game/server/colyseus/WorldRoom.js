@@ -13,6 +13,7 @@ import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight } from "../../imports/game/worldConfig";
+import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
@@ -359,6 +360,26 @@ export class WorldRoom
   }
 
   messages = {
+    claimTowerChest: async (client) => {
+      const player = this.state.players.get(client.sessionId);
+      const chest = BASIC_TOWER_CHEST_POSITION;
+      if (!player || player.health <= 0 || player.inDungeon || player.towerChestClaimed ||
+        Math.hypot(player.x - chest.x, player.y - chest.y, player.z - chest.z) > 3) return;
+      const updated = await Meteor.users.updateAsync({
+        _id: player.userId,
+        "profile.claimedTowerChestCharacterIds": { $ne: player.characterId },
+      }, {
+        $addToSet: { "profile.claimedTowerChestCharacterIds": player.characterId },
+        $inc: { "profile.inventory.money": 10000 },
+      });
+      if (!updated) {
+        player.towerChestClaimed = true;
+        return;
+      }
+      this.recordActivity(client.sessionId);
+      player.towerChestClaimed = true;
+      client.send("towerChestReward", "Tower Chest · 1 Gold");
+    },
     prepareWaypoint: (client, waypointId) => {
       const waypoint = this.getAvailableWaypoint(client, waypointId);
       if (waypoint) client.send("waypointReady", { id: waypoint.id, position: waypoint.position });
@@ -918,6 +939,10 @@ export class WorldRoom
       );
     }
 
+    const user = await Meteor.users.findOneAsync(auth.userId, {
+      fields: { "profile.claimedTowerChestCharacterIds": 1 },
+    });
+
     const unlockedSpawnPoints = new Set(character.unlockedSpawnPoints || []);
     const legacyIds = [DEFAULT_SPAWN_POINT.id];
     if (character.adventureGuide?.visitedNorthernCamp) legacyIds.push(NORTHERN_SPAWN_POINT.id);
@@ -980,6 +1005,8 @@ export class WorldRoom
 
         characterId:
           character._id,
+
+        towerChestClaimed: user?.profile?.claimedTowerChestCharacterIds?.includes(character._id) || false,
 
         name:
           character.name,

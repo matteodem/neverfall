@@ -3,6 +3,7 @@ import { DUNGEONS, getDungeonConfig, nearDungeonObject } from "./dungeonConfig";
 import { enterDungeon, leaveDungeon } from "./gameSession";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useHudStore } from "../ui/stores/useHudStore";
+import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
 
 export const createDungeonInteractions = ({ room, player, visuals, dungeon }) => {
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
@@ -21,6 +22,10 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     let prompt = null;
     if (local?.health > 0) {
       if (nearbyEntrance && !local.inDungeon) prompt = "enter";
+      const chest = BASIC_TOWER_CHEST_POSITION;
+      if (!dungeon && !local.towerChestClaimed &&
+        Math.hypot(player.position.x - chest.x, player.position.y - chest.y,
+          player.position.z - chest.z) <= 3) prompt = "towerChest";
       if (dungeon && completed && !local.dungeonRewardClaimed && state.loot.has(`chest-${local.characterId}`)
         && nearDungeonObject(player.position, config.chest, LOOT_RANGE)) prompt = "reward";
       if (dungeon && nearDungeonObject(player.position, config.exit, config.interactionDistance)) prompt = "exit";
@@ -44,6 +49,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     if (!state.prompt) return false;
     if (state.busy || useHudStore.getState().activeModal) return true;
     if (state.prompt === "enter") enterDungeon(state.dungeonId);
+    if (state.prompt === "towerChest") room.send("claimTowerChest");
     if (state.prompt === "reward") room.send("dungeonReward");
     if (state.prompt === "exit") {
       useDungeonStore.getState().setBusy(true);

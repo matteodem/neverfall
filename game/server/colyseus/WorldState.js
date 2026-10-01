@@ -39,6 +39,7 @@ export const PlayerState =
       respawnProtectedUntil: t.number().default(0),
       worldSessionId: t.string().default(""),
       dungeonRewardClaimed: t.boolean().default(false),
+      towerChestClaimed: t.boolean().default(false),
 
       movementSpeedMultiplier: t.number().default(1),
       speedPotionUntil: t.number().default(0),

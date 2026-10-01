@@ -8,6 +8,8 @@ import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
+import { BASIC_TOWER_POSITION } from "./basicTowerConfig";
+import { createBasicTower } from "./environment/createBasicTower";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
@@ -58,8 +60,6 @@ import {
 import {
   createKayKitAnimationController,
 } from "./character/createKayKitAnimationController";
-
-// import { createJumpingPuzzle } from "./environment/createJumpingPuzzle";
 
 export const createWorld =
   async (
@@ -527,9 +527,10 @@ export const createWorld =
       chunks = createWorldChunks(scene, player);
       let disposed = false;
       scene.onDisposeObservable.addOnce(() => { disposed = true; });
-      const [forestProps, campAssets] = await Promise.all([
-        loadForestProps(scene), loadCampAssets(scene),
+      const [forestProps, campAssets, tower] = await Promise.all([
+        loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene),
       ]);
+      jumpingPuzzle = tower;
       const createCamp = campAssets.available ? campAssets.createCamp : createClearingCamp;
       /*
        * =====================================================
@@ -554,6 +555,7 @@ export const createWorld =
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
+            ...(giantHillChunk ? [{ center: BASIC_TOWER_POSITION, radius: 9 }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
             ...(chunk.region === "snowyMountains" ? [{ center: SNOWY_MOUNTAINS.boss, radius: 24 }] : []),
             ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")
@@ -639,7 +641,7 @@ export const createWorld =
       * =====================================================
       */
 
-      // jumpingPuzzle = createJumpingPuzzle({ scene });
+      chunks.add(jumpingPuzzle, BASIC_TOWER_POSITION);
 
 
       /*
@@ -666,11 +668,7 @@ export const createWorld =
         chunks.add(mesh, mesh.getAbsolutePosition());
       }
       chunks.add(clearingCamp, clearingCamp.position);
-      // for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) {
-      //   chunks.add(mesh, mesh.getAbsolutePosition());
-      // }
       chunks.update();
-      // for (const mesh of [...jumpingPuzzle.blocks, jumpingPuzzle.platform]) mesh.freezeWorldMatrix();
     }
 
     /*

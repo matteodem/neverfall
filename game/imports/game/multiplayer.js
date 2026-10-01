@@ -1401,6 +1401,7 @@ export const createMultiplayer =
      */
 
     onMessage("bossNotice", (text) => useBossNoticeStore.getState().show(text));
+    onMessage("towerChestReward", (text) => useBossNoticeStore.getState().show(text));
     onMessage("worldEventNotice", (text) => useBossNoticeStore.getState().show(text));
     onMessage("spawnPointUnlocked", (name) => useBossNoticeStore.getState().show(`Respawn Point Unlocked · ${name}`));
 

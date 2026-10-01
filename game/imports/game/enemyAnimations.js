@@ -9,7 +9,7 @@ export const createEnemyAnimations = (groups, clips) => {
     if (!visible) return;
     const clip = clips[name];
     const group = typeof clip === "string"
-      ? groups.find((candidate) => candidate.name === clip)
+      ? groups.find((candidate) => candidate.name === clip || candidate.name === `Clone of ${clip}`)
       : groups[0];
     if (!group || (current === name && group.isPlaying)) return;
     for (const candidate of groups) candidate.stop();

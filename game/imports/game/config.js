@@ -40,7 +40,7 @@ export const HEAL = {
 };
 
 export const JUMP = {
-  velocity: 6,
+  velocity: 8,
   gravity: 16,
   groundY: 0,
 };
