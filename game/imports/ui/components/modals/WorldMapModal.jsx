@@ -5,6 +5,7 @@ import { Characters } from "../../../api/characters/characters";
 import { getUnlockedSpawnPoints } from "../../../game/spawnPoints";
 import { WAYPOINTS, getUnlockedWaypoints } from "../../../game/waypoints";
 import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
+import { BASIC_TOWER_POSITION } from "../../../game/basicTowerConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS } from "../../../game/enemyConfig";
 import { HUNT_QUESTS } from "../../../game/quests";
@@ -187,6 +188,14 @@ const MapContent = () => {
             <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#e0c99a] bg-[#59646b]" />
             <span className="world-map-marker-label absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
               Highlands Lookout
+            </span>
+          </div>
+        )}
+        {!dungeon && (
+          <div className="absolute z-10" style={worldToPercent(BASIC_TOWER_POSITION)} title="Tower Jumping Puzzle">
+            <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-white bg-amber-700 shadow" />
+            <span className="world-map-marker-label absolute bottom-2 left-3 whitespace-nowrap rounded bg-black/75 px-1 text-[10px] font-semibold text-amber-200">
+              Tower Jumping Puzzle
             </span>
           </div>
         )}

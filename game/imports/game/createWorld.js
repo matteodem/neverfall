@@ -8,7 +8,7 @@ import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
-import { BASIC_TOWER_POSITION } from "./basicTowerConfig";
+import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
@@ -545,6 +545,8 @@ export const createWorld =
         const assetForest = forestProps.available;
         const northernCampChunk = chunk.x === NORTHERN_CAMP.center.x && chunk.z === NORTHERN_CAMP.center.z;
         const giantHillChunk = chunk.x === 0 && chunk.z === 0;
+        const towerChunk = Math.abs(chunk.x - BASIC_TOWER_POSITION.x) < CHUNK_SIZE / 2 &&
+          Math.abs(chunk.z - BASIC_TOWER_POSITION.z) < CHUNK_SIZE / 2;
         const lakeChunk = Math.abs(chunk.x - SOUTHWEST_LAKE.center.x) < CHUNK_SIZE / 2 &&
           Math.abs(chunk.z - SOUTHWEST_LAKE.center.z) < CHUNK_SIZE / 2;
         const area = createForestArea({
@@ -555,7 +557,7 @@ export const createWorld =
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
-            ...(giantHillChunk ? [{ center: BASIC_TOWER_POSITION, radius: 9 }] : []),
+            ...(towerChunk ? [{ center: BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
             ...(chunk.region === "snowyMountains" ? [{ center: SNOWY_MOUNTAINS.boss, radius: 24 }] : []),
             ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")

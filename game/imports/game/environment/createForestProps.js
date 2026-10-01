@@ -1,5 +1,5 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
-import { BASIC_TOWER_POSITION } from "../basicTowerConfig";
+import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
 import { ENEMY_SPAWNS } from "../enemyConfig";
@@ -33,7 +33,7 @@ const SNOWY_CLUSTER_CHOICES = {
 };
 
 const CIRCLES = [
-  { ...BASIC_TOWER_POSITION, radius: 9 },
+  { ...BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS },
   ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
   ...WAYPOINTS.filter((point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id))
     .map((point) => ({ ...point.position, radius: 9 })),

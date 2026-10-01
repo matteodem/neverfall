@@ -1,8 +1,9 @@
 import { getWorldHeight } from "./worldConfig";
 
-export const BASIC_TOWER_POSITION = { x: 22, z: 0 };
+export const BASIC_TOWER_POSITION = { x: 60, z: -230 };
 export const BASIC_TOWER_SCALE = 18;
 export const BASIC_TOWER_ROTATION_Y = 0;
+export const BASIC_TOWER_CLEARING_RADIUS = 16;
 
 // Local GLB coordinates at the center of the final walkable platform.
 export const BASIC_TOWER_PLATFORM_POINT = { x: 0.18, y: 0.7107, z: -0.31 };
