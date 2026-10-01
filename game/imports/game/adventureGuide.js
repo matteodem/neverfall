@@ -7,6 +7,7 @@ export const getAdventureGuideObjective = (character) => {
   const boarKills = achievements.boarSlayer?.progress || 0;
   const wolfKills = achievements.wolfHunter?.progress || 0;
   const goatKills = achievements.goatHunter?.progress || 0;
+  const snowWolfKills = achievements.snowWolfHunter?.progress || 0;
   const steps = [
     { id: "boars", title: "Defeat 5 Boars", progress: `${Math.min(boarKills, 5)} / 5`,
       hint: "Find boars near Central Camp.", done: boarKills >= 5 },
@@ -27,10 +28,15 @@ export const getAdventureGuideObjective = (character) => {
       done: quests["explore-highlands"] >= 1 },
     { id: "goats", title: "Kill 10 Goats", progress: `${Math.min(goatKills, 10)} / 10`,
       hint: "Find goats in the western Highlands.", done: goatKills >= 10 },
+    { id: "tower-chest", title: "Loot the Jumping Puzzle Chest",
+      hint: "Find the tower in the south, climb to the top, and open its chest.",
+      done: achievements.towerSummit?.unlocked },
     { id: "level-10", title: "Reach Level 10", progress: `${Math.min(character?.currentLevel ?? 1, 10)} / 10`,
       hint: "Complete Hunts and quests to earn XP.", done: (character?.currentLevel ?? 1) >= 10 },
-    { id: "snowy", title: "Explore Snowy Mountains", hint: "Unlock the Snowy Mountains waypoint east of Central Camp. Recommended level 10.",
+    { id: "snowy", title: "Explore Snowy Mountains", hint: "Unlock the Snowy Mountains waypoint east of Central Camp.",
       done: waypoints.includes("snowy-mountains-waypoint") },
+    { id: "snow-wolf-hunt", title: "Kill 10 Snow Wolfs", progress: `${Math.min(snowWolfKills, 10)} / 10`,
+      hint: "Defeat snow wolves north of the Snowy Mountains waypoint.", done: snowWolfKills >= 10 },
     { id: "explore", title: "Explore Neverfall",
       hint: "Try Hunts, dungeons, world events, bosses, the tower puzzle, and parties.", done: false },
   ];

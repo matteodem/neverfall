@@ -379,8 +379,9 @@ export class WorldRoom
       }
       this.recordActivity(client.sessionId);
       player.towerChestClaimed = true;
+      await this.awardXp(player.characterId, 500);
       await trackAchievements(player.characterId, "towerChest");
-      client.send("towerChestReward", "Tower Chest · 1 Gold");
+      client.send("towerChestReward", "Tower Chest · 1 Gold · 500 XP");
     },
     prepareWaypoint: (client, waypointId) => {
       const waypoint = this.getAvailableWaypoint(client, waypointId);
