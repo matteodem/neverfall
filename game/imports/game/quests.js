@@ -108,7 +108,7 @@ export const QUESTS = [
     rewards: { xp: 100 },
   },
   {
-    id: "awakened-threat", title: "Awakened Threat", description: "Complete Forest Giant Awakening",
+    id: "awakened-threat", title: "Awakened Threat", description: "Kill Awakened Forest Giant",
     objective: { type: "CompleteEvent", target: "forest-giant-awakening", amount: 1 },
     rewards: { xp: 500, gold: 2 },
   },

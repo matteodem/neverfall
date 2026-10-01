@@ -15,6 +15,8 @@ const KEYBOARD_CONTROLS = [
   ["I", "Toggle Inventory"],
   ["B", "Toggle Shop"],
   ["G", "Toggle Gear"],
+  ["Q", "Toggle Quests"],
+  ["H", "Toggle Hunts"],
   ["Z", "Toggle Achievements"],
   ["T", "Toggle Talents"],
   ["M", "Toggle Map"],
