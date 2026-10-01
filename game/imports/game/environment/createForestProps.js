@@ -148,7 +148,7 @@ export const loadForestProps = async (scene) => {
   const placeSnowyCluster = (root, position, random, density) => {
     const height = getWorldHeight(position.x, position.z);
     const tier = height < 8 ? "lower" : height < 15 ? "middle" : "upper";
-    const chance = { lower: 0.22, middle: 0.17, upper: 0.12 }[tier] * density;
+    const chance = { lower: 0.30, middle: 0.23, upper: 0.17 }[tier] * density;
     if (random() >= chance || !isOpen(position, 5, CIRCLES)) return;
 
     const choices = SNOWY_CLUSTER_CHOICES[tier];
