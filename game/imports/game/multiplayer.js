@@ -862,6 +862,23 @@ export const createMultiplayer =
     const remotePlayers =
       new Map();
 
+    onMessage("waypointTravel", ({ sessionId, x, y, z, rotationY }) => {
+      if (sessionId === room.sessionId) {
+        onLocalRespawn?.();
+        player.position.set(x, y + JUMP.groundY, z);
+        player.rotation.y = rotationY;
+      } else {
+        const remote = remotePlayers.get(sessionId);
+        if (!remote) return;
+        remote.root.position.set(x, y, z);
+        remote.targetPosition.set(x, y, z);
+        remote.root.rotation.y = rotationY;
+        remote.targetRotationY = rotationY;
+      }
+    });
+    onMessage("waypointUnlocked", (name) => useBossNoticeStore.getState().show(`Waypoint Unlocked · ${name}`));
+    onMessage("waypointTravelError", (message) => useBossNoticeStore.getState().show(message));
+
 
     const enemies =
       new Map();
@@ -2116,6 +2133,7 @@ export const createMultiplayer =
       equipItem,
       unequipItem,
       changeTalents,
+      travelWaypoint: (waypointId) => room.send("travelWaypoint", waypointId),
       useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,

@@ -2,6 +2,7 @@ import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
 import { SPAWN_POINTS, DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, getNearestUnlockedSpawnPoint } from "../../imports/game/spawnPoints";
+import { WAYPOINTS, DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
 import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
@@ -343,6 +344,30 @@ export class WorldRoom
   }
 
   messages = {
+    travelWaypoint: (client, waypointId) => {
+      const player = this.state.players.get(client.sessionId);
+      const runtime = this.playerRuntime.get(client.sessionId);
+      const waypoint = WAYPOINTS.find((point) => point.id === waypointId);
+      if (!player || !runtime || !waypoint || !runtime.unlockedWaypoints.has(waypoint.id)) {
+        client.send("waypointTravelError", "Waypoint unavailable.");
+        return;
+      }
+      if (player.health <= 0 || player.inDungeon || this.isPlayerInCombat(client.sessionId) || player.mounted) {
+        client.send("waypointTravelError", "Cannot travel while dead, in combat, in a dungeon, or mounted.");
+        return;
+      }
+      this.recordActivity(client.sessionId);
+      player.x = waypoint.position.x;
+      player.y = waypoint.position.y;
+      player.z = waypoint.position.z;
+      runtime.lastMoveAt = Date.now();
+      runtime.moveAllowance = 0;
+      runtime.awaitingWaypointArrival = true;
+      this.broadcast("waypointTravel", {
+        sessionId: client.sessionId, x: player.x, y: player.y, z: player.z,
+        rotationY: player.rotationY,
+      });
+    },
     selectTalent: async (client, { level, talentId } = {}) => {
       const player = this.state.players.get(client.sessionId);
       if (!player || !Number.isInteger(level) || player.currentLevel < level ||
@@ -557,6 +582,13 @@ export class WorldRoom
       const dx = data.x - player.x;
       const dz = data.z - player.z;
       const distance = Math.hypot(dx, dz);
+      if (runtime.awaitingWaypointArrival) {
+        if (distance > 2) {
+          client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+          return;
+        }
+        runtime.awaitingWaypointArrival = false;
+      }
       const ratio = distance > allowance ? allowance / distance : 1;
       if (distance * ratio > 0.05 || Math.abs(data.y - player.y) > 0.05 ||
         Math.abs(data.rotationY - player.rotationY) > 0.02 || player.mounted !== wasMounted) {
@@ -583,6 +615,20 @@ export class WorldRoom
           }).catch((error) => {
             runtime.unlockedSpawnPoints.delete(point.id);
             console.error("[Spawn Points] Could not save discovery", error);
+          });
+        }
+        for (const point of WAYPOINTS) {
+          if (!point.discoveryRadius || runtime.unlockedWaypoints.has(point.id) ||
+            Math.hypot(player.x - point.position.x, player.z - point.position.z) > point.discoveryRadius) continue;
+          runtime.unlockedWaypoints.add(point.id);
+          void Characters.updateAsync(
+            { _id: player.characterId, userId: player.userId, unlockedWaypoints: { $ne: point.id } },
+            { $addToSet: { unlockedWaypoints: point.id } }
+          ).then((updated) => {
+            if (updated) client.send("waypointUnlocked", point.name);
+          }).catch((error) => {
+            runtime.unlockedWaypoints.delete(point.id);
+            console.error("[Waypoints] Could not save discovery", error);
           });
         }
         if (!runtime.visitedNorthernCamp &&
@@ -872,6 +918,18 @@ export class WorldRoom
       missingIds.forEach((id) => unlockedSpawnPoints.add(id));
     }
 
+    const unlockedWaypoints = new Set(character.unlockedWaypoints || []);
+    const legacyWaypointIds = [DEFAULT_WAYPOINT.id];
+    if (character.adventureGuide?.visitedNorthernCamp) legacyWaypointIds.push(NORTHERN_SPAWN_POINT.id);
+    const missingWaypointIds = legacyWaypointIds.filter((id) => !unlockedWaypoints.has(id));
+    if (missingWaypointIds.length) {
+      await Characters.updateAsync(
+        { _id: character._id, userId: auth.userId },
+        { $addToSet: { unlockedWaypoints: { $each: missingWaypointIds } } }
+      );
+      missingWaypointIds.forEach((id) => unlockedWaypoints.add(id));
+    }
+
 
     await trackAchievements(character._id, "level", character.currentLevel ?? 1);
 
@@ -997,6 +1055,7 @@ export class WorldRoom
         lastActivityAt: Date.now(),
         visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
         unlockedSpawnPoints,
+        unlockedWaypoints,
       }
     );
 

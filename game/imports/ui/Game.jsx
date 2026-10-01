@@ -79,6 +79,7 @@ import {
 import {
   useHudStore,
 } from "./stores/useHudStore";
+import { useWaypointStore } from "./stores/useWaypointStore";
 
 import {
   playGameSound,
@@ -428,6 +429,7 @@ export const Game = ({
           });
           useTalentStore.getState().setChangeHandler(multiplayer.changeTalents);
           useConsumableStore.getState().setUseHandler(multiplayer.useConsumable);
+          useWaypointStore.getState().setTravelHandler(multiplayer.travelWaypoint);
 
 
           useLoadingStore
@@ -1104,6 +1106,7 @@ export const Game = ({
         useEquipmentStore.getState().setChangeHandler(null);
         useTalentStore.getState().setChangeHandler(null);
         useConsumableStore.getState().setUseHandler(null);
+        useWaypointStore.getState().setTravelHandler(null);
 
 
         setMountedState(

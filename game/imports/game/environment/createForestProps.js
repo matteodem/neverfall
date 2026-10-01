@@ -3,6 +3,7 @@ import { DUNGEONS } from "../dungeonConfig";
 import { ENEMY_SPAWNS } from "../enemyConfig";
 import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
+import { WAYPOINTS } from "../waypoints";
 import { WORLD_EVENTS } from "../worldEvents";
 import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getWorldHeight } from "../worldConfig";
 
@@ -19,6 +20,8 @@ const MODELS = {
 
 const CIRCLES = [
   ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
+  ...WAYPOINTS.filter((point) => point.id === "lake-waypoint")
+    .map((point) => ({ ...point.position, radius: 9 })),
   ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
   ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: 8 })),
   ...["goat", "rat", "bee"].map((type) => {

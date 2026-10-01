@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../../api/characters/characters";
 import { getUnlockedSpawnPoints } from "../../../game/spawnPoints";
+import { WAYPOINTS, getUnlockedWaypoints } from "../../../game/waypoints";
 import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS } from "../../../game/enemyConfig";
@@ -11,6 +12,7 @@ import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
 import { useHudStore } from "../../stores/useHudStore";
 import { useMinimapStore } from "../../stores/useMinimapStore";
+import { useWaypointStore } from "../../stores/useWaypointStore";
 import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
@@ -38,6 +40,7 @@ const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
 const MapContent = () => {
   const { mobile } = useMobileDevice();
   const [view, setView] = React.useState(() => ({ zoom: mobile ? 1.5 : 1, x: 0, y: 0 }));
+  const [selectedWaypointId, setSelectedWaypointId] = React.useState(null);
   const viewportRef = React.useRef(null);
   const pointers = React.useRef(new Map());
   const gesture = React.useRef(null);
@@ -46,10 +49,15 @@ const MapContent = () => {
   const dungeonId = useDungeonStore((state) => state.dungeonId);
   const dungeon = location === "dungeon";
   const dungeonConfig = getDungeonConfig(dungeonId);
+  const travelToWaypoint = useWaypointStore((state) => state.travel);
+  const closeModal = useHudStore((state) => state.closeModal);
   const character = useTracker(() => {
     const id = Meteor.user()?.profile?.currentCharacterId;
     return id ? Characters.findOne(id) : null;
   });
+  const unlockedWaypoints = getUnlockedWaypoints(character?.unlockedWaypoints);
+  const undiscoveredWaypoints = WAYPOINTS.filter((point) => !point.isDefault && !unlockedWaypoints.includes(point));
+  const selectedWaypoint = unlockedWaypoints.find((point) => point.id === selectedWaypointId);
   React.useEffect(() => {
     if (dungeon || !character || character.adventureGuide?.openedMap) return;
     Meteor.callAsync("adventureGuide.openMap").catch((error) =>
@@ -145,6 +153,25 @@ const MapContent = () => {
             </span>
           </div>
         ))}
+        {!dungeon && unlockedWaypoints.map((point) => (
+          <button key={point.id} type="button" className="absolute z-[16] cursor-pointer border-0 bg-transparent p-0"
+            style={{ ...worldToPercent(point.position), transform: point.id === "lake-waypoint" ? undefined : "translateX(18px)" }}
+            aria-label={`Travel to ${point.name}`}
+            onPointerDown={(event) => event.stopPropagation()}
+            onPointerUp={(event) => event.stopPropagation()}
+            onClick={() => setSelectedWaypointId(point.id)}>
+            <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-sky-700 text-[10px] font-bold text-white shadow">◆</span>
+            <span className={`world-map-marker-label absolute left-5 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-sky-100 ${point.id === "lake-waypoint" ? "top-2" : "bottom-3"}`}>{point.name} · Waypoint</span>
+          </button>
+        ))}
+        {!dungeon && undiscoveredWaypoints.map((point) => (
+          <div key={point.id} className="pointer-events-none absolute z-[16]"
+            style={{ ...worldToPercent(point.position), transform: point.id === "lake-waypoint" ? undefined : "translateX(18px)" }}
+            role="img" aria-label={`${point.name}, undiscovered`}>
+            <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-slate-600 text-[10px] text-white shadow">◆</span>
+            <span className={`world-map-marker-label absolute left-5 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-slate-100 ${point.id === "lake-waypoint" ? "top-2" : "bottom-3"}`}>{point.name} · Undiscovered</span>
+          </div>
+        ))}
         {!dungeon && (
           <div className="absolute z-10" style={worldToPercent(HIGHLANDS_LOOKOUT)} title="Highlands Lookout">
             <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#e0c99a] bg-[#59646b]" />
@@ -189,6 +216,18 @@ const MapContent = () => {
         </div>
         </div>
       </div>
+      {selectedWaypoint && !dungeon && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-box bg-base-200 p-3">
+          <span>Travel to {selectedWaypoint.name}?</span>
+          <div className="flex gap-2">
+            <button type="button" className="btn btn-sm" onClick={() => setSelectedWaypointId(null)}>Cancel</button>
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => {
+              travelToWaypoint(selectedWaypoint.id);
+              closeModal("map");
+            }}>Travel</button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

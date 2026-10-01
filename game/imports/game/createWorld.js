@@ -10,6 +10,7 @@ import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
+import { WAYPOINTS } from "./waypoints";
 import "@babylonjs/loaders/glTF";
 
 import { getClassConfig } from "./classConfig";
@@ -553,6 +554,8 @@ export const createWorld =
           extraClearings: [
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
+            ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")
+              .map((point) => ({ center: point.position, radius: 9 })) : []),
           ],
           ...(northernCampChunk ? { clearing: {
             center: new Vector3(NORTHERN_CAMP.center.x, 0, NORTHERN_CAMP.center.z),
