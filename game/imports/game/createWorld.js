@@ -1,6 +1,6 @@
 import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
-import { createDungeonPortal } from "./environment/createDungeonPortal";
+import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
 import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
@@ -532,9 +532,10 @@ export const createWorld =
       const chunks = createWorldChunks(scene, player);
       const forestProps = await loadForestProps(scene);
       const campAssets = await loadCampAssets(scene);
+      const entranceAsset = await loadDungeonEntranceAsset(scene);
       const createCamp = campAssets.available ? campAssets.createCamp : createClearingCamp;
       for (const config of DUNGEONS) {
-        const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name });
+        const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name, entranceAsset });
         chunks.add(portal.root, config.entrance);
       }
       /*

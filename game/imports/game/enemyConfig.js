@@ -99,8 +99,8 @@ export const ENEMY_TYPES = {
     healthBarY: 3.5,
     nameplateY: 3.85,
     health: 2500,
-    healthPerLevel: 0,
-    attackDamage: 40,
+    healthPerLevel: 100,
+    attackDamage: 80,
     damagePerLevel: 0,
     attackRange: 2.5,
     attackCooldown: 1200,
@@ -133,8 +133,8 @@ ENEMY_TYPES.alphaWolf = {
   name: "Alpha Wolf",
   scale: 0.65,
   health: 1800,
-  healthPerLevel: 0,
-  attackDamage: 30,
+  healthPerLevel: 100,
+  attackDamage: 60,
   damagePerLevel: 0,
   speed: 3,
   attackRange: 2.2,
@@ -164,7 +164,7 @@ ENEMY_TYPES.frostOgre = {
   ...ENEMY_TYPES.forestGiant,
   name: "Frost Ogre",
   health: 3200,
-  attackDamage: 55,
+  attackDamage: 110,
   xpReward: 500,
   moneyReward: 20000,
   accessoryDropChance: 0.6,
@@ -175,13 +175,13 @@ ENEMY_TYPES.frostOgre = {
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
   accessoryDropChance: 0.20,
-  name: "Dungeon Guardian", health: 350, attackDamage: 15, moneyReward: 0,
-  healthPerLevel: 100, damagePerLevel: 5,
+  name: "Dungeon Guardian", health: 350, attackDamage: 30, moneyReward: 0,
+  healthPerLevel: 200, damagePerLevel: 10,
 };
 ENEMY_TYPES.dungeonWarden = {
   ...ENEMY_TYPES.forestGiant,
-  name: "Dungeon Warden", health: 650, attackDamage: 20, moneyReward: 0, scale: 1.3,
-  healthPerLevel: 100, damagePerLevel: 5,
+  name: "Dungeon Warden", health: 650, attackDamage: 40, moneyReward: 0, scale: 1.3,
+  healthPerLevel: 200, damagePerLevel: 10,
 };
 
 export const getEnemyStats = (type = "boar", level = 1, rare = false) => {

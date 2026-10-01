@@ -5,11 +5,11 @@ import { getSpecies } from "./species";
 import { getTalentBonuses } from "./talents";
 
 const HEALTH_PER_LEVEL =
-  25;
+  40;
 
 
 const DAMAGE_PER_LEVEL =
-  10;
+  13;
 
 
 const BASE_HEAL_AMOUNT =
