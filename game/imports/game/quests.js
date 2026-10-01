@@ -30,7 +30,7 @@ export const WOLF_HUNT_QUEST = {
 
 export const GIANT_HUNT_QUEST = {
   id: "giant-hunt",
-  title: "Kill The Giant",
+  title: "Forest Giant Hunt",
   description: "Kill the Forest Giant",
   progressField: "giantQuestKills",
   target: 1,
@@ -61,6 +61,21 @@ export const HUNT_QUESTS = {
     id: "seal-hunt", title: "Seal Hunt", description: "Kill 5 Seals",
     progressField: "sealQuestKills", rewardXp: 1250,
   },
+  snowWolf: {
+    ...BOAR_HUNT_QUEST,
+    id: "snow-wolf-hunt", title: "Snow Wolf Hunt", description: "Kill 5 Snow Wolves",
+    progressField: "snowWolfQuestKills", rewardXp: 1250,
+  },
+  mountainGoat: {
+    ...BOAR_HUNT_QUEST,
+    id: "mountain-goat-hunt", title: "Mountain Goat Hunt", description: "Kill 5 Mountain Goats",
+    progressField: "mountainGoatQuestKills", rewardXp: 1500,
+  },
+  frostOgre: {
+    ...GIANT_HUNT_QUEST,
+    id: "frost-ogre-hunt", title: "Frost Ogre Hunt", description: "Kill the Frost Ogre",
+    progressField: "frostOgreQuestKills", rewardXp: 2000,
+  },
 };
 
 // New quests are available automatically; NPC quest givers can use the same
@@ -68,7 +83,7 @@ export const HUNT_QUESTS = {
 export const QUESTS = [
   ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
     ...hunt,
-    objective: { type: type === "forestGiant" ? "Boss" : "Kill", target: type, amount: hunt.target },
+    objective: { type: ["forestGiant", "frostOgre"].includes(type) ? "Boss" : "Kill", target: type, amount: hunt.target },
     rewards: { xp: hunt.rewardXp },
     repeatable: true,
   })),
@@ -119,9 +134,10 @@ const BOAR_AREA = {
 };
 
 const giantSpawn = ENEMY_SPAWNS.find(({ type }) => type === "forestGiant");
+const frostOgreSpawn = ENEMY_SPAWNS.find(({ type }) => type === "frostOgre");
 const GIANT_QUEST_RADIUS = 25;
 
-const newHuntAreas = ["goat", "rat", "bee", "seal"].map((type) => {
+const newHuntAreas = ["goat", "rat", "bee", "seal", "snowWolf", "mountainGoat"].map((type) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
   return {
     type,
@@ -133,6 +149,9 @@ const newHuntAreas = ["goat", "rat", "bee", "seal"].map((type) => {
 });
 
 export const getQuestArea = ({ x, z }) => {
+  if (Math.hypot(x - frostOgreSpawn.x, z - frostOgreSpawn.z) <= GIANT_QUEST_RADIUS) {
+    return "frostOgre";
+  }
   const huntArea = newHuntAreas.find((area) =>
     x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
   if (huntArea) return huntArea.type;

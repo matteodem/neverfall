@@ -23,7 +23,7 @@ const WORLD_LABELS = [
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: -200 },
   { label: "Forest", x: 0, z: -210 },
-  { label: "Snowy Mountains", x: 238, z: -30 },
+  { label: "Snowy Mountains", x: 238, z: -85 },
 ];
 
 const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
@@ -39,7 +39,11 @@ const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
       x: spawns.reduce((sum, spawn) => sum + spawn.x, 0) / spawns.length,
       z: spawns.reduce((sum, spawn) => sum + spawn.z, 0) / spawns.length,
     };
-  return { id: quest.id, title: quest.title, position, labelBelow: type === "seal" };
+  return {
+    id: quest.id, title: quest.title, position,
+    labelBelow: type === "seal" || type === "snowWolf",
+    alignEnd: position.x > 230,
+  };
 });
 
 const MapContent = () => {
@@ -196,7 +200,7 @@ const MapContent = () => {
         {!dungeon && HUNT_MARKERS.map((hunt) => (
           <div key={hunt.id} className="pointer-events-none absolute z-10" style={worldToPercent(hunt.position)} title={hunt.title}>
             <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-3 w-3 rounded-full border border-white bg-amber-400 shadow" />
-            <span className={`world-map-marker-label absolute left-0 -translate-x-1/2 whitespace-nowrap rounded bg-black/75 px-1 text-[10px] font-semibold text-amber-200 ${hunt.labelBelow ? "top-2" : "bottom-2"}`}>
+            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/75 px-1 text-[10px] font-semibold text-amber-200 ${hunt.alignEnd ? "right-0" : "left-0 -translate-x-1/2"} ${hunt.labelBelow ? "top-2" : "bottom-2"}`}>
               {hunt.title}
             </span>
           </div>

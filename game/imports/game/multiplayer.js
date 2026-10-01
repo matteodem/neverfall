@@ -955,6 +955,9 @@ export const createMultiplayer =
             ["rat", "setRatKills"],
             ["bee", "setBeeKills"],
             ["seal", "setSealKills"],
+            ["snowWolf", "setSnowWolfKills"],
+            ["mountainGoat", "setMountainGoatKills"],
+            ["frostOgre", "setFrostOgreKills"],
           ]) {
             const field = HUNT_QUESTS[type].progressField;
             const syncKills = () => useQuestStore.getState()[setter](playerState[field] ?? 0);

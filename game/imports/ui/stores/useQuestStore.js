@@ -17,6 +17,9 @@ export const useQuestStore =
       ratKills: 0,
       beeKills: 0,
       sealKills: 0,
+      snowWolfKills: 0,
+      mountainGoatKills: 0,
+      frostOgreKills: 0,
       area: null,
       huntPopup: null,
       huntPopupVisible: false,
@@ -43,6 +46,9 @@ export const useQuestStore =
       setRatKills(ratKills) { set({ ratKills }); },
       setBeeKills(beeKills) { set({ beeKills }); },
       setSealKills(sealKills) { set({ sealKills }); },
+      setSnowWolfKills(snowWolfKills) { set({ snowWolfKills }); },
+      setMountainGoatKills(mountainGoatKills) { set({ mountainGoatKills }); },
+      setFrostOgreKills(frostOgreKills) { set({ frostOgreKills }); },
 
       setBoarKills(
         boarKills
@@ -64,6 +70,9 @@ export const useQuestStore =
           ratKills: 0,
           beeKills: 0,
           sealKills: 0,
+          snowWolfKills: 0,
+          mountainGoatKills: 0,
+          frostOgreKills: 0,
           area: null,
           huntPopup: null,
           huntPopupVisible: false,

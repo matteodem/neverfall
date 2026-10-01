@@ -103,6 +103,9 @@ export const PlayerState =
       ratQuestKills: t.number().default(0),
       beeQuestKills: t.number().default(0),
       sealQuestKills: t.number().default(0),
+      snowWolfQuestKills: t.number().default(0),
+      mountainGoatQuestKills: t.number().default(0),
+      frostOgreQuestKills: t.number().default(0),
 
       boarQuestKills:
         t.number().default(0),
