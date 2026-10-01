@@ -1,6 +1,6 @@
 import { getClassConfig } from "./classConfig";
 
-export const TALENT_LEVELS = [5, 10, 15, 20];
+export const TALENT_LEVELS = [5, 10, 15/*, 20*/];
 
 export const TALENTS = {
   warrior: {

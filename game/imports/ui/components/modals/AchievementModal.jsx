@@ -13,8 +13,8 @@ const useAchievementCharacter = () => useTracker(() => {
 export const AchievementModal = ({ embedded = false }) => {
   const character = useAchievementCharacter();
   const sortedAchievements = [...ACHIEVEMENTS].sort((a, b) =>
-    Number(Boolean(character?.achievements?.[b.id]?.unlocked)) -
-    Number(Boolean(character?.achievements?.[a.id]?.unlocked))
+    Number(Boolean(character?.achievements?.[a.id]?.unlocked)) -
+    Number(Boolean(character?.achievements?.[b.id]?.unlocked))
   );
   return (
     <HudModal id="achievements" title="Achievements" embedded={embedded} maxHeight={750}>
