@@ -13,4 +13,13 @@ export const ACHIEVEMENTS = [
   { id: "equipped", name: "Equipped", description: "Equip your first item.", event: "equip", target: 1 },
   { id: "mounted", name: "Mounted", description: "Use a mount for the first time.", event: "mount", target: 1 },
   { id: "bossKiller", name: "Boss Killer", description: "Defeat the Forest Giant.", event: "kill", enemyType: "forestGiant", target: 1 },
+  { id: "firstHunt", name: "First Hunt", description: "Complete a Hunt.", event: "hunt", target: 1 },
+  { id: "northernCamp", name: "Northern Camp", description: "Unlock the Northern Camp waypoint.", event: "waypoint", targetId: "northern-camp", target: 1 },
+  { id: "snowyExplorer", name: "Snowy Explorer", description: "Unlock the Snowy Mountains waypoint.", event: "waypoint", targetId: "snowy-mountains-waypoint", target: 1 },
+  { id: "rareHunter", name: "Rare Hunter", description: "Defeat a rare enemy.", event: "rare", target: 1 },
+  { id: "frostOgreSlayer", name: "Frost Ogre Slayer", description: "Defeat the Frost Ogre.", event: "kill", enemyType: "frostOgre", target: 1 },
+  { id: "dungeonDelver", name: "Dungeon Delver", description: "Complete a dungeon.", event: "dungeon", target: 1 },
+  { id: "eventDefender", name: "Event Defender", description: "Complete a world event.", event: "worldEvent", target: 1 },
+  { id: "towerSummit", name: "Tower Summit", description: "Open the Tower Jumping Puzzle chest.", event: "towerChest", target: 1 },
+  { id: "partyMember", name: "Party Member", description: "Join a party.", event: "party", target: 1 },
 ];

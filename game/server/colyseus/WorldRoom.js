@@ -379,6 +379,7 @@ export class WorldRoom
       }
       this.recordActivity(client.sessionId);
       player.towerChestClaimed = true;
+      await trackAchievements(player.characterId, "towerChest");
       client.send("towerChestReward", "Tower Chest · 1 Gold");
     },
     prepareWaypoint: (client, waypointId) => {
@@ -451,6 +452,12 @@ export class WorldRoom
       this.recordActivity(client.sessionId);
       const error = this.groups.accept(client.sessionId, invitationId);
       if (error) client.send("groupError", error);
+      else {
+        const groupId = this.state.players.get(client.sessionId)?.groupId;
+        for (const player of this.state.players.values()) {
+          if (player.groupId === groupId) void trackAchievements(player.characterId, "party");
+        }
+      }
     },
     groupIgnore: (client, invitationId) => {
       this.recordActivity(client.sessionId);
@@ -665,7 +672,10 @@ export class WorldRoom
             { _id: player.characterId, userId: player.userId, unlockedWaypoints: { $ne: point.id } },
             { $addToSet: { unlockedWaypoints: point.id } }
           ).then((updated) => {
-            if (updated) client.send("waypointUnlocked", point.name);
+            if (updated) {
+              client.send("waypointUnlocked", point.name);
+              void trackAchievements(player.characterId, "waypoint", point.id);
+            }
           }).catch((error) => {
             runtime.unlockedWaypoints.delete(point.id);
             console.error("[Waypoints] Could not save discovery", error);
@@ -976,6 +986,19 @@ export class WorldRoom
 
 
     await trackAchievements(character._id, "level", character.currentLevel ?? 1);
+    if (character.adventureGuide?.firstHunt) await trackAchievements(character._id, "hunt");
+    for (const id of ["northern-camp", "snowy-mountains-waypoint"]) {
+      if (unlockedWaypoints.has(id)) await trackAchievements(character._id, "waypoint", id);
+    }
+    if (user?.profile?.claimedTowerChestCharacterIds?.includes(character._id)) {
+      await trackAchievements(character._id, "towerChest");
+    }
+    if (character.questProgress?.["into-the-depths"] || character.questProgress?.["northern-ruins-quest"]) {
+      await trackAchievements(character._id, "dungeon");
+    }
+    if (character.questProgress?.["awakened-threat"] || character.questProgress?.["defend-northern-camp"]) {
+      await trackAchievements(character._id, "worldEvent");
+    }
 
     const appearance =
       character.appearance ||
@@ -1872,6 +1895,7 @@ export class WorldRoom
 
 
     const stats = this.getEnemyStats(spawn.type, spawn.level);
+    const rare = this.state.enemies.get(enemyId)?.rare;
     const lootOwners = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
@@ -1902,6 +1926,7 @@ export class WorldRoom
 
     for (const characterId of contributors) {
       await trackAchievements(characterId, "kill", spawn.type || "boar");
+      if (rare) await trackAchievements(characterId, "rare");
     }
 
     if (stats.moneyReward) {

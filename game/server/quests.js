@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../imports/api/characters/characters";
 import { QUESTS } from "../imports/game/quests";
+import { trackAchievements } from "./achievements";
 import { spawnLoot } from "./inventory/loot";
 
 const pending = new Map();
@@ -47,6 +48,7 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       }
 
       if (!completed) continue;
+      if (quest.repeatable) await trackAchievements(characterId, "hunt");
       for (const client of room.clients) {
         if (room.state.players.get(client.sessionId)?.characterId === characterId) {
           client.send("questCompleted", { title: quest.title, rewards: quest.rewards });

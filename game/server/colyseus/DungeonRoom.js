@@ -140,6 +140,7 @@ export class DungeonRoom extends WorldRoom {
     }
     for (const characterId of runtime.contributors) {
       void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
+      if (enemy?.rare) void trackAchievements(characterId, "rare");
       void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar")
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
       void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar")
@@ -156,6 +157,7 @@ export class DungeonRoom extends WorldRoom {
       this.state.completed = true;
       for (const [characterId, participant] of this.participants) this.addChestLoot(characterId, participant);
       for (const characterId of this.participants.keys()) {
+        void trackAchievements(characterId, "dungeon");
         void recordQuestEvent(this, characterId, "CompleteDungeon", this.config.id)
           .catch((error) => console.error("[Quests] Could not save dungeon progress", error));
       }

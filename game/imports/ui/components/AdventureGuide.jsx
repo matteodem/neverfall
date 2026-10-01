@@ -4,13 +4,13 @@ import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../api/characters/characters";
 import { getAdventureGuideObjective } from "../../game/adventureGuide";
 
-export const AdventureGuide = ({ currentLevel }) => {
+export const AdventureGuide = () => {
   const character = useTracker(() => {
     const id = Meteor.user()?.profile?.currentCharacterId;
     return id ? Characters.findOne(id) : null;
   });
   if (!character) return null;
-  const objective = getAdventureGuideObjective(character, currentLevel);
+  const objective = getAdventureGuideObjective(character);
 
   return (
     <div id="onboarding-adventure-guide" className="w-64 rounded-lg border border-white/10 bg-black/60 p-4 text-white shadow-lg" role="status">

@@ -4,7 +4,9 @@ import { ACHIEVEMENTS } from "../imports/game/achievements";
 export const trackAchievements = async (characterId, event, value) => {
   try {
     for (const definition of ACHIEVEMENTS) {
-      if (definition.event !== event || (definition.enemyType && definition.enemyType !== value)) continue;
+      if (definition.event !== event ||
+        (definition.enemyType && definition.enemyType !== value) ||
+        (definition.targetId && definition.targetId !== value)) continue;
       const path = `achievements.${definition.id}`;
       // Compare-and-set keeps concurrent kills from losing progress or unlocking twice.
       while (true) {
