@@ -6,7 +6,6 @@ import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL,
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
-import { createSnowyMountainsArea } from "./environment/createSnowyMountainsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
 import { getTerrainColorVariation } from "./environment/terrainColor";
@@ -578,7 +577,6 @@ export const createWorld =
         }), chunk);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
-        if (chunk.region === "snowyMountains") chunks.add(createSnowyMountainsArea({ scene, chunk }), chunk);
         if (northernCampChunk) {
           const camp = createCamp({
             scene,
