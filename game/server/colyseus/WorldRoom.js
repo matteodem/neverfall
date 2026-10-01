@@ -11,6 +11,7 @@ import { trackAchievements } from "../achievements";
 import { recordQuestEvent } from "../quests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
+import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight } from "../../imports/game/worldConfig";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
@@ -396,6 +397,7 @@ export class WorldRoom
       runtime.lastMoveAt = Date.now();
       runtime.moveAllowance = 0;
       runtime.awaitingWaypointArrival = true;
+      resetFallTracking(runtime);
       this.broadcast("waypointTravel", {
         sessionId: client.sessionId, x: player.x, y: player.y, z: player.z,
         rotationY: player.rotationY,
@@ -431,6 +433,7 @@ export class WorldRoom
     },
     dungeonEnter: (client, dungeonId) => {
       this.recordActivity(client.sessionId);
+      resetFallTracking(this.playerRuntime.get(client.sessionId));
       return this.dungeons.enter(client, dungeonId);
     },
     groupInvite: (client, targetId) => {
@@ -628,12 +631,16 @@ export class WorldRoom
         this.recordActivity(client.sessionId);
       }
       if (distance > 0.01) player.chatAnimation = "";
+      const previousY = player.y;
       player.x += dx * ratio;
       player.z += dz * ratio;
       player.y = data.y;
       player.rotationY = data.rotationY;
       runtime.moveAllowance = Math.max(0, allowance - distance);
       if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+      const fallDamage = getFallDamage(player, runtime, previousY, data.grounded,
+        player.mounted || wasMounted, elapsed);
+      if (fallDamage) this.damagePlayer(client.sessionId, fallDamage);
 
       if (!player.inDungeon) {
         for (const point of SPAWN_POINTS) {
@@ -1392,7 +1399,9 @@ export class WorldRoom
     player,
     sessionId
   ) {
-    const unlocked = this.playerRuntime.get(sessionId)?.unlockedSpawnPoints;
+    const runtime = this.playerRuntime.get(sessionId);
+    resetFallTracking(runtime);
+    const unlocked = runtime?.unlockedSpawnPoints;
     const spawnPoint = this.campSafeZoneEnabled
       ? getNearestUnlockedSpawnPoint(player, unlocked ? [...unlocked] : [])
       : DEFAULT_SPAWN_POINT;

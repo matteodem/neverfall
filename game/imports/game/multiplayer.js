@@ -804,6 +804,7 @@ export const createMultiplayer =
     onLocalCombatChange,
     onLocalBuffChange,
     onLocalRespawn,
+    isGrounded,
     onHealCooldown,
     onBoarQuestChange,
     dungeonVisuals,
@@ -1794,6 +1795,7 @@ export const createMultiplayer =
                 .y,
 
             mounted,
+            grounded: isGrounded?.() ?? true,
           }
         );
       };

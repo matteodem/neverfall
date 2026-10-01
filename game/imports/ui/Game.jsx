@@ -364,6 +364,7 @@ export const Game = ({
               dungeonVisuals: world.dungeonVisuals,
               worldChunks: world.worldChunks,
               onLocalRespawn: () => jump?.reset(),
+              isGrounded: () => !jump?.isJumping(),
               onLocalBuffChange: setPotionBuffs,
               onLocalCombatChange: (active) => {
                 inCombat = active;
