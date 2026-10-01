@@ -1,4 +1,5 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
+import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
 import { ENEMY_SPAWNS } from "../enemyConfig";
 import { QUESTS } from "../quests";
@@ -99,26 +100,45 @@ const nearby = (center, radius, random) => {
 };
 
 export const loadForestProps = async (scene) => {
-  const names = [...new Set(Object.values(MODELS).flat())];
-  const loaded = await Promise.allSettled(names.map((name) =>
-    SceneLoader.LoadAssetContainerAsync("/models/environment/", `${name}.glb`, scene)));
   const models = new Map();
-  loaded.forEach((result, index) => {
-    if (result.status === "fulfilled") models.set(names[index], result.value);
-    else console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
-  });
+  const loading = new Map();
+  let disposed = false;
   scene.onDisposeObservable.addOnce(() => {
+    disposed = true;
     for (const container of models.values()) container.dispose();
   });
+  const load = (name) => {
+    if (models.has(name)) return Promise.resolve(models.get(name));
+    if (!loading.has(name)) {
+      loading.set(name, SceneLoader.LoadAssetContainerAsync("/models/environment/", `${name}.glb`, scene)
+        .then((container) => {
+          if (disposed) { container.dispose(); throw new Error("Scene disposed"); }
+          models.set(name, container);
+          return container;
+        }));
+    }
+    return loading.get(name);
+  };
+  const preload = async (names) => {
+    const results = await Promise.allSettled(names.map(load));
+    results.forEach((result, index) => {
+      if (result.status === "rejected") console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
+    });
+  };
+  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents"];
+  const initialNames = [...new Set(initialKinds.flatMap((kind) => MODELS[kind]))];
+  const snowyNames = [...new Set(Object.entries(MODELS)
+    .filter(([kind]) => kind.startsWith("snowy"))
+    .flatMap(([, names]) => names))].filter((name) => !initialNames.includes(name));
+  await preload(initialNames);
 
-  const variants = Object.fromEntries(Object.entries(MODELS).map(([kind, ids]) =>
-    [kind, ids.filter((id) => models.has(id))]));
+  const variants = (kind) => MODELS[kind]?.filter((id) => models.has(id)) || [];
   const baseHeights = new Map();
-  const available = variants.broadleaf.length + variants.conifers.length > 0;
+  const available = variants("broadleaf").length + variants("conifers").length > 0;
 
   const place = (root, kind, position, random, scale = 1) => {
-    const choices = variants[kind]?.length ? variants[kind] :
-      (kind === "broadleaf" ? variants.conifers : kind === "conifers" ? variants.broadleaf : []);
+    const choices = variants(kind).length ? variants(kind) :
+      (kind === "broadleaf" ? variants("conifers") : kind === "conifers" ? variants("broadleaf") : []);
     if (!choices.length) return;
     const name = choices[Math.floor(random() * choices.length)];
     const entries = models.get(name).instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
@@ -164,15 +184,18 @@ export const loadForestProps = async (scene) => {
     }
   };
 
-  const placeChunk = ({ center, size, density }) => {
+  const placeChunk = async ({ center, size, density, gradual = true }) => {
     if (!available) return null;
     const random = randomForChunk(center);
     const root = new TransformNode(`forest-props-${center.x}-${center.z}`, scene);
+    root.setEnabled(false);
+    const yieldIfNeeded = gradual ? createFrameBudget(scene) : null;
     const cells = Math.ceil(size / 14);
     const spacing = size / cells;
 
     for (let row = 0; row < cells; row++) {
       for (let column = 0; column < cells; column++) {
+        if (yieldIfNeeded && column % 4 === 0) await yieldIfNeeded();
         const position = {
           x: center.x - size / 2 + (column + 0.5 + (random() - 0.5) * 0.8) * spacing,
           z: center.z - size / 2 + (row + 0.5 + (random() - 0.5) * 0.8) * spacing,
@@ -227,11 +250,16 @@ export const loadForestProps = async (scene) => {
         if (!treePlaced && !rockPlaced && random() < 0.06 * mix && isOpen(position, 4, CIRCLES))
           place(root, "deadTrees", position, random, 0.7 + random() * 0.3);
       }
+      if (yieldIfNeeded) await yieldIfNeeded();
     }
 
-    for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();
+    const meshes = root.getChildMeshes();
+    for (let index = 0; index < meshes.length; index++) {
+      meshes[index].freezeWorldMatrix();
+      if (yieldIfNeeded && index % 32 === 31) await yieldIfNeeded();
+    }
     return root;
   };
 
-  return { available, placeChunk };
+  return { available, placeChunk, preloadSnowy: () => preload(snowyNames) };
 };

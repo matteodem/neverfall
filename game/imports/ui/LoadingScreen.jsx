@@ -22,6 +22,7 @@ export const LoadingScreen =
       useLoadingStore(
         (state) => state.error
       );
+    const mode = useLoadingStore((state) => state.mode);
 
     if (!visible) {
       return null;
@@ -31,7 +32,7 @@ export const LoadingScreen =
       <div className="absolute inset-0 z-[30000] flex items-center justify-center bg-black">
         <div className="w-80">
           <div className="mb-3 text-center text-sm text-white">
-            {error || "Loading Game..."}
+            {error || (mode === "destination" ? "Loading destination..." : "Loading Game...")}
           </div>
 
           {error ? (
@@ -42,6 +43,8 @@ export const LoadingScreen =
             >
               Try again
             </button>
+          ) : mode === "destination" ? (
+            <div className="flex justify-center"><span className="loading loading-spinner text-white" /></div>
           ) : (
             <>
 

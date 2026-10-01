@@ -17,6 +17,35 @@ import {
   createNameplate,
 } from "./nameplate";
 
+const modelCache = new WeakMap();
+const instanceQueues = new WeakMap();
+
+const loadEnemyModel = (scene, name) => {
+  let models = modelCache.get(scene);
+  if (!models) {
+    models = new Map();
+    modelCache.set(scene, models);
+    scene.onDisposeObservable.addOnce(() => {
+      for (const promise of models.values()) void promise.then((container) => container.dispose()).catch(() => {});
+      modelCache.delete(scene);
+    });
+  }
+  if (!models.has(name)) {
+    const promise = SceneLoader.LoadAssetContainerAsync("/models/", name, scene)
+      .catch((error) => { models.delete(name); throw error; });
+    models.set(name, promise);
+  }
+  return models.get(name);
+};
+
+const instantiateEnemyModel = (scene, source, clone) => {
+  const previous = instanceQueues.get(scene) || Promise.resolve();
+  const next = previous.then(() => new Promise((resolve) => requestAnimationFrame(resolve)))
+    .then(() => source.instantiateModelsToScene(undefined, false, { doNotInstantiate: clone }));
+  instanceQueues.set(scene, next.catch(() => {}));
+  return next;
+};
+
 export const createEnemy = async ({
   scene,
   state,
@@ -24,6 +53,7 @@ export const createEnemy = async ({
   mobile = false,
 }) => {
   const config = getEnemyStats(state.type, state.level, state.rare);
+  const source = await loadEnemyModel(scene, config.model);
   /*
    * =====================================================
    * NETWORK ROOT
@@ -76,31 +106,18 @@ export const createEnemy = async ({
   modelRoot.rotation.y = config.rotationY;
   modelRoot.scaling.setAll(config.scale);
 
-  const result =
-    await SceneLoader.ImportMeshAsync(
-      "",
-      "/models/",
-      config.model,
-      scene
-    );
+  const entries = await instantiateEnemyModel(scene, source, Boolean(state.rare || config.emissiveColor));
 
   /*
-   * Parent only top-level imported
-   * meshes to modelRoot.
+   * Parent only top-level cloned
+   * nodes to modelRoot.
    *
    * Child meshes keep their original
    * GLB hierarchy.
    */
 
-  for (
-    const mesh
-    of result.meshes
-  ) {
-    if (!mesh.parent) {
-      mesh.parent =
-        modelRoot;
-    }
-  }
+  for (const node of entries.rootNodes) node.parent = modelRoot;
+  const result = { meshes: modelRoot.getChildMeshes(), animationGroups: entries.animationGroups };
 
   /*
    * =====================================================
@@ -236,15 +253,11 @@ export const createEnemy = async ({
       nameplate.destroy();
 
       /*
-       * Dispose imported GLB meshes.
+       * Dispose this enemy's cloned GLB nodes.
        */
 
-      for (
-        const mesh
-        of result.meshes
-      ) {
-        mesh.dispose();
-      }
+      for (const node of entries.rootNodes) node.dispose(false, false);
+      for (const skeleton of entries.skeletons) skeleton.dispose();
 
       for (const material of rareMaterials.values()) material.dispose();
       modelRoot.dispose();

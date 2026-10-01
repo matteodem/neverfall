@@ -62,6 +62,9 @@ import {
 } from "./character/createKayKitAnimationController";
 
 import { createHorseMount } from "./mounts";
+import { areNearbyChunks } from "./worldConfig";
+import { useLoadingStore } from "../ui/stores/useLoadingStore";
+import { useWaypointStore } from "../ui/stores/useWaypointStore";
 
 import {
   useCombatStore,
@@ -76,6 +79,8 @@ import {
 } from "../ui/stores/useMinimapStore";
 
 const SEND_INTERVAL = PERFORMANCE.movementInterval;
+const ENEMY_PRELOAD_DISTANCE = 165;
+const WAYPOINT_ENEMY_PRELOAD_DISTANCE = 140;
 
 
 const REMOTE_SMOOTHING =
@@ -802,6 +807,7 @@ export const createMultiplayer =
     onHealCooldown,
     onBoarQuestChange,
     dungeonVisuals,
+    worldChunks,
   }) => {
     const session = await getGameSession();
     const room = session.room;
@@ -862,11 +868,25 @@ export const createMultiplayer =
     const remotePlayers =
       new Map();
 
+    let pendingWaypointId = null;
+    let waypointTimeout = null;
+    let waypointRequest = 0;
+    const finishWaypoint = () => {
+      waypointRequest++;
+      pendingWaypointId = null;
+      clearTimeout(waypointTimeout);
+      waypointTimeout = null;
+      useWaypointStore.getState().setTraveling(false);
+      if (useLoadingStore.getState().mode === "destination") useLoadingStore.getState().hide();
+    };
     onMessage("waypointTravel", ({ sessionId, x, y, z, rotationY }) => {
       if (sessionId === room.sessionId) {
         onLocalRespawn?.();
         player.position.set(x, y + JUMP.groundY, z);
         player.rotation.y = rotationY;
+        worldChunks?.update();
+        for (const enemy of enemies.values()) enemy.visibility.update(player.position, enemyVisibility);
+        finishWaypoint();
       } else {
         const remote = remotePlayers.get(sessionId);
         if (!remote) return;
@@ -877,7 +897,35 @@ export const createMultiplayer =
       }
     });
     onMessage("waypointUnlocked", (name) => useBossNoticeStore.getState().show(`Waypoint Unlocked · ${name}`));
-    onMessage("waypointTravelError", (message) => useBossNoticeStore.getState().show(message));
+    onMessage("waypointTravelError", (message) => {
+      finishWaypoint();
+      useBossNoticeStore.getState().show(message);
+    });
+    onMessage("waypointReady", ({ id, position }) => {
+      if (id !== pendingWaypointId) return;
+      const request = waypointRequest;
+      if (Math.hypot(player.position.x - position.x, player.position.z - position.z) < 40 &&
+        worldChunks?.isChunkReadyAt(position)) {
+        room.send("travelWaypoint", id);
+        return;
+      }
+      const enemiesReady = [...room.state.enemies].every(([enemyId, state]) =>
+        Math.hypot(state.x - position.x, state.z - position.z) > WAYPOINT_ENEMY_PRELOAD_DISTANCE || enemies.has(enemyId));
+      const needsLoading = !worldChunks?.isReadyAt(position) || !enemiesReady;
+      if (needsLoading)
+        useLoadingStore.getState().showDestination();
+      void (async () => {
+        if (needsLoading) await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)));
+        await worldChunks?.preloadAt(position);
+        await preloadEnemiesAt(position);
+        if (pendingWaypointId === id && waypointRequest === request && !destroyed) room.send("travelWaypoint", id);
+      })().catch((error) => {
+        if (waypointRequest !== request) return;
+        console.warn(`[Waypoint] Could not load destination ${id}`, error);
+        finishWaypoint();
+        useBossNoticeStore.getState().show("Could not load destination. Please try again.");
+      });
+    });
 
 
     const enemies =
@@ -1537,12 +1585,19 @@ export const createMultiplayer =
      * =========================================================
      */
 
-    callbacks.onAdd(
-      "enemies",
-      async (
-        enemyState,
-        enemyId
-      ) => {
+    const pendingEnemies = new Map();
+    const loadingEnemies = new Map();
+    const failedEnemies = new Set();
+    const nearEnemy = (state, position, distance) =>
+      Math.hypot(state.x - position.x, state.z - position.z) <= distance &&
+      (dungeon || areNearbyChunks(state, position));
+
+    const loadEnemy = (enemyId) => {
+      if (enemies.has(enemyId)) return Promise.resolve();
+      if (loadingEnemies.has(enemyId)) return loadingEnemies.get(enemyId);
+      const enemyState = pendingEnemies.get(enemyId);
+      if (!enemyState) return Promise.resolve();
+      const promise = (async () => {
         const enemy =
           await createEnemy({
             scene,
@@ -1562,9 +1617,7 @@ export const createMultiplayer =
          */
 
         if (
-          destroyed || !room.state.enemies.has(
-            enemyId
-          )
+          destroyed || room.state.enemies.get(enemyId) !== enemyState
         ) {
           enemy.destroy();
 
@@ -1572,6 +1625,7 @@ export const createMultiplayer =
           return;
         }
 
+        pendingEnemies.delete(enemyId);
 
         enemy.targetPosition.set(enemyState.x, enemyState.y, enemyState.z);
         enemy.setTargetRotation(enemyState.rotationY);
@@ -1631,8 +1685,28 @@ export const createMultiplayer =
             );
           }
         );
-      }
-    );
+      })().catch((error) => {
+        failedEnemies.add(enemyId);
+        throw error;
+      }).finally(() => loadingEnemies.delete(enemyId));
+      loadingEnemies.set(enemyId, promise);
+      return promise;
+    };
+
+    const preloadEnemiesAt = (position) => Promise.all([...room.state.enemies]
+      .filter(([, state]) => nearEnemy(state, position, WAYPOINT_ENEMY_PRELOAD_DISTANCE))
+      .map(([id, state]) => {
+        if (!enemies.has(id) && !pendingEnemies.has(id)) pendingEnemies.set(id, state);
+        failedEnemies.delete(id);
+        return loadEnemy(id);
+      }));
+
+    callbacks.onAdd("enemies", (enemyState, enemyId) => {
+      if (enemies.has(enemyId)) return;
+      pendingEnemies.set(enemyId, enemyState);
+      if (nearEnemy(enemyState, player.position, Math.min(ENEMY_PRELOAD_DISTANCE, enemyVisibility.enableDistance)))
+        return loadEnemy(enemyId);
+    });
 
 
     callbacks.onRemove(
@@ -1641,25 +1715,18 @@ export const createMultiplayer =
         _enemyState,
         enemyId
       ) => {
+        pendingEnemies.delete(enemyId);
+        failedEnemies.delete(enemyId);
         const enemy =
           enemies.get(
             enemyId
           );
 
 
-        if (
-          !enemy
-        ) {
-          return;
+        if (enemy) {
+          enemy.destroy();
+          enemies.delete(enemyId);
         }
-
-
-        enemy.destroy();
-
-
-        enemies.delete(
-          enemyId
-        );
 
         useMinimapStore
           .getState()
@@ -1749,6 +1816,9 @@ export const createMultiplayer =
           visibilityElapsed %= ENTITY_VISIBILITY.updateInterval;
           for (const entity of remotePlayers.values()) entity.visibility.update(player.position, playerVisibility);
           for (const enemy of enemies.values()) enemy.visibility.update(player.position, enemyVisibility);
+          for (const [id, state] of pendingEnemies)
+            if (!failedEnemies.has(id) && nearEnemy(state, player.position, Math.min(ENEMY_PRELOAD_DISTANCE, enemyVisibility.enableDistance)))
+              void loadEnemy(id).catch((error) => console.warn("[Enemy] Could not load nearby model", error));
         }
         if (minimapElapsed >= ENTITY_VISIBILITY.minimapInterval) {
           minimapElapsed %= ENTITY_VISIBILITY.minimapInterval;
@@ -2042,6 +2112,7 @@ export const createMultiplayer =
     const destroy =
       async ({ keepConnection = false } = {}) => {
         destroyed = true;
+        finishWaypoint();
         for (const stop of disposers) stop();
         dungeonInteractions.destroy();
         projectiles.destroy();
@@ -2136,7 +2207,19 @@ export const createMultiplayer =
       equipItem,
       unequipItem,
       changeTalents,
-      travelWaypoint: (waypointId) => room.send("travelWaypoint", waypointId),
+      travelWaypoint: (waypointId) => {
+        if (pendingWaypointId || dungeon) return;
+        const request = ++waypointRequest;
+        pendingWaypointId = waypointId;
+        useWaypointStore.getState().setTraveling(true);
+        waypointTimeout = setTimeout(() => {
+          if (pendingWaypointId !== waypointId || waypointRequest !== request) return;
+          finishWaypoint();
+          useBossNoticeStore.getState().show("Waypoint travel timed out. Please try again.");
+        }, 30000);
+        room.send("prepareWaypoint", waypointId);
+      },
+      preloadEnemiesAt,
       useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,

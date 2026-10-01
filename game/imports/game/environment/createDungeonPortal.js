@@ -5,13 +5,19 @@ import { getWorldHeight } from "../worldConfig";
 const ENTRANCE_SCALE = 3;
 
 export const loadDungeonEntranceAsset = async (scene) => {
+  let container;
+  let disposed = false;
+  scene.onDisposeObservable.addOnce(() => {
+    disposed = true;
+    container?.dispose();
+  });
   try {
-    const container = await SceneLoader.LoadAssetContainerAsync("/models/dungeons/", "entrance.glb", scene);
-    scene.onDisposeObservable.addOnce(() => container.dispose());
+    container = await SceneLoader.LoadAssetContainerAsync("/models/dungeons/", "entrance.glb", scene);
+    if (disposed) { container.dispose(); return null; }
     return container;
   } catch (error) {
     console.warn("[Dungeon] Could not load entrance.glb", error);
-    return null;
+    throw error;
   }
 };
 
@@ -40,7 +46,7 @@ export const createDungeonPortal = ({ scene, x, z, title, entranceAsset = null }
       minZ = Math.min(minZ, bounds.minimumWorld.z - z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z - z);
       mesh.isPickable = false;
-      mesh.checkCollisions = false;
+      mesh.checkCollisions = true;
       mesh.receiveShadows = true;
     }
     if (Number.isFinite(minY)) {

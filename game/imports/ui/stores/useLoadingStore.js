@@ -8,18 +8,25 @@ export const useLoadingStore =
       visible: false,
       progress: 0,
       error: "",
+      mode: "initial",
 
       show() {
         set({
           visible: true,
           progress: 0,
           error: "",
+          mode: "initial",
         });
+      },
+
+      showDestination() {
+        set({ visible: true, error: "", mode: "destination" });
       },
 
       hide() {
         set({
           visible: false,
+          mode: "initial",
         });
       },
 

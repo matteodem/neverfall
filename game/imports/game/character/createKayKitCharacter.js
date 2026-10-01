@@ -410,22 +410,10 @@ export const createKayKitCharacter =
      * =====================================================
      */
 
-    const movement =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        KAYKIT_ROOT,
-        "animations/Rig_Medium_MovementBasic.glb",
-        scene
-      );
-
-
-    const general =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        KAYKIT_ROOT,
-        "animations/Rig_Medium_General.glb",
-        scene
-      );
+    const [movement, general] = await Promise.all([
+      SceneLoader.ImportMeshAsync("", KAYKIT_ROOT, "animations/Rig_Medium_MovementBasic.glb", scene),
+      SceneLoader.ImportMeshAsync("", KAYKIT_ROOT, "animations/Rig_Medium_General.glb", scene),
+    ]);
 
 
     disposeMannequinMeshes(

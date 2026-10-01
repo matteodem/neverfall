@@ -189,6 +189,8 @@ export const Game = ({
             return;
           }
 
+          const loadingStartedAt = performance.now();
+
 
           /*
            * =====================================================
@@ -360,6 +362,7 @@ export const Game = ({
 
               player,
               dungeonVisuals: world.dungeonVisuals,
+              worldChunks: world.worldChunks,
               onLocalRespawn: () => jump?.reset(),
               onLocalBuffChange: setPotionBuffs,
               onLocalCombatChange: (active) => {
@@ -419,6 +422,10 @@ export const Game = ({
 
             return;
           }
+
+          await world.worldChunks?.loadAt(player.position);
+          await multiplayer.preloadEnemiesAt(player.position);
+          if (disposed) return;
 
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
             if (action === "equip") {
@@ -507,7 +514,7 @@ export const Game = ({
           };
 
           const SKILL_HANDLERS = {
-            Space: () => { if (playerAlive) jump.jump(); },
+            Space: () => { if (playerAlive && !useWaypointStore.getState().traveling) jump.jump(); },
             KeyF: () => { if (!multiplayer?.interactDungeon()) multiplayer?.collectLoot(); },
             KeyV() {
               if (
@@ -867,6 +874,11 @@ export const Game = ({
 
 
           engine.hideLoadingUI();
+          if (Meteor.isDevelopment)
+            console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
+          if (world.worldChunks) scene.onAfterRenderObservable.addOnce(() => {
+            if (!disposed) world.worldChunks.start();
+          });
 
 
           /*
@@ -893,7 +905,7 @@ export const Game = ({
                * ---------------------
                */
 
-              const movement = playerAlive ?
+              const movement = playerAlive && !useWaypointStore.getState().traveling ?
                 updateMovement({
                   deltaTime,
 
@@ -915,7 +927,7 @@ export const Game = ({
                 );
 
 
-              if (playerAlive) updateCameraFacing({
+              if (playerAlive && !useWaypointStore.getState().traveling) updateCameraFacing({
                 input:
                   input.state,
 
@@ -961,7 +973,7 @@ export const Game = ({
 
                 animations
                   .setRunning(
-                    playerAlive && isMoving(
+                    playerAlive && !useWaypointStore.getState().traveling && isMoving(
                       input.state
                     )
                   );
@@ -982,7 +994,7 @@ export const Game = ({
 
               mount
                 ?.setRunning(
-                  mounted &&
+                  mounted && !useWaypointStore.getState().traveling &&
                   isMoving(
                     input.state
                   )

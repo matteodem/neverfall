@@ -1,9 +1,12 @@
 import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
+import { createFrameBudget } from "./createFrameBudget";
 import { HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
 
-export const createHighlandsArea = ({ scene, chunk }) => {
+export const createHighlandsArea = async ({ scene, chunk }) => {
   const root = new TransformNode(`highlands-scenery-${chunk.x}`, scene);
   root.position.set(chunk.x, 0, chunk.z);
+  root.setEnabled(false);
+  const yieldIfNeeded = createFrameBudget(scene);
 
   const material = (name, color) => {
     const key = `highlands-${name}`;
@@ -52,6 +55,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
     place(mesh, x, height / 2, z, darkStone, x * 0.1);
     rock(x + 4, 1, z - 3, 2.3, moss);
     rock(x - 3, 0.6, z + 4, 1.6);
+    await yieldIfNeeded();
   }
 
   for (const { x, z } of HIGHLANDS_SCENERY.cairns) {
@@ -59,6 +63,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
       const mesh = rock(x, 0.4 + layer * 0.65, z, 1.1 - layer * 0.18, layer === 0 ? moss : stone);
       mesh.scaling.y = 0.55;
     }
+    await yieldIfNeeded();
   }
 
   for (const { x, z } of HIGHLANDS_SCENERY.boulderClusters) {
@@ -69,6 +74,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
       rock(x + Math.cos(angle) * 5, size * 0.55, z + Math.sin(angle) * 4,
         size, index % 2 ? moss : stone).scaling.y = 0.65;
     }
+    await yieldIfNeeded();
   }
 
   for (const { x, z, rotation } of HIGHLANDS_SCENERY.ruinedWalls) {
@@ -82,6 +88,7 @@ export const createHighlandsArea = ({ scene, chunk }) => {
       }
     }
     rock(x + 3, 0.5, z + 3, 1.2);
+    await yieldIfNeeded();
   }
 
   const landmark = HIGHLANDS_SCENERY.landmarks[chunk.x];
@@ -114,7 +121,9 @@ export const createHighlandsArea = ({ scene, chunk }) => {
                 1.4, 1.5, 3.2, layer === 0 ? moss : stone);
             }
           }
+          await yieldIfNeeded();
         }
+        await yieldIfNeeded();
       }
       for (const offset of [-3.8, 0, 3.8]) {
         block("tower-battlement", x + offset, 8.4, z + 4.5, 1.5, 1.4, 1.4, darkStone);
@@ -134,6 +143,10 @@ export const createHighlandsArea = ({ scene, chunk }) => {
     }
   }
 
-  for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();
+  const meshes = root.getChildMeshes();
+  for (let index = 0; index < meshes.length; index++) {
+    meshes[index].freezeWorldMatrix();
+    if (index % 32 === 31) await yieldIfNeeded();
+  }
   return root;
 };

@@ -59,6 +59,7 @@ const MapContent = () => {
   const dungeon = location === "dungeon";
   const dungeonConfig = getDungeonConfig(dungeonId);
   const travelToWaypoint = useWaypointStore((state) => state.travel);
+  const waypointTraveling = useWaypointStore((state) => state.traveling);
   const closeModal = useHudStore((state) => state.closeModal);
   const character = useTracker(() => {
     const id = Meteor.user()?.profile?.currentCharacterId;
@@ -230,7 +231,7 @@ const MapContent = () => {
           <span>Travel to {selectedWaypoint.name}?</span>
           <div className="flex gap-2">
             <button type="button" className="btn btn-sm" onClick={() => setSelectedWaypointId(null)}>Cancel</button>
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => {
+            <button type="button" className="btn btn-sm btn-primary" disabled={waypointTraveling} onClick={() => {
               travelToWaypoint(selectedWaypoint.id);
               closeModal("map");
             }}>Travel</button>

@@ -343,19 +343,31 @@ export class WorldRoom
     }
   }
 
+  getAvailableWaypoint(client, waypointId) {
+    const player = this.state.players.get(client.sessionId);
+    const runtime = this.playerRuntime.get(client.sessionId);
+    const waypoint = WAYPOINTS.find((point) => point.id === waypointId);
+    if (!player || !runtime || !waypoint || !runtime.unlockedWaypoints.has(waypoint.id)) {
+      client.send("waypointTravelError", "Waypoint unavailable.");
+      return null;
+    }
+    if (player.health <= 0 || player.inDungeon || this.isPlayerInCombat(client.sessionId)) {
+      client.send("waypointTravelError", "Cannot travel while dead, in combat, or in a dungeon.");
+      return null;
+    }
+    return waypoint;
+  }
+
   messages = {
+    prepareWaypoint: (client, waypointId) => {
+      const waypoint = this.getAvailableWaypoint(client, waypointId);
+      if (waypoint) client.send("waypointReady", { id: waypoint.id, position: waypoint.position });
+    },
     travelWaypoint: (client, waypointId) => {
+      const waypoint = this.getAvailableWaypoint(client, waypointId);
+      if (!waypoint) return;
       const player = this.state.players.get(client.sessionId);
       const runtime = this.playerRuntime.get(client.sessionId);
-      const waypoint = WAYPOINTS.find((point) => point.id === waypointId);
-      if (!player || !runtime || !waypoint || !runtime.unlockedWaypoints.has(waypoint.id)) {
-        client.send("waypointTravelError", "Waypoint unavailable.");
-        return;
-      }
-      if (player.health <= 0 || player.inDungeon || this.isPlayerInCombat(client.sessionId) || player.mounted) {
-        client.send("waypointTravelError", "Cannot travel while dead, in combat, in a dungeon, or mounted.");
-        return;
-      }
       this.recordActivity(client.sessionId);
       player.x = waypoint.position.x;
       player.y = waypoint.position.y;

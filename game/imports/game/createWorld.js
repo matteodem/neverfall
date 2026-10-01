@@ -249,12 +249,14 @@ export const createWorld =
      * =====================================================
      */
 
-    const character =
-      await createKayKitCharacter({
+    const [character, swordResult] = await Promise.all([
+      createKayKitCharacter({
         scene,
         appearance,
         gameClass,
-      });
+      }),
+      SceneLoader.ImportMeshAsync("", "/models/", "sword.glb", scene),
+    ]);
 
 
     /*
@@ -400,14 +402,6 @@ export const createWorld =
      * The player itself no longer does.
      */
 
-    const swordResult =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "sword.glb",
-        scene
-      );
-
     const sword =
       swordResult.meshes[0];
 
@@ -526,18 +520,17 @@ export const createWorld =
 
     let forest, mountainRing, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
+    let chunks = null;
     if (dungeon) {
       dungeonVisuals = createDungeonEnvironment(scene, dungeonConfig);
     } else {
-      const chunks = createWorldChunks(scene, player);
-      const forestProps = await loadForestProps(scene);
-      const campAssets = await loadCampAssets(scene);
-      const entranceAsset = await loadDungeonEntranceAsset(scene);
+      chunks = createWorldChunks(scene, player);
+      let disposed = false;
+      scene.onDisposeObservable.addOnce(() => { disposed = true; });
+      const [forestProps, campAssets] = await Promise.all([
+        loadForestProps(scene), loadCampAssets(scene),
+      ]);
       const createCamp = campAssets.available ? campAssets.createCamp : createClearingCamp;
-      for (const config of DUNGEONS) {
-        const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name, entranceAsset });
-        chunks.add(portal.root, config.entrance);
-      }
       /*
        * =====================================================
        * FOREST
@@ -545,6 +538,9 @@ export const createWorld =
        */
 
       for (const chunk of WORLD_CHUNKS) {
+        chunks.addLoader(chunk, async () => {
+        if (chunk.region === "snowyMountains") await forestProps.preloadSnowy();
+        if (disposed) return;
         const assetForest = forestProps.available;
         const northernCampChunk = chunk.x === NORTHERN_CAMP.center.x && chunk.z === NORTHERN_CAMP.center.z;
         const giantHillChunk = chunk.x === 0 && chunk.z === 0;
@@ -573,11 +569,12 @@ export const createWorld =
             [key, assetForest ? 0 : Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
         });
         chunks.add(area, chunk);
-        if (assetForest) chunks.add(forestProps.placeChunk({
+        if (assetForest) chunks.add(await forestProps.placeChunk({
           center: chunk, size: CHUNK_SIZE, density: quality.density,
+          gradual: chunk.x !== 0 || chunk.z !== 0,
         }), chunk);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
-        if (chunk.region === "highlands") chunks.add(createHighlandsArea({ scene, chunk }), chunk);
+        if (chunk.region === "highlands") chunks.add(await createHighlandsArea({ scene, chunk }), chunk);
         if (northernCampChunk) {
           const camp = createCamp({
             scene,
@@ -587,6 +584,26 @@ export const createWorld =
           chunks.add(camp, NORTHERN_CAMP.center);
         }
         if (chunk.x === 0 && chunk.z === 0) forest = area;
+        });
+      }
+
+      // The starting chunk is needed before the loading screen closes.
+      await chunks.loadAt({ x: 0, z: 0 });
+      let entrancePromise;
+      const preloadEntrance = () => {
+        if (!entrancePromise) entrancePromise = loadDungeonEntranceAsset(scene).catch((error) => {
+          entrancePromise = null;
+          throw error;
+        });
+        return entrancePromise;
+      };
+      for (const config of DUNGEONS) {
+        chunks.addLoader(config.entrance, async () => {
+          const entranceAsset = await preloadEntrance();
+          if (disposed) return;
+          const portal = createDungeonPortal({ scene, ...config.entrance, title: config.name, entranceAsset });
+          chunks.add(portal.root, config.entrance);
+        }, 120, false);
       }
 
       /*
@@ -676,6 +693,7 @@ export const createWorld =
      */
 
     return {
+      worldChunks: chunks,
       dungeonVisuals,
       player,
 
