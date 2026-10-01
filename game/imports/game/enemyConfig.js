@@ -223,12 +223,12 @@ export const ENEMY_SPAWNS = [
   { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
   { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
   { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
-  { id: "snow-wolf-1", type: "snowWolf", level: 10, x: 188, y: 0, z: -42 },
-  { id: "snow-wolf-2", type: "snowWolf", level: 10, x: 202, y: 0, z: -52 },
-  { id: "snow-wolf-3", type: "snowWolf", level: 10, x: 219, y: 0, z: -38 },
-  { id: "mountain-goat-1", type: "mountainGoat", level: 12, x: 224, y: 0, z: 43 },
-  { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 240, y: 0, z: 55 },
-  { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 252, y: 0, z: 39 },
+  { id: "snow-wolf-1", type: "snowWolf", level: 10, x: 224, y: 0, z: 43 },
+  { id: "snow-wolf-2", type: "snowWolf", level: 10, x: 240, y: 0, z: 55 },
+  { id: "snow-wolf-3", type: "snowWolf", level: 10, x: 252, y: 0, z: 39 },
+  { id: "mountain-goat-1", type: "mountainGoat", level: 12, x: 188, y: 0, z: -42 },
+  { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 202, y: 0, z: -52 },
+  { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 219, y: 0, z: -38 },
   { id: "frost-ogre", type: "frostOgre", level: 14, y: 0, ...SNOWY_MOUNTAINS.boss },
   ...Array.from({ length: 5 }, (_, index) => {
     const angle = index * Math.PI * 2 / 5;

@@ -304,12 +304,7 @@ export const Minimap =
                   enemy.type
                 )}
                 outlined={false}
-                size={
-                  enemy.type ===
-                  "forestGiant" || enemy.type === "alphaWolf" || enemy.type === "awakenedForestGiant"
-                    ? 8
-                    : 5
-                }
+                size={ENEMY_TYPES[enemy.type]?.bossMechanics ? 8 : 5}
                 className="z-10"
               />
             )
