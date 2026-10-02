@@ -41,7 +41,7 @@ export const getAdventureGuideObjective = (character) => {
       hint: "Complete Hunts and quests to earn XP.", done: (character?.currentLevel ?? 1) >= 10 },
     { id: "snowy", title: "Explore Snowy Mountains", hint: "Unlock the Snowy Mountains waypoint east of Central Camp.",
       done: waypoints.includes("snowy-mountains-waypoint") },
-    { id: "snow-wolf-hunt", title: "Kill 10 Snow Wolfs", progress: `${Math.min(snowWolfKills, 10)} / 10`,
+    { id: "snow-wolf-hunt", title: "Kill 10 Snow Wolves", progress: `${Math.min(snowWolfKills, 10)} / 10`,
       hint: "Defeat snow wolves north of the Snowy Mountains waypoint.", done: snowWolfKills >= 10 },
     { id: "explore", title: "Explore Neverfall",
       hint: "Try hunts, quests, dungeons, world events and bosses.", done: false },

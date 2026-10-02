@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react";
 
 import { useHudStore } from "../stores/useHudStore";
 
-const getInitialPosition = (id) => {
+const getInitialPosition = () => {
   const game = typeof document === "undefined" ? null : document.querySelector(".mobile-game");
   const viewportWidth = game?.clientWidth || (typeof window === "undefined" ? 1024 : window.innerWidth);
   const viewportHeight = game?.clientHeight || (typeof window === "undefined" ? 768 : window.innerHeight);
-  const offset = { items: 0, hero: 40, help: 80, settings: 120 }[id] || 0;
 
   return {
-    x: Math.max(8, Math.min(viewportWidth - 120, viewportWidth * 0.28 + offset)),
-    y: id === "map" && game ? 8 : Math.max(8, Math.min(viewportHeight - 120, 96 + offset)),
+    x: viewportWidth / 2,
+    y: Math.max(8, Math.min(viewportHeight - 120, 75)),
   };
 };
 
@@ -24,11 +23,11 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
   };
   const index = openModals.indexOf(id);
   const isOpen = index >= 0;
-  const [position, setPosition] = useState(() => getInitialPosition(id));
+  const [position, setPosition] = useState(getInitialPosition);
   const [drag, setDrag] = useState(null);
 
   useEffect(() => {
-    if (isOpen) setPosition(getInitialPosition(id));
+    if (isOpen) setPosition(getInitialPosition());
   }, [isOpen, id]);
 
   useEffect(() => {
@@ -75,7 +74,7 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
     <div
       className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal ${className} flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col ${scrollable ? "overflow-hidden" : "overflow-visible"} rounded-box bg-base-100 text-base-content shadow-2xl`}
       style={{
-        ...(backdrop ? {} : { left: position.x, top: position.y }),
+        ...(backdrop ? {} : { left: position.x, top: position.y, transform: "translateX(-50%)" }),
         ...(maxHeight ? { maxHeight: `min(${typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight}, calc(var(--game-height, 100vh) - 16px))` } : {}),
         ...(width ? { width: `min(${width}px, calc(var(--game-width, 100vw) - 16px))` } : {}),
       }}
