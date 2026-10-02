@@ -24,7 +24,7 @@ export const DungeonPrompt = () => {
       {config && <p className="text-sm font-semibold">{config.name}</p>}
       {location === "dungeon" && <p className="text-sm">{completed ? "Dungeon complete" : config?.stages[stage]?.name}</p>}
       {location === "world" && prompt === "enter" && config &&
-        <p className="text-xs text-white/70">Recommended Level {config.recommendedLevel}</p>}
+        <p className="text-xs text-white/70">Recommended Level: {config.recommendedLevel}</p>}
       {error && <div role="alert" className="flex items-center gap-2 text-sm text-error"><span>{error}</span><button type="button" className="btn btn-ghost btn-xs" onClick={clearError} aria-label="Dismiss dungeon message">×</button></div>}
       {busy ? <span className="text-sm">Traveling…</span> : prompt && <button type="button" className="btn btn-primary btn-sm" onClick={interact}>{ACTIONS[prompt]} <kbd className="kbd kbd-sm">F</kbd></button>}
     </div>

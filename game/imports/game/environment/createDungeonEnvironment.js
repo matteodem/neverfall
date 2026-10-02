@@ -14,12 +14,22 @@ export const createDungeonEnvironment = (scene, dungeon) => {
     mesh.freezeWorldMatrix();
     return mesh;
   };
-  box("dungeonWallWest", { width: 1, height: 5, depth: 118 }, [-13, 2.5, 48]);
-  box("dungeonWallEast", { width: 1, height: 5, depth: 118 }, [13, 2.5, 48]);
-  box("dungeonWallSouth", { width: 27, height: 5, depth: 1 }, [0, 2.5, -11]);
-  box("dungeonWallNorth", { width: 27, height: 5, depth: 1 }, [0, 2.5, 107]);
-  for (const z of [12, 32, 52, 72, 92]) {
-    for (const x of [-10, 10]) box("dungeonPillar", { width: 1.4, height: 6, depth: 1.4 }, [x, 3, z]);
+  for (const wall of dungeon.map.walls) box(`dungeon${wall.name}`, wall.size, wall.position);
+  for (const pillar of dungeon.map.pillars) box("dungeonPillar", pillar.size, pillar.position);
+  if (dungeon.map.water?.length) {
+    const water = new StandardMaterial("dungeonWater", scene);
+    water.diffuseColor = Color3.FromHexString("#477988");
+    water.emissiveColor = Color3.FromHexString("#17333e");
+    water.alpha = 0.65;
+    for (const pool of dungeon.map.water) {
+      const surface = MeshBuilder.CreateGround("dungeonShallowWater", {
+        width: pool.width, height: pool.depth,
+      }, scene);
+      surface.position.set(pool.x, 0.025, pool.z);
+      surface.material = water;
+      surface.isPickable = false;
+      surface.freezeWorldMatrix();
+    }
   }
   createDungeonPortal({ scene, ...dungeon.exit, title: "Exit Dungeon" });
   const chestRoot = new TransformNode("dungeonRewardChest", scene);

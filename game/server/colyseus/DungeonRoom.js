@@ -115,16 +115,22 @@ export class DungeonRoom extends WorldRoom {
   }
 
   spawnStage() {
-    for (const spawn of this.config.stages[this.state.stage].enemies) this.spawnEnemy(spawn);
+    const stage = this.config.stages[this.state.stage];
+    if (stage.boss) {
+      const { id, type, level, position } = this.config.finalBoss;
+      this.spawnEnemy({ id, type, level, ...position });
+    } else {
+      for (const spawn of stage.enemies) this.spawnEnemy(spawn);
+    }
   }
 
-  getEnemyStats(type, level, rare = false) {
-    const stats = super.getEnemyStats(type, level, rare);
+  getEnemyStats(type, level, rare = false, scaling = {}) {
+    const stats = super.getEnemyStats(type, level, rare, scaling);
     return {
       ...stats,
       health: stats.health * this.config.enemyHealthMultiplier,
       attackDamage: stats.attackDamage * this.config.enemyDamageMultiplier,
-      speed: PLAYER.speed * this.config.enemySpeedMultiplier,
+      speed: (scaling.speed ?? PLAYER.speed) * this.config.enemySpeedMultiplier,
     };
   }
 
@@ -133,7 +139,8 @@ export class DungeonRoom extends WorldRoom {
     if (!runtime) return;
     // The final boss's accessory roll belongs to the existing reward chest.
     const enemy = this.state.enemies.get(enemyId);
-    if (runtime.spawn.type === this.config.miniBoss?.type || enemy?.rare) {
+    if (runtime.spawn.id === this.config.miniBoss?.id ||
+      runtime.spawn.type === this.config.miniBoss?.type || enemy?.rare) {
       for (const [sessionId, player] of this.state.players) {
         if (runtime.contributors.has(player.characterId)) spawnLoot(this, enemy, sessionId);
       }

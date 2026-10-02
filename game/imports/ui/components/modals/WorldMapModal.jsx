@@ -218,7 +218,7 @@ const MapContent = () => {
         {!dungeon && DUNGEONS.map((entry) => (
           <div key={entry.id} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entry.entrance)}>
             <span className="world-map-point mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
-            <span className="world-map-marker-label rounded bg-black/80 px-1 text-xs text-white">{entry.name}</span>
+            <span className="world-map-marker-label rounded bg-black/80 px-1 text-xs text-white">{entry.name} · Level {entry.recommendedLevel}</span>
           </div>
         ))}
         {dungeon && dungeonConfig && (

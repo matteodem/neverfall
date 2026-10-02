@@ -68,6 +68,7 @@ const PATHS = [
   { from: DEFAULT_SPAWN_POINT.position, to: FOREST_GIANT_HILL.center, width: 8 },
   { from: DEFAULT_SPAWN_POINT.position, to: NORTHERN_SPAWN_POINT.position, width: 8 },
   { from: NORTHERN_SPAWN_POINT.position, to: DUNGEONS[1].entrance, width: 8 },
+  { from: SOUTHWEST_LAKE.center, to: DUNGEONS[2].entrance, width: 8 },
   { from: { x: 140, z: 0 }, to: SNOWY_MOUNTAINS.boss, width: 8 },
 ];
 

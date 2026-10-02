@@ -184,6 +184,36 @@ ENEMY_TYPES.dungeonWarden = {
   healthPerLevel: 200, damagePerLevel: 10,
 };
 
+ENEMY_TYPES.ruinRaider = {
+  ...ENEMY_TYPES.wolf,
+  name: "Ruin Raider",
+  health: 180,
+  healthPerLevel: 48,
+  attackDamage: 10,
+  damagePerLevel: 7,
+  xpReward: 130,
+};
+ENEMY_TYPES.sunkenGuardian = {
+  ...ENEMY_TYPES.dungeonGuardian,
+  bossMechanics: undefined,
+  name: "Sunken Guardian",
+  health: 400,
+  healthPerLevel: 70,
+  attackDamage: 18,
+  damagePerLevel: 9,
+  xpReward: 180,
+  accessoryDropChance: 0.08,
+};
+ENEMY_TYPES.drownedWarden = {
+  ...ENEMY_TYPES.dungeonWarden,
+  name: "The Drowned Warden",
+  health: 900,
+  attackDamage: 45,
+  xpReward: 0,
+  accessoryDropChance: 0.45,
+  emissiveColor: [0.06, 0.16, 0.18],
+};
+
 export const getEnemyStats = (type = "boar", level = 1, rare = false) => {
   const config = { ...BASE_STATS, ...ENEMY_TYPES[type] };
   const variant = rare && !config.bossMechanics;
