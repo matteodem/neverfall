@@ -369,7 +369,6 @@ export const Game = ({
               onLocalCombatChange: (active) => {
                 inCombat = active;
                 setInCombatState(active);
-                if (active && mounted) setMounted(false);
               },
 
               onLocalHealthChange:
@@ -547,7 +546,7 @@ export const Game = ({
               if (!playerAlive) return;
               if (
                 mounted &&
-                /^Digit[1-4]$/.test(code)
+                /^Digit[1-3]$/.test(code)
               ) {
                 setMounted(false);
                 multiplayer?.sendMovement(player, 0, false, true);
