@@ -1,4 +1,5 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
+import { Characters } from "../../imports/api/characters/characters";
 import { trackAchievements } from "../achievements";
 import { LOOT_RANGE } from "../../imports/game/inventory";
 import { PLAYER } from "../../imports/game/config";
@@ -170,6 +171,11 @@ export class DungeonRoom extends WorldRoom {
       for (const [characterId, participant] of this.participants) this.addChestLoot(characterId, participant);
       for (const characterId of this.participants.keys()) {
         void trackAchievements(characterId, "dungeon");
+        if (this.config.id === "sunken-ruins") {
+          void Characters.updateAsync(characterId, {
+            $addToSet: { completedDungeons: this.config.id },
+          }).catch((error) => console.error("[Dungeons] Could not save Sunken Ruins completion", error));
+        }
         void recordQuestEvent(this, characterId, "CompleteDungeon", this.config.id)
           .catch((error) => console.error("[Quests] Could not save dungeon progress", error));
       }

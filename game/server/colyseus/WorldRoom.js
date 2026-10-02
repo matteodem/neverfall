@@ -410,6 +410,15 @@ export class WorldRoom
         sessionId: client.sessionId, x: player.x, y: player.y, z: player.z,
         rotationY: player.rotationY,
       });
+      if (!runtime.usedWaypoint) {
+        runtime.usedWaypoint = true;
+        void Characters.updateAsync({ _id: player.characterId, userId: player.userId }, {
+          $set: { "adventureGuide.usedWaypoint": true },
+        }).catch((error) => {
+          runtime.usedWaypoint = false;
+          console.error("[Adventure Guide] Could not save waypoint travel", error);
+        });
+      }
     },
     selectTalent: async (client, { level, talentId } = {}) => {
       const player = this.state.players.get(client.sessionId);
@@ -1164,6 +1173,7 @@ export class WorldRoom
 
         lastActivityAt: Date.now(),
         visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
+        usedWaypoint: Boolean(character.adventureGuide?.usedWaypoint),
         discoveredLandmarks,
         unlockedSpawnPoints,
         unlockedWaypoints,
