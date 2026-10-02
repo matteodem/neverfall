@@ -4,6 +4,7 @@ export const CHUNK_NEIGHBOR_RADIUS = 1;
 
 export const FOREST_GIANT_HILL = { center: { x: 70, z: 72 }, radius: 58, summitRadius: 12, height: 6 };
 export const SOUTHWEST_LAKE = { center: { x: -160, z: -160 }, radius: 14 };
+export const ANCIENT_FOREST_SHRINE = { x: -240, z: -65 };
 export const SNOWY_MOUNTAINS = { boss: { x: 262, z: 0 } };
 
 // Broad, authored slopes leave the camps, portals, and main routes on easy terrain.

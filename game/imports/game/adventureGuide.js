@@ -7,6 +7,7 @@ export const getAdventureGuideObjective = (character) => {
   const boarKills = achievements.boarSlayer?.progress || 0;
   const wolfKills = achievements.wolfHunter?.progress || 0;
   const goatKills = achievements.goatHunter?.progress || 0;
+  const ratKills = achievements.ratHunter?.progress || 0;
   const snowWolfKills = achievements.snowWolfHunter?.progress || 0;
   const steps = [
     { id: "boars", title: "Defeat 5 Boars", progress: `${Math.min(boarKills, 5)} / 5`,
@@ -31,6 +32,11 @@ export const getAdventureGuideObjective = (character) => {
     { id: "tower-chest", title: "Loot the Jumping Puzzle Chest",
       hint: "Find the tower in the south, climb to the top, and open its chest.",
       done: achievements.towerSummit?.unlocked },
+    { id: "ancient-forest-shrine", title: "Discover the Ancient Forest Shrine",
+      hint: "Find the shrine in the western Forest.",
+      done: guide.visitedAncientForestShrine || character?.discoveredLandmarks?.includes("ancient-forest-shrine") },
+    { id: "rats", title: "Kill 10 Rats", progress: `${Math.min(ratKills, 10)} / 10`,
+      hint: "Find rats in the central Highlands.", done: ratKills >= 10 },
     { id: "level-10", title: "Reach Level 10", progress: `${Math.min(character?.currentLevel ?? 1, 10)} / 10`,
       hint: "Complete Hunts and quests to earn XP.", done: (character?.currentLevel ?? 1) >= 10 },
     { id: "snowy", title: "Explore Snowy Mountains", hint: "Unlock the Snowy Mountains waypoint east of Central Camp.",

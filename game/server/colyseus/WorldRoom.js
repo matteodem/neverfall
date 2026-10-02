@@ -14,6 +14,7 @@ import { createGroups } from "./groups";
 import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight } from "../../imports/game/worldConfig";
+import { LANDMARKS } from "../../imports/game/landmarks";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
@@ -48,6 +49,7 @@ import {
 
 import {
   addXpToProgress,
+  getMaxXp,
 } from "../../imports/game/xp";
 
 import { QUESTS } from "../../imports/game/quests";
@@ -371,7 +373,7 @@ export class WorldRoom
         "profile.claimedTowerChestCharacterIds": { $ne: player.characterId },
       }, {
         $addToSet: { "profile.claimedTowerChestCharacterIds": player.characterId },
-        $inc: { "profile.inventory.money": 10000 },
+        $inc: { "profile.inventory.money": 50000 },
       });
       if (!updated) {
         player.towerChestClaimed = true;
@@ -379,9 +381,9 @@ export class WorldRoom
       }
       this.recordActivity(client.sessionId);
       player.towerChestClaimed = true;
-      await this.awardXp(player.characterId, 500);
+      await this.awardXp(player.characterId, 1000);
       await trackAchievements(player.characterId, "towerChest");
-      client.send("towerChestReward", "Tower Chest · 1 Gold · 500 XP");
+      client.send("towerChestReward", "Tower Chest · 5 Gold · 1000 XP");
     },
     prepareWaypoint: (client, waypointId) => {
       const waypoint = this.getAvailableWaypoint(client, waypointId);
@@ -692,6 +694,27 @@ export class WorldRoom
             console.error("[Adventure Guide] Could not save Northern Camp visit", error);
           });
         }
+        for (const landmark of LANDMARKS) {
+          if (runtime.discoveredLandmarks.has(landmark.id) ||
+            Math.hypot(player.x - landmark.position.x, player.z - landmark.position.z) > landmark.discoveryRadius) continue;
+          runtime.discoveredLandmarks.add(landmark.id);
+          void (async () => {
+            const claimed = await Characters.updateAsync(
+              { _id: player.characterId, userId: player.userId, discoveredLandmarks: { $ne: landmark.id } },
+              { $addToSet: { discoveredLandmarks: landmark.id } }
+            );
+            if (!claimed) return;
+            const character = await Characters.findOneAsync(player.characterId);
+            if (!character) return;
+            const xp = getMaxXp(character.currentLevel ?? 1);
+            const reward = Math.round(xp / 2);
+            // Discovery grants an exact share of the level requirement, independent of XP gear.
+            if (reward) await this.awardXp(player.characterId, reward, false);
+            client.send("bossNotice", `Landmark Discovered: ${landmark.name} · +${reward} XP`);
+          })().catch((error) => {
+            console.error(`[Landmarks] Could not reward ${landmark.name} discovery`, error);
+          });
+        }
         runtime.reachedQuestLocations ||= new Set();
         for (const quest of LOCATION_QUESTS) {
           if (runtime.reachedQuestLocations.has(quest.id)) continue;
@@ -985,6 +1008,21 @@ export class WorldRoom
       missingWaypointIds.forEach((id) => unlockedWaypoints.add(id));
     }
 
+    const discoveredLandmarks = new Set(character.discoveredLandmarks || []);
+    // Preserve visits recorded before landmark discovery IDs existed.
+    const legacyLandmarks = [
+      ...(character.adventureGuide?.visitedAncientForestShrine ? ["ancient-forest-shrine"] : []),
+      ...(character.questProgress?.["explore-highlands"] >= 1 ? ["highlands-lookout"] : []),
+    ];
+    const missingLandmarks = legacyLandmarks.filter((id) => !discoveredLandmarks.has(id));
+    if (missingLandmarks.length) {
+      await Characters.updateAsync(
+        { _id: character._id, userId: auth.userId },
+        { $addToSet: { discoveredLandmarks: { $each: missingLandmarks } } }
+      );
+      missingLandmarks.forEach((id) => discoveredLandmarks.add(id));
+    }
+
 
     await trackAchievements(character._id, "level", character.currentLevel ?? 1);
     if (character.adventureGuide?.firstHunt) await trackAchievements(character._id, "hunt");
@@ -1124,6 +1162,7 @@ export class WorldRoom
 
         lastActivityAt: Date.now(),
         visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
+        discoveredLandmarks,
         unlockedSpawnPoints,
         unlockedWaypoints,
       }
@@ -1456,7 +1495,8 @@ export class WorldRoom
 
   async awardXp(
     characterId,
-    amount
+    amount,
+    applyXpGainMultiplier = true
   ) {
     const character =
       await Characters.findOneAsync(
@@ -1485,7 +1525,9 @@ export class WorldRoom
           character.currentXp,
 
         gainedXp:
-          Math.round(amount * getPlayerStats(previousLevel, character.equipment, character.gameClass).xpGainMultiplier),
+          applyXpGainMultiplier
+            ? Math.round(amount * getPlayerStats(previousLevel, character.equipment, character.gameClass).xpGainMultiplier)
+            : amount,
       });
 
 

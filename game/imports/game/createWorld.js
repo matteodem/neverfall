@@ -2,7 +2,7 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -549,6 +549,8 @@ export const createWorld =
           Math.abs(chunk.z - BASIC_TOWER_POSITION.z) < CHUNK_SIZE / 2;
         const lakeChunk = Math.abs(chunk.x - SOUTHWEST_LAKE.center.x) < CHUNK_SIZE / 2 &&
           Math.abs(chunk.z - SOUTHWEST_LAKE.center.z) < CHUNK_SIZE / 2;
+        const shrineChunk = Math.abs(chunk.x - ANCIENT_FOREST_SHRINE.x) < CHUNK_SIZE / 2 &&
+          Math.abs(chunk.z - ANCIENT_FOREST_SHRINE.z) < CHUNK_SIZE / 2;
         const area = createForestArea({
           scene,
           size: CHUNK_SIZE,
@@ -559,6 +561,7 @@ export const createWorld =
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
             ...(towerChunk ? [{ center: BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
+            ...(shrineChunk ? [{ center: ANCIENT_FOREST_SHRINE, radius: 24 }] : []),
             ...(chunk.region === "snowyMountains" ? [{ center: SNOWY_MOUNTAINS.boss, radius: 24 }] : []),
             ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")
               .map((point) => ({ center: point.position, radius: 9 })) : []),
@@ -598,6 +601,12 @@ export const createWorld =
 
       // The starting chunk is needed before the loading screen closes.
       await chunks.loadAt({ x: 0, z: 0 });
+      chunks.addLoader(ANCIENT_FOREST_SHRINE, async () => {
+        await forestProps.preloadShrine();
+        if (disposed) return;
+        const shrine = forestProps.createShrine(ANCIENT_FOREST_SHRINE);
+        if (shrine) chunks.add(shrine, ANCIENT_FOREST_SHRINE);
+      }, 120, false);
       let entrancePromise;
       const preloadEntrance = () => {
         if (!entrancePromise) entrancePromise = loadDungeonEntranceAsset(scene).catch((error) => {

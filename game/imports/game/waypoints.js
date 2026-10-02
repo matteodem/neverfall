@@ -21,7 +21,7 @@ export const WAYPOINTS = [
   },
   {
     id: "lake-waypoint",
-    name: "Lake Waypoint",
+    name: "Lake",
     region: "forest",
     position: { ...lakePosition, y: getWorldHeight(lakePosition.x, lakePosition.z) },
     discoveryRadius: 16,

@@ -5,6 +5,7 @@ import { Characters } from "../../../api/characters/characters";
 import { getUnlockedSpawnPoints } from "../../../game/spawnPoints";
 import { WAYPOINTS, getUnlockedWaypoints } from "../../../game/waypoints";
 import { SOUTHWEST_LAKE } from "../../../game/worldConfig";
+import { LANDMARKS } from "../../../game/landmarks";
 import { BASIC_TOWER_POSITION } from "../../../game/basicTowerConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS } from "../../../game/enemyConfig";
@@ -20,15 +21,14 @@ import { Icon } from "../Icon";
 import { WorldMapMarker, WorldMapMarkerIcon } from "./WorldMapMarker";
 
 const WORLD_LABELS = [
-  { label: "Highlands (Level 5 - 10)", x: 0, z: 120 },
-  { label: "Forest (Level 1 - 5)", x: -60, z: 57.5 },
+  { label: "Highlands (Level 5 - 10)", x: 0, z: 160 },
+  { label: "Forest (Level 1 - 5)", x: 0, z: 42.5 },
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: -200 },
   { label: "Forest", x: 0, z: -210 },
   { label: "Snowy Mountains (Level 10 - 15)", x: 238, z: -85 },
 ];
 
-const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
 const isStandaloneWaypoint = (point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id);
 const LEGEND = [
   { kind: "waypoint", label: "Waypoint" },
@@ -190,11 +190,11 @@ const MapContent = () => {
             offsetX={isStandaloneWaypoint(point) ? 0 : mobile ? 50 : 34}
             mobile={mobile} selected={activeMarkerId === `undiscovered-${point.id}`} onSelect={selectMarker} />
         ))}
-        {!dungeon && (
-          <WorldMapMarker id="highlands-lookout" kind="landmark" label="Highlands Lookout"
-            position={worldToPercent(HIGHLANDS_LOOKOUT)} mobile={mobile}
-            selected={activeMarkerId === "highlands-lookout"} onSelect={selectMarker} />
-        )}
+        {!dungeon && LANDMARKS.map((landmark) => (
+          <WorldMapMarker key={landmark.id} id={landmark.id} kind="landmark" label={landmark.name}
+            position={worldToPercent(landmark.position)} mobile={mobile}
+            selected={activeMarkerId === landmark.id} onSelect={selectMarker} />
+        ))}
         {!dungeon && (
           <WorldMapMarker id="tower-puzzle" kind="puzzle" label="Tower Jumping Puzzle"
             position={worldToPercent(BASIC_TOWER_POSITION)} mobile={mobile}
