@@ -9,6 +9,7 @@ export const getAdventureGuideObjective = (character) => {
   const goatKills = achievements.goatHunter?.progress || 0;
   const ratKills = achievements.ratHunter?.progress || 0;
   const snowWolfKills = achievements.snowWolfHunter?.progress || 0;
+  const sealKills = achievements.sealHunter?.progress || 0;
   const steps = [
     { id: "boars", title: "Defeat 5 Boars", progress: `${Math.min(boarKills, 5)} / 5`,
       hint: "Find boars near Central Camp.", done: boarKills >= 5 },
@@ -56,6 +57,10 @@ export const getAdventureGuideObjective = (character) => {
       hint: "Enter a dungeon and defeat its final boss.", done: achievements.dungeonDelver?.unlocked },
     { id: "level-14", title: "Reach Level 14", progress: `${Math.min(character?.currentLevel ?? 1, 14)} / 14`,
       hint: "Prepare for the strongest content currently available.", done: (character?.currentLevel ?? 1) >= 14 },
+    { id: "southwest-lake", title: "Explore Southwest Lake",
+      hint: "Unlock the waypoint near Southwest Lake.", done: waypoints.includes("lake-waypoint") },
+    { id: "seals", title: "Kill 10 Seals", progress: `${Math.min(sealKills, 10)} / 10`,
+      hint: "Find seals around Southwest Lake.", done: sealKills >= 10 },
     { id: "level-15", title: "Reach Level 15", progress: `${Math.min(character?.currentLevel ?? 1, 15)} / 15`,
       hint: "Reach the current maximum level.", done: (character?.currentLevel ?? 1) >= 15 },
     { id: "sunken-ruins", title: "Complete Sunken Ruins",

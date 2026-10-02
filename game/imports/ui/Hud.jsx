@@ -70,7 +70,7 @@ import {
 
 
 const HEAL_COOLDOWN =
-  15000;
+  10000;
 
 
 /*

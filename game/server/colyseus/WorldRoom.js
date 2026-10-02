@@ -94,7 +94,7 @@ const ATTACK_COOLDOWN_FIELDS = {
 
 
 const HEAL_COOLDOWN =
-  15000;
+  10000;
 
 
 const PLAYER_RESPAWN_DELAY =
