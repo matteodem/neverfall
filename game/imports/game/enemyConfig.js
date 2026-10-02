@@ -51,7 +51,7 @@ export const ENEMY_TYPES = {
     model: "wolf.glb",
     scale: 0.4,
     rotationY: 0,
-    animations: { idle: "Idle", attack: "Attack", walk: "Walk" },
+    animations: { idle: "Idle", attack: "Attack", walk: "Gallop" },
   },
   goat: {
     name: "Goat",

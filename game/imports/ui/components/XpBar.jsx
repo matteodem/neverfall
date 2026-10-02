@@ -56,7 +56,7 @@ export const XpBar = () => {
 
         <span>
           {isMaxLevel
-            ? `MAX LEVEL`
+            ? `Max Level`
             : `${currentXp} / ${maxXp} XP`}
         </span>
       </div>
