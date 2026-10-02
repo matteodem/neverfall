@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../imports/api/characters/characters";
 import { QUESTS } from "../imports/game/quests";
+import { ITEM_NAMES, rollRandomRingId } from "../imports/game/inventory";
 import { trackAchievements } from "./achievements";
 import { spawnLoot } from "./inventory/loot";
 
@@ -25,6 +26,7 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
       const update = { [`questProgress.${quest.id}`]: next };
+      const ringId = completed && quest.rewards?.randomRing ? rollRandomRingId() : null;
       if (completed && quest.repeatable && !character.adventureGuide?.firstHunt) {
         update["adventureGuide.firstHunt"] = true;
         character.adventureGuide ||= {};
@@ -32,6 +34,7 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       }
       await Characters.updateAsync(characterId, {
         $set: update,
+        ...(ringId ? { $push: { "inventory.items": { id: ringId } } } : {}),
       });
       character.questProgress ||= {};
       character.questProgress[quest.id] = next;
@@ -51,7 +54,8 @@ export const recordQuestEvent = (room, characterId, type, target) => {
       if (quest.repeatable) await trackAchievements(characterId, "hunt");
       for (const client of room.clients) {
         if (room.state.players.get(client.sessionId)?.characterId === characterId) {
-          client.send("questCompleted", { title: quest.title, rewards: quest.rewards });
+          client.send("questCompleted", { title: quest.title,
+            rewards: { ...quest.rewards, ...(ringId ? { item: ITEM_NAMES[ringId] } : {}) } });
         }
       }
       if (quest.rewards?.xp) await room.awardXp(characterId, quest.rewards.xp);

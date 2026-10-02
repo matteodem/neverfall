@@ -55,6 +55,11 @@ export const canCollectLoot = (player, loot) => Boolean(
   Math.hypot(player.x - loot.x, player.y - loot.y, player.z - loot.z) <= LOOT_RANGE
 );
 
+export const rollRandomRingId = (random = Math.random) => {
+  const ringIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "ring").map(({ id }) => id);
+  return ringIds[Math.floor(random() * ringIds.length)];
+};
+
 export const rollLoot = (random = Math.random, enemyType = "boar", rare = false) => {
   const bossDrop = Boolean(ENEMY_TYPES[enemyType]?.bossMechanics);
   const chestDungeon = DUNGEONS.find((dungeon) => dungeon.rewards.lootType === enemyType);
@@ -62,11 +67,10 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false)
     ? ENEMY_TYPES[chestDungeon.finalBoss?.type]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE
     : ENEMY_TYPES[enemyType]?.accessoryDropChance ?? ACCESSORY_DROP_CHANCE;
   const lootMultiplier = rare && !bossDrop && !chestDungeon ? RARE_ENEMY.lootChanceMultiplier : 1;
-  const equipmentItemIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "ring").map(({ id }) => id);
   const equipmentDropChance = ENEMY_TYPES[enemyType]?.equipmentDropChance ?? (bossDrop ? 0 : EQUIPMENT_DROP_CHANCE);
   const dropsEquipment = equipmentDropChance > 0 && random() < Math.min(1, equipmentDropChance * lootMultiplier);
   const items = dropsEquipment
-    ? [{ id: equipmentItemIds[Math.floor(random() * equipmentItemIds.length)] }]
+    ? [{ id: rollRandomRingId(random) }]
     : !bossDrop && !chestDungeon && random() < 0.7
       ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
       : [];

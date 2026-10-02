@@ -44,7 +44,7 @@ export const getAdventureGuideObjective = (character) => {
     { id: "snow-wolf-hunt", title: "Kill 10 Snow Wolfs", progress: `${Math.min(snowWolfKills, 10)} / 10`,
       hint: "Defeat snow wolves north of the Snowy Mountains waypoint.", done: snowWolfKills >= 10 },
     { id: "explore", title: "Explore Neverfall",
-      hint: "Try Hunts, dungeons, world events, bosses, the tower puzzle, and parties.", done: false },
+      hint: "Try hunts, quests, dungeons, world events and bosses.", done: false },
   ];
   return steps.find((step) => !step.done);
 };

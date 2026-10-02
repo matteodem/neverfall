@@ -15,6 +15,7 @@ export const QuestCompletionOverlay = () => {
   const rewards = [
     current.rewards?.xp && `${current.rewards.xp} XP`,
     current.rewards?.gold && `${current.rewards.gold} Gold`,
+    current.rewards?.item,
     current.rewards?.lootType && "Loot",
   ].filter(Boolean).join(" · ");
 

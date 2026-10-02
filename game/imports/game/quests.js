@@ -98,7 +98,7 @@ export const QUESTS = [
   ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
     ...hunt,
     objective: { type: ["forestGiant", "frostOgre"].includes(type) ? "Boss" : "Kill", target: type, amount: hunt.target },
-    rewards: { xp: hunt.rewardXp, gold: hunt.rewardGold },
+    rewards: { xp: hunt.rewardXp, gold: hunt.rewardGold, ...(type === "boar" ? { randomRing: true } : {}) },
     repeatable: true,
   })),
   {
