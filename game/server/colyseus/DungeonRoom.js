@@ -154,9 +154,9 @@ export class DungeonRoom extends WorldRoom {
     for (const characterId of runtime.contributors) {
       void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
       if (enemy?.rare) void trackAchievements(characterId, "rare");
-      void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar")
+      void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar", { includeHunts: false })
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
-      void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar")
+      void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar", { includeHunts: false })
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
     this.state.enemies.delete(enemyId);

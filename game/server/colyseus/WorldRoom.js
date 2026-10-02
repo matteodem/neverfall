@@ -15,6 +15,7 @@ import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
+import { getQuestArea } from "../../imports/game/quests";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
@@ -1723,7 +1724,7 @@ export class WorldRoom
       ...stats,
       speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER,
       health: stats.health * (scaling.health ?? 1),
-      attackDamage: stats.attackDamage * (scaling.damage ?? 1),
+      attackDamage: stats.attackDamage * (scaling.damage ?? 1) * 0.5,
     };
   }
 
@@ -1949,7 +1950,10 @@ export class WorldRoom
     const stats = this.getEnemyStats(spawn.type, spawn.level);
     const rare = this.state.enemies.get(enemyId)?.rare;
     const lootOwners = new Set();
+    const nearbyHuntKills = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
+      if (!spawn.eventId && !player.inDungeon && contributors.has(player.characterId) &&
+        getQuestArea(player) === spawn.type) nearbyHuntKills.add(player.characterId);
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
         continue;
       }
@@ -2007,9 +2011,11 @@ export class WorldRoom
       }
 
 
-      await recordQuestEvent(this, characterId, "Kill", spawn.type || "boar")
+      await recordQuestEvent(this, characterId, "Kill", spawn.type || "boar",
+        { includeHunts: nearbyHuntKills.has(characterId) })
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
-      await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar")
+      await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar",
+        { includeHunts: nearbyHuntKills.has(characterId) })
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
 

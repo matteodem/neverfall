@@ -2,7 +2,7 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { ANCIENT_FOREST_SHRINE, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -562,6 +562,7 @@ export const createWorld =
             ...(towerChunk ? [{ center: BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),
             ...(shrineChunk ? [{ center: ANCIENT_FOREST_SHRINE, radius: 24 }] : []),
+            ...(chunk.region === "snowyMountains" ? [{ center: FROZEN_STONE_ARCH, radius: 24 }] : []),
             ...(chunk.region === "snowyMountains" ? [{ center: SNOWY_MOUNTAINS.boss, radius: 24 }] : []),
             ...(lakeChunk ? WAYPOINTS.filter((point) => point.id === "lake-waypoint")
               .map((point) => ({ center: point.position, radius: 9 })) : []),
@@ -606,6 +607,12 @@ export const createWorld =
         if (disposed) return;
         const shrine = forestProps.createShrine(ANCIENT_FOREST_SHRINE);
         if (shrine) chunks.add(shrine, ANCIENT_FOREST_SHRINE);
+      }, 120, false);
+      chunks.addLoader(FROZEN_STONE_ARCH, async () => {
+        await forestProps.preloadFrozenArch();
+        if (disposed) return;
+        const arch = forestProps.createFrozenArch(FROZEN_STONE_ARCH);
+        if (arch) chunks.add(arch, FROZEN_STONE_ARCH);
       }, 120, false);
       let entrancePromise;
       const preloadEntrance = () => {

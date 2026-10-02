@@ -26,7 +26,7 @@ const WORLD_LABELS = [
   { label: "Forest", x: -200, z: 0 },
   { label: "Forest", x: 200, z: -200 },
   { label: "Forest", x: 0, z: -210 },
-  { label: "Snowy Mountains (Level 10 - 15)", x: 238, z: -85 },
+  { label: "Snowy Mountains (Level 10 - 15)", x: 208, z: -75 },
 ];
 
 const isStandaloneWaypoint = (point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id);

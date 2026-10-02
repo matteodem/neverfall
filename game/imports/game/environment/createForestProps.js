@@ -7,7 +7,7 @@ import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WAYPOINTS } from "../waypoints";
 import { WORLD_EVENTS } from "../worldEvents";
-import { ANCIENT_FOREST_SHRINE, FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight } from "../worldConfig";
+import { ANCIENT_FOREST_SHRINE, FOREST_GIANT_HILL, FROZEN_STONE_ARCH, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight } from "../worldConfig";
 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
@@ -17,6 +17,7 @@ const MODELS = {
   landmarkRocks: ["rock_1"],
   archLintel: ["rock_2"],
   ancientShrine: ["ancient_forest_shrine"],
+  frozenArch: ["frozen-stone-arch"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
   rocks: ["rock_1", "rock_2"],
@@ -58,6 +59,7 @@ const CIRCLES = [
   { ...FOREST_GIANT_HILL.center, radius: 20 },
   { ...SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 8 },
   { ...ANCIENT_FOREST_SHRINE, radius: 24 },
+  { ...FROZEN_STONE_ARCH, radius: 24 },
   ...WORLD_CHUNKS.filter((chunk) => chunk.region === "highlands").flatMap((chunk) => [
     ...(HIGHLANDS_SCENERY.landmarks[chunk.x] ? [{
       x: chunk.x + HIGHLANDS_SCENERY.landmarks[chunk.x].x,
@@ -284,6 +286,20 @@ export const loadForestProps = async (scene) => {
       const root = new TransformNode("ancient-forest-shrine", scene);
       root.position.set(position.x, 0, position.z);
       const model = place(root, "ancientShrine", { x: 0, z: 0 }, () => 0, 8);
+      if (!model) { root.dispose(); return null; }
+      model.rotation.y = Math.PI / 2;
+      for (const mesh of root.getChildMeshes()) {
+        mesh.checkCollisions = true;
+        mesh.computeWorldMatrix(true);
+        mesh.freezeWorldMatrix();
+      }
+      return root;
+    },
+    preloadFrozenArch: () => preload(MODELS.frozenArch),
+    createFrozenArch(position) {
+      const root = new TransformNode("frozen-stone-arch", scene);
+      root.position.set(position.x, 0, position.z);
+      const model = place(root, "frozenArch", { x: 0, z: 0 }, () => 0, 8);
       if (!model) { root.dispose(); return null; }
       model.rotation.y = Math.PI / 2;
       for (const mesh of root.getChildMeshes()) {

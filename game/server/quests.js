@@ -7,9 +7,10 @@ import { spawnLoot } from "./inventory/loot";
 
 const pending = new Map();
 
-export const recordQuestEvent = (room, characterId, type, target) => {
+export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true } = {}) => {
   const matches = QUESTS.filter((quest) =>
-    quest.objective.type === type && quest.objective.target === target);
+    quest.objective.type === type && quest.objective.target === target &&
+    (includeHunts || !quest.progressField));
   if (!matches.length) return Promise.resolve();
 
   // Serialize updates for a character, including events from separate rooms.
