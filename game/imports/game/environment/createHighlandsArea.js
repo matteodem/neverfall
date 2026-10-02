@@ -1,4 +1,4 @@
-import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
+import { Color3, MeshBuilder, SceneLoader, StandardMaterial, TransformNode } from "@babylonjs/core";
 import { createFrameBudget } from "./createFrameBudget";
 import { HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
 
@@ -20,7 +20,6 @@ export const createHighlandsArea = async ({ scene, chunk }) => {
   const stone = material("stone", "#858D91");
   const darkStone = material("dark-stone", "#59646B");
   const moss = material("moss", "#647653");
-  const wood = material("wood", "#70503B");
 
   const place = (mesh, x, y, z, surface = stone, rotation = 0) => {
     mesh.parent = root;
@@ -106,31 +105,45 @@ export const createHighlandsArea = async ({ scene, chunk }) => {
       rock(x - 1, 0.7, z + 4, 1.4);
       block("fallen-arch-stone", x + 5, 0.65, z + 5, 2.6, 1.3, 1.8, stone, 0.5);
     } else if (type === "tower") {
-      // Open doorway faces south; the top has uneven, broken battlements.
-      for (let layer = 0; layer < 5; layer++) {
-        for (let index = -2; index <= 2; index++) {
-          block("tower-back", x + index * 1.9, 0.8 + layer * 1.6, z + 4.5,
-            1.8, 1.5, 1.4, layer === 0 ? moss : stone);
-          if (Math.abs(index) > 0 && layer < 3) {
-            block("tower-front", x + index * 1.9, 0.8 + layer * 1.6, z - 4.5,
-              1.8, 1.5, 1.4, stone);
+      let container;
+      let disposed = false;
+      scene.onDisposeObservable.addOnce(() => {
+        disposed = true;
+        container?.dispose();
+      });
+      try {
+        container = await SceneLoader.LoadAssetContainerAsync(
+          "/models/environment/", "highlands-lookout.glb", scene);
+        if (disposed) container.dispose();
+        else {
+          const model = new TransformNode("highlands-lookout", scene);
+          const entries = container.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+          for (const node of entries.rootNodes) node.parent = model;
+          let minX = Infinity; let maxX = -Infinity;
+          let minY = Infinity; let minZ = Infinity; let maxZ = -Infinity;
+          for (const mesh of model.getChildMeshes()) {
+            if (!(mesh.getTotalVertices() || mesh.sourceMesh?.getTotalVertices())) continue;
+            mesh.computeWorldMatrix(true);
+            const bounds = mesh.getBoundingInfo().boundingBox;
+            minX = Math.min(minX, bounds.minimumWorld.x);
+            maxX = Math.max(maxX, bounds.maximumWorld.x);
+            minY = Math.min(minY, bounds.minimumWorld.y);
+            minZ = Math.min(minZ, bounds.minimumWorld.z);
+            maxZ = Math.max(maxZ, bounds.maximumWorld.z);
+            mesh.checkCollisions = true;
+            mesh.isPickable = false;
+            mesh.receiveShadows = true;
           }
-          if (index === -2 || index === 0 || index === 2) {
-            for (const side of [-1, 1]) {
-              block("tower-side", x + side * 4.5, 0.8 + layer * 1.6, z + index * 1.7,
-                1.4, 1.5, 3.2, layer === 0 ? moss : stone);
-            }
-          }
-          await yieldIfNeeded();
+          const scale = 5.5;
+          model.scaling.setAll(scale);
+          model.rotation.y = Math.PI;
+          model.position.set(x - (minX + maxX) / 2 * scale,
+            getWorldHeight(chunk.x + x, chunk.z + z) - minY * scale,
+            z - (minZ + maxZ) / 2 * scale);
+          model.parent = root;
         }
-        await yieldIfNeeded();
-      }
-      for (const offset of [-3.8, 0, 3.8]) {
-        block("tower-battlement", x + offset, 8.4, z + 4.5, 1.5, 1.4, 1.4, darkStone);
-      }
-      block("fallen-tower-beam", x - 7, 0.35, z - 3, 6, 0.5, 0.6, wood, 0.6);
-      for (let index = 0; index < 6; index++) {
-        rock(x + 7 + index % 3 * 2, 0.5, z - 5 + Math.floor(index / 3) * 3, 1.1);
+      } catch (error) {
+        console.warn("[Highlands] Could not load highlands-lookout.glb", error);
       }
     } else if (type === "circle") {
       for (let index = 0; index < 7; index++) {

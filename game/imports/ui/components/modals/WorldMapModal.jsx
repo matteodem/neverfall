@@ -17,6 +17,7 @@ import { useWaypointStore } from "../../stores/useWaypointStore";
 import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
+import { WorldMapMarker, WorldMapMarkerIcon } from "./WorldMapMarker";
 
 const WORLD_LABELS = [
   { label: "Highlands (Level 5 - 10)", x: 0, z: 120 },
@@ -29,9 +30,15 @@ const WORLD_LABELS = [
 
 const HIGHLANDS_LOOKOUT = { x: 40, z: 245 };
 const isStandaloneWaypoint = (point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id);
-const waypointLabelPosition = (point) => point.id === "snowy-mountains-waypoint"
-  ? "bottom-[-20px] right-[-75px]"
-  : isStandaloneWaypoint(point) ? "left-5 top-3" : "left-5 bottom-4";
+const LEGEND = [
+  { kind: "waypoint", label: "Waypoint" },
+  { kind: "undiscovered", label: "Undiscovered waypoint" },
+  { kind: "spawn", label: "Respawn point / camp" },
+  { kind: "dungeon", label: "Dungeon" },
+  { kind: "hunt", label: "Hunt" },
+  { kind: "puzzle", label: "Jumping puzzle" },
+  { kind: "landmark", label: "Landmark" },
+];
 const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
   const position = type === "seal"
@@ -51,6 +58,8 @@ const MapContent = () => {
   const { mobile } = useMobileDevice();
   const [view, setView] = React.useState(() => ({ zoom: mobile ? 1.5 : 1, x: 0, y: 0 }));
   const [selectedWaypointId, setSelectedWaypointId] = React.useState(null);
+  const [activeMarkerId, setActiveMarkerId] = React.useState(null);
+  const [legendOpen, setLegendOpen] = React.useState(false);
   const viewportRef = React.useRef(null);
   const pointers = React.useRef(new Map());
   const gesture = React.useRef(null);
@@ -69,6 +78,16 @@ const MapContent = () => {
   const unlockedWaypoints = getUnlockedWaypoints(character?.unlockedWaypoints);
   const undiscoveredWaypoints = WAYPOINTS.filter((point) => !point.isDefault && !unlockedWaypoints.includes(point));
   const selectedWaypoint = unlockedWaypoints.find((point) => point.id === selectedWaypointId);
+  const selectMarker = (id) => {
+    const waypoint = unlockedWaypoints.some((point) => `waypoint-${point.id}` === id);
+    if (mobile && activeMarkerId !== id) {
+      setActiveMarkerId(id);
+      setSelectedWaypointId(null);
+      return;
+    }
+    if (waypoint) setSelectedWaypointId(id.slice("waypoint-".length));
+    else setActiveMarkerId(activeMarkerId === id ? null : id);
+  };
   React.useEffect(() => {
     if (dungeon || !character || character.adventureGuide?.openedMap) return;
     Meteor.callAsync("adventureGuide.openMap").catch((error) =>
@@ -140,7 +159,8 @@ const MapContent = () => {
       </div>
       <div ref={viewportRef} className="relative aspect-square cursor-grab touch-none overflow-hidden rounded-box border border-base-300 active:cursor-grabbing"
         onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}>
+        onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}
+        onClick={() => { setActiveMarkerId(null); setSelectedWaypointId(null); }}>
         <div className="absolute inset-0 origin-center" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
           alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall world map"}
@@ -154,50 +174,31 @@ const MapContent = () => {
             style={worldToPercent(position)}>{position.label}</span>
         ))}
         {!dungeon && getUnlockedSpawnPoints(character?.unlockedSpawnPoints).map((point) => (
-          <div key={point.id} className="pointer-events-none absolute z-[15]" style={worldToPercent(point.position)}
-            role="img" aria-label={`${point.name}, Respawn Point, Unlocked`}>
-            <span className="flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-xs font-bold text-white shadow">✚</span>
-            <span className="world-map-marker-label absolute right-6 top-2 whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-right text-emerald-100"
-              style={{ fontSize: 10, lineHeight: 1.15 }}>
-              <strong className="block">{point.name}</strong>
-              <span className="block">Respawn Point · Unlocked</span>
-            </span>
-          </div>
+          <WorldMapMarker key={`spawn-${point.id}`} id={`spawn-${point.id}`} kind="spawn"
+            label={`${point.name} · Respawn Point · Unlocked`} position={worldToPercent(point.position)}
+            mobile={mobile} selected={activeMarkerId === `spawn-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && unlockedWaypoints.map((point) => (
-          <button key={point.id} type="button" className="absolute z-[16] cursor-pointer border-0 bg-transparent p-0"
-            style={{ ...worldToPercent(point.position), transform: isStandaloneWaypoint(point) ? undefined : "translateX(18px)" }}
-            aria-label={`Travel to ${point.name}`}
-            onPointerDown={(event) => event.stopPropagation()}
-            onPointerUp={(event) => event.stopPropagation()}
-            onClick={() => setSelectedWaypointId(point.id)}>
-            <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-sky-700 text-[10px] font-bold text-white shadow">◆</span>
-            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-sky-100 ${waypointLabelPosition(point)}`}>{point.name} · Waypoint</span>
-          </button>
+          <WorldMapMarker key={`waypoint-${point.id}`} id={`waypoint-${point.id}`} kind="waypoint"
+            label={`${point.name} · Waypoint`} position={worldToPercent(point.position)}
+            offsetX={isStandaloneWaypoint(point) ? 0 : mobile ? 50 : 34}
+            mobile={mobile} selected={activeMarkerId === `waypoint-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && undiscoveredWaypoints.map((point) => (
-          <div key={point.id} className="pointer-events-none absolute z-[16]"
-            style={{ ...worldToPercent(point.position), transform: isStandaloneWaypoint(point) ? undefined : "translateX(18px)" }}
-            role="img" aria-label={`${point.name}, undiscovered`}>
-            <span className="flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white bg-slate-600 text-[10px] text-white shadow">◆</span>
-            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/80 px-1 py-0.5 text-xs font-semibold text-slate-100 ${waypointLabelPosition(point)}`}>{point.name} · Undiscovered</span>
-          </div>
+          <WorldMapMarker key={`undiscovered-${point.id}`} id={`undiscovered-${point.id}`} kind="undiscovered"
+            label={`${point.name} · Undiscovered`} position={worldToPercent(point.position)}
+            offsetX={isStandaloneWaypoint(point) ? 0 : mobile ? 50 : 34}
+            mobile={mobile} selected={activeMarkerId === `undiscovered-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && (
-          <div className="absolute z-10" style={worldToPercent(HIGHLANDS_LOOKOUT)} title="Highlands Lookout">
-            <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-[#e0c99a] bg-[#59646b]" />
-            <span className="world-map-marker-label absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
-              Highlands Lookout
-            </span>
-          </div>
+          <WorldMapMarker id="highlands-lookout" kind="landmark" label="Highlands Lookout"
+            position={worldToPercent(HIGHLANDS_LOOKOUT)} mobile={mobile}
+            selected={activeMarkerId === "highlands-lookout"} onSelect={selectMarker} />
         )}
         {!dungeon && (
-          <div className="absolute z-10" style={worldToPercent(BASIC_TOWER_POSITION)} title="Tower Jumping Puzzle">
-            <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-3 w-3 rounded-full border-2 border-white bg-amber-700 shadow" />
-            <span className="world-map-marker-label absolute bottom-2 left-3 whitespace-nowrap rounded bg-black/75 px-1 text-[10px] font-semibold text-amber-200">
-              Tower Jumping Puzzle
-            </span>
-          </div>
+          <WorldMapMarker id="tower-puzzle" kind="puzzle" label="Tower Jumping Puzzle"
+            position={worldToPercent(BASIC_TOWER_POSITION)} mobile={mobile}
+            selected={activeMarkerId === "tower-puzzle"} onSelect={selectMarker} />
         )}
         {!dungeon && (
           <div className="absolute z-10" style={worldToPercent(SOUTHWEST_LAKE.center)} title="Southwest Lake">
@@ -216,16 +217,14 @@ const MapContent = () => {
           </div>
         ))}
         {!dungeon && DUNGEONS.map((entry) => (
-          <div key={entry.id} className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(entry.entrance)}>
-            <span className="world-map-point mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
-            <span className="world-map-marker-label rounded bg-black/80 px-1 text-xs text-white">{entry.name} · Level {entry.recommendedLevel}</span>
-          </div>
+          <WorldMapMarker key={entry.id} id={`dungeon-${entry.id}`} kind="dungeon"
+            label={`${entry.name} · Level ${entry.recommendedLevel}`} position={worldToPercent(entry.entrance)}
+            mobile={mobile} selected={activeMarkerId === `dungeon-${entry.id}`} onSelect={selectMarker} />
         ))}
         {dungeon && dungeonConfig && (
-          <div className="absolute z-10 -translate-x-1/2 -translate-y-1/2 text-center" style={worldToPercent(dungeonConfig.spawn, DUNGEON_MAP_RADIUS)}>
-            <span className="world-map-point mx-auto block h-3 w-3 rounded-full border-2 border-white bg-violet-500 shadow" />
-            <span className="world-map-marker-label rounded bg-black/80 px-1 text-xs text-white">{dungeonConfig.name}</span>
-          </div>
+          <WorldMapMarker id={`dungeon-${dungeonConfig.id}`} kind="dungeon" label={dungeonConfig.name}
+            position={worldToPercent(dungeonConfig.spawn, DUNGEON_MAP_RADIUS)} mobile={mobile}
+            selected={activeMarkerId === `dungeon-${dungeonConfig.id}`} onSelect={selectMarker} />
         )}
         <div className="absolute z-20" title="You" aria-label="Your position" style={{
           ...worldToPercent(localPlayer, dungeon ? DUNGEON_MAP_RADIUS : undefined),
@@ -233,6 +232,25 @@ const MapContent = () => {
         }}>
           <Icon icon="locationArrow" className="world-map-player-point h-4 w-4 text-white drop-shadow-[0_1px_3px_black]" />
         </div>
+        </div>
+        <div className="absolute bottom-2 left-2 z-40"
+          onPointerDown={(event) => event.stopPropagation()}
+          onPointerUp={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}>
+          {legendOpen && (
+            <div id="world-map-legend" className="mb-1 rounded-box bg-black/85 p-2 text-xs text-white shadow-lg">
+              {LEGEND.map(({ kind, label }) => (
+                <div key={kind} className="flex items-center gap-2 py-0.5">
+                  <span className="flex h-5 w-5 items-center justify-center"><WorldMapMarkerIcon kind={kind} /></span>
+                  <span>{label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <button type="button" className="btn btn-sm bg-black/85 text-white" aria-expanded={legendOpen}
+            aria-controls="world-map-legend" onClick={() => setLegendOpen((open) => !open)}>
+            Legend {legendOpen ? "▴" : "▾"}
+          </button>
         </div>
       </div>
       {selectedWaypoint && !dungeon && (
