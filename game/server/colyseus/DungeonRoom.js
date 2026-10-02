@@ -6,6 +6,7 @@ import { WorldRoom } from "./WorldRoom";
 import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
 import { getDungeonConfig, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
+import { getWorldHeight } from "../../imports/game/worldConfig";
 import { collectLoot, spawnLoot } from "../inventory/loot";
 import { recordQuestEvent } from "../quests";
 import { QUESTS } from "../../imports/game/quests";
@@ -212,8 +213,8 @@ export class DungeonRoom extends WorldRoom {
       }
       if (source.health <= 0) source.health = source.maxHealth;
       source.x = this.config.entrance.x;
-      source.y = 0;
       source.z = this.config.entrance.z + 4;
+      source.y = getWorldHeight(source.x, source.z);
       source.rotationY = 0;
       source.inDungeon = false;
     }
