@@ -2065,9 +2065,9 @@ export const createMultiplayer =
           room.send("attack", { code, targetId });
           return;
         }
-        room.send(
-          "attack", code
-        );
+        const projectile = getClassConfig(localPlayerState.gameClass).skills[code]?.projectile;
+        room.send("attack", projectile
+          ? { code, preferredTargetId: useTargetStore.getState().selectedId } : code);
       };
 
 

@@ -68,7 +68,8 @@ export const createProjectileVisuals = (scene) => {
       const visual = getPool(data.type).acquire();
       const { root } = visual;
       root.position.set(data.x, data.y, data.z);
-      root.rotation.set(0, Math.atan2(data.dx, data.dz), 0);
+      root.rotation.set(-Math.atan2(data.dy || 0, Math.hypot(data.dx, data.dz)),
+        Math.atan2(data.dx, data.dz), 0);
       if (data.type === "fireNova") root.scaling.set(data.radius, 1, data.radius);
       else root.scaling.setAll((data.scale || 1) * (data.type === "arrow" ? 1.5 : 1));
       active.set(data.id, { ...data, root, visual, remaining: data.lifetime });
@@ -84,6 +85,7 @@ export const createProjectileVisuals = (scene) => {
         const elapsed = Math.min(deltaTime, projectile.remaining);
         const distance = projectile.speed * elapsed / 1000;
         projectile.root.position.x += projectile.dx * distance;
+        projectile.root.position.y += (projectile.dy || 0) * distance;
         projectile.root.position.z += projectile.dz * distance;
         projectile.remaining -= elapsed;
         if (projectile.remaining <= 0) remove(projectile.id);

@@ -110,6 +110,10 @@ export class DungeonRoom extends WorldRoom {
     player.rotationY = 0;
   }
 
+  getProjectileTerrainHeight() {
+    return 0;
+  }
+
   respawnPlayer(player) {
     super.respawnPlayer(player);
     this.respawnPosition(player);

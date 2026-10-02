@@ -131,6 +131,10 @@ export class WorldRoom
 
   projectiles = createProjectiles(this);
 
+  getProjectileTerrainHeight(x, z) {
+    return getWorldHeight(x, z);
+  }
+
 
   /*
    * Runtime-only data.
@@ -818,9 +822,11 @@ export class WorldRoom
       client,
       request = "Digit1"
     ) => {
-      const mobileAttack = request && typeof request === "object";
-      const code = mobileAttack ? request.code : request;
+      const mobileAttack = request && typeof request === "object" && "targetId" in request;
+      const code = request && typeof request === "object" ? request.code : request;
       const targetId = mobileAttack && typeof request.targetId === "string" ? request.targetId : null;
+      const preferredTargetId = !mobileAttack && typeof request?.preferredTargetId === "string"
+        ? request.preferredTargetId : null;
       if (!["Digit1", "Digit2", "Digit3"].includes(code)) return;
       const cooldownField = ATTACK_COOLDOWN_FIELDS[code];
       const player =
@@ -874,11 +880,7 @@ export class WorldRoom
       }
 
       if (skill.projectile) {
-        const targetRange = mobileAttack
-          ? Math.max(MOBILE_TARGETING.retainRange, skill.projectile.speed * skill.projectile.lifetime / 1000)
-          : MOBILE_TARGETING.retainRange;
-        const target = targetId && this.getTargetEnemy(player, targetId, targetRange);
-        this.projectiles.fire(client.sessionId, player, skill, target?.enemy);
+        this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack);
         return;
       }
 
