@@ -1,7 +1,7 @@
 import { Color3, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot", "flashlight", "pineTree"];
+const ASSETS = ["tent", "campfire", "logBench", "campingPot", "flashlight"];
 const CAMP_SCALE = 1.8;
 
 const CENTRAL_PROPS = [
@@ -12,8 +12,6 @@ const CENTRAL_PROPS = [
   ["logBench", 3.5, 2.4, -0.5, 1.7],
   ["campingPot", 4.2, -0.5, 0, 1.2],
   ["flashlight", 5.2, -0.2, 0.2, 1.8],
-  ["pineTree", -12, 7, 0.4, 1.1],
-  ["pineTree", 12, 7, -0.6, 0.95],
 ];
 
 const NORTHERN_PROPS = [

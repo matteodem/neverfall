@@ -63,29 +63,19 @@ export const WORLD_REGIONS = {
 
 // Positions are relative to the center of each highlands chunk.
 export const HIGHLANDS_SCENERY = {
-  spires: [
-    { x: -65, z: 65, height: 16 },
-    { x: -52, z: 73, height: 11 },
-    { x: 62, z: 58, height: 18 },
-    { x: 73, z: 70, height: 12 },
-    { x: -78, z: -68, height: 10 },
-    { x: -68, z: -60, height: 7 },
-    { x: 72, z: -52, height: 13 },
-    { x: 60, z: -62, height: 8 },
+  rockClusters: [
+    { x: -65, z: 65 }, { x: -52, z: 73 }, { x: 62, z: 58 }, { x: 73, z: 70 },
+    { x: -78, z: -68 }, { x: -68, z: -60 }, { x: 72, z: -52 }, { x: 60, z: -62 },
+    { x: -74, z: -20 }, { x: 76, z: -76 }, { x: -22, z: -76 },
+    { x: 25, z: 82 }, { x: -76, z: 38 }, { x: 72, z: 5 },
   ],
-  cairns: [
+  treeGroves: [
     { x: -52, z: -55 }, { x: 48, z: -42 }, { x: 12, z: 62 },
     { x: -72, z: 10 }, { x: 66, z: 18 }, { x: 20, z: -65 },
     { x: -28, z: 80 }, { x: 82, z: 40 },
   ],
-  boulderClusters: [
-    { x: -74, z: -20 }, { x: 76, z: -76 }, { x: -22, z: -76 },
-    { x: 25, z: 82 }, { x: -76, z: 38 }, { x: 72, z: 5 },
-  ],
-  ruinedWalls: [
-    { x: -35, z: -48, rotation: 0.3 },
-    { x: 55, z: 8, rotation: 1.2 },
-    { x: -20, z: 55, rotation: -0.4 },
+  dryTreeSpots: [
+    { x: -35, z: -48 }, { x: 55, z: 8 }, { x: -20, z: 55 },
   ],
   landmarks: {
     "-200": { type: "arch", x: -32, z: 22 },

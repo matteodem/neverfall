@@ -12,6 +12,10 @@ import { FOREST_GIANT_HILL, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
   conifers: ["pine_1", "pine_2"],
+  highlandConifers: ["pine_1", "pine_2", "fir_1", "fir_2", "fir_3"],
+  highlandBirch: ["birch_1", "birch_2", "birch_3"],
+  landmarkRocks: ["rock_1"],
+  archLintel: ["rock_2"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
   rocks: ["rock_1", "rock_2"],
@@ -53,8 +57,6 @@ const CIRCLES = [
   { ...FOREST_GIANT_HILL.center, radius: 20 },
   { ...SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 8 },
   ...WORLD_CHUNKS.filter((chunk) => chunk.region === "highlands").flatMap((chunk) => [
-    ...HIGHLANDS_SCENERY.spires.map(({ x, z }) => ({ x: chunk.x + x, z: chunk.z + z, radius: 5 })),
-    ...HIGHLANDS_SCENERY.ruinedWalls.map(({ x, z }) => ({ x: chunk.x + x, z: chunk.z + z, radius: 7 })),
     ...(HIGHLANDS_SCENERY.landmarks[chunk.x] ? [{
       x: chunk.x + HIGHLANDS_SCENERY.landmarks[chunk.x].x,
       z: chunk.z + HIGHLANDS_SCENERY.landmarks[chunk.x].z,
@@ -72,7 +74,7 @@ const PATHS = [
   { from: { x: 140, z: 0 }, to: SNOWY_MOUNTAINS.boss, width: 8 },
 ];
 
-const randomForChunk = ({ x, z }) => {
+export const randomForChunk = ({ x, z }) => {
   let seed = ((x + 400) * 73856093 ^ (z + 400) * 19349663) >>> 0;
   return () => {
     seed += 0x6D2B79F5;
@@ -133,6 +135,8 @@ export const loadForestProps = async (scene) => {
   const snowyNames = [...new Set(Object.entries(MODELS)
     .filter(([kind]) => kind.startsWith("snowy"))
     .flatMap(([, names]) => names))].filter((name) => !initialNames.includes(name));
+  const highlandNames = [...new Set([...MODELS.highlandConifers, ...MODELS.highlandBirch])]
+    .filter((name) => !initialNames.includes(name));
   await preload(initialNames);
 
   const variants = (kind) => MODELS[kind]?.filter((id) => models.has(id)) || [];
@@ -141,7 +145,7 @@ export const loadForestProps = async (scene) => {
 
   const place = (root, kind, position, random, scale = 1) => {
     const choices = variants(kind).length ? variants(kind) :
-      (kind === "broadleaf" ? variants("conifers") : kind === "conifers" ? variants("broadleaf") : []);
+      (kind === "conifers" ? variants("broadleaf") : []);
     if (!choices.length) return;
     const name = choices[Math.floor(random() * choices.length)];
     const entries = models.get(name).instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
@@ -158,7 +162,9 @@ export const loadForestProps = async (scene) => {
       }
       baseHeights.set(name, Number.isFinite(bottom) ? -bottom : 0);
     }
-    prop.position.set(position.x, getWorldHeight(position.x, position.z) + baseHeights.get(name) * scale, position.z);
+    prop.position.set(position.x,
+      getWorldHeight(root.position.x + position.x, root.position.z + position.z) + baseHeights.get(name) * scale,
+      position.z);
     prop.rotation.y = random() * Math.PI * 2;
     prop.scaling.setAll(scale);
     for (const mesh of meshes) {
@@ -166,6 +172,7 @@ export const loadForestProps = async (scene) => {
       mesh.checkCollisions = false;
       mesh.receiveShadows = true;
     }
+    return prop;
   };
 
   const placeSnowyCluster = (root, position, random, density) => {
@@ -189,6 +196,7 @@ export const loadForestProps = async (scene) => {
 
   const placeChunk = async ({ center, size, density, gradual = true }) => {
     if (!available) return null;
+    const forestRegion = center.region === "forest" || center.region === "starterForest";
     const random = randomForChunk(center);
     const root = new TransformNode(`forest-props-${center.x}-${center.z}`, scene);
     root.setEnabled(false);
@@ -214,7 +222,8 @@ export const loadForestProps = async (scene) => {
 
         const treePlaced = random() < treeChance && isOpen(position, 2, CIRCLES);
         if (treePlaced) {
-          const kind = random() < 0.4 + 0.55 * mix ? "conifers" : "broadleaf";
+          const kind = forestRegion ? "broadleaf" :
+            random() < 0.4 + 0.55 * mix ? "conifers" : "broadleaf";
           place(root, kind, position, random, 0.75 + random() * 0.35);
           if (random() < 0.7) {
             const undergrowth = nearby(position, 5, random);
@@ -264,5 +273,11 @@ export const loadForestProps = async (scene) => {
     return root;
   };
 
-  return { available, placeChunk, preloadSnowy: () => preload(snowyNames) };
+  return {
+    available, placeChunk,
+    placeAsset: place,
+    canPlace: (position, clearance) => isOpen(position, clearance, CIRCLES),
+    preloadHighlands: () => preload(highlandNames),
+    preloadSnowy: () => preload(snowyNames),
+  };
 };

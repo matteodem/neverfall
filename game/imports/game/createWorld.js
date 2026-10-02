@@ -570,15 +570,20 @@ export const createWorld =
             radius: NORTHERN_CAMP.clearingRadius,
           } } : {}),
           ...Object.fromEntries(["treeCount", "bushCount", "rockCount", "logCount"].map((key) =>
-            [key, assetForest ? 0 : Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
+            [key, assetForest || chunk.region === "highlands" ||
+              (key === "treeCount" && ["forest", "starterForest"].includes(chunk.region))
+              ? 0 : Math.round(WORLD_REGIONS[chunk.region][key] * quality.density)])),
         });
         chunks.add(area, chunk);
-        if (assetForest) chunks.add(await forestProps.placeChunk({
+        if (assetForest && chunk.region !== "highlands") chunks.add(await forestProps.placeChunk({
           center: chunk, size: CHUNK_SIZE, density: quality.density,
           gradual: chunk.x !== 0 || chunk.z !== 0,
         }), chunk);
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
-        if (chunk.region === "highlands") chunks.add(await createHighlandsArea({ scene, chunk }), chunk);
+        if (chunk.region === "highlands") {
+          if (assetForest) await forestProps.preloadHighlands();
+          chunks.add(await createHighlandsArea({ scene, chunk, props: assetForest ? forestProps : null }), chunk);
+        }
         if (northernCampChunk) {
           const camp = createCamp({
             scene,
