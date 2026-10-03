@@ -71,15 +71,15 @@ export const createEnemy = async ({
 
   root.metadata = { enemyId: id };
 
-  const hitboxScale = 3.45;
-  const hitboxHeight = (mobile ? 2.5 : 2) * hitboxScale;
+  const selectionWidth = mobile ? 3 : 2.25;
+  const selectionHeight = mobile ? 3.3 : 2.7;
   const selectionArea = MeshBuilder.CreateBox(`enemy-selection-${id}`, {
-    width: (mobile ? 3 : 2.4) * hitboxScale,
-    height: hitboxHeight,
-    depth: (mobile ? 3 : 2.4) * hitboxScale,
+    width: selectionWidth,
+    height: selectionHeight,
+    depth: selectionWidth,
   }, scene);
   selectionArea.parent = root;
-  selectionArea.position.y = hitboxHeight / 2;
+  selectionArea.position.y = selectionHeight / 2;
   selectionArea.visibility = 0;
   selectionArea.isPickable = true;
 
