@@ -1,4 +1,4 @@
-import { Color3, SceneLoader, TransformNode } from "@babylonjs/core";
+import { Color3, MeshBuilder, SceneLoader, StandardMaterial, TransformNode } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF/index.js";
 import { SKIN_TONES } from "../species.js";
 import { QUATERNIUS_HAND_BONE, resolveCharacterParts } from "./characterAssetConfig.js";
@@ -56,10 +56,24 @@ export const createQuaterniusCharacter = async ({ scene, appearance = {}, gameCl
       duplicates.push(duplicate);
     }
 
+    const skinColor = Color3.FromHexString(SKIN_TONES[appearance.skinTone] || SKIN_TONES.medium);
+    const headBone = skeleton.bones.find((bone) => bone.name === "Head")?.getTransformNode?.();
+    if (!headBone) throw new Error("Missing Quaternius head bone");
+    // The modular hood contains no face, so give every character a head beneath it.
+    const head = MeshBuilder.CreateSphere("characterHead", { diameter: 0.24, segments: 12 }, scene);
+    head.parent = headBone;
+    head.position.y = 0.08;
+    head.position.z = 0.04;
+    head.scaling.set(0.9, 1, 0.9);
+    const headMaterial = new StandardMaterial(`characterHead-skin-${root.uniqueId}`, scene);
+    headMaterial.diffuseColor = skinColor;
+    headMaterial.specularColor = Color3.Black();
+    head.material = headMaterial;
+    materials.push(headMaterial);
+
     const meshes = root.getChildMeshes();
     if (meshes.some((mesh) => mesh.skeleton && mesh.skeleton !== skeleton))
       throw new Error("Quaternius mesh could not share the primary skeleton");
-    const skinColor = Color3.FromHexString(SKIN_TONES[appearance.skinTone] || SKIN_TONES.medium);
     const tintSkin = (source) => {
       if (!source || source.subMaterials || !source.name?.includes("Regular")) return source;
       const material = source.clone(`${source.name}-skin-${root.uniqueId}`);

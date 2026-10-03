@@ -31,6 +31,8 @@ export const createQuaterniusAnimations = (scene, skeleton) => {
 
   create("Idle_A", {
     spine_02: [[0, -0.015], [30, 0.015], [60, -0.015]],
+    upperarm_l: [[0, 0, 0, -1.1], [60, 0, 0, -1.1]],
+    upperarm_r: [[0, 0, 0, 1.1], [60, 0, 0, 1.1]],
   });
   create("Running_A", {
     thigh_l: [[0, 0.55], [8, 0], [16, -0.55], [24, 0], [32, 0.55]],
