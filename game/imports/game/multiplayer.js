@@ -56,8 +56,8 @@ import {
 } from "./nameplate";
 
 import {
-  createKayKitCharacter,
-} from "./character/createKayKitCharacter";
+  createPlayerCharacter,
+} from "./character/createPlayerCharacter";
 
 import {
   createKayKitAnimationController,
@@ -473,9 +473,10 @@ const createRemotePlayer =
      */
 
     const character =
-      await createKayKitCharacter({
+      await createPlayerCharacter({
         scene,
         gameClass: playerState.gameClass,
+        species: playerState.species,
 
         appearance: {
           gender:
@@ -492,7 +493,7 @@ const createRemotePlayer =
 
           head:
             playerState.head ||
-            "head1",
+            "hood",
         },
       });
 
@@ -592,11 +593,8 @@ const createRemotePlayer =
 
 
     /*
-     * The procedural character has
-     * no skeleton anymore.
-     *
-     * Attach the sword directly to
-     * the right arm pivot.
+     * Attach the sword to the character's
+     * right-hand weapon anchor.
      */
 
     swordPivot.parent =
@@ -787,6 +785,7 @@ const createRemotePlayer =
         swordPivot.dispose();
 
 
+        character.dispose?.();
         root.dispose();
       },
     };

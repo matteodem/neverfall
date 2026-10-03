@@ -1156,7 +1156,7 @@ export class WorldRoom
 
         head:
           appearance.head ||
-          "head1",
+          "hood",
 
         ...Object.fromEntries(QUESTS.filter((quest) => quest.progressField).map((quest) =>
           [quest.progressField, character.questProgress?.[quest.id] || 0])),

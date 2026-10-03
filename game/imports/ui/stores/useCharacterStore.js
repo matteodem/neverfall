@@ -14,7 +14,7 @@ const INITIAL_CREATOR = {
     "medium",
 
   head:
-    "head1",
+    "hood",
 
   species:
     "human",

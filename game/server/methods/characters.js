@@ -32,6 +32,7 @@ const VALID_APPEARANCE = {
   ],
 
   head: [
+    "hood",
     "head1",
     "head2",
     "head3",
@@ -46,7 +47,7 @@ const DEFAULT_APPEARANCE = {
     "female",
 
   head:
-    "head1",
+    "hood",
 };
 
 

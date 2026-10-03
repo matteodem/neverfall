@@ -235,6 +235,7 @@ export const CharacterOverview = ({
           {selected && (
             <CharacterPreview
               gameClass={selected.gameClass}
+              species={selected.species}
               appearance={
                 selected.appearance
               }

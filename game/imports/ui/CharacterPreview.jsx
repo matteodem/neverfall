@@ -14,8 +14,8 @@ import {
 } from "@babylonjs/core";
 
 import {
-  createKayKitCharacter,
-} from "../game/character/createKayKitCharacter";
+  createPlayerCharacter,
+} from "../game/character/createPlayerCharacter";
 
 import {
   createKayKitAnimationController,
@@ -25,6 +25,7 @@ import {
 export const CharacterPreview = ({
   appearance,
   gameClass = "warrior",
+  species = "human",
 }) => {
   const canvasRef =
     useRef(
@@ -53,6 +54,9 @@ export const CharacterPreview = ({
         false;
 
       let characterRoot =
+        null;
+
+      let characterVisual =
         null;
 
       let animations =
@@ -189,10 +193,11 @@ export const CharacterPreview = ({
         async () => {
           try {
             const character =
-              await createKayKitCharacter({
+              await createPlayerCharacter({
                 scene,
                 appearance,
                 gameClass,
+                species,
               });
 
 
@@ -205,7 +210,7 @@ export const CharacterPreview = ({
             if (
               disposed
             ) {
-              character.root.dispose();
+              character.dispose?.();
 
               return;
             }
@@ -213,6 +218,9 @@ export const CharacterPreview = ({
 
             characterRoot =
               character.root;
+
+            characterVisual =
+              character;
 
 
             /*
@@ -243,7 +251,7 @@ export const CharacterPreview = ({
             error
           ) {
             console.error(
-              "[CharacterPreview] Failed to load KayKit character:",
+              "[CharacterPreview] Failed to load character:",
               error
             );
 
@@ -469,6 +477,8 @@ export const CharacterPreview = ({
 
         animations?.destroy();
 
+        characterVisual?.dispose?.();
+
 
         scene.dispose();
 
@@ -483,6 +493,7 @@ export const CharacterPreview = ({
      */
     [
       gameClass,
+      species,
       appearance?.gender,
       appearance?.skinTone,
       appearance?.bodyType,

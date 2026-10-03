@@ -53,8 +53,8 @@ import {
 } from "./environment/createForestArea";
 
 import {
-  createKayKitCharacter,
-} from "./character/createKayKitCharacter";
+  createPlayerCharacter,
+} from "./character/createPlayerCharacter";
 
 import {
   createKayKitAnimationController,
@@ -67,6 +67,7 @@ export const createWorld =
       appearance,
       name,
       gameClass = "warrior",
+      species = "human",
       dungeon = false,
       dungeonId = null,
       quality = QUALITY_PRESETS.standard,
@@ -249,10 +250,11 @@ export const createWorld =
      */
 
     const [character, swordResult] = await Promise.all([
-      createKayKitCharacter({
+      createPlayerCharacter({
         scene,
         appearance,
         gameClass,
+        species,
       }),
       SceneLoader.ImportMeshAsync("", "/models/", "sword.glb", scene),
     ]);
@@ -263,7 +265,7 @@ export const createWorld =
     * PLAYER COLLIDER
     * =====================================================
     *
-    * The KayKit character root is a TransformNode,
+    * The visual character root is a TransformNode,
     * which cannot use moveWithCollisions().
     *
     * Keep gameplay collision separate from
@@ -327,7 +329,7 @@ export const createWorld =
 
 
     /*
-    * KayKit root also uses the
+    * Character root also uses the
     * player's foot position.
     */
 

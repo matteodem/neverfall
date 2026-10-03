@@ -98,7 +98,7 @@ export const PlayerState =
 
       head:
         t.string().default(
-          "head1"
+          "hood"
         ),
 
       giantQuestKills: t.number().default(0),

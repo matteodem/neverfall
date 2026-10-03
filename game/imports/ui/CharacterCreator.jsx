@@ -4,6 +4,7 @@ import React, {
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
 import { SPECIES, SKIN_TONES } from "../game/species";
+import { CHARACTER_HEAD_OPTIONS } from "../game/character/characterAssetConfig";
 
 import {
   Meteor,
@@ -28,24 +29,6 @@ const BODY_TYPES = [
   "medium",
   "large",
 ];
-
-
-/*
- * Gender and head customization
- * are intentionally disabled
- * for the current KayKit character.
- *
- * We still persist defaults when
- * creating the character so the
- * existing data model remains
- * backwards compatible.
- */
-
-const DEFAULT_GENDER =
-  "male";
-
-const DEFAULT_HEAD =
-  "head1";
 
 
 const Screen = ({
@@ -141,7 +124,7 @@ const AppearanceStep =
 
     const appearance = {
       gender:
-        DEFAULT_GENDER,
+        creator.gender,
 
       skinTone:
         creator.skinTone,
@@ -150,7 +133,7 @@ const AppearanceStep =
         creator.bodyType,
 
       head:
-        DEFAULT_HEAD,
+        creator.head,
     };
 
 
@@ -170,17 +153,22 @@ const AppearanceStep =
 
           <div className="character-creator-settings flex flex-col gap-8">
 
-            {/*
-             * ==========================================
-             * GENDER
-             * ==========================================
-             *
-             * Disabled for now.
-             *
-             * KayKit Knight currently has no separate
-             * male/female model variants wired into
-             * the character creator.
-             */}
+            <div>
+              <h3 className="mb-3 font-bold">Gender</h3>
+              <div className="flex gap-2">
+                {["female", "male"].map((gender) => (
+                  <button
+                    key={gender}
+                    type="button"
+                    aria-pressed={creator.gender === gender}
+                    onClick={() => setCreatorField("gender", gender)}
+                    className={`btn cursor-pointer capitalize ${creator.gender === gender ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
+                  >
+                    {gender}
+                  </button>
+                ))}
+              </div>
+            </div>
 
 
             {/*
@@ -285,17 +273,23 @@ const AppearanceStep =
             </div>
 
 
-            {/*
-             * ==========================================
-             * HEAD
-             * ==========================================
-             *
-             * Disabled for now.
-             *
-             * The current KayKit Knight only exposes
-             * one head mesh, so the old five-head
-             * selector does not currently make sense.
-             */}
+            <div>
+              <h3 className="mb-3 font-bold">Head</h3>
+              <div className="flex gap-2">
+                {CHARACTER_HEAD_OPTIONS.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={creator.head === id}
+                    onClick={() => setCreatorField("head", id)}
+                    className={`btn cursor-pointer ${creator.head === id ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-2 text-sm text-white/60">Separate hair styles are not available yet.</p>
+            </div>
           </div>
 
 
@@ -309,6 +303,7 @@ const AppearanceStep =
             <div className="character-creator-preview h-[280px] w-full max-w-[280px] overflow-hidden rounded-xl border border-white/10 bg-black/20 sm:h-[380px]">
               <CharacterPreview
                 gameClass={creator.gameClass}
+                species={creator.species}
                 appearance={
                   appearance
                 }
@@ -502,14 +497,8 @@ const NameStep = ({
               creator.gameClass,
 
             appearance: {
-              /*
-               * Gender/head stay in the
-               * document for compatibility,
-               * but aren't customizable yet.
-               */
-
               gender:
-                DEFAULT_GENDER,
+                creator.gender,
 
               skinTone:
                 creator.skinTone,
@@ -518,7 +507,7 @@ const NameStep = ({
                 creator.bodyType,
 
               head:
-                DEFAULT_HEAD,
+                creator.head,
             },
           }
         );

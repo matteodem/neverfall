@@ -154,6 +154,9 @@ export const Game = ({
       let animations =
         null;
 
+      let characterVisual =
+        null;
+
       let jump = null;
 
       let combat =
@@ -255,11 +258,14 @@ export const Game = ({
                 name:
                   character.name,
                 gameClass: character.gameClass,
+                species: character.species,
                 dungeon: location === "dungeon",
                 dungeonId: useDungeonStore.getState().dungeonId,
                 quality: QUALITY_PRESETS[quality],
               }
             );
+
+          characterVisual = world.character;
 
 
           if (
@@ -1150,6 +1156,9 @@ export const Game = ({
 
         animations
           ?.destroy();
+
+        characterVisual
+          ?.dispose?.();
 
 
         input
