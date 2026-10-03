@@ -2,8 +2,9 @@ import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } 
 import { getWorldHeight } from "../worldConfig";
 
 const ASSETS = ["tent", "campfire", "logBench", "campingPot"];
-const assetFile = (name) => name === "tent"
-  ? ["/models/environment/", "camp-tent.glb"]
+const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
+const assetFile = (name) => ENVIRONMENT_ASSETS[name]
+  ? ["/models/environment/", `${ENVIRONMENT_ASSETS[name]}.glb`]
   : ["/models/camp/", `${name}.glb`];
 const CAMP_SCALE = 1.8;
 
@@ -35,8 +36,8 @@ const CENTRAL_PROPS = [
   ["tent", -8.5, -2, 0.35, 1.45],
   ["tent", 10.9, -2.3, -0.45, 1.4],
   ["logBench", -2.7, 2.1, 0.4, 1.7],
-  ["logBench", 3.5, 2.4, -0.5, 1.7],
-  ["campingPot", 4.2, -0.5, 0, 1.2],
+  ["logBench", 5.5, 2.4, -0.5, 1.7],
+  ["campingPot", 3.2, -0.5, 0, 1.2],
   ["flashlight", 5.2, -0.2, 0.2, 1.8],
 ];
 
@@ -88,10 +89,12 @@ export const loadCampAssets = async (scene) => {
     }
     if (Number.isFinite(minY))
       model.position.set(-(minX + maxX) / 2, -minY, -(minZ + maxZ) / 2);
+    if (name === "logBench") model.rotation.y = Math.PI / 2;
     prop.parent = root;
     prop.position.set(x, getWorldHeight(root.position.x + x, root.position.z + z) + 0.035, z);
     prop.rotation.y = rotation;
-    prop.scaling.setAll(scale * CAMP_SCALE * (name === "tent" ? 2 / 1.3 : 1));
+    const assetScale = name === "tent" ? 2 / 1.3 : name === "campfire" ? 0.16 : name === "logBench" ? 0.5 : name === "campingPot" ? 0.32 : 1;
+    prop.scaling.setAll(scale * CAMP_SCALE * assetScale);
     // The baked tent mesh is concave; simple walls leave its +Z entrance clear.
     if (name === "tent" && Number.isFinite(minY))
       createTentColliders(scene, prop, (maxX - minX) * 0.8, (maxZ - minZ) * 0.8,
