@@ -19,6 +19,7 @@ const MODELS = {
   ancientShrine: ["ancient_forest_shrine"],
   frozenArch: ["frozen-stone-arch"],
   waypointMarker: ["waypoint-marker"],
+  wolfsDen: ["wolfs-den"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
   rocks: ["rock_1", "rock_2"],
@@ -317,6 +318,18 @@ export const loadForestProps = async (scene) => {
       const root = new TransformNode("waypoint-marker", scene);
       root.position.set(position.x, 0, position.z);
       const model = place(root, "waypointMarker", { x: 0, z: 0 }, () => 0, 4);
+      if (!model) { root.dispose(); return null; }
+      for (const mesh of root.getChildMeshes()) {
+        mesh.computeWorldMatrix(true);
+        mesh.freezeWorldMatrix();
+      }
+      return root;
+    },
+    preloadWolfsDen: () => preload(MODELS.wolfsDen),
+    createWolfsDen(position) {
+      const root = new TransformNode("wolfs-den", scene);
+      root.position.set(position.x, 0, position.z);
+      const model = place(root, "wolfsDen", { x: 0, z: 0 }, () => 0, 3);
       if (!model) { root.dispose(); return null; }
       for (const mesh of root.getChildMeshes()) {
         mesh.computeWorldMatrix(true);

@@ -1,7 +1,10 @@
 import { Color3, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot", "flashlight"];
+const ASSETS = ["tent", "campfire", "logBench", "campingPot"];
+const assetFile = (name) => name === "tent"
+  ? ["/models/environment/", "camp-tent.glb"]
+  : ["/models/camp/", `${name}.glb`];
 const CAMP_SCALE = 1.8;
 
 const CENTRAL_PROPS = [
@@ -25,7 +28,7 @@ const NORTHERN_PROPS = [
 
 export const loadCampAssets = async (scene) => {
   const loaded = await Promise.allSettled(ASSETS.map((name) =>
-    SceneLoader.LoadAssetContainerAsync("/models/camp/", `${name}.glb`, scene)));
+    SceneLoader.LoadAssetContainerAsync(...assetFile(name), scene)));
   const containers = new Map();
   loaded.forEach((result, index) => {
     if (result.status === "fulfilled") containers.set(ASSETS[index], result.value);
@@ -47,10 +50,6 @@ export const loadCampAssets = async (scene) => {
     let minX = Infinity; let maxX = -Infinity;
     let minY = Infinity; let minZ = Infinity; let maxZ = -Infinity;
     for (const mesh of prop.getChildMeshes()) {
-      if (name === "tent" && (mesh.material?.name || mesh.sourceMesh?.material?.name) === "tent_tarp") {
-        mesh.dispose();
-        continue;
-      }
       if (!(mesh.getTotalVertices() || mesh.sourceMesh?.getTotalVertices())) continue;
       mesh.computeWorldMatrix(true);
       const bounds = mesh.getBoundingInfo().boundingBox;
@@ -60,7 +59,7 @@ export const loadCampAssets = async (scene) => {
       minZ = Math.min(minZ, bounds.minimumWorld.z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
-      mesh.checkCollisions = false;
+      mesh.checkCollisions = true;
       mesh.receiveShadows = true;
     }
     if (Number.isFinite(minY))
@@ -68,7 +67,7 @@ export const loadCampAssets = async (scene) => {
     prop.parent = root;
     prop.position.set(x, getWorldHeight(root.position.x + x, root.position.z + z) + 0.035, z);
     prop.rotation.y = rotation;
-    prop.scaling.setAll(scale * CAMP_SCALE);
+    prop.scaling.setAll(scale * CAMP_SCALE * (name === "tent" ? 2 / 1.3 : 1));
   };
 
   const createCamp = ({ center, rugged = false }) => {

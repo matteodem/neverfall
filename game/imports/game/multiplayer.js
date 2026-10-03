@@ -804,6 +804,7 @@ export const createMultiplayer =
     scene,
     player,
     nameplate,
+    forestProps,
     onLocalHealthChange,
     onLocalCombatChange,
     onLocalBuffChange,
@@ -861,7 +862,7 @@ export const createMultiplayer =
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
     const bossVisuals = createBossVisuals(scene);
-    const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene);
+    const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene, forestProps);
     onMessage("movementCorrection", ({ x, y, z }) => {
       player.position.set(x, y + JUMP.groundY, z);
     });

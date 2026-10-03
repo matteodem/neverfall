@@ -517,7 +517,7 @@ export const createWorld =
     swordPivot.setEnabled(getClassConfig(gameClass).swordVisible);
 
 
-    let forest, jumpingPuzzle, clearingCamp;
+    let forest, forestProps, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
     let chunks = null;
     if (dungeon) {
@@ -526,9 +526,10 @@ export const createWorld =
       chunks = createWorldChunks(scene, player);
       let disposed = false;
       scene.onDisposeObservable.addOnce(() => { disposed = true; });
-      const [forestProps, campAssets, tower] = await Promise.all([
+      const [loadedForestProps, campAssets, tower] = await Promise.all([
         loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene),
       ]);
+      forestProps = loadedForestProps;
       jumpingPuzzle = tower;
       const createCamp = campAssets.available ? campAssets.createCamp : createClearingCamp;
       /*
@@ -713,6 +714,8 @@ export const createWorld =
       camera,
 
       nameplate,
+
+      forestProps,
 
       forest,
 

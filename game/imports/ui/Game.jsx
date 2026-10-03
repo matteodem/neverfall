@@ -362,6 +362,7 @@ export const Game = ({
 
               player,
               nameplate: world.nameplate,
+              forestProps: world.forestProps,
               dungeonVisuals: world.dungeonVisuals,
               worldChunks: world.worldChunks,
               onLocalRespawn: () => jump?.reset(),
