@@ -64,3 +64,8 @@ export const worldToPercent = ({
     }%`,
   };
 };
+
+export const percentToWorld = ({ left, top }, radius = WORLD_RADIUS) => ({
+  x: left / 100 * radius * 2 - radius,
+  z: radius - top / 100 * radius * 2,
+});

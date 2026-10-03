@@ -10,7 +10,7 @@ import { BASIC_TOWER_POSITION } from "../../../game/basicTowerConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS } from "../../../game/enemyConfig";
 import { HUNT_QUESTS } from "../../../game/quests";
-import { DUNGEON_MAP_RADIUS, worldToPercent } from "../../../game/worldMap";
+import { DUNGEON_MAP_RADIUS, percentToWorld, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
 import { useHudStore } from "../../stores/useHudStore";
 import { useMinimapStore } from "../../stores/useMinimapStore";
@@ -38,6 +38,7 @@ const LEGEND = [
   { kind: "hunt", label: "Hunt" },
   { kind: "puzzle", label: "Jumping puzzle" },
   { kind: "landmark", label: "Landmark" },
+  { kind: "custom", label: "Custom Marker" },
 ];
 const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
@@ -61,9 +62,14 @@ const MapContent = () => {
   const [activeMarkerId, setActiveMarkerId] = React.useState(null);
   const [legendOpen, setLegendOpen] = React.useState(false);
   const viewportRef = React.useRef(null);
+  const mapContentRef = React.useRef(null);
   const pointers = React.useRef(new Map());
   const gesture = React.useRef(null);
+  const markerPlacement = React.useRef(null);
   const localPlayer = useMinimapStore((state) => state.localPlayer);
+  const customMarker = useMinimapStore((state) => state.customMarker);
+  const setCustomMarker = useMinimapStore((state) => state.setCustomMarker);
+  const clearCustomMarker = useMinimapStore((state) => state.clearCustomMarker);
   const location = useDungeonStore((state) => state.location);
   const dungeonId = useDungeonStore((state) => state.dungeonId);
   const dungeon = location === "dungeon";
@@ -120,6 +126,12 @@ const MapContent = () => {
   };
   const handlePointerDown = (event) => {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (!dungeon && event.pointerType === "mouse" && event.ctrlKey) {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture(event.pointerId);
+      markerPlacement.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+      return;
+    }
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -146,10 +158,24 @@ const MapContent = () => {
     }
   };
   const handlePointerUp = (event) => {
+    if (markerPlacement.current?.pointerId === event.pointerId) {
+      const start = markerPlacement.current;
+      markerPlacement.current = null;
+      if (event.type === "pointerup" && Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) {
+        const bounds = mapContentRef.current?.getBoundingClientRect();
+        if (bounds) {
+          const left = (event.clientX - bounds.left) / bounds.width * 100;
+          const top = (event.clientY - bounds.top) / bounds.height * 100;
+          if (left >= 0 && left <= 100 && top >= 0 && top <= 100) {
+            setCustomMarker(percentToWorld({ left, top }));
+          }
+        }
+      }
+      return;
+    }
     pointers.current.delete(event.pointerId);
     startGesture();
   };
-
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-2">
@@ -161,7 +187,7 @@ const MapContent = () => {
         onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}
         onClick={() => { setActiveMarkerId(null); setSelectedWaypointId(null); }}>
-        <div className="absolute inset-0 origin-center" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
+        <div ref={mapContentRef} className="absolute inset-0 origin-center" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
           alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall world map"}
           className="block h-full w-full" draggable={false} />
@@ -221,6 +247,16 @@ const MapContent = () => {
             label={`${entry.name} · Level ${entry.recommendedLevel}`} position={worldToPercent(entry.entrance)}
             mobile={mobile} selected={activeMarkerId === `dungeon-${entry.id}`} onSelect={selectMarker} />
         ))}
+        {!dungeon && customMarker && (
+          <WorldMapMarker id="custom-marker" kind="custom" label="Custom Marker"
+            position={worldToPercent(customMarker)} mobile={mobile}
+            selected={activeMarkerId === "custom-marker"} onSelect={(id, event) => {
+              if (event.ctrlKey && event.button === 0) {
+                clearCustomMarker();
+                setActiveMarkerId(null);
+              } else selectMarker(id);
+            }} />
+        )}
         {dungeon && dungeonConfig && (
           <WorldMapMarker id={`dungeon-${dungeonConfig.id}`} kind="dungeon" label={dungeonConfig.name}
             position={worldToPercent(dungeonConfig.spawn, DUNGEON_MAP_RADIUS)} mobile={mobile}
@@ -253,6 +289,7 @@ const MapContent = () => {
           </button>
         </div>
       </div>
+      {!mobile && !dungeon && <p className="mt-1 text-xs text-base-content/60">Ctrl + Click to place marker · Ctrl + Click the marker to remove</p>}
       {selectedWaypoint && !dungeon && (
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-box bg-base-200 p-3">
           <span>Travel to {selectedWaypoint.name}?</span>

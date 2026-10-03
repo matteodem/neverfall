@@ -172,6 +172,7 @@ export const Minimap =
         (state) =>
           state.localPlayer
       );
+    const customMarker = useMinimapStore((state) => state.customMarker);
 
     const remotePlayers =
       useMinimapStore(
@@ -257,6 +258,12 @@ export const Minimap =
             <DotMarker {...dungeonConfig.exit} color="#a78bfa" size={10} className="z-10" outlined />}
           {location === "world" && DUNGEONS.map((entry) =>
             <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size={10} className="z-10" />)}
+          {location === "world" && customMarker && (
+            <div className="absolute z-[15] -translate-x-1/2 -translate-y-1/2 text-rose-400"
+              style={worldToPercent(customMarker)} title="Custom Marker" aria-label="Custom Marker">
+              <Icon icon="mapPin" className="h-4 w-4 drop-shadow-[0_1px_2px_black]" />
+            </div>
+          )}
 
           {/*
            * Remote players

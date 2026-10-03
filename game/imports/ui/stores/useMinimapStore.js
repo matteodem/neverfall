@@ -20,6 +20,11 @@ export const useMinimapStore =
       enemies:
         {},
 
+      customMarker: null,
+
+      setCustomMarker: (position) => set({ customMarker: position }),
+      clearCustomMarker: () => set({ customMarker: null }),
+
       syncEntities(world, localId) {
         set((state) => {
           const remotePlayers = {};
@@ -148,6 +153,8 @@ export const useMinimapStore =
 
           enemies:
             {},
+
+          customMarker: null,
         });
       },
     })
