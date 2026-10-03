@@ -1,4 +1,9 @@
 export const WORLD_SIZE = 600;
+export const WORLD_BOUNDARY = WORLD_SIZE / 2 + 20;
+export const WORLD_EAST_BOUNDARY = 295;
+// Wall half thickness (1) plus the player collision radius (0.4).
+export const WORLD_PLAYER_LIMIT = WORLD_BOUNDARY - 1.4;
+export const WORLD_EAST_PLAYER_LIMIT = WORLD_EAST_BOUNDARY - 1.4;
 export const CHUNK_SIZE = 200;
 export const CHUNK_NEIGHBOR_RADIUS = 1;
 
@@ -50,7 +55,7 @@ export const getWorldHeight = (x, z) => {
   // The approach is walkable; the last few ground segments form the eastern cliff.
   const snowSlope = 18 * smooth(clamp01((x - 145) / 145)) *
     (0.35 + 0.65 * (1 - smooth(clamp01((Math.abs(z) - 125) / 75))));
-  const easternCliff = 180 * smooth(clamp01((x - 295) / 35));
+  const easternCliff = 180 * smooth(clamp01((x - WORLD_EAST_BOUNDARY) / 35));
   const bossRise = 5 * (1 - smooth(clamp01(
     (Math.hypot(x - SNOWY_MOUNTAINS.boss.x, z - SNOWY_MOUNTAINS.boss.z) - 15) / 25)));
   return existingHeight + snowSlope + easternCliff + bossRise;

@@ -30,9 +30,7 @@ import {
   VertexData,
 } from "@babylonjs/core";
 
-import {
-  createMountainRing,
-} from "./environment/createMountainRing";
+import { createWorldBoundary } from "./environment/createWorldBoundary";
 
 import {
   createClearingCamp,
@@ -519,7 +517,7 @@ export const createWorld =
     swordPivot.setEnabled(getClassConfig(gameClass).swordVisible);
 
 
-    let forest, mountainRing, jumpingPuzzle, clearingCamp;
+    let forest, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
     let chunks = null;
     if (dungeon) {
@@ -644,32 +642,7 @@ export const createWorld =
         }, 120, false);
       }
 
-      /*
-       * =====================================================
-       * MOUNTAINS
-       * =====================================================
-       */
-
-      mountainRing =
-        createMountainRing({
-          scene,
-
-          center:
-            new Vector3(
-              0,
-              0,
-              0
-            ),
-
-          size:
-            WORLD_SIZE + 40,
-
-          spacing:
-            22,
-
-          jitter:
-            6,
-        });
+      createWorldBoundary(scene);
 
       /*
       * =====================================================
@@ -699,10 +672,6 @@ export const createWorld =
         });
 
 
-      for (const mesh of mountainRing.getChildMeshes()) {
-        mesh.freezeWorldMatrix();
-        chunks.add(mesh, mesh.getAbsolutePosition());
-      }
       chunks.add(clearingCamp, clearingCamp.position);
       chunks.update();
     }
@@ -744,8 +713,6 @@ export const createWorld =
       camera,
 
       nameplate,
-
-      mountainRing,
 
       forest,
 

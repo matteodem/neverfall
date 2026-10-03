@@ -13,7 +13,7 @@ import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
-import { getWorldHeight } from "../../imports/game/worldConfig";
+import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
 import { getQuestArea } from "../../imports/game/quests";
 import { Guilds } from "../../imports/api/guilds/guilds";
@@ -659,12 +659,16 @@ export class WorldRoom
       }
       if (distance > 0.01) player.chatAnimation = "";
       const previousY = player.y;
-      player.x += dx * ratio;
-      player.z += dz * ratio;
+      const nextX = player.x + dx * ratio;
+      const nextZ = player.z + dz * ratio;
+      player.x = Math.max(-WORLD_PLAYER_LIMIT, Math.min(WORLD_EAST_PLAYER_LIMIT, nextX));
+      player.z = Math.max(-WORLD_PLAYER_LIMIT, Math.min(WORLD_PLAYER_LIMIT, nextZ));
       player.y = data.y;
       player.rotationY = data.rotationY;
       runtime.moveAllowance = Math.max(0, allowance - distance);
-      if (ratio < 1) client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+      if (ratio < 1 || player.x !== nextX || player.z !== nextZ) {
+        client.send("movementCorrection", { x: player.x, y: player.y, z: player.z });
+      }
       const fallDamage = getFallDamage(player, runtime, previousY, data.grounded,
         player.mounted || wasMounted, elapsed);
       if (fallDamage) this.damagePlayer(client.sessionId, fallDamage);
