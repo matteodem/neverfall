@@ -14,6 +14,7 @@ import { isValidGameClass } from "../../imports/game/classConfig";
 import { SPECIES } from "../../imports/game/species";
 import { DEFAULT_SPAWN_POINT } from "../../imports/game/spawnPoints";
 import { DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
+import { removeGuildCharacter } from "../guilds";
 
 const MAX_CHARACTERS =
   5;
@@ -369,6 +370,8 @@ Meteor.methods({
         "character-not-found"
       );
     }
+
+    await removeGuildCharacter(character);
 
     await Characters.removeAsync(
       characterId

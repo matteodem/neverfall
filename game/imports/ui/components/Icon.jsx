@@ -1,11 +1,12 @@
 import React from "react";
 import { FaGear } from "react-icons/fa6";
-import { FaQuestion, FaHorse, FaLocationArrow, FaMapPin, FaTrophy, FaMap, FaStore, FaScroll, FaStar } from "react-icons/fa";
+import { FaQuestion, FaHorse, FaLocationArrow, FaMapPin, FaTrophy, FaMap, FaStore, FaScroll, FaStar, FaUsers } from "react-icons/fa";
 import { BsBackpack4Fill } from "react-icons/bs";
 import { GiBoarTusks, GiBroadsword, GiHealthCapsule, GiWolfHead, GiSwordWound, GiSpinningBlades, GiArrowhead, GiFireball, GiHeavyArrow, GiArrowCluster, GiFireBomb, GiFireRing } from "react-icons/gi";
 
 const ICON_MAP = {
   map: FaMap,
+  social: FaUsers,
   trophy: FaTrophy,
   talents: FaStar,
   gear: FaGear,

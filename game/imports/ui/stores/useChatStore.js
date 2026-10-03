@@ -18,6 +18,7 @@ export const useChatStore = create((set, get) => ({
     const whisper = text.match(/^\/whisper\s+"([^"]+)"\s+(.+)$/i);
     let prefix = get().lastChannelPrefix;
     if (whisper) prefix = `/whisper "${whisper[1]}" `;
+    else if (/^\/guild\s+\S/i.test(text)) prefix = "/guild ";
     else if (/^\/party\s+\S/i.test(text)) prefix = "/party ";
     else if (!text.startsWith("/")) prefix = "";
     sendHandler(draft);

@@ -93,11 +93,11 @@ export const ENEMY_TYPES = {
     aggroRadius: 12,
     accessoryDropChance: 0.50,
     name: "Forest Giant",
-    model: "mini-boss-ogre.glb",
-    scale: 1.1,
+    model: "bosses/ogre-boss.glb",
+    scale: 2.75,
     rotationY: 0,
-    healthBarY: 3.5,
-    nameplateY: 3.85,
+    healthBarY: 5.30,
+    nameplateY: 4.90,
     health: 2500,
     healthPerLevel: 100,
     attackDamage: 80,
@@ -109,9 +109,10 @@ export const ENEMY_TYPES = {
     xpReward: 0,
     moneyReward: 10000,
     animations: {
-      idle: "CharacterArmature|Idle",
-      walk: "CharacterArmature|Walk",
-      attack: "CharacterArmature|Weapon",
+      idle: "Idle_11",
+      walk: "Walking",
+      run: "Running",
+      attack: "Attack",
     },
   },
 };
@@ -194,7 +195,7 @@ ENEMY_TYPES.hammerBoss = {
   },
 };
 
-// Reuse the existing ogre asset and animations for the small dungeon bosses.
+// Reuse the ogre boss asset and animations for the small dungeon bosses.
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
   accessoryDropChance: 0.20,
@@ -203,7 +204,8 @@ ENEMY_TYPES.dungeonGuardian = {
 };
 ENEMY_TYPES.dungeonWarden = {
   ...ENEMY_TYPES.forestGiant,
-  name: "Dungeon Warden", health: 650, attackDamage: 40, moneyReward: 0, scale: 1.3,
+  name: "Dungeon Warden", health: 650, attackDamage: 40, moneyReward: 0, scale: 3.25,
+  healthBarY: 6.75, nameplateY: 4.85,
   healthPerLevel: 200, damagePerLevel: 10,
 };
 

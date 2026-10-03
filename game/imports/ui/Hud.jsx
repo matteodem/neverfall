@@ -3,6 +3,7 @@ import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { ItemsModal, HeroModal } from "./components/modals/GroupedHudModals";
+import { SocialModal } from "./components/modals/SocialModal";
 import { PotionBuffs } from "./components/PotionBuffs";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MobileJoystick } from "./components/MobileJoystick";
@@ -187,6 +188,8 @@ const HUD_BUTTONS = [
   { id: "items", icon: "backpack", label: "Items", shortcut: "I / B", defaultTab: "inventory" },
 
   { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / H / Z / T", defaultTab: "gear" },
+
+  { id: "social", icon: "social", label: "Social" },
 
   { id: "map", icon: "map", label: "Map", shortcut: "M" },
 
@@ -924,6 +927,7 @@ export const Hud = ({
       <WorldMapModal />
       <ItemsModal />
       <HeroModal />
+      <SocialModal />
       <AchievementToast />
 
       <HelpModal />

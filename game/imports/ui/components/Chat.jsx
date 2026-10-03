@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { ChatMessages } from "../../api/chat/messages";
+import { Characters } from "../../api/characters/characters";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import { useChatStore } from "../stores/useChatStore";
 
@@ -13,8 +14,11 @@ export const Chat = () => {
   const log = useRef(null);
   const content = useRef(null);
   const messages = useTracker(() => {
-    Meteor.subscribe("chat.mine");
-    return ChatMessages.find({ $or: [{ channel: "room", roomId }, { channel: { $in: ["party", "whisper"] } }] },
+    const characterId = Meteor.user()?.profile?.currentCharacterId;
+    const guildId = characterId && Characters.findOne(characterId)?.guildId;
+    if (characterId) Meteor.subscribe("chat.mine", characterId, guildId || "");
+    return ChatMessages.find({ $or: [{ channel: "room", roomId }, { channel: { $in: ["party", "whisper"] } },
+      ...(guildId ? [{ channel: "guild", guildId }] : [])] },
       { sort: { createdAt: 1 } }).fetch();
   }, [roomId]);
   useEffect(() => { if (open) input.current?.focus(); }, [open, focusRequest]);
@@ -52,7 +56,7 @@ export const Chat = () => {
 
       <div ref={log} className="h-32 overflow-y-auto break-words" role="log" aria-live="polite">
         <div ref={content}>
-        {messages.map((message) => <p key={message._id} className={message.channel === "whisper" ? "text-violet-300" : message.channel === "party" ? "text-green-300" : "text-white"}>
+        {messages.map((message) => <p key={message._id} className={message.channel === "whisper" ? "text-violet-300" : message.channel === "party" ? "text-green-300" : message.channel === "guild" ? "text-cyan-300" : "text-white"}>
           <span className="font-semibold capitalize">[{message.channel === "room" ? roomLabel : message.channel}] {message.senderName}{message.recipientName ? ` → ${message.recipientName}` : ""}: </span>{message.text}
         </p>)}
         {error && <p className="text-yellow-300">{error}</p>}
