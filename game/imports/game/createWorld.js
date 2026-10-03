@@ -13,6 +13,7 @@ import { createBasicTower } from "./environment/createBasicTower";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
+import { ENEMY_SPAWNS, ENEMY_TYPES } from "./enemyConfig";
 import "@babylonjs/loaders/glTF";
 
 import { getClassConfig } from "./classConfig";
@@ -558,6 +559,9 @@ export const createWorld =
           includeFloor: false,
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
+            ...ENEMY_SPAWNS.filter((spawn) => ENEMY_TYPES[spawn.type]?.bossMechanics &&
+              Math.abs(spawn.x - chunk.x) < CHUNK_SIZE / 2 && Math.abs(spawn.z - chunk.z) < CHUNK_SIZE / 2)
+              .map((spawn) => ({ center: spawn, radius: 24 })),
             ...(giantHillChunk ? [{ center: FOREST_GIANT_HILL.center, radius: 20 }] : []),
             ...(towerChunk ? [{ center: BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS }] : []),
             ...(lakeChunk ? [{ center: SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 5 }] : []),

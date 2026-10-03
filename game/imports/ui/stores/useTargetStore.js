@@ -35,13 +35,11 @@ export const useTargetStore = create((set, get) => ({
       return;
     }
     const stats = getEnemyStats(enemy.type, enemy.level, enemy.rare);
-    if (stats.bossMechanics) {
-      if (target) set({ target: null });
-      return;
-    }
     const level = enemy.level || 1;
-    if (target?.id === selectedId && target.health === enemy.health && target.maxHealth === enemy.maxHealth && target.name === stats.name && target.level === level) return;
-    set({ target: { id: selectedId, name: stats.name, level, health: enemy.health, maxHealth: enemy.maxHealth } });
+    const isBoss = Boolean(stats.bossMechanics);
+    if (target?.id === selectedId && target.health === enemy.health && target.maxHealth === enemy.maxHealth &&
+      target.name === stats.name && target.level === level && target.isBoss === isBoss) return;
+    set({ target: { id: selectedId, name: stats.name, level, health: enemy.health, maxHealth: enemy.maxHealth, isBoss } });
   },
   clear: () => set({ selectedId: null, target: null, autoLocked: false, lockedAt: 0, lockRange: MOBILE_TARGETING.retainRange }),
 }));

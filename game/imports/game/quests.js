@@ -1,4 +1,4 @@
-import { ENEMY_SPAWNS, WOLF_AREA } from "./enemyConfig";
+import { ENEMY_SPAWNS, ENEMY_TYPES, WOLF_AREA } from "./enemyConfig";
 import { WAYPOINTS } from "./waypoints";
 
 export const BOAR_HUNT_QUEST = {
@@ -88,6 +88,13 @@ export const HUNT_QUESTS = {
     recommendedLevel: 14,
     progressField: "frostOgreQuestKills", rewardXp: 2000,
   },
+  hammerBoss: {
+    ...GIANT_HUNT_QUEST,
+    id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt",
+    description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
+    recommendedLevel: 17,
+    progressField: "hammerBossQuestKills", rewardXp: 2500,
+  },
 };
 
 const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mountains-waypoint");
@@ -97,7 +104,7 @@ const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mou
 export const QUESTS = [
   ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
     ...hunt,
-    objective: { type: ["forestGiant", "frostOgre"].includes(type) ? "Boss" : "Kill", target: type, amount: hunt.target },
+    objective: { type: ENEMY_TYPES[type]?.bossMechanics ? "Boss" : "Kill", target: type, amount: hunt.target },
     rewards: { xp: hunt.rewardXp, gold: hunt.rewardGold, ...(type === "boar" ? { randomRing: true } : {}) },
     repeatable: true,
   })),
@@ -167,9 +174,8 @@ const BOAR_AREA = {
   maxZ: Math.max(...boarSpawns.map(({ z }) => z)) + BOAR_AREA_PADDING,
 };
 
-const giantSpawn = ENEMY_SPAWNS.find(({ type }) => type === "forestGiant");
-const frostOgreSpawn = ENEMY_SPAWNS.find(({ type }) => type === "frostOgre");
-const GIANT_QUEST_RADIUS = 25;
+const BOSS_HUNT_RADIUS = 25;
+const bossHuntSpawns = ENEMY_SPAWNS.filter(({ type }) => HUNT_QUESTS[type] && ENEMY_TYPES[type]?.bossMechanics);
 
 const newHuntAreas = ["goat", "rat", "bee", "seal", "snowWolf", "mountainGoat"].map((type) => {
   const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
@@ -183,15 +189,12 @@ const newHuntAreas = ["goat", "rat", "bee", "seal", "snowWolf", "mountainGoat"].
 });
 
 export const getQuestArea = ({ x, z }) => {
-  if (Math.hypot(x - frostOgreSpawn.x, z - frostOgreSpawn.z) <= GIANT_QUEST_RADIUS) {
-    return "frostOgre";
-  }
+  const bossArea = bossHuntSpawns.find((spawn) =>
+    Math.hypot(x - spawn.x, z - spawn.z) <= BOSS_HUNT_RADIUS);
+  if (bossArea) return bossArea.type;
   const huntArea = newHuntAreas.find((area) =>
     x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
   if (huntArea) return huntArea.type;
-  if (Math.hypot(x - giantSpawn.x, z - giantSpawn.z) <= GIANT_QUEST_RADIUS) {
-    return "forestGiant";
-  }
   if (x >= WOLF_AREA.minX && x <= WOLF_AREA.maxX &&
       z >= WOLF_AREA.minZ && z <= WOLF_AREA.maxZ) {
     return "wolf";

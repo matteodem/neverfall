@@ -3,6 +3,7 @@ export const createEnemyAnimations = (groups, clips) => {
   let visible = true;
   let current = null;
   let attacking = false;
+  let dying = false;
   for (const group of groups) group.stop();
 
   const play = (name, loop = true) => {
@@ -18,11 +19,12 @@ export const createEnemyAnimations = (groups, clips) => {
     return group;
   };
 
-  const idle = () => { if (!attacking) play("idle"); };
-  const walk = () => { if (!attacking) play("walk"); };
-  const attack = () => {
-    if (attacking) return;
-    const group = play("attack", false);
+  const idle = () => { if (!attacking && !dying) play("idle"); };
+  const walk = () => { if (!attacking && !dying) play("walk"); };
+  const run = () => { if (!attacking && !dying) play(clips.run ? "run" : "walk"); };
+  const attack = (name = "attack") => {
+    if (attacking || dying) return;
+    const group = play(name, false);
     if (!group) return;
     attacking = true;
     group.onAnimationGroupEndObservable.addOnce(() => {
@@ -42,7 +44,17 @@ export const createEnemyAnimations = (groups, clips) => {
     },
     idle,
     walk,
+    run,
     attack,
+    heavyAttack() { if (clips.heavyAttack) attack("heavyAttack"); },
+    death(onEnd) {
+      if (!clips.death || !visible) return false;
+      dying = true;
+      const group = play("death", false);
+      if (!group) return false;
+      group.onAnimationGroupEndObservable.addOnce(onEnd);
+      return true;
+    },
     destroy() {
       for (const group of groups) group.dispose();
     },

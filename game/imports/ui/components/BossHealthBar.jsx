@@ -1,9 +1,9 @@
 import React from "react";
-import { useBossHealthStore } from "../stores/useBossHealthStore";
+import { useTargetStore } from "../stores/useTargetStore";
 
 export const BossHealthBar = () => {
-  const boss = useBossHealthStore((state) => state.boss);
-  if (!boss) return null;
+  const boss = useTargetStore((state) => state.target);
+  if (!boss?.isBoss) return null;
   const percentage = Math.max(0, Math.min(100, boss.health / boss.maxHealth * 100));
   return (
     <div className="boss-health-bar pointer-events-none absolute left-1/2 top-4 z-[10000] w-[min(24rem,45%)] -translate-x-1/2 rounded-box border border-red-400/50 bg-black/80 p-3 text-white shadow-lg">

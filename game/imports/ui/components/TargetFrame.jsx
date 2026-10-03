@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTargetStore } from "../stores/useTargetStore";
-import { useBossHealthStore } from "../stores/useBossHealthStore";
 
 const getDangerLevel = (enemyLevel, playerLevel) => {
   const difference = enemyLevel - playerLevel;
@@ -12,7 +11,6 @@ const getDangerLevel = (enemyLevel, playerLevel) => {
 export const TargetFrame = ({ currentLevel }) => {
   const target = useTargetStore((state) => state.target);
   const attackedEnemy = useTargetStore((state) => state.attackedEnemy);
-  const bossVisible = useBossHealthStore((state) => Boolean(state.boss));
   const danger = target ? getDangerLevel(target.level, currentLevel) : null;
   const [popup, setPopup] = useState(null);
   const previousTargetId = useRef(null);
@@ -43,7 +41,7 @@ export const TargetFrame = ({ currentLevel }) => {
   const percentage = target?.maxHealth > 0 ? Math.max(0, Math.min(100, target.health / target.maxHealth * 100)) : 0;
   return (
     <>
-      {target && <div className={`target-frame ${bossVisible ? "target-with-boss" : ""} pointer-events-none absolute left-1/2 top-4 z-[10000] w-64 -translate-x-1/2 rounded-box border border-white/30 bg-black/80 p-2 text-white shadow-lg`}>
+      {target && !target.isBoss && <div className="target-frame pointer-events-none absolute left-1/2 top-4 z-[10000] w-64 -translate-x-1/2 rounded-box border border-white/30 bg-black/80 p-2 text-white shadow-lg">
         <div className="mb-1 flex items-center justify-between gap-2 text-xs">
           <span className="font-bold">{target.name} <span className="font-normal text-white/70">Level {target.level}</span></span>
           <span>{Math.ceil(target.health)} / {target.maxHealth} HP</span>

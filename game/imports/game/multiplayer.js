@@ -1010,6 +1010,7 @@ export const createMultiplayer =
             ["snowWolf", "setSnowWolfKills"],
             ["mountainGoat", "setMountainGoatKills"],
             ["frostOgre", "setFrostOgreKills"],
+            ["hammerBoss", "setHammerBossKills"],
           ]) {
             const field = HUNT_QUESTS[type].progressField;
             const syncKills = () => useQuestStore.getState()[setter](playerState[field] ?? 0);
@@ -1690,6 +1691,9 @@ export const createMultiplayer =
             );
           }
         );
+        callbacks.listen(enemyState, "bossAction", () => {
+          if (enemyState.bossAction === "aoe") enemy.animations.heavyAttack();
+        });
       })().catch((error) => {
         failedEnemies.add(enemyId);
         throw error;
@@ -1729,7 +1733,7 @@ export const createMultiplayer =
 
 
         if (enemy) {
-          enemy.destroy();
+          if (_enemyState.health > 0 || !enemy.animations.death(() => enemy.destroy())) enemy.destroy();
           enemies.delete(enemyId);
         }
 
@@ -1955,8 +1959,8 @@ export const createMultiplayer =
          */
 
         for (
-          const enemy
-          of enemies.values()
+          const [enemyId, enemy]
+          of enemies
         ) {
           if (!enemy.visibility.isVisible()) {
             enemy.visualElapsed = 0;
@@ -2001,8 +2005,8 @@ export const createMultiplayer =
             distance >
             0.03 ** 2
           ) {
-            enemy.animations
-              .walk();
+            if (room.state.enemies.get(enemyId)?.bossActive) enemy.animations.run();
+            else enemy.animations.walk();
           } else {
             enemy.animations
               .idle();

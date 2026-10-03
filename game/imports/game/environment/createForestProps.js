@@ -2,7 +2,7 @@ import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
-import { ENEMY_SPAWNS } from "../enemyConfig";
+import { ENEMY_SPAWNS, ENEMY_TYPES } from "../enemyConfig";
 import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WAYPOINTS } from "../waypoints";
@@ -45,7 +45,7 @@ const CIRCLES = [
   ...WAYPOINTS.filter((point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id))
     .map((point) => ({ ...point.position, radius: 9 })),
   ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
-  ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: spawn.type === "frostOgre" ? 24 : 8 })),
+  ...ENEMY_SPAWNS.map((spawn) => ({ ...spawn, radius: ENEMY_TYPES[spawn.type]?.bossMechanics ? 24 : 8 })),
   ...["goat", "rat", "bee", "snowWolf", "mountainGoat"].map((type) => {
     const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
     return {

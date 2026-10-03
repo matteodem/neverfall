@@ -171,6 +171,29 @@ ENEMY_TYPES.frostOgre = {
   emissiveColor: [0.06, 0.13, 0.18],
 };
 
+ENEMY_TYPES.hammerBoss = {
+  ...ENEMY_TYPES.forestGiant,
+  name: "Hammer Guardian",
+  model: "bosses/hammer-boss.glb",
+  scale: 1.4,
+  healthBarY: 3.8,
+  nameplateY: 4.15,
+  health: 12000,
+  healthPerLevel: 0,
+  attackDamage: 375,
+  speed: 3.5,
+  xpReward: 650,
+  moneyReward: 22000,
+  animations: {
+    idle: "Idle_9",
+    walk: "Walking",
+    run: "Running",
+    attack: "Attack",
+    heavyAttack: "Heavy_Hammer_Swing",
+    death: "dying_backwards",
+  },
+};
+
 // Reuse the existing ogre asset and animations for the small dungeon bosses.
 ENEMY_TYPES.dungeonGuardian = {
   ...ENEMY_TYPES.forestGiant,
@@ -260,6 +283,7 @@ export const ENEMY_SPAWNS = [
   { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 202, y: 0, z: -52 },
   { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 219, y: 0, z: -38 },
   { id: "frost-ogre", type: "frostOgre", level: 14, y: 0, ...SNOWY_MOUNTAINS.boss },
+  { id: "hammer-guardian", type: "hammerBoss", level: 17, x: -225, y: 0, z: -210 },
   ...Array.from({ length: 5 }, (_, index) => {
     const angle = index * Math.PI * 2 / 5;
     const distance = SOUTHWEST_LAKE.radius + 7;

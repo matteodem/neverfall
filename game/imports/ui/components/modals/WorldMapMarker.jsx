@@ -7,6 +7,7 @@ const ICONS = {
   undiscovered: { className: "h-4 w-4 border-2 border-white bg-slate-600 text-[10px] text-white", glyph: "◆" },
   dungeon: { className: "world-map-point h-3 w-3 border-2 border-white bg-violet-500" },
   hunt: { className: "world-map-point h-3 w-3 border border-white bg-amber-400" },
+  boss: { className: "world-map-point h-4 w-4 border-2 border-white bg-red-700", glyph: "!" },
   puzzle: { className: "world-map-point h-3 w-3 border-2 border-white bg-amber-700" },
   landmark: { className: "world-map-point h-2.5 w-2.5 border border-[#e0c99a] bg-[#59646b]" },
   event: { className: "world-map-point h-7 w-7 border-2 border-orange-400 bg-orange-400/25" },
