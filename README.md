@@ -110,3 +110,7 @@ Feel free to explore the codebase, report issues, or suggest ideas.
 **Heroes of Neverfall** is currently a working title.
 
 The project is experimental and under active development.
+
+Development uses AI-assisted coding tools, and some 3D assets are created or prototyped with generative AI tools before being selected, optimized, integrated, and adjusted for the game.
+
+AI tools are used as part of the development workflow, while game design, architecture, feature decisions, asset selection, integration, balancing, and overall direction remain manually curated.
