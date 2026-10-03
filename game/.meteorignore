@@ -1,0 +1,5 @@
+# Ignore all GLB files anywhere in the project
+*.glb
+
+# Alternatively, ignore models inside public
+public/models/

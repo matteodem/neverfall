@@ -400,9 +400,9 @@ export class WorldRoom
       const player = this.state.players.get(client.sessionId);
       const runtime = this.playerRuntime.get(client.sessionId);
       this.recordActivity(client.sessionId);
-      player.x = waypoint.position.x;
-      player.y = waypoint.position.y;
-      player.z = waypoint.position.z;
+      player.x = waypoint.position.x + (waypoint.arrivalOffset?.x ?? 0);
+      player.z = waypoint.position.z + (waypoint.arrivalOffset?.z ?? 0);
+      player.y = waypoint.arrivalOffset ? getWorldHeight(player.x, player.z) : waypoint.position.y;
       runtime.lastMoveAt = Date.now();
       runtime.moveAllowance = 0;
       runtime.awaitingWaypointArrival = true;

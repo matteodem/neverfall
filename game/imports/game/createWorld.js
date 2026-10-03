@@ -614,6 +614,15 @@ export const createWorld =
         const arch = forestProps.createFrozenArch(FROZEN_STONE_ARCH);
         if (arch) chunks.add(arch, FROZEN_STONE_ARCH);
       }, 120, false);
+      for (const waypoint of WAYPOINTS.filter((point) =>
+        ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id))) {
+        chunks.addLoader(waypoint.position, async () => {
+          await forestProps.preloadWaypointMarker();
+          if (disposed) return;
+          const marker = forestProps.createWaypointMarker(waypoint.position);
+          if (marker) chunks.add(marker, waypoint.position);
+        }, 120, false);
+      }
       let entrancePromise;
       const preloadEntrance = () => {
         if (!entrancePromise) entrancePromise = loadDungeonEntranceAsset(scene).catch((error) => {

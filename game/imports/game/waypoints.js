@@ -24,6 +24,7 @@ export const WAYPOINTS = [
     name: "Lake",
     region: "forest",
     position: { ...lakePosition, y: getWorldHeight(lakePosition.x, lakePosition.z) },
+    arrivalOffset: { x: -4, z: 0 },
     discoveryRadius: 16,
   },
   {
@@ -31,6 +32,7 @@ export const WAYPOINTS = [
     name: "Snowy Mountains",
     region: "snowyMountains",
     position: { ...snowyPosition, y: getWorldHeight(snowyPosition.x, snowyPosition.z) },
+    arrivalOffset: { x: -4, z: 0 },
     discoveryRadius: 16,
   },
 ];

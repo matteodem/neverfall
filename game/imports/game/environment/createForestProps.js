@@ -18,6 +18,7 @@ const MODELS = {
   archLintel: ["rock_2"],
   ancientShrine: ["ancient_forest_shrine"],
   frozenArch: ["frozen-stone-arch"],
+  waypointMarker: ["waypoint-marker"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
   rocks: ["rock_1", "rock_2"],
@@ -304,6 +305,18 @@ export const loadForestProps = async (scene) => {
       model.rotation.y = Math.PI / 2;
       for (const mesh of root.getChildMeshes()) {
         mesh.checkCollisions = true;
+        mesh.computeWorldMatrix(true);
+        mesh.freezeWorldMatrix();
+      }
+      return root;
+    },
+    preloadWaypointMarker: () => preload(MODELS.waypointMarker),
+    createWaypointMarker(position) {
+      const root = new TransformNode("waypoint-marker", scene);
+      root.position.set(position.x, 0, position.z);
+      const model = place(root, "waypointMarker", { x: 0, z: 0 }, () => 0, 4);
+      if (!model) { root.dispose(); return null; }
+      for (const mesh of root.getChildMeshes()) {
         mesh.computeWorldMatrix(true);
         mesh.freezeWorldMatrix();
       }
