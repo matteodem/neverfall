@@ -19,7 +19,7 @@ const KEYBOARD_CONTROLS = [
   ["H", "Toggle Hunts"],
   ["Z", "Toggle Achievements"],
   ["T", "Toggle Talents"],
-  ["E", "Toggle Guild (Social)"],
+  ["E", "Toggle Guild"],
   ["M", "Toggle Map"],
   ["P", "Toggle UI"],
 ];
@@ -48,7 +48,7 @@ export const HelpModal = () => {
         Keyboard Controls
       </p>
 
-      <div className="mt-2 overflow-x-auto">
+      <div className="mt-2 overflow-x-auto max-h-[300px] overflow-y-scroll">
         <table className="help-controls table table-zebra table-sm">
           <thead>
             <tr><th scope="col">Key</th><th scope="col">Action</th></tr>
@@ -69,7 +69,7 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
-        v0.9.0-alpha
+        v0.10.0-alpha
       </div>
 
       <p className="mt-5 text-lg font-bold">
