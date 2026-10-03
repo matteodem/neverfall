@@ -515,7 +515,9 @@ export const Game = ({
 
           const SKILL_HANDLERS = {
             Space: () => { if (playerAlive && !useWaypointStore.getState().traveling) jump.jump(); },
-            KeyF: () => { if (!multiplayer?.interactDungeon()) multiplayer?.collectLoot(); },
+            KeyF: () => {
+              if (!multiplayer?.interactDungeon() && !multiplayer?.interactWorldEvent()) multiplayer?.collectLoot();
+            },
             KeyV() {
               if (
                 playerAlive

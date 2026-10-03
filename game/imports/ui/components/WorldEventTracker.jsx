@@ -9,12 +9,11 @@ export const WorldEventTracker = () => {
       <div className="text-xs font-semibold uppercase text-orange-300">World Event</div>
       <div className="font-bold">{event.name}</div>
       {event.inSafeZone && <div className="mt-1 text-xs font-semibold text-green-300">In Safe Zone</div>}
-      <div className="mt-1 text-sm text-white/70">
-        {event.wave > event.totalWaves ? "Final Boss" : `Wave ${event.wave} / ${event.totalWaves}`}
-      </div>
-      <div className="mt-2 text-sm">
-        {event.nextWaveIn > 0 ? `Starts in ${event.nextWaveIn}s` : `Enemies remaining: ${event.enemiesRemaining}`}
-      </div>
+      <div className="mt-1 text-sm text-white/70">Phase {event.phase} / {event.totalPhases}: {event.phaseName}</div>
+      <div className="mt-2 text-sm">{event.objective}: {event.objectiveProgress} / {event.objectiveTarget}</div>
+      {event.totalWaves > 1 && <div className="text-xs text-white/70">Wave {event.wave} / {event.totalWaves}</div>}
+      {event.nextWaveIn > 0 && <div className="text-xs text-white/70">Next wave in {event.nextWaveIn}s</div>}
+      {event.nearObjective && <div className="mt-1 text-sm font-semibold text-orange-200">Press F to {event.interaction === "seal" ? "activate seal" : "clear den"}</div>}
     </div>
   );
 };

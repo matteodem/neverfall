@@ -4,6 +4,7 @@ import { getDevice } from "../ui/hooks/useMobileDevice";
 import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
 import { useChatStore } from "../ui/stores/useChatStore";
 import { createBossVisuals } from "./bossVisuals";
+import { createWorldEventVisuals } from "./worldEventVisuals";
 import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
 import { useWorldEventStore } from "../ui/stores/useWorldEventStore";
 import { getGameSession, closeGameSession } from "./gameSession";
@@ -12,6 +13,7 @@ import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea, HUNT_QUESTS } from "./quests";
+import { WORLD_EVENT_INTERACTION_RADIUS } from "./worldEvents";
 import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
@@ -857,6 +859,7 @@ export const createMultiplayer =
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
     const bossVisuals = createBossVisuals(scene);
+    const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene);
     onMessage("movementCorrection", ({ x, y, z }) => {
       player.position.set(x, y + JUMP.groundY, z);
     });
@@ -1829,6 +1832,7 @@ export const createMultiplayer =
           useWorldEventStore.getState().sync(room.state, room.sessionId);
         }
         dungeonInteractions.update(deltaTime);
+        worldEventVisuals?.update(room.state, player.position);
         projectiles.update(deltaTime);
         bossVisuals.update(room.state.enemies, (id) => enemies.get(id)?.visibility.isVisible());
         useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
@@ -2120,6 +2124,7 @@ export const createMultiplayer =
         dungeonInteractions.destroy();
         projectiles.destroy();
         bossVisuals.destroy();
+        worldEventVisuals?.destroy();
         useBossHealthStore.getState().reset();
         useTargetStore.getState().clear();
         useChatStore.getState().disconnect();
@@ -2226,6 +2231,14 @@ export const createMultiplayer =
       useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,
+      interactWorldEvent: () => {
+        const event = room.state.worldEvent;
+        if (dungeon || !localPlayerState || localPlayerState.health <= 0 ||
+          event?.status !== "active" || !event.interaction ||
+          Math.hypot(player.position.x - event.objectiveX, player.position.z - event.objectiveZ) > WORLD_EVENT_INTERACTION_RADIUS) return false;
+        room.send("interactWorldEvent");
+        return true;
+      },
 
 
       update,

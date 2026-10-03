@@ -1,9 +1,12 @@
 import { NORTHERN_CAMP } from "./campProtection";
 
+export const WORLD_EVENT_INTERACTION_RADIUS = 4;
+
 export const WORLD_EVENTS = [
   {
     id: "wolf-invasion",
     name: "Wolf Invasion",
+    region: "highlands",
     announcement: "World Event: Wolves are attacking the Northern Camp!",
     center: NORTHERN_CAMP.center,
     participationRadius: 65,
@@ -13,17 +16,23 @@ export const WORLD_EVENTS = [
     cooldown: 600000,
     waveDelay: 10000,
     scaling: { healthPerExtraPlayer: 0.75, damagePerExtraPlayer: 0.15 },
-    waves: [
-      { type: "wolf", level: 5, count: 3 },
-      { type: "wolf", level: 7, count: 3 },
-      { type: "wolf", level: 9, count: 3 },
+    phases: [
+      { type: "combat", name: "Defend Northern Camp", objective: "Defeat invading wolves", waves: [
+        { type: "wolf", level: 5, count: 3 },
+        { type: "wolf", level: 7, count: 3 },
+        { type: "wolf", level: 9, count: 3 },
+      ] },
+      { type: "interact", name: "Clear Wolf Dens", objective: "Clear the wolf dens", interaction: "den",
+        points: [{ x: -28, z: 180 }, { x: 30, z: 212 }, { x: 4, z: 237 }] },
+      { type: "boss", name: "Defeat the Alpha Wolf", objective: "Defeat the Alpha Wolf",
+        boss: { type: "alphaWolf", level: 11, count: 1 } },
     ],
-    boss: { type: "alphaWolf", level: 11, count: 1 },
     rewards: { xp: 500, money: 10000, lootType: "wolf" },
   },
   {
     id: "forest-giant-awakening",
     name: "Forest Giant Awakening",
+    region: "forest",
     announcement: "World Event: The Forest Giant has awakened!",
     center: { x: 200, z: -200 },
     participationRadius: 65,
@@ -36,5 +45,30 @@ export const WORLD_EVENTS = [
     waves: [],
     boss: { type: "awakenedForestGiant", level: 8, count: 1 },
     rewards: { xp: 1000, money: 20000, lootType: "awakenedForestGiant" },
+  },
+  {
+    id: "frozen-rift",
+    name: "Frozen Rift",
+    region: "snowyMountains",
+    announcement: "World Event: A frozen rift has opened in the Snowy Mountains!",
+    center: { x: 275, z: -70 },
+    participationRadius: 65,
+    spawnRadius: 12,
+    initialDelay: 120000,
+    duration: 600000,
+    cooldown: 600000,
+    waveDelay: 10000,
+    scaling: { healthPerExtraPlayer: 0.75, damagePerExtraPlayer: 0.15 },
+    phases: [
+      { type: "combat", name: "Repel the Rift", objective: "Defeat invading snow wolves", waves: [
+        { type: "snowWolf", level: 11, count: 3 },
+        { type: "snowWolf", level: 12, count: 3 },
+      ] },
+      { type: "interact", name: "Activate Ancient Seals", objective: "Activate the ancient seals", interaction: "seal",
+        points: [{ x: 258, z: -86 }, { x: 272, z: -45 }] },
+      { type: "boss", name: "Defeat the Frost Boss", objective: "Defeat the Frost Ogre",
+        boss: { type: "frostOgre", level: 14, count: 1 } },
+    ],
+    rewards: { xp: 1500, money: 20000, lootType: "frostOgre" },
   },
 ];

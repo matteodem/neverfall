@@ -1,19 +1,28 @@
 import { Meteor } from "meteor/meteor";
-import { WORLD_EVENTS } from "../../imports/game/worldEvents";
+import { WORLD_EVENTS, WORLD_EVENT_INTERACTION_RADIUS } from "../../imports/game/worldEvents";
+import { getWorldHeight } from "../../imports/game/worldConfig";
 import { spawnLoot } from "../inventory/loot";
 import { WorldEventState } from "./WorldState";
 import { recordQuestEvent } from "../quests";
 import { trackAchievements } from "../achievements";
 
-// One active event per world room. Waves use the ordinary enemy lifecycle.
+// One active event per world room. Phases use the ordinary enemy lifecycle.
 export const createWorldEvents = (room) => {
   const startedAt = Date.now();
   const nextStarts = new Map(WORLD_EVENTS.map((event) => [event.id, startedAt + event.initialDelay]));
   const nextConfig = () => WORLD_EVENTS.reduce((earliest, event) =>
     nextStarts.get(event.id) < nextStarts.get(earliest.id) ? event : earliest);
   let config = nextConfig();
+  const getPhases = (event) => event.phases || [
+    ...event.waves.map((wave, index) => ({ type: "combat", name: `Wave ${index + 1}`,
+      objective: "Defeat the enemies", waves: [wave] })),
+    { type: "boss", name: `Defeat ${event.name}`, objective: "Defeat the boss", boss: event.boss },
+  ];
+  let phases = getPhases(config);
   let run = 0;
-  let stage = 0;
+  let phaseIndex = 0;
+  let waveIndex = 0;
+  let pointIndex = 0;
   let nextWaveAt = 0;
   const enemies = new Set();
   const participants = new Map();
@@ -41,17 +50,18 @@ export const createWorldEvents = (room) => {
   const spawnStage = () => {
     nextWaveAt = 0;
     state.nextWaveIn = 0;
-    const wave = config.waves[stage] || config.boss;
+    const phase = phases[phaseIndex];
+    const wave = phase.type === "boss" ? phase.boss : phase.waves[waveIndex];
     const playerCount = Math.max(1, new Set(nearbyPlayers().map(([, player]) => player.characterId)).size);
     const extraPlayers = playerCount - 1;
     const scaling = {
       health: 1 + extraPlayers * (config.scaling?.healthPerExtraPlayer ?? 0),
       damage: 1 + extraPlayers * (config.scaling?.damagePerExtraPlayer ?? 0),
     };
-    state.wave = Math.min(stage + 1, config.waves.length + 1);
+    state.wave = waveIndex + 1;
     for (let index = 0; index < wave.count; index++) {
-      const angle = index * Math.PI * 2 / wave.count + stage * 0.4;
-      const id = `event-${config.id}-${run}-${stage}-${index}`;
+      const angle = index * Math.PI * 2 / wave.count + (phaseIndex + waveIndex) * 0.4;
+      const id = `event-${config.id}-${run}-${phaseIndex}-${waveIndex}-${index}`;
       room.spawnEnemy({ id, type: wave.type, level: wave.level,
         x: config.center.x + Math.cos(angle) * config.spawnRadius,
         y: 0, z: config.center.z + Math.sin(angle) * config.spawnRadius,
@@ -59,6 +69,30 @@ export const createWorldEvents = (room) => {
       enemies.add(id);
     }
     state.enemiesRemaining = enemies.size;
+  };
+
+  const startPhase = () => {
+    const phase = phases[phaseIndex];
+    waveIndex = 0;
+    pointIndex = 0;
+    nextWaveAt = 0;
+    state.nextWaveIn = 0;
+    state.phase = phaseIndex + 1;
+    state.totalPhases = phases.length;
+    state.phaseName = phase.name;
+    state.objective = phase.objective;
+    state.objectiveProgress = 0;
+    state.objectiveTarget = phase.type === "combat"
+      ? phase.waves.reduce((total, wave) => total + wave.count, 0)
+      : phase.type === "interact" ? phase.points.length : 1;
+    state.interaction = phase.type === "interact" ? phase.interaction : "";
+    state.objectiveX = phase.type === "interact" ? phase.points[0].x : config.center.x;
+    state.objectiveZ = phase.type === "interact" ? phase.points[0].z : config.center.z;
+    state.totalWaves = phase.type === "combat" ? phase.waves.length : 0;
+    state.wave = 0;
+    state.enemiesRemaining = 0;
+    if (phase.type !== "interact") spawnStage();
+    if (phaseIndex) room.broadcast("worldEventNotice", `${config.name}: ${phase.name}`);
   };
 
   const finish = (completed) => {
@@ -69,6 +103,7 @@ export const createWorldEvents = (room) => {
     nextStarts.set(config.id, Date.now() + config.cooldown);
     state.nextStartAt = nextStarts.get(nextConfig().id);
     state.enemiesRemaining = 0;
+    state.interaction = "";
     nextWaveAt = 0;
     state.nextWaveIn = 0;
     for (const id of enemies) {
@@ -86,7 +121,8 @@ export const createWorldEvents = (room) => {
     for (const [characterId, participant] of recipients) {
       for (const [sessionId, player] of room.state.players) {
         if (player.characterId === characterId) {
-          spawnLoot(room, { type: rewardConfig.rewards.lootType, ...rewardConfig.center, y: 0 }, sessionId);
+          spawnLoot(room, { type: rewardConfig.rewards.lootType, ...rewardConfig.center,
+            y: getWorldHeight(rewardConfig.center.x, rewardConfig.center.z) }, sessionId);
           break;
         }
       }
@@ -111,12 +147,12 @@ export const createWorldEvents = (room) => {
         state.id = config.id;
         state.name = config.name;
         state.status = "active";
-        state.totalWaves = config.waves.length;
         state.endsAt = now + config.duration;
         run++;
-        stage = 0;
+        phases = getPhases(config);
+        phaseIndex = 0;
         trackParticipants();
-        spawnStage();
+        startPhase();
         room.broadcast("worldEventNotice", config.announcement);
       }
       if (now >= state.endsAt) { finish(false); return; }
@@ -140,15 +176,36 @@ export const createWorldEvents = (room) => {
     onEnemyKilled(id) {
       if (state.status !== "active" || !enemies.delete(id)) return;
       trackParticipants();
+      state.objectiveProgress++;
       state.enemiesRemaining = enemies.size;
       if (enemies.size) return;
-      stage++;
-      if (stage <= config.waves.length) {
+      const phase = phases[phaseIndex];
+      if (phase.type === "combat" && ++waveIndex < phase.waves.length) {
         nextWaveAt = Date.now() + config.waveDelay;
         state.nextWaveIn = Math.ceil(config.waveDelay / 1000);
-        state.wave = stage + 1;
-      }
+        state.wave = waveIndex + 1;
+      } else if (++phaseIndex < phases.length) startPhase();
       else finish(true);
+    },
+    interact(client) {
+      if (state.status !== "active") return;
+      const phase = phases[phaseIndex];
+      if (phase.type !== "interact") return;
+      const player = room.state.players.get(client.sessionId);
+      const point = phase.points[pointIndex];
+      if (!player || player.health <= 0 || player.inDungeon ||
+        Math.hypot(player.x - point.x, player.z - point.z) > WORLD_EVENT_INTERACTION_RADIUS) return;
+      trackParticipants();
+      pointIndex++;
+      state.objectiveProgress = pointIndex;
+      if (pointIndex >= phase.points.length) {
+        phaseIndex++;
+        if (phaseIndex < phases.length) startPhase();
+        else finish(true);
+      } else {
+        state.objectiveX = phase.points[pointIndex].x;
+        state.objectiveZ = phase.points[pointIndex].z;
+      }
     },
   };
 };

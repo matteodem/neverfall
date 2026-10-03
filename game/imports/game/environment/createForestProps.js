@@ -57,6 +57,8 @@ const CIRCLES = [
   ...QUESTS.filter((quest) => quest.objective.type === "ReachLocation")
     .map((quest) => ({ ...quest.objective, radius: (quest.objective.radius || 10) + 5 })),
   ...WORLD_EVENTS.map((event) => ({ ...event.center, radius: Math.max(30, event.spawnRadius + 8) })),
+  ...WORLD_EVENTS.flatMap((event) => event.phases?.flatMap((phase) =>
+    phase.points?.map((point) => ({ ...point, radius: 5 })) || []) || []),
   { ...FOREST_GIANT_HILL.center, radius: 20 },
   { ...SOUTHWEST_LAKE.center, radius: SOUTHWEST_LAKE.radius + 8 },
   { ...ANCIENT_FOREST_SHRINE, radius: 24 },

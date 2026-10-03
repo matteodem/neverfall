@@ -15,6 +15,7 @@ import { useDungeonStore } from "../../stores/useDungeonStore";
 import { useHudStore } from "../../stores/useHudStore";
 import { useMinimapStore } from "../../stores/useMinimapStore";
 import { useWaypointStore } from "../../stores/useWaypointStore";
+import { useWorldEventStore } from "../../stores/useWorldEventStore";
 import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
@@ -38,6 +39,7 @@ const LEGEND = [
   { kind: "hunt", label: "Hunt" },
   { kind: "puzzle", label: "Jumping puzzle" },
   { kind: "landmark", label: "Landmark" },
+  { kind: "event", label: "Active world event" },
   { kind: "custom", label: "Custom Marker" },
 ];
 const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
@@ -67,6 +69,7 @@ const MapContent = () => {
   const gesture = React.useRef(null);
   const markerPlacement = React.useRef(null);
   const localPlayer = useMinimapStore((state) => state.localPlayer);
+  const worldEvent = useWorldEventStore((state) => state.event);
   const customMarker = useMinimapStore((state) => state.customMarker);
   const setCustomMarker = useMinimapStore((state) => state.setCustomMarker);
   const clearCustomMarker = useMinimapStore((state) => state.clearCustomMarker);
@@ -247,6 +250,12 @@ const MapContent = () => {
             label={`${entry.name} · Level ${entry.recommendedLevel}`} position={worldToPercent(entry.entrance)}
             mobile={mobile} selected={activeMarkerId === `dungeon-${entry.id}`} onSelect={selectMarker} />
         ))}
+        {!dungeon && worldEvent && (
+          <WorldMapMarker id="world-event" kind="event"
+            label={`${worldEvent.name} · ${worldEvent.phaseName}`}
+            position={worldToPercent({ x: worldEvent.objectiveX, z: worldEvent.objectiveZ })}
+            mobile={mobile} selected={activeMarkerId === "world-event"} onSelect={selectMarker} />
+        )}
         {!dungeon && customMarker && (
           <WorldMapMarker id="custom-marker" kind="custom" label="Custom Marker"
             position={worldToPercent(customMarker)} mobile={mobile}

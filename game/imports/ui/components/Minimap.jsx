@@ -163,7 +163,8 @@ export const Minimap =
     const location = useDungeonStore((state) => state.location);
     const dungeonId = useDungeonStore((state) => state.dungeonId);
     const dungeonConfig = getDungeonConfig(dungeonId);
-    const eventId = useWorldEventStore((state) => state.event?.id);
+    const event = useWorldEventStore((state) => state.event);
+    const eventId = event?.id;
     const activeEvent = location === "world" ? WORLD_EVENTS.find((event) => event.id === eventId) : null;
     const eventPosition = activeEvent && worldToPercent(activeEvent.center);
     const eventDiameter = activeEvent && `${activeEvent.participationRadius / WORLD_RADIUS * 100}%`;
@@ -253,6 +254,8 @@ export const Minimap =
               style={{ ...eventPosition, width: eventDiameter, height: eventDiameter }}
             />
           )}
+          {activeEvent && <DotMarker x={event.objectiveX} z={event.objectiveZ}
+            color="#fb923c" size={10} className="z-[15]" outlined />}
 
           {location === "dungeon" && dungeonConfig &&
             <DotMarker {...dungeonConfig.exit} color="#a78bfa" size={10} className="z-10" outlined />}

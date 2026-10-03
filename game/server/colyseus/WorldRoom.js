@@ -368,6 +368,7 @@ export class WorldRoom
   }
 
   messages = {
+    interactWorldEvent: (client) => this.worldEvents?.interact(client),
     claimTowerChest: async (client) => {
       const player = this.state.players.get(client.sessionId);
       const chest = BASIC_TOWER_CHEST_POSITION;
