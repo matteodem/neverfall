@@ -202,6 +202,9 @@ const HUD_BUTTONS = [
 
     label:
       "Help",
+
+    shortcut:
+      "U",
   },
 ];
 

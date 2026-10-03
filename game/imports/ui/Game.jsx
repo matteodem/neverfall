@@ -737,7 +737,7 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE" || event.code === "KeyU"
               ) {
                 if ((event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
@@ -766,6 +766,7 @@ export const Game = ({
                   KeyT: ["hero", "talents"],
                   KeyE: ["social"],
                   KeyM: ["map"],
+                  KeyU: ["help"],
                 }[event.code];
                 const [modal, tab] = destination;
 

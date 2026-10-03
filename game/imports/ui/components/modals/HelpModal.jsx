@@ -21,6 +21,7 @@ const KEYBOARD_CONTROLS = [
   ["T", "Toggle Talents"],
   ["E", "Toggle Guild"],
   ["M", "Toggle Map"],
+  ["U", "Toggle Help"],
   ["P", "Toggle UI"],
 ];
 
