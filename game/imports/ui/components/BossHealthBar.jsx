@@ -8,7 +8,7 @@ export const BossHealthBar = () => {
   return (
     <div className="boss-health-bar pointer-events-none absolute left-1/2 top-4 z-[10000] w-[min(24rem,45%)] -translate-x-1/2 rounded-box border border-red-400/50 bg-black/80 p-3 text-white shadow-lg">
       <div className="mb-2 flex items-center justify-between gap-2 text-sm">
-        <span className="font-bold">{boss.name}</span>
+        <span className="font-bold">{boss.name} <span className="font-normal text-white/70">Level {boss.level}</span></span>
         <span className="text-xs">{Math.ceil(boss.health)} / {boss.maxHealth} HP</span>
       </div>
       <div role="progressbar" aria-label={`${boss.name} health`} aria-valuenow={boss.health} aria-valuemin={0} aria-valuemax={boss.maxHealth}
