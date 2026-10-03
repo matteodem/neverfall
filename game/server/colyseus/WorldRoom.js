@@ -16,6 +16,8 @@ import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER 
 import { getWorldHeight } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
 import { getQuestArea } from "../../imports/game/quests";
+import { Guilds } from "../../imports/api/guilds/guilds";
+import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
@@ -995,6 +997,11 @@ export class WorldRoom
       fields: { "profile.claimedTowerChestCharacterIds": 1 },
     });
 
+    const guild = character.guildId && await Guilds.findOneAsync({
+      _id: character.guildId,
+      "members.characterId": character._id,
+    });
+
     const unlockedSpawnPoints = new Set(character.unlockedSpawnPoints || []);
     const legacyIds = [DEFAULT_SPAWN_POINT.id];
     if (character.adventureGuide?.visitedNorthernCamp) legacyIds.push(NORTHERN_SPAWN_POINT.id);
@@ -1091,6 +1098,8 @@ export class WorldRoom
         name:
           character.name,
 
+        guildTag: guild?.tag || "",
+
         gameClass: character.gameClass || "warrior",
 
         species: character.species || "human",
@@ -1154,6 +1163,7 @@ export class WorldRoom
       client.sessionId,
       player
     );
+    registerGuildPlayer(player);
 
 
     this.playerRuntime.set(
@@ -1205,6 +1215,7 @@ export class WorldRoom
       this.state.players.get(
         client.sessionId
       );
+    unregisterGuildPlayer(leavingPlayer);
 
 
     this.dungeons?.removePlayer(client.sessionId);

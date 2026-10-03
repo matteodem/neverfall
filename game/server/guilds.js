@@ -2,6 +2,7 @@ import { Meteor } from "meteor/meteor";
 import { Random } from "meteor/random";
 import { Characters } from "../imports/api/characters/characters";
 import { Guilds } from "../imports/api/guilds/guilds";
+import { setOnlineGuildTags } from "./colyseus/onlineGuildTags";
 
 const currentCharacter = async (userId) => {
   if (!userId) throw new Meteor.Error("not-authorized");
@@ -20,10 +21,12 @@ const leaderGuild = async (character) => {
 };
 
 const disbandGuild = async (guildId, leaderCharacterId) => {
+  const guild = await Guilds.findOneAsync({ _id: guildId, leaderCharacterId });
   const removed = await Guilds.removeAsync({ _id: guildId, leaderCharacterId });
   if (!removed) return false;
   await Characters.updateAsync({ guildId }, { $unset: { guildId: "" } }, { multi: true });
   await Characters.updateAsync({ "guildInvite.guildId": guildId }, { $unset: { guildInvite: "" } }, { multi: true });
+  setOnlineGuildTags(guild?.members.map((member) => member.characterId) || [], "");
   return true;
 };
 
@@ -31,7 +34,10 @@ export const removeGuildCharacter = async (character) => {
   if (!character.guildId) return;
   const guild = await Guilds.findOneAsync(character.guildId);
   if (guild?.leaderCharacterId === character._id) await disbandGuild(guild._id, character._id);
-  else if (guild) await Guilds.updateAsync(guild._id, { $pull: { members: { characterId: character._id } } });
+  else if (guild) {
+    await Guilds.updateAsync(guild._id, { $pull: { members: { characterId: character._id } } });
+    setOnlineGuildTags([character._id], "");
+  }
 };
 
 export const initializeGuilds = async () => {
@@ -75,6 +81,7 @@ Meteor.methods({
       await Guilds.removeAsync(guildId);
       throw new Meteor.Error("already-in-guild", "You are already in a guild.");
     }
+    setOnlineGuildTags([character._id], cleanTag);
   },
 
   async "guilds.invite"({ name } = {}) {
@@ -114,10 +121,12 @@ Meteor.methods({
       await Guilds.updateAsync(guildId, { $pull: { members: { characterId: character._id } } });
       throw new Meteor.Error("guild-invite-missing", "This invitation is no longer available.");
     }
-    if (!await Guilds.findOneAsync(guildId)) {
+    const guild = await Guilds.findOneAsync(guildId);
+    if (!guild) {
       await Characters.updateAsync({ _id: character._id, guildId }, { $unset: { guildId: "" } });
       throw new Meteor.Error("guild-unavailable", "This guild is no longer available.");
     }
+    setOnlineGuildTags([character._id], guild.tag);
   },
 
   async "guilds.decline"() {
@@ -132,6 +141,7 @@ Meteor.methods({
     if (guild?.leaderCharacterId === character._id) throw new Meteor.Error("guild-leader-must-disband", "Disband the guild before leaving.");
     if (guild) await Guilds.updateAsync(guild._id, { $pull: { members: { characterId: character._id } } });
     await Characters.updateAsync({ _id: character._id, guildId: character.guildId }, { $unset: { guildId: "" } });
+    setOnlineGuildTags([character._id], "");
   },
 
   async "guilds.kick"({ characterId } = {}) {
@@ -144,6 +154,7 @@ Meteor.methods({
     await Guilds.updateAsync({ _id: guild._id, leaderCharacterId: leader._id },
       { $pull: { members: { characterId } } });
     await Characters.updateAsync({ _id: characterId, guildId: guild._id }, { $unset: { guildId: "" } });
+    setOnlineGuildTags([characterId], "");
   },
 
   async "guilds.disband"() {

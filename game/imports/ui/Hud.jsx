@@ -189,7 +189,7 @@ const HUD_BUTTONS = [
 
   { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / H / Z / T", defaultTab: "gear" },
 
-  { id: "social", icon: "social", label: "Social" },
+  { id: "social", icon: "social", label: "Social", shortcut: "E" },
 
   { id: "map", icon: "map", label: "Map", shortcut: "M" },
 

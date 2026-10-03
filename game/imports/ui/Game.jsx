@@ -361,6 +361,7 @@ export const Game = ({
               scene,
 
               player,
+              nameplate: world.nameplate,
               dungeonVisuals: world.dungeonVisuals,
               worldChunks: world.worldChunks,
               onLocalRespawn: () => jump?.reset(),
@@ -735,9 +736,9 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE"
               ) {
-                if ((event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT") && (event.ctrlKey || event.metaKey || event.altKey)) return;
+                if ((event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
                   event.target?.closest?.(
                     "input, textarea, select, [contenteditable='true']"
@@ -762,6 +763,7 @@ export const Game = ({
                   KeyH: ["hero", "hunts"],
                   KeyZ: ["hero", "achievements"],
                   KeyT: ["hero", "talents"],
+                  KeyE: ["social"],
                   KeyM: ["map"],
                 }[event.code];
                 const [modal, tab] = destination;

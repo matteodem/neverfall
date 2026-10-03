@@ -83,6 +83,7 @@ import {
 const SEND_INTERVAL = PERFORMANCE.movementInterval;
 const ENEMY_PRELOAD_DISTANCE = 165;
 const WAYPOINT_ENEMY_PRELOAD_DISTANCE = 140;
+const getPlayerNameplateText = (name, guildTag) => `${guildTag ? `[${guildTag}] ` : ""}${name}`;
 
 
 const REMOTE_SMOOTHING =
@@ -519,7 +520,7 @@ const createRemotePlayer =
         playerName,
         level
       ) => {
-        return `${playerName} (Level ${level})`;
+        return `${getPlayerNameplateText(playerName, playerState.guildTag)} (Level ${level})`;
       };
 
 
@@ -802,6 +803,7 @@ export const createMultiplayer =
   async ({
     scene,
     player,
+    nameplate,
     onLocalHealthChange,
     onLocalCombatChange,
     onLocalBuffChange,
@@ -966,6 +968,11 @@ export const createMultiplayer =
         ) {
           localPlayerState =
             playerState;
+          const syncLocalNameplate = () => nameplate?.setName(
+            getPlayerNameplateText(playerState.name, playerState.guildTag)
+          );
+          syncLocalNameplate();
+          callbacks.listen(playerState, "guildTag", syncLocalNameplate);
           player.position.set(playerState.x, playerState.y + JUMP.groundY, playerState.z);
           player.rotation.y = playerState.rotationY;
 
@@ -1279,6 +1286,10 @@ export const createMultiplayer =
             );
           }
         );
+
+        callbacks.listen(playerState, "guildTag", () => {
+          entity.setLevel(playerState.currentLevel);
+        });
 
 
         /*
