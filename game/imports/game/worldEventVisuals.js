@@ -1,5 +1,3 @@
-import { Color3, MeshBuilder, StandardMaterial } from "@babylonjs/core";
-import { getWorldHeight } from "./worldConfig";
 import { WORLD_EVENTS } from "./worldEvents";
 
 const denPoints = WORLD_EVENTS.find((event) => event.id === "wolf-invasion")
@@ -8,29 +6,21 @@ const frozenSealPoints = WORLD_EVENTS.find((event) => event.id === "frozen-rift"
   .phases.find((phase) => phase.interaction === "seal").points;
 
 export const createWorldEventVisuals = (scene, forestProps) => {
-  const marker = MeshBuilder.CreateCylinder("world-event-objective", {
-    diameter: 2, height: 0.35, tessellation: 8,
-  }, scene);
-  const sealMaterial = new StandardMaterial("ancient-seal-objective", scene);
-  sealMaterial.diffuseColor = new Color3(0.25, 0.7, 0.9);
-  sealMaterial.emissiveColor = new Color3(0.08, 0.35, 0.55);
-  marker.isPickable = false;
-  marker.checkCollisions = false;
-  marker.setEnabled(false);
-  const frozenSeals = frozenSealPoints.map((point, index) => {
-    const seal = MeshBuilder.CreateCylinder(`frozen-rift-seal-${index + 1}`, {
-      diameter: 2, height: 0.25, tessellation: 8,
-    }, scene);
-    seal.position.set(point.x, getWorldHeight(point.x, point.z) + 0.125, point.z);
-    seal.material = sealMaterial;
-    seal.isPickable = false;
-    seal.checkCollisions = false;
-    seal.setEnabled(false);
-    return { point, seal };
-  });
+  let frozenSeals = [];
+  let sealLoading = null;
   let dens = [];
   let denLoading = null;
   let disposed = false;
+
+  const loadSeals = () => {
+    if (sealLoading || !forestProps) return;
+    sealLoading = forestProps.preloadFrozenSeal().then(() => {
+      if (disposed) return;
+      frozenSeals = frozenSealPoints.map((point) => ({ point, visual: forestProps.createFrozenSeal(point) }))
+        .filter(({ visual }) => visual);
+      for (const { visual } of frozenSeals) visual.root.setEnabled(false);
+    }).catch((error) => console.warn("[World Event] Could not load Frozen Rift Seal", error));
+  };
 
   const loadDens = () => {
     if (denLoading || !forestProps) return;
@@ -44,9 +34,8 @@ export const createWorldEventVisuals = (scene, forestProps) => {
 
   return {
     update(state, playerPosition) {
-      for (const { point, seal } of frozenSeals) {
-        seal.setEnabled(Math.hypot(playerPosition.x - point.x, playerPosition.z - point.z) <= 120);
-      }
+      if (frozenSealPoints.some((point) =>
+        Math.hypot(playerPosition.x - point.x, playerPosition.z - point.z) <= 120)) loadSeals();
       const event = state?.worldEvent;
       const visible = event?.status === "active" && Boolean(event.interaction) &&
         Math.hypot(playerPosition.x - event.objectiveX, playerPosition.z - event.objectiveZ) <= 120;
@@ -54,18 +43,16 @@ export const createWorldEventVisuals = (scene, forestProps) => {
       if (activeDen) loadDens();
       for (const den of dens) den.root.setEnabled(Boolean(activeDen &&
         den.point.x === event.objectiveX && den.point.z === event.objectiveZ));
-      marker.setEnabled(Boolean(visible && !activeDen));
-      if (!visible || activeDen) return;
-      marker.position.set(event.objectiveX,
-        getWorldHeight(event.objectiveX, event.objectiveZ) + 0.175, event.objectiveZ);
-      marker.material = sealMaterial;
+      for (const { point, visual } of frozenSeals) {
+        visual.root.setEnabled(Math.hypot(playerPosition.x - point.x, playerPosition.z - point.z) <= 120);
+        visual.setHighlighted(Boolean(visible && event.id === "frozen-rift" && event.interaction === "seal" &&
+          point.x === event.objectiveX && point.z === event.objectiveZ));
+      }
     },
     destroy() {
       disposed = true;
       for (const den of dens) den.root.dispose();
-      for (const { seal } of frozenSeals) seal.dispose();
-      marker.dispose();
-      sealMaterial.dispose();
+      for (const { visual } of frozenSeals) visual.root.dispose();
     },
   };
 };

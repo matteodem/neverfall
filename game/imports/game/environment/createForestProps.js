@@ -18,6 +18,7 @@ const MODELS = {
   archLintel: ["rock_2"],
   ancientShrine: ["ancient_forest_shrine"],
   frozenArch: ["frozen-stone-arch"],
+  frozenSeal: ["frozen-rift-seal"],
   waypointMarker: ["waypoint-marker"],
   wolfsDen: ["wolfs-den"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
@@ -312,6 +313,35 @@ export const loadForestProps = async (scene) => {
         mesh.freezeWorldMatrix();
       }
       return root;
+    },
+    preloadFrozenSeal: () => preload(MODELS.frozenSeal),
+    createFrozenSeal(position) {
+      const container = models.get("frozen-rift-seal");
+      if (!container) return null;
+      const root = new TransformNode("frozen-rift-seal", scene);
+      root.position.set(position.x, 0, position.z);
+      const entries = container.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+      for (const node of entries.rootNodes) node.parent = root;
+      let bottom = Infinity;
+      for (const mesh of root.getChildMeshes()) {
+        if (!(mesh.getTotalVertices() || mesh.sourceMesh?.getTotalVertices())) continue;
+        mesh.computeWorldMatrix(true);
+        bottom = Math.min(bottom, mesh.getBoundingInfo().boundingBox.minimumWorld.y);
+        mesh.isPickable = false;
+        mesh.checkCollisions = false;
+        (mesh.sourceMesh || mesh).receiveShadows = true;
+      }
+      const ground = getWorldHeight(position.x, position.z) + 0.02;
+      let highlighted = null;
+      const setHighlighted = (active) => {
+        if (highlighted === active) return;
+        highlighted = active;
+        const scale = active ? 1.35 : 1.2;
+        root.scaling.setAll(scale);
+        root.position.y = ground - (Number.isFinite(bottom) ? bottom * scale : 0);
+      };
+      setHighlighted(false);
+      return { root, setHighlighted };
     },
     preloadWaypointMarker: () => preload(MODELS.waypointMarker),
     createWaypointMarker(position) {
