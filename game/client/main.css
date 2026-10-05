@@ -96,6 +96,7 @@ body {
     --minimap-size: 72px;
     --game-width: 100dvw;
     --game-height: 100dvh;
+    --hud-modal-scale: 0.45;
 }
 .mobile-game.mobile-portrait {
     position: fixed;
@@ -135,7 +136,7 @@ body {
 
 .mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
 .mobile-game .hud-trackers { display: flex; flex-direction: column; gap: 10px; }
-.mobile-game .hud-modal { font-size: 24px; transform: scale(0.5); transform-origin: top left; }
+.mobile-game .hud-modal { font-size: 24px; transform-origin: top center; }
 .mobile-game .hud-modal.world-map-modal { max-height: calc(var(--game-height) * 2 - 16px); }
 .mobile-game .hud-modal .btn { font-size: calc(var(--fontsize, 0.875rem) * 2); }
 .mobile-game .hud-modal .text-xs { font-size: 24px; line-height: 1.4; }
@@ -158,7 +159,7 @@ body {
 .mobile-game .hud-minimap .text-sm { font-size: 18px; }
 .mobile-game .hud-minimap [class~="text-[10px]"] { font-size: 15px; line-height: 1.25; }
 
-.mobile-game .hud-modal.relative { transform-origin: center; }
+.mobile-game .hud-modal.relative { transform: scale(var(--hud-modal-scale)); transform-origin: center; }
 
 .mobile-game .game-chat { width: 220px; font-size: 10px; }
 .mobile-game .game-chat [role="log"] { height: 72px; }

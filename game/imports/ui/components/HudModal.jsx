@@ -74,7 +74,8 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
     <div
       className={`pointer-events-auto ${backdrop ? "relative" : "absolute"} hud-modal ${className} flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col ${scrollable ? "overflow-hidden" : "overflow-visible"} rounded-box bg-base-100 text-base-content shadow-2xl`}
       style={{
-        ...(backdrop ? {} : { left: position.x, top: position.y, transform: "translateX(-50%)" }),
+        ...(backdrop ? {} : { left: position.x, top: position.y,
+          transform: "translateX(-50%) scale(var(--hud-modal-scale, 1))" }),
         ...(maxHeight ? { maxHeight: `min(${typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight}, calc(var(--game-height, 100vh) - 16px))` } : {}),
         ...(width ? { width: `min(${width}px, calc(var(--game-width, 100vw) - 16px))` } : {}),
       }}
