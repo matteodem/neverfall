@@ -7,7 +7,7 @@ import { spawnLoot } from "./inventory/loot";
 
 const pending = new Map();
 
-export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true } = {}) => {
+export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true, spawnId } = {}) => {
   const matches = QUESTS.filter((quest) =>
     ((quest.objective.type === type && quest.objective.target === target) ||
       quest.objectives?.some((objective) => objective.type === type && objective.target === target)) &&
@@ -28,12 +28,14 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
         advanced = true;
         continue;
       }
-      if (quest.objectives?.findIndex((step) => step.type === type && step.target === target) < progress) {
-        advanced = true;
+      const steps = quest.objectives?.flatMap((step) => Array(step.amount || 1).fill(step));
+      const objective = steps?.[progress] || quest.objective;
+      if (objective.type !== type || objective.target !== target ||
+        (objective.spawnId && objective.spawnId !== spawnId)) {
+        if (type === "ReachLocation" && steps?.slice(0, progress).some((step) =>
+          step.type === type && step.target === target)) advanced = true;
         continue;
       }
-      const objective = quest.objectives?.[progress] || quest.objective;
-      if (objective.type !== type || objective.target !== target) continue;
 
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);

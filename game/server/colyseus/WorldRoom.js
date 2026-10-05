@@ -2044,7 +2044,7 @@ export class WorldRoom
         { includeHunts: nearbyHuntKills.has(characterId) })
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
       await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar",
-        { includeHunts: nearbyHuntKills.has(characterId) })
+        { includeHunts: nearbyHuntKills.has(characterId), spawnId: spawn.id })
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
 

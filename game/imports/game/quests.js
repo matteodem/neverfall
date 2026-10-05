@@ -3,6 +3,7 @@ import { WAYPOINTS } from "./waypoints";
 import { LANDMARKS } from "./landmarks";
 import { DUNGEONS } from "./dungeonConfig";
 import { WORLD_EVENTS } from "./worldEvents";
+import { SOUTHWEST_LAKE } from "./worldConfig";
 
 export const BOAR_HUNT_QUEST = {
   progressField: "boarQuestKills",
@@ -199,6 +200,18 @@ export const QUESTS = [
       { type: "Boss", target: "frostboundSentinel", label: "Defeat the Frostbound Sentinel" },
     ],
     rewards: { xp: 1300, gold: 3 },
+  },
+  {
+    id: "trouble-at-southwest-lake", title: "Trouble at Southwest Lake", recommendedLevel: 14,
+    description: "Investigate Southwest Lake, defeat nearby seals, then confront the Hammer Guardian southwest of the lake.",
+    objective: { type: "Sequence", amount: 5 },
+    objectives: [
+      { type: "ReachLocation", target: "southwest-lake", label: "Investigate Southwest Lake",
+        x: SOUTHWEST_LAKE.center.x, z: SOUTHWEST_LAKE.center.z, radius: SOUTHWEST_LAKE.radius + 8 },
+      { type: "Kill", target: "seal", amount: 3, label: "Defeat seals near Southwest Lake" },
+      { type: "Boss", target: "hammerBoss", spawnId: "hammer-guardian", label: "Defeat the Hammer Guardian" },
+    ],
+    rewards: { xp: 2200, gold: 5 },
   },
 ];
 
