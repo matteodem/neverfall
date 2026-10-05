@@ -15,7 +15,7 @@ import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
-import { getQuestArea } from "../../imports/game/quests";
+import { getQuestArea, FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
 import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
@@ -70,7 +70,8 @@ import {
 const MAX_PLAYERS =
   30;
 
-const LOCATION_QUESTS = QUESTS.filter((quest) => quest.objective.type === "ReachLocation");
+const LOCATION_QUESTS = QUESTS.flatMap((quest) =>
+  (quest.objectives || [quest.objective]).filter((objective) => objective.type === "ReachLocation"));
 
 /*
  * =====================================================
@@ -371,6 +372,14 @@ export class WorldRoom
 
   messages = {
     interactWorldEvent: (client) => this.worldEvents?.interact(client),
+    interactQuestPoint: (client, target) => {
+      const player = this.state.players.get(client.sessionId);
+      const point = FROZEN_DISTURBANCE_POINTS.find((entry) => entry.id === target);
+      if (!player || player.health <= 0 || player.inDungeon || !point ||
+        Math.hypot(player.x - point.x, player.z - point.z) > 4) return;
+      void recordQuestEvent(this, player.characterId, "Interact", point.id)
+        .catch((error) => console.error("[Quests] Could not save interaction progress", error));
+    },
     claimTowerChest: async (client) => {
       const player = this.state.players.get(client.sessionId);
       const chest = BASIC_TOWER_CHEST_POSITION;
@@ -737,14 +746,18 @@ export class WorldRoom
           });
         }
         runtime.reachedQuestLocations ||= new Set();
-        for (const quest of LOCATION_QUESTS) {
-          if (runtime.reachedQuestLocations.has(quest.id)) continue;
-          const { x, z, radius = 10 } = quest.objective;
+        runtime.questLocationRetryAt ||= new Map();
+        for (const objective of LOCATION_QUESTS) {
+          if (runtime.reachedQuestLocations.has(objective.target) ||
+            Date.now() < (runtime.questLocationRetryAt.get(objective.target) || 0)) continue;
+          const { x, z, radius = 10 } = objective;
           if (Math.hypot(player.x - x, player.z - z) > radius) continue;
-          runtime.reachedQuestLocations.add(quest.id);
-          void recordQuestEvent(this, player.characterId, "ReachLocation", quest.objective.target)
+          runtime.questLocationRetryAt.set(objective.target, Date.now() + 1000);
+          void recordQuestEvent(this, player.characterId, "ReachLocation", objective.target)
+            .then((advanced) => {
+              if (advanced) runtime.reachedQuestLocations.add(objective.target);
+            })
             .catch((error) => {
-              runtime.reachedQuestLocations.delete(quest.id);
               console.error("[Quests] Could not save location progress", error);
             });
         }
@@ -2031,7 +2044,7 @@ export class WorldRoom
         { includeHunts: nearbyHuntKills.has(characterId) })
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
       await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar",
-        { includeHunts: nearbyHuntKills.has(characterId) })
+        { includeHunts: nearbyHuntKills.has(characterId), spawnId: spawn.id })
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
 

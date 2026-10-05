@@ -4,6 +4,8 @@ import { WORLD_EVENTS } from "./worldEvents";
 
 const denPoints = WORLD_EVENTS.find((event) => event.id === "wolf-invasion")
   .phases.find((phase) => phase.interaction === "den").points;
+const frozenSealPoints = WORLD_EVENTS.find((event) => event.id === "frozen-rift")
+  .phases.find((phase) => phase.interaction === "seal").points;
 
 export const createWorldEventVisuals = (scene, forestProps) => {
   const marker = MeshBuilder.CreateCylinder("world-event-objective", {
@@ -15,6 +17,17 @@ export const createWorldEventVisuals = (scene, forestProps) => {
   marker.isPickable = false;
   marker.checkCollisions = false;
   marker.setEnabled(false);
+  const frozenSeals = frozenSealPoints.map((point, index) => {
+    const seal = MeshBuilder.CreateCylinder(`frozen-rift-seal-${index + 1}`, {
+      diameter: 2, height: 0.25, tessellation: 8,
+    }, scene);
+    seal.position.set(point.x, getWorldHeight(point.x, point.z) + 0.125, point.z);
+    seal.material = sealMaterial;
+    seal.isPickable = false;
+    seal.checkCollisions = false;
+    seal.setEnabled(false);
+    return { point, seal };
+  });
   let dens = [];
   let denLoading = null;
   let disposed = false;
@@ -31,6 +44,9 @@ export const createWorldEventVisuals = (scene, forestProps) => {
 
   return {
     update(state, playerPosition) {
+      for (const { point, seal } of frozenSeals) {
+        seal.setEnabled(Math.hypot(playerPosition.x - point.x, playerPosition.z - point.z) <= 120);
+      }
       const event = state?.worldEvent;
       const visible = event?.status === "active" && Boolean(event.interaction) &&
         Math.hypot(playerPosition.x - event.objectiveX, playerPosition.z - event.objectiveZ) <= 120;
@@ -47,6 +63,7 @@ export const createWorldEventVisuals = (scene, forestProps) => {
     destroy() {
       disposed = true;
       for (const den of dens) den.root.dispose();
+      for (const { seal } of frozenSeals) seal.dispose();
       marker.dispose();
       sealMaterial.dispose();
     },

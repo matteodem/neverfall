@@ -3,7 +3,8 @@ import { getDungeonConfig } from "../../game/dungeonConfig";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import { useHudStore } from "../stores/useHudStore";
 
-const ACTIONS = { enter: "Enter Dungeon", reward: "Open Reward Chest", exit: "Exit Dungeon", towerChest: "Open Tower Chest" };
+const ACTIONS = { enter: "Enter Dungeon", reward: "Open Reward Chest", exit: "Exit Dungeon",
+  towerChest: "Open Tower Chest", riftSeal: "Activate rift seal" };
 
 export const DungeonPrompt = () => {
   const location = useDungeonStore((state) => state.location);

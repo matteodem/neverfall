@@ -86,6 +86,8 @@ export const ENEMY_TYPES = {
     model: "seal.glb",
     scale: 0.3,
     rotationY: 0,
+    health: 120,
+    healthPerLevel: 120,
     animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
@@ -161,6 +163,17 @@ ENEMY_TYPES.mountainGoat = {
   attackDamage: 12,
   xpReward: 180,
 };
+ENEMY_TYPES.frostboundSentinel = {
+  ...ENEMY_TYPES.snowWolf,
+  name: "Frostbound Sentinel",
+  scale: 0.65,
+  health: 850,
+  healthPerLevel: 90,
+  attackDamage: 45,
+  damagePerLevel: 8,
+  xpReward: 250,
+  respawnDelay: 180000,
+};
 ENEMY_TYPES.frostOgre = {
   ...ENEMY_TYPES.forestGiant,
   name: "Frost Ogre",
@@ -217,6 +230,17 @@ ENEMY_TYPES.ruinRaider = {
   attackDamage: 10,
   damagePerLevel: 7,
   xpReward: 130,
+};
+ENEMY_TYPES.highlandsRelicGuardian = {
+  ...ENEMY_TYPES.ruinRaider,
+  name: "Highlands Relic Guardian",
+  scale: 0.8,
+  health: 750,
+  healthPerLevel: 60,
+  attackDamage: 45,
+  damagePerLevel: 3,
+  xpReward: 200,
+  respawnDelay: 180000,
 };
 ENEMY_TYPES.sunkenGuardian = {
   ...ENEMY_TYPES.dungeonGuardian,
@@ -278,12 +302,14 @@ export const ENEMY_SPAWNS = [
   { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
   { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
   { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
+  { id: "highlands-relic-guardian", type: "highlandsRelicGuardian", level: 10, x: 105, y: 0, z: 180 },
   { id: "snow-wolf-1", type: "snowWolf", level: 10, x: 224, y: 0, z: 43 },
   { id: "snow-wolf-2", type: "snowWolf", level: 10, x: 240, y: 0, z: 55 },
   { id: "snow-wolf-3", type: "snowWolf", level: 10, x: 252, y: 0, z: 39 },
   { id: "mountain-goat-1", type: "mountainGoat", level: 12, x: 188, y: 0, z: -42 },
   { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 202, y: 0, z: -52 },
   { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 219, y: 0, z: -38 },
+  { id: "frostbound-sentinel", type: "frostboundSentinel", level: 12, x: 235, y: 0, z: -110 },
   { id: "frost-ogre", type: "frostOgre", level: 14, y: 0, ...SNOWY_MOUNTAINS.boss },
   { id: "hammer-guardian", type: "hammerBoss", level: 17, x: -225, y: 0, z: -210 },
   ...Array.from({ length: 5 }, (_, index) => {

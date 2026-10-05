@@ -20,6 +20,19 @@ export const QuestList = ({ quests, progress }) => (
             {count >= quest.objective.amount && !quest.repeatable ? "Completed" : `${count} / ${quest.objective.amount}`}
             {quest.repeatable ? " · Repeatable" : ""}
           </div>
+          {quest.objectives && <ol className="mt-2 list-decimal pl-5 text-xs">
+            {quest.objectives.map((objective, index) => {
+              const before = quest.objectives.slice(0, index).reduce((total, step) => total + (step.amount || 1), 0);
+              const amount = objective.amount || 1;
+              const done = Math.min(Math.max(count - before, 0), amount);
+              return <li key={objective.target} className={done === amount ? "opacity-60" : ""}>
+                {objective.label}{amount > 1 ? ` (${done} / ${amount})` : done ? " ✓" : ""}
+              </li>;
+            })}
+          </ol>}
+          {quest.objectives && <div className="mt-2 text-xs opacity-70">
+            Rewards: {quest.rewards.xp} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}
+          </div>}
         </div>
       );
     })}

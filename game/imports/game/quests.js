@@ -1,5 +1,9 @@
 import { ENEMY_SPAWNS, ENEMY_TYPES, WOLF_AREA } from "./enemyConfig";
 import { WAYPOINTS } from "./waypoints";
+import { LANDMARKS } from "./landmarks";
+import { DUNGEONS } from "./dungeonConfig";
+import { WORLD_EVENTS } from "./worldEvents";
+import { SOUTHWEST_LAKE } from "./worldConfig";
 
 export const BOAR_HUNT_QUEST = {
   progressField: "boarQuestKills",
@@ -98,6 +102,14 @@ export const HUNT_QUESTS = {
 };
 
 const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mountains-waypoint");
+const highlandsLookout = LANDMARKS.find((landmark) => landmark.id === "highlands-lookout");
+const northernRuins = DUNGEONS.find((dungeon) => dungeon.id === "northern-ruins");
+const frozenRift = WORLD_EVENTS.find((event) => event.id === "frozen-rift");
+const frozenSeals = frozenRift.phases.find((phase) => phase.interaction === "seal").points;
+
+export const FROZEN_DISTURBANCE_POINTS = frozenSeals.map((point, index) => ({
+  id: `${frozenRift.id}-seal-${index + 1}`, label: `Activate frozen rift seal ${index + 1}`, ...point,
+}));
 
 // New quests are available automatically; NPC quest givers can use the same
 // definitions later without changing how objectives advance.
@@ -162,6 +174,44 @@ export const QUESTS = [
     objective: { type: "ReachLocation", target: "snowy-mountains-waypoint", amount: 1,
       x: snowyMountainsWaypoint.position.x, z: snowyMountainsWaypoint.position.z, radius: 16 },
     rewards: { xp: 400, gold: 1 },
+  },
+  {
+    id: "highlands-relics", title: "Highlands Relics", recommendedLevel: 9,
+    description: "Investigate Highlands Lookout and the Northern Ruins entrance, then defeat the guardian nearby.",
+    objective: { type: "Sequence", amount: 3 },
+    objectives: [
+      { type: "ReachLocation", target: highlandsLookout.id, label: "Investigate Highlands Lookout",
+        ...highlandsLookout.position, radius: highlandsLookout.discoveryRadius },
+      { type: "ReachLocation", target: northernRuins.interactionTarget, label: "Investigate the Northern Ruins entrance",
+        x: northernRuins.entrance.x, z: northernRuins.entrance.z, radius: 8 },
+      { type: "Boss", target: "highlandsRelicGuardian", label: "Defeat the Highlands Relic Guardian" },
+    ],
+    rewards: { xp: 900, gold: 2 },
+  },
+  {
+    id: "frozen-disturbance", title: "Frozen Disturbance", recommendedLevel: 11,
+    description: "Reach the Snowy Mountains waypoint, activate the frozen rift seals near the Frozen Stone Arch, and defeat the Frostbound Sentinel.",
+    objective: { type: "Sequence", amount: 4 },
+    objectives: [
+      { type: "ReachLocation", target: snowyMountainsWaypoint.id, label: "Reach the Snowy Mountains waypoint",
+        x: snowyMountainsWaypoint.position.x, z: snowyMountainsWaypoint.position.z,
+        radius: snowyMountainsWaypoint.discoveryRadius || 16 },
+      ...FROZEN_DISTURBANCE_POINTS.map(({ id, label }) => ({ type: "Interact", target: id, label })),
+      { type: "Boss", target: "frostboundSentinel", label: "Defeat the Frostbound Sentinel" },
+    ],
+    rewards: { xp: 1300, gold: 3 },
+  },
+  {
+    id: "trouble-at-southwest-lake", title: "Trouble at Southwest Lake", recommendedLevel: 14,
+    description: "Investigate Southwest Lake, defeat nearby seals, then confront the Hammer Guardian southwest of the lake.",
+    objective: { type: "Sequence", amount: 5 },
+    objectives: [
+      { type: "ReachLocation", target: "southwest-lake", label: "Investigate Southwest Lake",
+        x: SOUTHWEST_LAKE.center.x, z: SOUTHWEST_LAKE.center.z, radius: SOUTHWEST_LAKE.radius + 8 },
+      { type: "Kill", target: "seal", amount: 3, label: "Defeat seals near Southwest Lake" },
+      { type: "Boss", target: "hammerBoss", spawnId: "hammer-guardian", label: "Defeat the Hammer Guardian" },
+    ],
+    rewards: { xp: 2200, gold: 5 },
   },
 ];
 
