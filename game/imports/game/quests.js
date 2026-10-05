@@ -2,6 +2,7 @@ import { ENEMY_SPAWNS, ENEMY_TYPES, WOLF_AREA } from "./enemyConfig";
 import { WAYPOINTS } from "./waypoints";
 import { LANDMARKS } from "./landmarks";
 import { DUNGEONS } from "./dungeonConfig";
+import { WORLD_EVENTS } from "./worldEvents";
 
 export const BOAR_HUNT_QUEST = {
   progressField: "boarQuestKills",
@@ -102,6 +103,12 @@ export const HUNT_QUESTS = {
 const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mountains-waypoint");
 const highlandsLookout = LANDMARKS.find((landmark) => landmark.id === "highlands-lookout");
 const northernRuins = DUNGEONS.find((dungeon) => dungeon.id === "northern-ruins");
+const frozenRift = WORLD_EVENTS.find((event) => event.id === "frozen-rift");
+const frozenSeals = frozenRift.phases.find((phase) => phase.interaction === "seal").points;
+
+export const FROZEN_DISTURBANCE_POINTS = frozenSeals.map((point, index) => ({
+  id: `${frozenRift.id}-seal-${index + 1}`, label: `Activate frozen rift seal ${index + 1}`, ...point,
+}));
 
 // New quests are available automatically; NPC quest givers can use the same
 // definitions later without changing how objectives advance.
@@ -179,6 +186,19 @@ export const QUESTS = [
       { type: "Boss", target: "highlandsRelicGuardian", label: "Defeat the Highlands Relic Guardian" },
     ],
     rewards: { xp: 900, gold: 2 },
+  },
+  {
+    id: "frozen-disturbance", title: "Frozen Disturbance", recommendedLevel: 11,
+    description: "Reach the Snowy Mountains waypoint, activate the frozen rift seals near the Frozen Stone Arch, and defeat the Frostbound Sentinel.",
+    objective: { type: "Sequence", amount: 4 },
+    objectives: [
+      { type: "ReachLocation", target: snowyMountainsWaypoint.id, label: "Reach the Snowy Mountains waypoint",
+        x: snowyMountainsWaypoint.position.x, z: snowyMountainsWaypoint.position.z,
+        radius: snowyMountainsWaypoint.discoveryRadius || 16 },
+      ...FROZEN_DISTURBANCE_POINTS.map(({ id, label }) => ({ type: "Interact", target: id, label })),
+      { type: "Boss", target: "frostboundSentinel", label: "Defeat the Frostbound Sentinel" },
+    ],
+    rewards: { xp: 1300, gold: 3 },
   },
 ];
 

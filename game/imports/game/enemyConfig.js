@@ -161,6 +161,17 @@ ENEMY_TYPES.mountainGoat = {
   attackDamage: 12,
   xpReward: 180,
 };
+ENEMY_TYPES.frostboundSentinel = {
+  ...ENEMY_TYPES.snowWolf,
+  name: "Frostbound Sentinel",
+  scale: 0.65,
+  health: 850,
+  healthPerLevel: 90,
+  attackDamage: 45,
+  damagePerLevel: 8,
+  xpReward: 250,
+  respawnDelay: 180000,
+};
 ENEMY_TYPES.frostOgre = {
   ...ENEMY_TYPES.forestGiant,
   name: "Frost Ogre",
@@ -296,6 +307,7 @@ export const ENEMY_SPAWNS = [
   { id: "mountain-goat-1", type: "mountainGoat", level: 12, x: 188, y: 0, z: -42 },
   { id: "mountain-goat-2", type: "mountainGoat", level: 12, x: 202, y: 0, z: -52 },
   { id: "mountain-goat-3", type: "mountainGoat", level: 12, x: 219, y: 0, z: -38 },
+  { id: "frostbound-sentinel", type: "frostboundSentinel", level: 12, x: 235, y: 0, z: -110 },
   { id: "frost-ogre", type: "frostOgre", level: 14, y: 0, ...SNOWY_MOUNTAINS.boss },
   { id: "hammer-guardian", type: "hammerBoss", level: 17, x: -225, y: 0, z: -210 },
   ...Array.from({ length: 5 }, (_, index) => {

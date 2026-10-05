@@ -4,9 +4,17 @@ import { enterDungeon, leaveDungeon } from "./gameSession";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useHudStore } from "../ui/stores/useHudStore";
 import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
+import { FROZEN_DISTURBANCE_POINTS } from "./quests";
+import { Characters } from "../api/characters/characters";
 
 export const createDungeonInteractions = ({ room, player, visuals, dungeon }) => {
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
+  const nearbyQuestSeal = (local) => {
+    if (dungeon || !local?.characterId) return null;
+    const progress = Characters.findOne(local.characterId)?.questProgress?.["frozen-disturbance"] || 0;
+    const point = FROZEN_DISTURBANCE_POINTS[progress - 1];
+    return nearDungeonObject(player.position, point, 4) ? point : null;
+  };
   let elapsed = 100;
   const update = (deltaTime) => {
     if (useDungeonStore.getState().location !== (dungeon ? "dungeon" : "world")) return;
@@ -29,6 +37,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
       if (dungeon && completed && !local.dungeonRewardClaimed && state.loot.has(`chest-${local.characterId}`)
         && nearDungeonObject(player.position, config.chest, LOOT_RANGE)) prompt = "reward";
       if (dungeon && nearDungeonObject(player.position, config.exit, config.interactionDistance)) prompt = "exit";
+      if (!prompt && nearbyQuestSeal(local)) prompt = "riftSeal";
     }
     useDungeonStore.getState().update({
       prompt, stage: dungeon ? state?.stage || 0 : 0, completed,
@@ -50,6 +59,10 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     if (state.busy || useHudStore.getState().activeModal) return true;
     if (state.prompt === "enter") enterDungeon(state.dungeonId);
     if (state.prompt === "towerChest") room.send("claimTowerChest");
+    if (state.prompt === "riftSeal") {
+      const point = nearbyQuestSeal(local);
+      if (point) room.send("interactQuestPoint", point.id);
+    }
     if (state.prompt === "reward") room.send("dungeonReward");
     if (state.prompt === "exit") {
       useDungeonStore.getState().setBusy(true);

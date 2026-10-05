@@ -15,7 +15,7 @@ import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
-import { getQuestArea } from "../../imports/game/quests";
+import { getQuestArea, FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
 import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
@@ -372,6 +372,14 @@ export class WorldRoom
 
   messages = {
     interactWorldEvent: (client) => this.worldEvents?.interact(client),
+    interactQuestPoint: (client, target) => {
+      const player = this.state.players.get(client.sessionId);
+      const point = FROZEN_DISTURBANCE_POINTS.find((entry) => entry.id === target);
+      if (!player || player.health <= 0 || player.inDungeon || !point ||
+        Math.hypot(player.x - point.x, player.z - point.z) > 4) return;
+      void recordQuestEvent(this, player.characterId, "Interact", point.id)
+        .catch((error) => console.error("[Quests] Could not save interaction progress", error));
+    },
     claimTowerChest: async (client) => {
       const player = this.state.players.get(client.sessionId);
       const chest = BASIC_TOWER_CHEST_POSITION;
