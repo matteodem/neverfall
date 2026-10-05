@@ -86,6 +86,8 @@ export const ENEMY_TYPES = {
     model: "seal.glb",
     scale: 0.3,
     rotationY: 0,
+    health: 120,
+    healthPerLevel: 120,
     animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
