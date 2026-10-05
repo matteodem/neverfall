@@ -834,6 +834,8 @@ export const Hud = ({
   inCombat = false,
 }) => {
   const { mobile, portrait } = useMobileDevice();
+  const [showObjectives, setShowObjectives] = useState(() => !mobile);
+  useEffect(() => setShowObjectives(!mobile), [mobile]);
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
   const dungeonBusy = useDungeonStore((state) => state.busy);
   const leaveDungeon = useDungeonStore((state) => state.leaveDungeon);
@@ -886,15 +888,20 @@ export const Hud = ({
         "
       >
         <Minimap />
-        {inDungeon && (
-          <button type="button" className="btn btn-sm btn-error" disabled={dungeonBusy} onClick={leaveDungeon}>
-            Leave Dungeon
-          </button>
-        )}
-
-        <div className="hud-trackers contents">
-          {!inDungeon && <WorldEventTracker />}
-          <AdventureGuide currentLevel={currentLevel} />
+        <div className="hud-trackers flex flex-col items-end gap-2">
+          {inDungeon && (
+            <button type="button" className="btn btn-sm btn-error" disabled={dungeonBusy} onClick={leaveDungeon}>
+              Leave Dungeon
+            </button>
+          )}
+          {mobile && <button type="button" className="btn btn-xs" aria-expanded={showObjectives} aria-controls="hud-objectives"
+            onClick={(event) => { setShowObjectives((visible) => !visible); event.currentTarget.blur(); }}>
+            {showObjectives ? "Hide Objectives" : "Show Objectives"}
+          </button>}
+          <div id="hud-objectives" className="flex flex-col items-end gap-2" style={{ display: !mobile || showObjectives ? "flex" : "none" }}>
+            {!inDungeon && <WorldEventTracker />}
+            <AdventureGuide currentLevel={currentLevel} />
+          </div>
         </div>
       </div>
 

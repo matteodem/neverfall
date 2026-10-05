@@ -93,7 +93,7 @@ body {
     height: 100dvh;
     touch-action: none;
     user-select: none;
-    --minimap-size: 72px;
+    --minimap-size: 115px;
     --game-width: 100dvw;
     --game-height: 100dvh;
     --hud-modal-scale: 0.45;
@@ -156,8 +156,8 @@ body {
 .mobile-game .hud-modal .help-controls .kbd { font-size: 24px; --size: 40px; }
 
 .mobile-game .hud-minimap { order: 2; width: 170px; padding: 10px; flex-shrink: 0; }
-.mobile-game .hud-minimap .text-sm { font-size: 18px; }
-.mobile-game .hud-minimap [class~="text-[10px]"] { font-size: 15px; line-height: 1.25; }
+.mobile-game .hud-minimap .text-sm { font-size: 15px; }
+.mobile-game .hud-minimap [class~="text-[10px]"] { font-size: 11px; line-height: 1.25; }
 
 .mobile-game .hud-modal.relative { transform: scale(var(--hud-modal-scale)); transform-origin: center; }
 
