@@ -8,6 +8,7 @@ export const getAdventureGuideObjective = (character) => {
   const wolfKills = achievements.wolfHunter?.progress || 0;
   const goatKills = achievements.goatHunter?.progress || 0;
   const ratKills = achievements.ratHunter?.progress || 0;
+  const beeKills = achievements.beeHunter?.progress || 0;
   const snowWolfKills = achievements.snowWolfHunter?.progress || 0;
   const steps = [
     { id: "boars", title: "Defeat 5 Boars", progress: `${Math.min(boarKills, 5)} / 5`,
@@ -40,6 +41,8 @@ export const getAdventureGuideObjective = (character) => {
     { id: "highlands-relics", title: "Complete Highlands Relics",
       hint: "Visit Highlands Lookout and Northern Ruins, then face the guardian. Recommended Level: 9.",
       done: quests["highlands-relics"] >= 3 },
+    { id: "bee-hunt", title: "Kill 10 Bees", progress: `${Math.min(beeKills, 10)} / 10`,
+      hint: "Find bees in the eastern Highlands.", done: beeKills >= 10 },
     { id: "level-10", title: "Reach Level 10", progress: `${Math.min(character?.currentLevel ?? 1, 10)} / 10`,
       hint: "Complete Hunts and quests to earn XP.", done: (character?.currentLevel ?? 1) >= 10 },
     { id: "snowy", title: "Explore Snowy Mountains", hint: "Unlock the Snowy Mountains waypoint east of Central Camp.",
