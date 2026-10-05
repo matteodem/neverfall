@@ -255,12 +255,12 @@ export const Minimap =
             />
           )}
           {activeEvent && <DotMarker x={event.objectiveX} z={event.objectiveZ}
-            color="#fb923c" size={10} className="z-[15]" outlined />}
+            color="#fb923c" size="var(--minimap-dot-size, 10px)" className="z-[15]" outlined />}
 
           {location === "dungeon" && dungeonConfig &&
-            <DotMarker {...dungeonConfig.exit} color="#a78bfa" size={10} className="z-10" outlined />}
+            <DotMarker {...dungeonConfig.exit} color="#a78bfa" size="var(--minimap-dot-size, 10px)" className="z-10" outlined />}
           {location === "world" && DUNGEONS.map((entry) =>
-            <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size={10} className="z-10" />)}
+            <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size="var(--minimap-dot-size, 10px)" className="z-10" />)}
           {location === "world" && customMarker && (
             <div className="absolute z-[15] -translate-x-1/2 -translate-y-1/2 text-rose-400"
               style={worldToPercent(customMarker)} title="Custom Marker" aria-label="Custom Marker">
