@@ -9,7 +9,8 @@ const pending = new Map();
 
 export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true } = {}) => {
   const matches = QUESTS.filter((quest) =>
-    quest.objective.type === type && quest.objective.target === target &&
+    ((quest.objective.type === type && quest.objective.target === target) ||
+      quest.objectives?.some((objective) => objective.type === type && objective.target === target)) &&
     (includeHunts || !quest.progressField));
   if (!matches.length) return Promise.resolve();
 
@@ -18,11 +19,21 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
   const work = previous.catch(() => {}).then(async () => {
     const character = await Characters.findOneAsync(characterId);
     if (!character) return;
+    let advanced = false;
 
     for (const quest of matches) {
       const amount = quest.objective.amount;
       const progress = character.questProgress?.[quest.id] || 0;
-      if (!quest.repeatable && progress >= amount) continue;
+      if (!quest.repeatable && progress >= amount) {
+        advanced = true;
+        continue;
+      }
+      if (quest.objectives?.findIndex((step) => step.type === type && step.target === target) < progress) {
+        advanced = true;
+        continue;
+      }
+      const objective = quest.objectives?.[progress] || quest.objective;
+      if (objective.type !== type || objective.target !== target) continue;
 
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
@@ -39,6 +50,7 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       });
       character.questProgress ||= {};
       character.questProgress[quest.id] = next;
+      advanced = true;
 
       if (quest.progressField) {
         for (const player of room.state.players.values()) {
@@ -74,6 +86,7 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
         }
       }
     }
+    return advanced;
   });
   pending.set(characterId, work);
   return work.finally(() => {

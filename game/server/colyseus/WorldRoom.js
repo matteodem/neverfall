@@ -70,7 +70,8 @@ import {
 const MAX_PLAYERS =
   30;
 
-const LOCATION_QUESTS = QUESTS.filter((quest) => quest.objective.type === "ReachLocation");
+const LOCATION_QUESTS = QUESTS.flatMap((quest) =>
+  (quest.objectives || [quest.objective]).filter((objective) => objective.type === "ReachLocation"));
 
 /*
  * =====================================================
@@ -737,14 +738,18 @@ export class WorldRoom
           });
         }
         runtime.reachedQuestLocations ||= new Set();
-        for (const quest of LOCATION_QUESTS) {
-          if (runtime.reachedQuestLocations.has(quest.id)) continue;
-          const { x, z, radius = 10 } = quest.objective;
+        runtime.questLocationRetryAt ||= new Map();
+        for (const objective of LOCATION_QUESTS) {
+          if (runtime.reachedQuestLocations.has(objective.target) ||
+            Date.now() < (runtime.questLocationRetryAt.get(objective.target) || 0)) continue;
+          const { x, z, radius = 10 } = objective;
           if (Math.hypot(player.x - x, player.z - z) > radius) continue;
-          runtime.reachedQuestLocations.add(quest.id);
-          void recordQuestEvent(this, player.characterId, "ReachLocation", quest.objective.target)
+          runtime.questLocationRetryAt.set(objective.target, Date.now() + 1000);
+          void recordQuestEvent(this, player.characterId, "ReachLocation", objective.target)
+            .then((advanced) => {
+              if (advanced) runtime.reachedQuestLocations.add(objective.target);
+            })
             .catch((error) => {
-              runtime.reachedQuestLocations.delete(quest.id);
               console.error("[Quests] Could not save location progress", error);
             });
         }

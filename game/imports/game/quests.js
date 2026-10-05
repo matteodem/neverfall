@@ -1,5 +1,7 @@
 import { ENEMY_SPAWNS, ENEMY_TYPES, WOLF_AREA } from "./enemyConfig";
 import { WAYPOINTS } from "./waypoints";
+import { LANDMARKS } from "./landmarks";
+import { DUNGEONS } from "./dungeonConfig";
 
 export const BOAR_HUNT_QUEST = {
   progressField: "boarQuestKills",
@@ -98,6 +100,8 @@ export const HUNT_QUESTS = {
 };
 
 const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mountains-waypoint");
+const highlandsLookout = LANDMARKS.find((landmark) => landmark.id === "highlands-lookout");
+const northernRuins = DUNGEONS.find((dungeon) => dungeon.id === "northern-ruins");
 
 // New quests are available automatically; NPC quest givers can use the same
 // definitions later without changing how objectives advance.
@@ -162,6 +166,19 @@ export const QUESTS = [
     objective: { type: "ReachLocation", target: "snowy-mountains-waypoint", amount: 1,
       x: snowyMountainsWaypoint.position.x, z: snowyMountainsWaypoint.position.z, radius: 16 },
     rewards: { xp: 400, gold: 1 },
+  },
+  {
+    id: "highlands-relics", title: "Highlands Relics", recommendedLevel: 9,
+    description: "Investigate Highlands Lookout and the Northern Ruins entrance, then defeat the guardian nearby.",
+    objective: { type: "Sequence", amount: 3 },
+    objectives: [
+      { type: "ReachLocation", target: highlandsLookout.id, label: "Investigate Highlands Lookout",
+        ...highlandsLookout.position, radius: highlandsLookout.discoveryRadius },
+      { type: "ReachLocation", target: northernRuins.interactionTarget, label: "Investigate the Northern Ruins entrance",
+        x: northernRuins.entrance.x, z: northernRuins.entrance.z, radius: 8 },
+      { type: "Boss", target: "highlandsRelicGuardian", label: "Defeat the Highlands Relic Guardian" },
+    ],
+    rewards: { xp: 900, gold: 2 },
   },
 ];
 

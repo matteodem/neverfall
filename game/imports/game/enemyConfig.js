@@ -218,6 +218,17 @@ ENEMY_TYPES.ruinRaider = {
   damagePerLevel: 7,
   xpReward: 130,
 };
+ENEMY_TYPES.highlandsRelicGuardian = {
+  ...ENEMY_TYPES.ruinRaider,
+  name: "Highlands Relic Guardian",
+  scale: 0.8,
+  health: 750,
+  healthPerLevel: 60,
+  attackDamage: 45,
+  damagePerLevel: 3,
+  xpReward: 200,
+  respawnDelay: 180000,
+};
 ENEMY_TYPES.sunkenGuardian = {
   ...ENEMY_TYPES.dungeonGuardian,
   bossMechanics: undefined,
@@ -278,6 +289,7 @@ export const ENEMY_SPAWNS = [
   { id: "bee-1", type: "bee", level: 9, x: 160, y: 0, z: 220 },
   { id: "bee-2", type: "bee", level: 9, x: 176, y: 0, z: 238 },
   { id: "bee-3", type: "bee", level: 9, x: 144, y: 0, z: 254 },
+  { id: "highlands-relic-guardian", type: "highlandsRelicGuardian", level: 10, x: 105, y: 0, z: 180 },
   { id: "snow-wolf-1", type: "snowWolf", level: 10, x: 224, y: 0, z: 43 },
   { id: "snow-wolf-2", type: "snowWolf", level: 10, x: 240, y: 0, z: 55 },
   { id: "snow-wolf-3", type: "snowWolf", level: 10, x: 252, y: 0, z: 39 },

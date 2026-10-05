@@ -20,6 +20,15 @@ export const QuestList = ({ quests, progress }) => (
             {count >= quest.objective.amount && !quest.repeatable ? "Completed" : `${count} / ${quest.objective.amount}`}
             {quest.repeatable ? " · Repeatable" : ""}
           </div>
+          {quest.objectives && <ol className="mt-2 list-decimal pl-5 text-xs">
+            {quest.objectives.map((objective, index) =>
+              <li key={objective.target} className={index < count ? "opacity-60" : ""}>
+                {objective.label}{index < count ? " ✓" : ""}
+              </li>)}
+          </ol>}
+          {quest.objectives && <div className="mt-2 text-xs opacity-70">
+            Rewards: {quest.rewards.xp} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}
+          </div>}
         </div>
       );
     })}
