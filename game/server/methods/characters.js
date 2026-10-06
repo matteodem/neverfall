@@ -8,16 +8,15 @@ import {
 
 import {
   Characters,
+  MAX_CHARACTERS,
 } from "../../imports/api/characters/characters";
+import { lockCharacterChanges } from "../characterSlots";
 import { migrateUserItems } from "../inventory/characters";
 import { isValidGameClass } from "../../imports/game/classConfig";
 import { SPECIES } from "../../imports/game/species";
 import { DEFAULT_SPAWN_POINT } from "../../imports/game/spawnPoints";
 import { DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { removeGuildCharacter } from "../guilds";
-
-const MAX_CHARACTERS =
-  5;
 
 const VALID_APPEARANCE = {
   gender: [
@@ -154,7 +153,7 @@ Meteor.methods({
   },
 
 
-  async "characters.create"({
+  "characters.create": lockCharacterChanges(async function ({
     name,
     species,
     gameClass,
@@ -312,10 +311,10 @@ Meteor.methods({
     await migrateUserItems(this.userId);
 
     return id;
-  },
+  }),
 
 
-  async "characters.select"(
+  "characters.select": lockCharacterChanges(async function (
     characterId
   ) {
     requireUser(
@@ -346,10 +345,10 @@ Meteor.methods({
         },
       }
     );
-  },
+  }),
 
 
-  async "characters.remove"(
+  "characters.remove": lockCharacterChanges(async function (
     characterId
   ) {
     requireUser(
@@ -401,10 +400,10 @@ Meteor.methods({
         },
       }
     );
-  },
+  }),
 
 
-  async "characters.joinCurrent"() {
+  "characters.joinCurrent": lockCharacterChanges(async function () {
     requireUser(
       this.userId
     );
@@ -458,7 +457,7 @@ Meteor.methods({
         },
       }
     );
-  },
+  }),
 
 
   async "characters.goToCharacterScreen"() {

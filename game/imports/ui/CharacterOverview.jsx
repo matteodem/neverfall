@@ -8,6 +8,8 @@ import {
 
 import startCase from "lodash.startcase";
 import { useMobileDevice } from "./hooks/useMobileDevice";
+import { MAX_CHARACTERS } from "../api/characters/characters";
+import { CharacterAuthButton } from "./CharacterAccountFlow";
 
 import {
   CharacterPreview,
@@ -16,9 +18,6 @@ import {
 import {
   useCharacterStore,
 } from "./stores/useCharacterStore";
-
-const MAX_CHARACTERS =
-  5;
 
 export const CharacterOverview = ({
   characters,
@@ -104,7 +103,7 @@ export const CharacterOverview = ({
 
   return (
     <div className={`relative flex h-screen overflow-hidden bg-gradient-to-br from-zinc-800 via-slate-700 to-slate-500 text-white ${mobile ? "character-overview-mobile" : ""}`}>
-      <aside className="character-sidebar z-10 w-80 border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
+      <aside className="character-sidebar z-10 flex w-80 flex-col border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
         <h1 className="mb-5 text-2xl font-bold">
           Characters
         </h1>
@@ -226,6 +225,9 @@ export const CharacterOverview = ({
               Delete
             </button>
           )}
+        </div>
+        <div className="mt-auto pt-4">
+          <CharacterAuthButton />
         </div>
       </aside>
 

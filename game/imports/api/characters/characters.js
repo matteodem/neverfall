@@ -2,6 +2,8 @@ import {
   Mongo,
 } from "meteor/mongo";
 
+export const MAX_CHARACTERS = 5;
+
 /**
  * Data looks like following: 
  * 

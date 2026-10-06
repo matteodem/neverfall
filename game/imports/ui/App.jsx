@@ -43,16 +43,20 @@ import {
   LoadingScreen,
 } from "./LoadingScreen";
 import { OnboardingAutoStart, OnboardingTour } from "./OnboardingTour";
+import { CharacterAccountFlow, useCharacterAccountFlow } from "./CharacterAccountFlow";
 
 
 export const App = () => (
   <OnboardingTour>
-    <AppContent />
+    <CharacterAccountFlow>
+      <AppContent />
+    </CharacterAccountFlow>
     <PortraitOverlay />
   </OnboardingTour>
 );
 
 const AppContent = () => {
+  const { authBusy } = useCharacterAccountFlow();
   const { mobile, portrait } = useMobileDevice();
   const uiVisible = useHudStore((state) => state.uiVisible);
   const [
@@ -186,7 +190,7 @@ const AppContent = () => {
     useTracker(
       () =>
         Characters.find(
-          {},
+          { userId: Meteor.userId() },
           {
             sort: {
               lastPlayedAt:
@@ -263,6 +267,7 @@ const AppContent = () => {
    */
 
   if (
+    authBusy ||
     !authReady ||
     !user ||
     charactersLoading()

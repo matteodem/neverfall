@@ -151,3 +151,11 @@ export const ensureGuestUser = () => {
 
   return guestPromise;
 };
+
+export const logoutToGuest = async () => {
+  await new Promise((resolve, reject) => {
+    Meteor.logout((error) => error ? reject(error) : resolve());
+  });
+  guestPromise = null;
+  return ensureGuestUser();
+};
