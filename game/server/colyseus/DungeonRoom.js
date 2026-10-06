@@ -1,7 +1,7 @@
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { Characters } from "../../imports/api/characters/characters";
 import { trackAchievements } from "../achievements";
-import { LOOT_RANGE } from "../../imports/game/inventory";
+import { LOOT_RANGE, rollLoot } from "../../imports/game/inventory";
 import { PLAYER } from "../../imports/game/config";
 import { WorldRoom } from "./WorldRoom";
 import { DungeonState, LootState } from "./WorldState";
@@ -206,12 +206,24 @@ export class DungeonRoom extends WorldRoom {
   }
 
   addChestLoot(characterId, participant) {
-    if (participant.claimed) return;
-    this.state.loot.set(`chest-${characterId}`, new LootState({
+    const id = `chest-${characterId}`;
+    if (participant.claimed || this.state.loot.has(id)) return;
+    this.state.loot.set(id, new LootState({
       ownerId: participant.userId, ownerCharacterId: characterId,
-      enemyType: this.config.rewards.lootType, xpReward: this.config.rewards.xp,
+      enemyType: this.config.rewards.lootType,
+      xpReward: this.config.rewards.xp * (this.state.challengeModeEnabled === true ? 1.5 : 1),
       x: this.config.chest.x, y: 0, z: this.config.chest.z,
     }));
+  }
+
+  getLootReward(loot) {
+    const reward = rollLoot(Math.random, loot.enemyType, loot.rare);
+    if (loot.enemyType === this.config.rewards.lootType && this.state.challengeModeEnabled === true) {
+      reward.money *= 1.5;
+      // Only append items: the chest remains the single source of completion XP/Gold.
+      reward.items.push(...rollLoot(Math.random, this.config.finalBoss.type).items);
+    }
+    return reward;
   }
 
   onLootCollected(player, loot) {

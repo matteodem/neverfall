@@ -32,7 +32,9 @@ export const collectLoot = async (room, client, id) => {
   // Claim synchronously before writing so repeated requests cannot pay twice.
   room.state.loot.delete(id);
   const pending = pendingRewards.get(loot) || {
-    reward: rollLoot(Math.random, loot.enemyType, loot.rare),
+    reward: room.getLootReward
+      ? room.getLootReward(loot)
+      : rollLoot(Math.random, loot.enemyType, loot.rare),
     characterId: player.characterId,
     itemsSaved: false,
     xpSaved: false,
