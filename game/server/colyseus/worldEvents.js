@@ -147,6 +147,7 @@ export const createWorldEvents = (room) => {
         state.id = config.id;
         state.name = config.name;
         state.status = "active";
+        state.activatedSeals = 0;
         state.endsAt = now + config.duration;
         run++;
         phases = getPhases(config);
@@ -198,6 +199,8 @@ export const createWorldEvents = (room) => {
       trackParticipants();
       pointIndex++;
       state.objectiveProgress = pointIndex;
+      const frozenSeal = config.id === "frozen-rift" && phase.interaction === "seal";
+      if (frozenSeal) state.activatedSeals = pointIndex;
       if (pointIndex >= phase.points.length) {
         phaseIndex++;
         if (phaseIndex < phases.length) startPhase();
@@ -205,6 +208,9 @@ export const createWorldEvents = (room) => {
       } else {
         state.objectiveX = phase.points[pointIndex].x;
         state.objectiveZ = phase.points[pointIndex].z;
+      }
+      if (frozenSeal) {
+        room.broadcast("worldEventNotice", `Frozen Rift Seal activated — ${pointIndex} / ${phase.points.length}`);
       }
     },
   };

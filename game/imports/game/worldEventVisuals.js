@@ -16,7 +16,7 @@ export const createWorldEventVisuals = (scene, forestProps) => {
     if (sealLoading || !forestProps) return;
     sealLoading = forestProps.preloadFrozenSeal().then(() => {
       if (disposed) return;
-      frozenSeals = frozenSealPoints.map((point) => ({ point, visual: forestProps.createFrozenSeal(point) }))
+      frozenSeals = frozenSealPoints.map((point, index) => ({ point, index, visual: forestProps.createFrozenSeal(point) }))
         .filter(({ visual }) => visual);
       for (const { visual } of frozenSeals) visual.root.setEnabled(false);
     }).catch((error) => console.warn("[World Event] Could not load Frozen Rift Seal", error));
@@ -43,16 +43,17 @@ export const createWorldEventVisuals = (scene, forestProps) => {
       if (activeDen) loadDens();
       for (const den of dens) den.root.setEnabled(Boolean(activeDen &&
         den.point.x === event.objectiveX && den.point.z === event.objectiveZ));
-      for (const { point, visual } of frozenSeals) {
+      for (const { point, index, visual } of frozenSeals) {
         visual.root.setEnabled(Math.hypot(playerPosition.x - point.x, playerPosition.z - point.z) <= 120);
         visual.setHighlighted(Boolean(visible && event.id === "frozen-rift" && event.interaction === "seal" &&
-          point.x === event.objectiveX && point.z === event.objectiveZ));
+          point.x === event.objectiveX && point.z === event.objectiveZ),
+        Boolean(event?.status === "active" && event.id === "frozen-rift" && index < event.activatedSeals));
       }
     },
     destroy() {
       disposed = true;
       for (const den of dens) den.root.dispose();
-      for (const { visual } of frozenSeals) visual.root.dispose();
+      for (const { visual } of frozenSeals) visual.dispose();
     },
   };
 };

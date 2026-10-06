@@ -320,9 +320,10 @@ export const loadForestProps = async (scene) => {
       if (!container) return null;
       const root = new TransformNode("frozen-rift-seal", scene);
       root.position.set(position.x, 0, position.z);
-      const entries = container.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
+      const entries = container.instantiateModelsToScene(undefined, true, { doNotInstantiate: true });
       for (const node of entries.rootNodes) node.parent = root;
       let bottom = Infinity;
+      const emissiveMaterials = new Map();
       for (const mesh of root.getChildMeshes()) {
         if (!(mesh.getTotalVertices() || mesh.sourceMesh?.getTotalVertices())) continue;
         mesh.computeWorldMatrix(true);
@@ -330,18 +331,26 @@ export const loadForestProps = async (scene) => {
         mesh.isPickable = false;
         mesh.checkCollisions = false;
         (mesh.sourceMesh || mesh).receiveShadows = true;
+        const material = mesh.material;
+        if (material?.emissiveColor && !emissiveMaterials.has(material)) {
+          emissiveMaterials.set(material, material.emissiveColor.clone());
+        }
       }
       const ground = getWorldHeight(position.x, position.z) + 0.02;
       let highlighted = null;
-      const setHighlighted = (active) => {
-        if (highlighted === active) return;
-        highlighted = active;
-        const scale = active ? 1.35 : 1.2;
+      const setHighlighted = (active, completed = false) => {
+        const state = completed ? "completed" : active ? "active" : "inactive";
+        if (highlighted === state) return;
+        highlighted = state;
+        const scale = completed ? 1.4 : active ? 1.35 : 1.2;
         root.scaling.setAll(scale);
         root.position.y = ground - (Number.isFinite(bottom) ? bottom * scale : 0);
+        for (const [material, color] of emissiveMaterials) {
+          material.emissiveColor = color.scale(completed ? 2.5 : 1);
+        }
       };
       setHighlighted(false);
-      return { root, setHighlighted };
+      return { root, setHighlighted, dispose: () => root.dispose(false, true) };
     },
     preloadWaypointMarker: () => preload(MODELS.waypointMarker),
     createWaypointMarker(position) {

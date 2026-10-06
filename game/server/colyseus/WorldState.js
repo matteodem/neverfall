@@ -174,6 +174,7 @@ export const WorldEventState = schema({
   objective: t.string().default(""),
   objectiveProgress: t.number().default(0),
   objectiveTarget: t.number().default(0),
+  activatedSeals: t.number().default(0),
   objectiveX: t.number().default(0),
   objectiveZ: t.number().default(0),
   interaction: t.string().default(""),
