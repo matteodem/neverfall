@@ -207,4 +207,6 @@ export const DungeonState = schema({
   stage: t.number().default(0),
   bossDefeated: t.boolean().default(false),
   completed: t.boolean().default(false),
+  challengeModeEnabled: t.boolean().default(false),
+  challengeModeLocked: t.boolean().default(false),
 }, "DungeonState");

@@ -1,6 +1,7 @@
 import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
 import { createNameplate } from "../nameplate";
 import { createDungeonPortal } from "./createDungeonPortal";
+import { createChallengeMote } from "./createChallengeMote";
 
 export const createDungeonEnvironment = (scene, dungeon) => {
   const stone = new StandardMaterial("dungeonStone", scene);
@@ -45,5 +46,9 @@ export const createDungeonEnvironment = (scene, dungeon) => {
   chest.freezeWorldMatrix();
   createNameplate({ scene, player: chestRoot, name: "Reward Chest", color: "#facc15", y: 2 });
   chestRoot.setEnabled(false);
-  return { setCompleted: (completed) => chestRoot.setEnabled(completed) };
+  const mote = createChallengeMote(scene, dungeon.challengeMote);
+  return {
+    setCompleted: (completed) => chestRoot.setEnabled(completed),
+    setChallengeState: mote.setState,
+  };
 };

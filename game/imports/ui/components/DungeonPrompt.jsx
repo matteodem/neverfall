@@ -14,6 +14,8 @@ export const DungeonPrompt = () => {
   const busy = useDungeonStore((state) => state.busy);
   const stage = useDungeonStore((state) => state.stage);
   const completed = useDungeonStore((state) => state.completed);
+  const challengeModeEnabled = useDungeonStore((state) => state.challengeModeEnabled);
+  const challengeModeLocked = useDungeonStore((state) => state.challengeModeLocked);
   const error = useDungeonStore((state) => state.error);
   const interact = useDungeonStore((state) => state.interact);
   const clearError = useDungeonStore((state) => state.clearError);
@@ -24,10 +26,14 @@ export const DungeonPrompt = () => {
     <div className="absolute bottom-[210px] left-1/2 z-40 flex -translate-x-1/2 flex-col items-center gap-2 rounded-box bg-black/75 p-3 text-white">
       {config && <p className="text-sm font-semibold">{config.name}</p>}
       {location === "dungeon" && <p className="text-sm">{completed ? "Dungeon complete" : config?.stages[stage]?.name}</p>}
+      {location === "dungeon" && <p className="text-xs text-orange-300">
+        Challenge Mode {challengeModeEnabled ? "ON" : "OFF"}{challengeModeLocked ? " · Locked" : ""}
+      </p>}
       {location === "world" && prompt === "enter" && config &&
         <p className="text-xs text-white/70">Recommended Level: {config.recommendedLevel}</p>}
       {error && <div role="alert" className="flex items-center gap-2 text-sm text-error"><span>{error}</span><button type="button" className="btn btn-ghost btn-xs" onClick={clearError} aria-label="Dismiss dungeon message">×</button></div>}
-      {busy ? <span className="text-sm">Traveling…</span> : prompt && <button type="button" className="btn btn-primary btn-sm" onClick={interact}>{ACTIONS[prompt]} <kbd className="kbd kbd-sm">F</kbd></button>}
+      {prompt === "challengeLocked" && <p className="text-xs text-white/70">Challenge Mote locked because combat has started.</p>}
+      {busy ? <span className="text-sm">Traveling…</span> : prompt && prompt !== "challengeLocked" && <button type="button" className="btn btn-primary btn-sm" onClick={interact}>{prompt === "challengeMote" ? `${challengeModeEnabled ? "Disable" : "Enable"} Challenge Mode` : ACTIONS[prompt]} <kbd className="kbd kbd-sm">F</kbd></button>}
     </div>
   );
 };

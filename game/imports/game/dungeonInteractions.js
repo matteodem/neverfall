@@ -26,7 +26,10 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     const completed = dungeon && Boolean(state?.completed);
     const nearbyEntrance = !dungeon && DUNGEONS.find((entry) =>
       nearDungeonObject(player.position, entry.entrance, entry.interactionDistance));
+    const challengeModeEnabled = dungeon && Boolean(state?.challengeModeEnabled);
+    const challengeModeLocked = dungeon && Boolean(state?.challengeModeLocked);
     visuals?.setCompleted(completed);
+    visuals?.setChallengeState(challengeModeEnabled, challengeModeLocked);
     let prompt = null;
     if (local?.health > 0) {
       if (nearbyEntrance && !local.inDungeon) prompt = "enter";
@@ -34,6 +37,9 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
       if (!dungeon && !local.towerChestClaimed &&
         Math.hypot(player.position.x - chest.x, player.position.y - chest.y,
           player.position.z - chest.z) <= 3) prompt = "towerChest";
+      if (dungeon && nearDungeonObject(player.position, config.challengeMote.position, config.interactionDistance)) {
+        prompt = challengeModeLocked ? "challengeLocked" : "challengeMote";
+      }
       if (dungeon && completed && !local.dungeonRewardClaimed && state.loot.has(`chest-${local.characterId}`)
         && nearDungeonObject(player.position, config.chest, LOOT_RANGE)) prompt = "reward";
       if (dungeon && nearDungeonObject(player.position, config.exit, config.interactionDistance)) prompt = "exit";
@@ -41,6 +47,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     }
     useDungeonStore.getState().update({
       prompt, stage: dungeon ? state?.stage || 0 : 0, completed,
+      challengeModeEnabled, challengeModeLocked,
       dungeonId: dungeon ? config.id : nearbyEntrance?.id || null,
     });
   };
@@ -63,6 +70,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
       const point = nearbyQuestSeal(local);
       if (point) room.send("interactQuestPoint", point.id);
     }
+    if (state.prompt === "challengeMote") room.send("dungeonChallengeToggle");
     if (state.prompt === "reward") room.send("dungeonReward");
     if (state.prompt === "exit") {
       useDungeonStore.getState().setBusy(true);
@@ -76,7 +84,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     interact,
     destroy() {
       useDungeonStore.getState().setActionHandler(null);
-      useDungeonStore.getState().update({ prompt: null, stage: 0, completed: false });
+      useDungeonStore.getState().update({ prompt: null, stage: 0, completed: false, challengeModeEnabled: false, challengeModeLocked: false });
     },
   };
 };

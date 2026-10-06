@@ -26,6 +26,25 @@ export class DungeonRoom extends WorldRoom {
   messages = {
     ...Object.fromEntries(Object.entries(this.messages).filter(([name]) =>
       !["groupInvite", "groupAccept", "groupIgnore", "groupLeave", "dungeonEnter"].includes(name))),
+    dungeonChallengeToggle: (client) => {
+      const player = this.state.players.get(client.sessionId);
+      if (!player || player.health <= 0 ||
+        !nearDungeonObject(player, this.config.challengeMote.position, this.config.interactionDistance)) return;
+      this.recordActivity(client.sessionId);
+      if (this.state.challengeModeLocked) {
+        client.send("dungeonError", "Challenge Mode is locked because combat has started.");
+        return;
+      }
+      this.state.challengeModeEnabled = !this.state.challengeModeEnabled;
+      // The first pack already exists when players toggle the mote.
+      for (const [enemyId, enemy] of this.state.enemies) {
+        const runtime = this.enemyRuntime.get(enemyId);
+        const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare, runtime.spawn.scaling);
+        const healthPercent = enemy.maxHealth > 0 ? enemy.health / enemy.maxHealth : 0;
+        enemy.maxHealth = stats.health;
+        enemy.health = stats.health * healthPercent;
+      }
+    },
     dungeonExit: (client) => {
       const player = this.state.players.get(client.sessionId);
       if (player) this.recordActivity(client.sessionId);
@@ -120,6 +139,10 @@ export class DungeonRoom extends WorldRoom {
     this.respawnPosition(player);
   }
 
+  onEnemyAttacked() {
+    this.state.challengeModeLocked = true;
+  }
+
   spawnStage() {
     const stage = this.config.stages[this.state.stage];
     if (stage.boss) {
@@ -134,8 +157,8 @@ export class DungeonRoom extends WorldRoom {
     const stats = super.getEnemyStats(type, level, rare, scaling);
     return {
       ...stats,
-      health: stats.health * this.config.enemyHealthMultiplier,
-      attackDamage: stats.attackDamage * this.config.enemyDamageMultiplier,
+      health: stats.health * this.config.enemyHealthMultiplier * (this.state.challengeModeEnabled ? 1.5 : 1),
+      attackDamage: stats.attackDamage * this.config.enemyDamageMultiplier * (this.state.challengeModeEnabled ? 1.25 : 1),
       speed: (scaling.speed ?? PLAYER.speed) * this.config.enemySpeedMultiplier,
     };
   }
