@@ -15,6 +15,7 @@ import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { AchievementToast } from "./components/modals/AchievementModal";
 import { getTalentSkill } from "../game/talents";
+import { STATUS_EFFECTS } from "../game/statusEffects";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { DungeonPrompt } from "./components/DungeonPrompt";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
@@ -163,7 +164,14 @@ const getActionSlots = (
       cooldown:
         HEAL_COOLDOWN,
     },
-  ];
+  ].map((slot) => {
+    const skill = skills[slot.code];
+    for (const [field, verb] of [["selfStatus", "Grants"], ["hitStatus", "Applies"]]) {
+      const effect = STATUS_EFFECTS[skill?.[field]];
+      if (effect) slot.tooltip += ` ${verb} ${effect.name} for ${effect.duration / 1000}s: ${effect.description}`;
+    }
+    return slot;
+  });
 };
 
 

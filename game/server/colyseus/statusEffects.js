@@ -32,7 +32,7 @@ export const updateStatusEffects = (entity, damage, now = Date.now()) => {
     if (definition?.tickInterval && effect.nextTickAt <= Math.min(now, effect.expiresAt)) {
       const ticks = Math.floor((Math.min(now, effect.expiresAt) - effect.nextTickAt) / definition.tickInterval) + 1;
       effect.nextTickAt += ticks * definition.tickInterval;
-      damage(definition.damage * ticks);
+      damage(entity.maxHealth * definition.maxHealthDamage * ticks);
     }
     if (effect.expiresAt <= now) {
       removeStatusEffect(entity, id);
