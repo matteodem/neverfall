@@ -1,4 +1,4 @@
-import { Color3, ShadowGenerator } from "@babylonjs/core";
+import { Color3, ShadowGenerator, Vector3 } from "@babylonjs/core";
 import { getHighlandMix, getSnowMix } from "../worldConfig";
 
 // One local sun map follows the player; grass and other small decorations do
@@ -14,14 +14,18 @@ export const createForestLighting = (scene, ambient, sun, player, quality) => {
     [sun.diffuse.clone(), Color3.FromHexString("#FFF0CD"), (color) => { sun.diffuse = color; }],
   ];
   const low = quality.density < 1;
-  const radius = low ? 36 : 52;
-  const shadows = new ShadowGenerator(low ? 512 : 1024, sun);
+  const radius = low ? 34 : 48;
+  const mapSize = low ? 1024 : 2048;
+  const frustumSize = low ? 88 : 112;
+  const texelSize = frustumSize / mapSize;
+  const shadows = new ShadowGenerator(mapSize, sun);
   shadows.usePercentageCloserFiltering = true;
-  shadows.filteringQuality = ShadowGenerator.QUALITY_LOW;
-  shadows.bias = 0.0005;
-  shadows.normalBias = 0.035;
+  shadows.filteringQuality = low ? ShadowGenerator.QUALITY_LOW : ShadowGenerator.QUALITY_MEDIUM;
+  shadows.bias = 0.0003;
+  shadows.normalBias = 0.03;
   shadows.setDarkness(0.22);
-  sun.shadowFrustumSize = low ? 104 : 144;
+  shadows.frustumEdgeFalloff = 0.04;
+  sun.shadowFrustumSize = frustumSize;
   sun.shadowMinZ = 1;
   sun.shadowMaxZ = 240;
   let elapsed = 250;
@@ -42,7 +46,17 @@ export const createForestLighting = (scene, ambient, sun, player, quality) => {
     }
     sun.shadowEnabled = weight > 0.5;
     if (!sun.shadowEnabled) return;
-    sun.position.copyFrom(position).subtractInPlace(sun.direction.normalizeToNew().scaleInPlace(100));
+    const direction = sun.direction.normalizeToNew();
+    const right = Vector3.Cross(Vector3.Up(), direction).normalize();
+    const up = Vector3.Cross(direction, right).normalize();
+    sun.position.copyFrom(position).subtractInPlace(direction.scale(100));
+    // Keep the projection on a world-space texel grid instead of allowing
+    // sub-texel movement to make stationary silhouettes shimmer.
+    for (const axis of [right, up]) {
+      const projected = Vector3.Dot(position, axis);
+      const offset = Math.round(projected / texelSize) * texelSize - projected;
+      sun.position.addInPlace(axis.scale(offset));
+    }
     elapsed += scene.getEngine().getDeltaTime();
     if (elapsed < 250) return;
     elapsed = 0;
