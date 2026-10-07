@@ -85,6 +85,11 @@ export const PlayerState =
           0
         ),
 
+      skill1: t.string().default(""),
+      skill2: t.string().default(""),
+      skill3: t.string().default(""),
+      skill4: t.string().default(""),
+
       talent5: t.string().default(""),
       talent10: t.string().default(""),
       talent15: t.string().default(""),

@@ -22,6 +22,7 @@ import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { withCharacterSlots } from "../characterSlots";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
+import { HEAL_SKILL, SKILL_CODES, getEquippedSkills, getPlayerSkills, isValidSkillLoadout } from "../../imports/game/skills";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
 import { createProjectiles } from "./projectiles";
@@ -92,15 +93,7 @@ const HEALTH_REGEN = {
 
 const WORLD_ENEMY_SPEED_MULTIPLIER = 2.3;
 
-const ATTACK_COOLDOWN_FIELDS = {
-  Digit1: "attackAvailableAt",
-  Digit2: "heavyStrikeAvailableAt",
-  Digit3: "cleaveAvailableAt",
-};
-
-
-const HEAL_COOLDOWN =
-  10000;
+const HEAL_COOLDOWN = HEAL_SKILL.cooldown;
 
 
 const PLAYER_RESPAWN_DELAY =
@@ -445,6 +438,36 @@ export class WorldRoom
         });
       }
     },
+    setSkills: async (client, equippedSkills) => {
+      const player = this.state.players.get(client.sessionId);
+      const runtime = this.playerRuntime.get(client.sessionId);
+      const reject = (message) => client.send("skillsResult", { error: message });
+      if (!player || !runtime || runtime.changingSkills) return;
+      if (!isValidSkillLoadout(player.gameClass, equippedSkills)) return reject("Choose four different skills from your class.");
+      if (player.inDungeon || player.health <= 0 || this.isPlayerInCombat(client.sessionId)) {
+        return reject("Skills can only be changed outside combat while alive.");
+      }
+      runtime.changingSkills = true;
+      const previous = getPlayerSkills(player);
+      // Commit in realtime before yielding: combat cannot start between validation and assignment.
+      SKILL_CODES.forEach((code, index) => { player[`skill${index + 1}`] = equippedSkills[index]; });
+      try {
+        const updated = await Characters.updateAsync(
+          { _id: player.characterId, userId: player.userId },
+          { $set: { equippedSkills } }
+        );
+        if (!updated) throw new Error("Character not found");
+        const now = Date.now();
+        client.send("skillsResult", { equippedSkills, cooldowns: Object.fromEntries(SKILL_CODES.map((code, index) =>
+          [code, Math.max(0, (runtime.skillAvailableAt[equippedSkills[index]] || 0) - now)])) });
+      } catch (error) {
+        SKILL_CODES.forEach((code, index) => { player[`skill${index + 1}`] = previous[index]; });
+        reject("Could not save skills. Please try again.");
+      } finally {
+        runtime.changingSkills = false;
+      }
+    },
+
     selectTalent: async (client, { level, talentId } = {}) => {
       const player = this.state.players.get(client.sessionId);
       if (!player || !Number.isInteger(level) || player.currentLevel < level ||
@@ -778,9 +801,7 @@ export class WorldRoom
     },
 
 
-    heal: (
-      client
-    ) => {
+    heal: (client) => {
       const player =
         this.state.players.get(
           client.sessionId
@@ -823,6 +844,7 @@ export class WorldRoom
         return;
       }
 
+      if (!getPlayerSkills(player).includes("heal") || runtime.changingSkills) return;
       const stats = getStatsForPlayer(player);
       this.recordActivity(client.sessionId);
 
@@ -835,9 +857,10 @@ export class WorldRoom
         );
 
 
-      runtime.healAvailableAt =
-        now +
-        HEAL_COOLDOWN;
+      runtime.healAvailableAt = now + HEAL_COOLDOWN;
+      runtime.skillAvailableAt.heal = runtime.healAvailableAt;
+      const code = SKILL_CODES[getPlayerSkills(player).indexOf("heal")];
+      client.send("skillCooldown", { code, duration: HEAL_COOLDOWN });
 
 
       client.send(
@@ -868,8 +891,7 @@ export class WorldRoom
       const targetId = mobileAttack && typeof request.targetId === "string" ? request.targetId : null;
       const preferredTargetId = !mobileAttack && typeof request?.preferredTargetId === "string"
         ? request.preferredTargetId : null;
-      if (!["Digit1", "Digit2", "Digit3"].includes(code)) return;
-      const cooldownField = ATTACK_COOLDOWN_FIELDS[code];
+      if (!SKILL_CODES.includes(code)) return;
       const player =
         this.state.players.get(
           client.sessionId
@@ -893,8 +915,9 @@ export class WorldRoom
       }
 
 
-      const skill = getTalentSkill(player.gameClass, code, player.currentLevel, getSelectedTalents(player));
-      if (!skill) return;
+      const skill = getTalentSkill(player.gameClass, code, player.currentLevel, getSelectedTalents(player), getPlayerSkills(player));
+      if (!skill || runtime.changingSkills) return;
+      if (skill.heal) return this.messages.heal(client);
       this.recordActivity(client.sessionId);
       const now =
         Date.now();
@@ -902,7 +925,7 @@ export class WorldRoom
 
       if (
         now <
-        runtime.attackAvailableAt || now < runtime[cooldownField]
+        runtime.attackAvailableAt || now < (runtime.skillAvailableAt[skill.id] || 0)
       ) {
         return;
       }
@@ -912,14 +935,13 @@ export class WorldRoom
         now +
         ATTACK.cooldown;
 
-      runtime[cooldownField] = now + skill.cooldown;
+      runtime.skillAvailableAt[skill.id] = now + skill.cooldown;
       this.markPlayerInCombat(client.sessionId);
       player.mounted = false;
       player.respawnProtectedUntil = 0;
       if (skill.selfStatus) this.applyPlayerStatusEffect(player, skill.selfStatus);
-      if (code !== "Digit1") {
-        client.send("skillCooldown", { code, duration: skill.cooldown });
-      }
+      client.send("skillCooldown", { code, duration: skill.cooldown });
+      if (skill.buff) return;
 
       if (skill.projectile) {
         this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack);
@@ -1131,6 +1153,7 @@ export class WorldRoom
         guildTag: guild?.tag || "",
 
         gameClass: character.gameClass || "warrior",
+        ...Object.fromEntries(getEquippedSkills(character.gameClass, character.equippedSkills).map((id, index) => [`skill${index + 1}`, id])),
 
         species: character.species || "human",
 
@@ -1189,6 +1212,11 @@ export class WorldRoom
       });
 
 
+    if (!isValidSkillLoadout(character.gameClass, character.equippedSkills)) {
+      await Characters.updateAsync({ _id: character._id, userId: auth.userId },
+        { $set: { equippedSkills: getEquippedSkills(character.gameClass, character.equippedSkills) } });
+    }
+
     // Serialize title hydration/registration with Character updates so a selection
     // made while joining cannot be replaced by the earlier Character snapshot.
     await withCharacterSlots([auth.userId], async () => {
@@ -1206,6 +1234,7 @@ export class WorldRoom
     this.playerRuntime.set(
       client.sessionId,
       {
+        skillAvailableAt: {},
         healAvailableAt:
           0,
 
@@ -1811,7 +1840,7 @@ export class WorldRoom
     }
 
 
-    skill = skill || getTalentSkill(player.gameClass, "Digit1", player.currentLevel, getSelectedTalents(player));
+    skill = skill || getTalentSkill(player.gameClass, "Digit1", player.currentLevel, getSelectedTalents(player), getPlayerSkills(player));
     const range = skill.range + (mobileAttack ? MOBILE_TARGETING.hitPadding : 0);
     const target = skill.aoe ? null :
       (targetId && this.getTargetEnemy(player, targetId, range)) ||

@@ -12,6 +12,7 @@ import {
 } from "../../imports/api/characters/characters";
 import { lockCharacterChanges } from "../characterSlots";
 import { migrateUserItems } from "../inventory/characters";
+import { getDefaultSkills } from "../../imports/game/skills";
 import { isValidGameClass } from "../../imports/game/classConfig";
 import { SPECIES } from "../../imports/game/species";
 import { DEFAULT_SPAWN_POINT } from "../../imports/game/spawnPoints";
@@ -287,6 +288,7 @@ Meteor.methods({
         0,
 
       talents: {},
+      equippedSkills: getDefaultSkills(gameClass),
 
       unlockedSpawnPoints: [DEFAULT_SPAWN_POINT.id],
 

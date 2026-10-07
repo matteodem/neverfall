@@ -19,6 +19,7 @@ const KEYBOARD_CONTROLS = [
   ["H", "Toggle Hunts"],
   ["Z", "Toggle Achievements"],
   ["T", "Toggle Talents"],
+  ["O", "Toggle Skills"],
   ["E", "Toggle Guild"],
   ["M", "Toggle Map"],
   ["U", "Toggle Help"],

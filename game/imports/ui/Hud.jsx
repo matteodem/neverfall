@@ -14,6 +14,8 @@ import { HuntProgressPopup } from "./components/HuntProgressPopup";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { AchievementToast } from "./components/modals/AchievementModal";
+import { SKILL_CODES } from "../game/skills";
+import { useSkillsStore } from "./stores/useSkillsStore";
 import { getTalentSkill } from "../game/talents";
 import { STATUS_EFFECTS } from "../game/statusEffects";
 import { useDungeonStore } from "./stores/useDungeonStore";
@@ -71,106 +73,17 @@ import {
 } from "../game/playerStats";
 
 
-const HEAL_COOLDOWN =
-  10000;
-
-
-/*
- * =========================================================
- * ACTION SLOTS
- * =========================================================
- *
- * Damage is derived from the
- * player's current level.
- *
- * This keeps the tooltip in sync
- * with the actual player stat
- * calculation.
- */
-
-const getActionSlots = (
-  currentLevel,
-  equipment,
-  gameClass,
-  species,
-  talents
-) => {
-  const skills = Object.fromEntries(["Digit1", "Digit2", "Digit3"].map((code) =>
-    [code, getTalentSkill(gameClass, code, currentLevel, talents)]));
-  const playerStats =
-    getPlayerStats(
-      currentLevel,
-      equipment,
-      gameClass,
-      species,
-      talents
-    );
-
-
-  return [
-    {
-      key:
-        "1",
-
-      code:
-        "Digit1",
-
-      icon:
-        skills.Digit1.icon,
-
-      tooltip:
-        `${skills.Digit1.name} (Causes ${parseInt(playerStats.damage * skills.Digit1.damageMultiplier, 10)} damage)`,
-    },
-
-    {
-      key:
-        "2",
-
-      code:
-        "Digit2",
-
-      icon: skills.Digit2?.icon,
-      cooldown: skills.Digit2?.cooldown,
-      tooltip:
-        skills.Digit2 ? `${skills.Digit2.name} (Causes ${parseInt(playerStats.damage * skills.Digit2.damageMultiplier, 10)} damage)` : "No ability assigned",
-    },
-
-    {
-      key:
-        "3",
-
-      code:
-        "Digit3",
-
-      icon: skills.Digit3?.icon,
-      cooldown: skills.Digit3?.cooldown,
-      tooltip:
-        skills.Digit3 ? `${skills.Digit3.name} (Causes ${parseInt(playerStats.damage * skills.Digit3.damageMultiplier * (skills.Digit3.aoe ? playerStats.aoeDamageMultiplier : 1), 10)} damage${skills.Digit3.aoe ? " to nearby enemies" : " per enemy"})` : "No ability assigned",
-    },
-
-    {
-      key:
-        "4",
-
-      code:
-        "Digit4",
-
-      icon:
-        "healthCapsule",
-
-      tooltip:
-        `Heal yourself for ${playerStats.healAmount} HP`,
-
-      cooldown:
-        HEAL_COOLDOWN,
-    },
-  ].map((slot) => {
-    const skill = skills[slot.code];
+const getActionSlots = (currentLevel, equipment, gameClass, species, talents, equippedSkills) => {
+  const stats = getPlayerStats(currentLevel, equipment, gameClass, species, talents);
+  return SKILL_CODES.map((code, index) => {
+    const skill = getTalentSkill(gameClass, code, currentLevel, talents, equippedSkills);
+    let tooltip = skill.heal ? `Heal yourself for ${stats.healAmount} HP` : skill.buff ? skill.name :
+      `${skill.name} (Causes ${parseInt(stats.damage * skill.damageMultiplier * (skill.aoe ? stats.aoeDamageMultiplier : 1), 10)} damage${skill.aoe ? " to nearby enemies" : ""})`;
     for (const [field, verb] of [["selfStatus", "Grants"], ["hitStatus", "Applies"]]) {
-      const effect = STATUS_EFFECTS[skill?.[field]];
-      if (effect) slot.tooltip += ` ${verb} ${effect.name} for ${effect.duration / 1000}s: ${effect.description}`;
+      const effect = STATUS_EFFECTS[skill[field]];
+      if (effect) tooltip += ` ${verb} ${effect.name} for ${effect.duration / 1000}s: ${effect.description}`;
     }
-    return slot;
+    return { key: String(index + 1), code, icon: skill.icon, cooldown: skill.cooldown, heal: skill.heal, tooltip };
   });
 };
 
@@ -556,9 +469,8 @@ const ActionSlot = ({
 }) => {
   const skillCooldownUntil = useActionBarStore((state) => state.cooldownUntil[slot.code] || 0);
   const cooldownUntil =
-    slot.code ===
-    "Digit4"
-      ? healCooldownUntil
+    slot.heal
+      ? Math.max(healCooldownUntil || 0, skillCooldownUntil)
       : skillCooldownUntil;
 
 
@@ -671,13 +583,15 @@ const ActionBar = ({
     );
 
 
+  const equippedSkills = useSkillsStore((state) => state.equippedSkills);
   const actionSlots =
     getActionSlots(
       currentLevel,
       equipment,
       gameClass,
       species,
-      talents
+      talents,
+      equippedSkills
     );
 
 

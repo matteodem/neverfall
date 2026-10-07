@@ -8,6 +8,8 @@ import { createWorldEventVisuals } from "./worldEventVisuals";
 import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
 import { useWorldEventStore } from "../ui/stores/useWorldEventStore";
 import { getGameSession, closeGameSession } from "./gameSession";
+import { getEquippedSkill, getPlayerSkills } from "./skills";
+import { useSkillsStore } from "../ui/stores/useSkillsStore";
 import { getClassConfig } from "./classConfig";
 import { getPlayerTitle } from "./playerTitles";
 import { createProjectileVisuals } from "./projectiles";
@@ -1124,6 +1126,10 @@ export const createMultiplayer =
           room.onStateChange(syncBuffs);
           disposers.push(() => room.onStateChange.remove(syncBuffs));
 
+          const syncSkills = () => useSkillsStore.getState().sync(getPlayerSkills(playerState), playerState.inCombat);
+          syncSkills();
+          for (const field of ["skill1", "skill2", "skill3", "skill4", "inCombat"]) callbacks.listen(playerState, field, syncSkills);
+
           const syncCombat = () => onLocalCombatChange?.(playerState.inCombat);
           syncCombat();
           callbacks.listen(playerState, "inCombat", syncCombat);
@@ -1444,6 +1450,11 @@ export const createMultiplayer =
     onMessage("towerChestReward", (text) => useBossNoticeStore.getState().show(text));
     onMessage("worldEventNotice", (text) => useBossNoticeStore.getState().show(text));
     onMessage("spawnPointUnlocked", (name) => useBossNoticeStore.getState().show(`Respawn Point Unlocked · ${name}`));
+
+    onMessage("skillsResult", (result) => {
+      useSkillsStore.getState().finish(result);
+      for (const [code, duration] of Object.entries(result.cooldowns || {})) useActionBarStore.getState().setCooldown(code, duration);
+    });
 
     onMessage("skillCooldown", ({ code, duration }) => {
       useActionBarStore.getState().setCooldown(code, duration);
@@ -2073,7 +2084,7 @@ export const createMultiplayer =
           targetStore.sync(room.state, localPlayerState);
           let targetId = useTargetStore.getState().selectedId;
           if (!targetId) {
-            const projectile = getClassConfig(localPlayerState.gameClass).skills[code]?.projectile;
+            const projectile = getEquippedSkill(localPlayerState.gameClass, code, getPlayerSkills(localPlayerState))?.projectile;
             const projectileRange = projectile && projectile.speed * projectile.lifetime / 1000;
             let nearest = projectileRange || MOBILE_TARGETING.acquireRange;
             const forwardX = Math.sin(player.rotation.y);
@@ -2108,7 +2119,7 @@ export const createMultiplayer =
           room.send("attack", { code, targetId });
           return;
         }
-        const projectile = getClassConfig(localPlayerState.gameClass).skills[code]?.projectile;
+        const projectile = getEquippedSkill(localPlayerState.gameClass, code, getPlayerSkills(localPlayerState))?.projectile;
         room.send("attack", projectile
           ? { code, preferredTargetId: useTargetStore.getState().selectedId } : code);
       };
@@ -2254,6 +2265,7 @@ export const createMultiplayer =
       equipItem,
       unequipItem,
       changeTalents,
+      changeSkills: (equippedSkills) => room.send("setSkills", equippedSkills),
       travelWaypoint: (waypointId) => {
         if (pendingWaypointId || dungeon) return;
         const request = ++waypointRequest;

@@ -1,4 +1,4 @@
-import { getClassConfig } from "./classConfig";
+import { getEquippedSkill } from "./skills";
 
 export const TALENT_LEVELS = [5, 10, 15/*, 20*/];
 
@@ -72,12 +72,13 @@ export const getTalentBonuses = (gameClass, level, selections = {}) => {
   return bonuses;
 };
 
-export const getTalentSkill = (gameClass, code, level, selections) => {
-  const skill = getClassConfig(gameClass).skills[code];
+export const getTalentSkill = (gameClass, code, level, selections, equippedSkills) => {
+  const skill = getEquippedSkill(gameClass, code, equippedSkills);
   if (!skill) return null;
+  if (skill.heal) return skill;
   const bonuses = getTalentBonuses(gameClass, level, selections);
   const specificDamage =
-    (gameClass === "warrior" && code === "Digit2" ? bonuses.heavyStrikeDamage : 0) +
+    (gameClass === "warrior" && skill.id === "heavyStrike" ? bonuses.heavyStrikeDamage : 0) +
     (gameClass === "ranger" && skill.projectile ? bonuses.projectileDamage : 0) +
     (gameClass === "mage" ? bonuses.fireDamage : 0);
   return {

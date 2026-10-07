@@ -24,6 +24,7 @@ import {
 } from "./stores/useActionBarStore";
 
 import { useEquipmentStore } from "./stores/useEquipmentStore";
+import { useSkillsStore } from "./stores/useSkillsStore";
 import { useTalentStore } from "./stores/useTalentStore";
 import { getTalentSkill } from "../game/talents";
 import { useConsumableStore } from "./stores/useConsumableStore";
@@ -437,6 +438,7 @@ export const Game = ({
             }
           });
           useTalentStore.getState().setChangeHandler(multiplayer.changeTalents);
+          useSkillsStore.getState().setChangeHandler(multiplayer.changeSkills);
           useConsumableStore.getState().setUseHandler(multiplayer.useConsumable);
           useWaypointStore.getState().setTravelHandler(multiplayer.travelWaypoint);
 
@@ -500,9 +502,18 @@ export const Game = ({
 
           const performAttack = (code) => {
             const activeCharacter = characterRef.current;
-            const skill = getTalentSkill(activeCharacter.gameClass, code, activeCharacter.currentLevel, activeCharacter.talents);
+            const skill = getTalentSkill(activeCharacter.gameClass, code, activeCharacter.currentLevel, activeCharacter.talents, useSkillsStore.getState().equippedSkills);
             const actionBar = useActionBarStore.getState();
             if (!skill || !playerAlive || Date.now() < (actionBar.cooldownUntil[code] || 0)) return;
+            if (skill.heal) {
+              multiplayer?.sendHeal();
+              return;
+            }
+            if (skill.buff) {
+              actionBar.setCooldown(code, skill.cooldown);
+              multiplayer?.sendAttack(code);
+              return;
+            }
             if (skill.projectile || skill.effect) {
               actionBar.setCooldown(code, skill.cooldown);
               multiplayer?.sendMovement(player, 0, mounted, true);
@@ -510,7 +521,7 @@ export const Game = ({
               return;
             }
             if (!combat?.startAttack()) return;
-            if (code !== "Digit1") actionBar.setCooldown(code, skill.cooldown);
+            actionBar.setCooldown(code, skill.cooldown);
             playGameSound("attack");
             multiplayer?.sendAttack(code);
           };
@@ -536,10 +547,7 @@ export const Game = ({
             Digit3: () => performAttack("Digit3"),
 
 
-            Digit4() {
-              multiplayer
-                ?.sendHeal();
-            },
+            Digit4: () => performAttack("Digit4"),
           };
 
 
@@ -550,7 +558,8 @@ export const Game = ({
               if (!playerAlive) return;
               if (
                 mounted &&
-                /^Digit[1-3]$/.test(code)
+                /^Digit[1-4]$/.test(code) &&
+                !getTalentSkill(characterRef.current.gameClass, code, characterRef.current.currentLevel, characterRef.current.talents, useSkillsStore.getState().equippedSkills)?.heal
               ) {
                 setMounted(false);
                 multiplayer?.sendMovement(player, 0, false, true);
@@ -737,9 +746,9 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE" || event.code === "KeyU"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE" || event.code === "KeyU"
               ) {
-                if ((event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
+                if ((event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
                   event.target?.closest?.(
                     "input, textarea, select, [contenteditable='true']"
@@ -764,6 +773,7 @@ export const Game = ({
                   KeyH: ["hero", "hunts"],
                   KeyZ: ["hero", "achievements"],
                   KeyT: ["hero", "talents"],
+                  KeyO: ["hero", "skills"],
                   KeyE: ["social"],
                   KeyM: ["map"],
                   KeyU: ["help"],
@@ -1124,6 +1134,7 @@ export const Game = ({
 
         useEquipmentStore.getState().setChangeHandler(null);
         useTalentStore.getState().setChangeHandler(null);
+        useSkillsStore.getState().setChangeHandler(null);
         useConsumableStore.getState().setUseHandler(null);
         useWaypointStore.getState().setTravelHandler(null);
 

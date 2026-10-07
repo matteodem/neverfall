@@ -15,7 +15,7 @@ import { copyStatusEffects } from "./statusEffects";
 
 const HUNT_FIELDS = QUESTS.map((quest) => quest.progressField).filter(Boolean);
 
-const COMBAT_TIMERS = ["healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
+const COMBAT_TIMERS = ["skillAvailableAt", "healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
 export class DungeonRoom extends WorldRoom {
   campSafeZoneEnabled = false;

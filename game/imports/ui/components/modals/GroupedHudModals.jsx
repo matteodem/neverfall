@@ -8,6 +8,7 @@ import { GearModal } from "./GearModal";
 import { QuestsModal } from "./QuestsModal";
 import { HuntsModal } from "./HuntsModal";
 import { AchievementModal } from "./AchievementModal";
+import { SkillsModal } from "./SkillsModal";
 import { TalentsModal } from "./TalentsModal";
 
 const SECTIONS = {
@@ -20,6 +21,7 @@ const SECTIONS = {
     quests: { label: "Quests", Content: QuestsModal },
     hunts: { label: "Hunts", Content: HuntsModal },
     achievements: { label: "Achievements", Content: AchievementModal },
+    skills: { label: "Skills", Content: SkillsModal },
     talents: { label: "Talents", Content: TalentsModal },
   },
 };
