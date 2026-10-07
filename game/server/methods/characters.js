@@ -17,6 +17,8 @@ import { SPECIES } from "../../imports/game/species";
 import { DEFAULT_SPAWN_POINT } from "../../imports/game/spawnPoints";
 import { DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { removeGuildCharacter } from "../guilds";
+import { getPlayerTitle } from "../../imports/game/playerTitles";
+import { setOnlineSelectedTitle } from "../colyseus/onlineGuildTags";
 
 const VALID_APPEARANCE = {
   gender: [
@@ -131,6 +133,28 @@ const validateAppearance = (
 
 
 Meteor.methods({
+  "characters.setTitle": lockCharacterChanges(async function (characterId, selectedTitle) {
+    requireUser(this.userId);
+    if (typeof characterId !== "string") throw new Meteor.Error("character-not-found");
+    const character = await Characters.findOneAsync({ _id: characterId, userId: this.userId });
+    if (!character) throw new Meteor.Error("character-not-found");
+
+    if (selectedTitle !== null) {
+      const title = getPlayerTitle(selectedTitle);
+      if (!title) throw new Meteor.Error("invalid-title", "Unknown player title.");
+      if (character.achievements?.[title.achievementId]?.unlocked !== true) {
+        throw new Meteor.Error("title-locked", "Unlock the required achievement first.");
+      }
+    }
+
+    const updated = await Characters.updateAsync(
+      { _id: characterId, userId: this.userId },
+      { $set: { selectedTitle } }
+    );
+    if (!updated) throw new Meteor.Error("character-not-found");
+    setOnlineSelectedTitle(characterId, selectedTitle);
+  }),
+
   async "characters.isNameAvailable"(
     name
   ) {
@@ -269,6 +293,8 @@ Meteor.methods({
       unlockedWaypoints: [DEFAULT_WAYPOINT.id],
 
       achievements: {},
+
+      selectedTitle: null,
 
       questProgress: {},
 

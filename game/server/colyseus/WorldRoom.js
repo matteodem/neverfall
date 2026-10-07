@@ -18,6 +18,7 @@ import { LANDMARKS } from "../../imports/game/landmarks";
 import { getQuestArea, FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
 import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
+import { withCharacterSlots } from "../characterSlots";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
@@ -1176,11 +1177,18 @@ export class WorldRoom
       });
 
 
-    this.state.players.set(
-      client.sessionId,
-      player
-    );
-    registerGuildPlayer(player);
+    // Serialize title hydration/registration with Character updates so a selection
+    // made while joining cannot be replaced by the earlier Character snapshot.
+    await withCharacterSlots([auth.userId], async () => {
+      const current = await Characters.findOneAsync(
+        { _id: character._id, userId: auth.userId },
+        { fields: { selectedTitle: 1 } }
+      );
+      if (!current) throw new Error("Character not found");
+      player.selectedTitle = current.selectedTitle || "";
+      this.state.players.set(client.sessionId, player);
+      registerGuildPlayer(player);
+    });
 
 
     this.playerRuntime.set(

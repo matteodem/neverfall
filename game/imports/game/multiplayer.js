@@ -9,6 +9,7 @@ import { useBossNoticeStore } from "../ui/stores/useBossNoticeStore";
 import { useWorldEventStore } from "../ui/stores/useWorldEventStore";
 import { getGameSession, closeGameSession } from "./gameSession";
 import { getClassConfig } from "./classConfig";
+import { getPlayerTitle } from "./playerTitles";
 import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
@@ -540,6 +541,8 @@ const createRemotePlayer =
         color:
           "#4ade80",
 
+        title: getPlayerTitle(playerState.selectedTitle)?.label || "",
+
         y:
           -0.4,
       });
@@ -974,6 +977,11 @@ export const createMultiplayer =
           );
           syncLocalNameplate();
           callbacks.listen(playerState, "guildTag", syncLocalNameplate);
+          const syncLocalTitle = () => nameplate?.setTitle(
+            getPlayerTitle(playerState.selectedTitle)?.label || ""
+          );
+          syncLocalTitle();
+          callbacks.listen(playerState, "selectedTitle", syncLocalTitle);
           player.position.set(playerState.x, playerState.y + JUMP.groundY, playerState.z);
           player.rotation.y = playerState.rotationY;
 
@@ -1184,6 +1192,11 @@ export const createMultiplayer =
 
 
         entity.playerState = playerState;
+        const syncRemoteTitle = () => entity.nameplate.setTitle(
+          getPlayerTitle(playerState.selectedTitle)?.label || ""
+        );
+        syncRemoteTitle();
+        callbacks.listen(playerState, "selectedTitle", syncRemoteTitle);
         entity.visibility.update(player.position, playerVisibility);
 
         remotePlayers.set(

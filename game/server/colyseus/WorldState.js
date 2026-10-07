@@ -18,6 +18,8 @@ export const PlayerState =
       guildTag:
         t.string().default(""),
 
+      selectedTitle: t.string().default(""),
+
       chatAnimation: t.string().default(""),
 
       gameClass: t.string().default("warrior"),

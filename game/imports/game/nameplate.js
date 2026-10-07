@@ -5,6 +5,7 @@ import {
 
 import {
   AdvancedDynamicTexture,
+  Control,
   TextBlock,
 } from "@babylonjs/gui";
 
@@ -17,6 +18,7 @@ export const createNameplate = ({
   scene,
   player,
   name,
+  title = "",
   color = "white",
   y = 0.25,
 }) => {
@@ -25,12 +27,13 @@ export const createNameplate = ({
   const textureHeight = mobile ? 128 : 96;
   const fontSize = mobile ? 64 : 44;
   const textPadding = mobile ? 80 : 64;
+  const planeHeight = mobile ? 0.7371 : 0.3;
   const plane =
     MeshBuilder.CreatePlane(
       "nameplate",
       {
         width: mobile ? 3.6855 : 1.8,
-        height: mobile ? 0.7371 : 0.3,
+        height: planeHeight,
       },
       scene
     );
@@ -95,35 +98,72 @@ export const createNameplate = ({
     text
   );
 
-  const setName = (
-    newName
-  ) => {
-    const value = String(newName ?? "");
+  text.height = `${textureHeight}px`;
+  text.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+
+  const titleText = new TextBlock("nameplateTitle");
+  titleText.color = color;
+  titleText.fontFamily = "Arial";
+  titleText.fontWeight = "bold";
+  titleText.outlineWidth = 2;
+  titleText.outlineColor = "black";
+  titleText.height = `${textureHeight / 2}px`;
+  titleText.top = textureHeight;
+  titleText.verticalAlignment = Control.VERTICAL_ALIGNMENT_TOP;
+  texture.addControl(titleText);
+
+  let currentName = String(name ?? "");
+  let currentTitle = String(title ?? "");
+
+  const updateText = () => {
+    const hasTitle = Boolean(currentTitle);
+    const height = hasTitle ? textureHeight * 1.5 : textureHeight;
+    const titleFontSize = fontSize * 0.65;
     const context = texture.getContext();
     context.font = `bold ${fontSize}px Arial`;
-    const textWidth = context.measureText(value).width;
+    const textWidth = context.measureText(currentName).width;
+    context.font = `bold ${titleFontSize}px Arial`;
+    const titleWidth = context.measureText(currentTitle).width;
     const width = Math.min(
       MAX_TEXTURE_WIDTH,
       Math.max(
         textureWidth,
-        Math.ceil((textWidth + textPadding) / 64) * 64
+        Math.ceil((Math.max(textWidth, titleWidth) + textPadding) / 64) * 64
       )
     );
 
-    if (texture.getSize().width !== width) {
-      texture.scaleTo(width, textureHeight);
+    if (texture.getSize().width !== width || texture.getSize().height !== height) {
+      texture.scaleTo(width, height);
       plane.scaling.x = width / textureWidth;
     }
+
+    // Grow downward so the existing name keeps its original world position.
+    plane.scaling.y = height / textureHeight;
+    plane.position.y = y - planeHeight * (plane.scaling.y - 1) / 2;
 
     text.fontSize = Math.min(
       fontSize,
       (fontSize * (width - textPadding)) / Math.max(textWidth, 1)
     );
-    text.text =
-      value;
+    text.text = currentName;
+    titleText.fontSize = Math.min(
+      titleFontSize,
+      (titleFontSize * (width - textPadding)) / Math.max(titleWidth, 1)
+    );
+    titleText.text = currentTitle;
+    titleText.isVisible = hasTitle;
   };
 
-  setName(name);
+  const setName = (value) => {
+    currentName = String(value ?? "");
+    updateText();
+  };
+  const setTitle = (value) => {
+    currentTitle = String(value ?? "");
+    updateText();
+  };
+
+  updateText();
 
   let visible = true;
   const setVisible = (value) => {
@@ -143,6 +183,7 @@ export const createNameplate = ({
 
   return {
     setName,
+    setTitle,
     setVisible,
     destroy,
   };

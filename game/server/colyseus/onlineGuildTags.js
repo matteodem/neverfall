@@ -21,3 +21,10 @@ export const setOnlineGuildTags = (characterIds, tag) => {
     for (const player of onlinePlayers.get(characterId) || []) player.guildTag = tag;
   }
 };
+
+// Reuse the same registry for display fields in both world and dungeon rooms.
+export const setOnlineSelectedTitle = (characterId, selectedTitle) => {
+  for (const player of onlinePlayers.get(characterId) || []) {
+    player.selectedTitle = selectedTitle || "";
+  }
+};

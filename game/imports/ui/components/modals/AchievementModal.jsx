@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../../api/characters/characters";
 import { ACHIEVEMENTS } from "../../../game/achievements";
+import { getUnlockedPlayerTitles } from "../../../game/playerTitles";
 import { HudModal } from "../HudModal";
 
 const useAchievementCharacter = () => useTracker(() => {
@@ -12,6 +13,23 @@ const useAchievementCharacter = () => useTracker(() => {
 
 export const AchievementModal = ({ embedded = false }) => {
   const character = useAchievementCharacter();
+  const [savingTitle, setSavingTitle] = useState(false);
+  const [titleError, setTitleError] = useState("");
+  const unlockedTitles = getUnlockedPlayerTitles(character?.achievements);
+  const selectedTitle = unlockedTitles.some((title) => title.id === character?.selectedTitle)
+    ? character.selectedTitle : "";
+  const selectTitle = async (event) => {
+    const value = event.target.value || null;
+    setSavingTitle(true);
+    setTitleError("");
+    try {
+      await Meteor.callAsync("characters.setTitle", character._id, value);
+    } catch (error) {
+      setTitleError(error.reason || error.message || "Could not update player title.");
+    } finally {
+      setSavingTitle(false);
+    }
+  };
   const sortedAchievements = [...ACHIEVEMENTS].sort((a, b) =>
     Number(Boolean(character?.achievements?.[a.id]?.unlocked)) -
     Number(Boolean(character?.achievements?.[b.id]?.unlocked))
@@ -19,6 +37,15 @@ export const AchievementModal = ({ embedded = false }) => {
   return (
     <HudModal id="achievements" title="Achievements" embedded={embedded} maxHeight={750}>
       <div className="space-y-3">
+        <label className="block">
+          <span className="mb-1 block font-semibold">Player Title</span>
+          <select className="select select-bordered w-full" value={selectedTitle}
+            disabled={!character || savingTitle} onChange={selectTitle}>
+            <option value="">None</option>
+            {unlockedTitles.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+          </select>
+        </label>
+        {titleError && <p role="alert" className="text-sm text-error">{titleError}</p>}
         {sortedAchievements.map(({ id, name, description, target }) => {
           const achievement = character?.achievements?.[id];
           const progress = achievement?.progress || 0;
