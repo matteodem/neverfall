@@ -7,6 +7,7 @@ import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
+import { createForestLighting } from "./environment/createForestLighting";
 import { loadCampAssets } from "./environment/createAssetCamp";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
@@ -181,7 +182,7 @@ export const createWorld =
       const positions = ground.getVerticesData(VertexBuffer.PositionKind);
       const normals = ground.getVerticesData(VertexBuffer.NormalKind);
       const colors = new Float32Array(positions.length / 3 * 4);
-      const forestColor = Color3.FromHexString("#809B54");
+      const forestColor = Color3.FromHexString("#7D915D");
       const highlandColor = Color3.FromHexString("#A0AC79");
       const oliveColor = Color3.FromHexString("#93A264");
       const brownColor = Color3.FromHexString("#917F61");
@@ -239,6 +240,7 @@ export const createWorld =
 
     ground.material =
       groundMaterial;
+    ground.receiveShadows = true;
     ground.freezeWorldMatrix();
 
 
@@ -333,6 +335,7 @@ export const createWorld =
 
     character.root.parent =
       player;
+    if (!dungeon) createForestLighting(scene, ambient, sun, player, quality);
 
     character.root.position.set(
       0,

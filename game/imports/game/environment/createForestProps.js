@@ -1,4 +1,4 @@
-import { SceneLoader, TransformNode } from "@babylonjs/core";
+import { Color3, SceneLoader, TransformNode } from "@babylonjs/core";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
@@ -43,7 +43,7 @@ const SNOWY_CLUSTER_CHOICES = {
 
 const CIRCLES = [
   { ...BASIC_TOWER_POSITION, radius: BASIC_TOWER_CLEARING_RADIUS },
-  ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 10 : 22 })),
+  ...SPAWN_POINTS.map((point) => ({ ...point.position, radius: point.id === "central-camp" ? 18 : 22 })),
   ...WAYPOINTS.filter((point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id))
     .map((point) => ({ ...point.position, radius: 9 })),
   ...DUNGEONS.map((dungeon) => ({ ...dungeon.entrance, radius: 18 })),
@@ -75,6 +75,8 @@ const CIRCLES = [
 ];
 
 const PATHS = [
+  // Keep the eastern approach open so the shrine reads across its clearing.
+  { from: { x: ANCIENT_FOREST_SHRINE.x + 60, z: ANCIENT_FOREST_SHRINE.z + 12 }, to: ANCIENT_FOREST_SHRINE, width: 7 },
   { from: DEFAULT_SPAWN_POINT.position, to: DUNGEONS[0].entrance, width: 8 },
   { from: DEFAULT_SPAWN_POINT.position, to: FOREST_GIANT_HILL.center, width: 8 },
   { from: DEFAULT_SPAWN_POINT.position, to: NORTHERN_SPAWN_POINT.position, width: 8 },
@@ -159,6 +161,7 @@ export const loadForestProps = async (scene) => {
     const name = choices[Math.floor(random() * choices.length)];
     const entries = models.get(name).instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
     const prop = new TransformNode(`forest-${name}`, scene);
+    prop.metadata = { forestShadowCaster: ["broadleaf", "conifers", "rocks", "boulders", "ancientShrine"].includes(kind) };
     prop.parent = root;
     for (const node of entries.rootNodes) node.parent = prop;
     const meshes = prop.getChildMeshes();
@@ -179,7 +182,7 @@ export const loadForestProps = async (scene) => {
     for (const mesh of meshes) {
       mesh.isPickable = false;
       mesh.checkCollisions = false;
-      mesh.receiveShadows = true;
+      (mesh.sourceMesh || mesh).receiveShadows = true;
     }
     return prop;
   };
@@ -213,6 +216,41 @@ export const loadForestProps = async (scene) => {
     const cells = Math.ceil(size / 14);
     const spacing = size / cells;
 
+    const treePositions = [];
+    const inForestChunk = (spot) => Math.abs(spot.x - center.x) < size / 2 &&
+      Math.abs(spot.z - center.z) < size / 2 && getSnowMix(spot.x, spot.z) === 0;
+    const placeForestTree = (spot, scale) => {
+      if (!inForestChunk(spot) || !isOpen(spot, 4, CIRCLES) ||
+        treePositions.some((tree) => Math.hypot(tree.x - spot.x, tree.z - spot.z) < 5)) return;
+      place(root, "broadleaf", spot, random, scale);
+      treePositions.push(spot);
+      if (random() < 0.35) {
+        for (let index = 0; index < 2; index++) {
+          const growth = nearby(spot, 4, random);
+          if (inForestChunk(growth) && isOpen(growth, 2, CIRCLES))
+            place(root, "undergrowth", growth, random, 0.65 + random() * 0.3);
+        }
+      }
+    };
+
+    if (forestRegion) {
+      // Asymmetric groups frame the camp sides and the back of the shrine.
+      // Every decorative anchor still respects gameplay and route exclusions.
+      const frames = [
+        ...[[-24, -14], [-26, -6], [24, -15], [29, -8], [-23, 18], [25, 20]]
+          .map(([x, z]) => ({ x: DEFAULT_SPAWN_POINT.position.x + x, z: DEFAULT_SPAWN_POINT.position.z + z })),
+        ...[[-31, -18], [-35, -9], [-28, 22], [-16, 31]]
+          .map(([x, z]) => ({ x: ANCIENT_FOREST_SHRINE.x + x, z: ANCIENT_FOREST_SHRINE.z + z })),
+      ];
+      for (const spot of frames) {
+        if (random() > density) continue;
+        placeForestTree(nearby(spot, 2, random), 0.95 + random() * 0.15);
+        const rock = nearby(spot, 4, random);
+        if (inForestChunk(rock) && isOpen(rock, 3, CIRCLES))
+          place(root, "rocks", rock, random, 0.65 + random() * 0.25);
+      }
+    }
+
     for (let row = 0; row < cells; row++) {
       for (let column = 0; column < cells; column++) {
         if (yieldIfNeeded && column % 4 === 0) await yieldIfNeeded();
@@ -224,6 +262,28 @@ export const loadForestProps = async (scene) => {
         const snowy = center.region === "snowyMountains" || getSnowMix(position.x, position.z) > 0;
         if (snowy) {
           placeSnowyCluster(root, position, random, density);
+          continue;
+        }
+        if (forestRegion) {
+          // Fewer occupied cells, with irregular groves and open pockets between.
+          if (random() < 0.27 * density) {
+            const count = 2 + Math.floor(random() * 3);
+            for (let index = 0; index < count; index++) {
+              const tree = nearby(position, 11, random);
+              placeForestTree(tree, 0.78 + random() * 0.34);
+            }
+          } else if (random() < 0.06 * density) {
+            for (let index = 0; index < 2; index++) {
+              const rock = nearby(position, 4, random);
+              if (inForestChunk(rock) && isOpen(rock, 3, CIRCLES))
+                place(root, "rocks", rock, random, 0.6 + random() * 0.4);
+              const growth = nearby(rock, 3, random);
+              if (inForestChunk(growth) && isOpen(growth, 2, CIRCLES))
+                place(root, "undergrowth", growth, random, 0.65 + random() * 0.3);
+            }
+          }
+          if (random() < 0.02 * density && inForestChunk(position) && isOpen(position, 4, CIRCLES))
+            place(root, "accents", position, random, 0.7 + random() * 0.2);
           continue;
         }
         const treeChance = density * (0.84 - 0.76 * mix);
@@ -293,6 +353,11 @@ export const loadForestProps = async (scene) => {
       const model = place(root, "ancientShrine", { x: 0, z: 0 }, () => 0, 8);
       if (!model) { root.dispose(); return null; }
       model.rotation.y = Math.PI / 2;
+      // A small lift in the baked stone's shaded values, without a new light.
+      for (const material of models.get("ancient_forest_shrine").materials) {
+        if (material.albedoColor) material.albedoColor = new Color3(0.94, 0.97, 0.9);
+        if (material.emissiveColor) material.emissiveColor = new Color3(0.035, 0.045, 0.028);
+      }
       for (const mesh of root.getChildMeshes()) {
         mesh.checkCollisions = true;
         mesh.computeWorldMatrix(true);

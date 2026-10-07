@@ -85,7 +85,7 @@ export const loadCampAssets = async (scene) => {
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
       mesh.checkCollisions = name !== "tent";
-      mesh.receiveShadows = true;
+      (mesh.sourceMesh || mesh).receiveShadows = true;
     }
     if (Number.isFinite(minY))
       model.position.set(-(minX + maxX) / 2, -minY, -(minZ + maxZ) / 2);
@@ -103,6 +103,7 @@ export const loadCampAssets = async (scene) => {
 
   const createCamp = ({ center, rugged = false }) => {
     const root = new TransformNode(rugged ? "northernCamp" : "clearingCamp", scene);
+    root.metadata = { forestShadowCaster: !rugged };
     root.position.copyFrom(center);
     const props = rugged ? NORTHERN_PROPS : CENTRAL_PROPS;
     const offsetScale = rugged ? 0.85 : 1;
@@ -115,7 +116,7 @@ export const loadCampAssets = async (scene) => {
     const fireHeight = getWorldHeight(center.x + fireX, center.z + fireZ);
     const light = new PointLight("campfireLight", new Vector3(fireX, fireHeight + 1.2 * CAMP_SCALE, fireZ), scene);
     light.parent = root;
-    light.diffuse = Color3.FromHexString("#FFB347");
+    light.diffuse = Color3.FromHexString(rugged ? "#FFB347" : "#FFD09A");
     light.range = 14;
     let elapsed = 0;
     const observer = scene.onBeforeRenderObservable.add(() => {
