@@ -529,6 +529,8 @@ const createRemotePlayer =
       createNameplate({
         scene,
 
+        scale: 1.5,
+
         player:
           root,
 

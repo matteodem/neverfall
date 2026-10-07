@@ -19,6 +19,7 @@ export const createNameplate = ({
   player,
   name,
   title = "",
+  scale = 1,
   color = "white",
   y = 0.25,
 }) => {
@@ -27,12 +28,12 @@ export const createNameplate = ({
   const textureHeight = mobile ? 128 : 96;
   const fontSize = mobile ? 64 : 44;
   const textPadding = mobile ? 80 : 64;
-  const planeHeight = mobile ? 0.7371 : 0.3;
+  const planeHeight = (mobile ? 0.7371 : 0.3) * scale;
   const plane =
     MeshBuilder.CreatePlane(
       "nameplate",
       {
-        width: mobile ? 3.6855 : 1.8,
+        width: (mobile ? 3.6855 : 1.8) * scale,
         height: planeHeight,
       },
       scene

@@ -380,6 +380,8 @@ export const createWorld =
       createNameplate({
         scene,
 
+        scale: 1.5,
+
         player,
 
         name,
