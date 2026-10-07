@@ -1,5 +1,6 @@
 import React from "react";
 import { useTargetStore } from "../stores/useTargetStore";
+import { PotionBuffs } from "./PotionBuffs";
 
 export const BossHealthBar = () => {
   const boss = useTargetStore((state) => state.target);
@@ -15,6 +16,7 @@ export const BossHealthBar = () => {
         className="h-5 overflow-hidden rounded bg-gray-800">
         <div className="h-full bg-red-500 transition-[width] duration-150" style={{ width: `${percentage}%` }} />
       </div>
+      <PotionBuffs buffs={boss} className="pointer-events-auto mt-2 flex flex-wrap items-center gap-1" />
     </div>
   );
 };

@@ -8,7 +8,7 @@ const BUFFS = [
   { key: "powerPotionUntil", itemId: "power_potion", icon: "sword", color: "text-purple-400" },
 ];
 
-export const PotionBuffs = ({ buffs, isDead, mobile = false }) => {
+export const PotionBuffs = ({ buffs, isDead, mobile = false, className }) => {
   if (isDead) return null;
 
   const now = Date.now();
@@ -22,9 +22,9 @@ export const PotionBuffs = ({ buffs, isDead, mobile = false }) => {
   if (!active.length) return null;
 
   return (
-    <div className={mobile
+    <div className={className ?? (mobile
       ? "absolute bottom-full left-0 mb-1 flex max-w-full flex-wrap items-center gap-1"
-      : "absolute left-full top-[16px] ml-2 flex -translate-y-1/2 items-center gap-1"} aria-label="Active effects">
+      : "absolute left-full top-[16px] ml-2 flex -translate-y-1/2 items-center gap-1")} aria-label="Active effects">
       {active.map(({ key, name, description, icon, color }) => {
         const label = `${name}: ${description}`;
         return (

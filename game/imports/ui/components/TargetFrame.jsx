@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useTargetStore } from "../stores/useTargetStore";
+import { PotionBuffs } from "./PotionBuffs";
 
 const getDangerLevel = (enemyLevel, playerLevel) => {
   const difference = enemyLevel - playerLevel;
@@ -51,6 +52,7 @@ export const TargetFrame = ({ currentLevel }) => {
           <div className="h-full bg-red-500 transition-[width] duration-150" style={{ width: `${percentage}%` }} />
         </div>
         {danger && <div className="mt-2 text-center text-sm font-bold text-red-400">⚠ {danger === "extreme" ? "Extremely Dangerous" : "Dangerous Enemy"}</div>}
+        <PotionBuffs buffs={target} className="pointer-events-auto mt-2 flex flex-wrap items-center gap-1" />
       </div>}
       {popup && (
         <div className="pointer-events-none fixed left-1/2 top-[58%] z-[11000] w-full max-w-md -translate-x-1/2 px-4 text-center text-red-400 drop-shadow-[0_2px_3px_black]" role="status" aria-live="polite">

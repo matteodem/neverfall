@@ -37,9 +37,15 @@ export const useTargetStore = create((set, get) => ({
     const stats = getEnemyStats(enemy.type, enemy.level, enemy.rare);
     const level = enemy.level || 1;
     const isBoss = Boolean(stats.bossMechanics);
+    const now = Date.now();
+    const statusEffects = Array.from(enemy.statusEffects || [], ([id, effect]) => ({ id, expiresAt: effect.expiresAt }))
+      .filter((effect) => effect.expiresAt > now);
+    const effectsUnchanged = target?.statusEffects?.length === statusEffects.length &&
+      statusEffects.every((effect, index) => target.statusEffects[index].id === effect.id &&
+        target.statusEffects[index].expiresAt === effect.expiresAt);
     if (target?.id === selectedId && target.health === enemy.health && target.maxHealth === enemy.maxHealth &&
-      target.name === stats.name && target.level === level && target.isBoss === isBoss) return;
-    set({ target: { id: selectedId, name: stats.name, level, health: enemy.health, maxHealth: enemy.maxHealth, isBoss } });
+      target.name === stats.name && target.level === level && target.isBoss === isBoss && effectsUnchanged) return;
+    set({ target: { id: selectedId, name: stats.name, level, health: enemy.health, maxHealth: enemy.maxHealth, isBoss, statusEffects } });
   },
   clear: () => set({ selectedId: null, target: null, autoLocked: false, lockedAt: 0, lockRange: MOBILE_TARGETING.retainRange }),
 }));
