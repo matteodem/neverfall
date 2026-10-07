@@ -743,7 +743,7 @@ const BottomHud = ({
       <div className="mobile-player-bars absolute bottom-2 left-1/2 z-40 flex flex-col items-center gap-1">
         <div className="relative">
           <PlayerHealthBar health={playerHealth.health} maxHealth={playerHealth.maxHealth} />
-          <PotionBuffs buffs={potionBuffs} isDead={isDead} />
+          <PotionBuffs mobile buffs={potionBuffs} isDead={isDead} />
         </div>
         <XpBar />
       </div>

@@ -3,6 +3,11 @@ import {
   t,
 } from "@colyseus/schema";
 
+export const StatusEffectState = schema({
+  expiresAt: t.number().default(0),
+  nextTickAt: t.number().default(0),
+}, "StatusEffectState");
+
 export const PlayerState =
   schema(
     {
@@ -19,6 +24,8 @@ export const PlayerState =
         t.string().default(""),
 
       selectedTitle: t.string().default(""),
+
+      statusEffects: t.map(StatusEffectState),
 
       chatAnimation: t.string().default(""),
 
@@ -122,6 +129,7 @@ export const PlayerState =
 
 export const EnemyState = schema(
   {
+    statusEffects: t.map(StatusEffectState),
     type: t.string().default("boar"),
     rare: t.boolean().default(false),
     enraged: t.boolean().default(false),

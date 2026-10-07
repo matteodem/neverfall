@@ -1,7 +1,7 @@
 import { ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 
 // Special attacks use the same authoritative damage path as normal melee.
-const damageArea = (room, x, z, radius, damage, hitPlayers, start) => {
+const damageArea = (room, x, z, radius, damage, hitPlayers, start, hitStatus) => {
   for (const [sessionId, player] of room.state.players) {
     if (player.inDungeon || player.health <= 0 || hitPlayers?.has(sessionId)) continue;
     let closestX = x;
@@ -17,7 +17,7 @@ const damageArea = (room, x, z, radius, damage, hitPlayers, start) => {
     }
     if (Math.hypot(player.x - closestX, player.z - closestZ) > radius) continue;
     hitPlayers?.add(sessionId);
-    room.damagePlayer(sessionId, damage);
+    room.damagePlayer(sessionId, damage, hitStatus);
   }
 };
 
@@ -55,7 +55,7 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
     runtime.lastCombatAt = now;
     if (enemy.bossAction === "aoe") {
       if (now >= action.endsAt) {
-        damageArea(room, enemy.bossTargetX, enemy.bossTargetZ, config.aoe.radius, damage);
+        damageArea(room, enemy.bossTargetX, enemy.bossTargetZ, config.aoe.radius, damage, null, null, stats.heavyHitStatus);
         cancelBossAction(enemy, runtime);
       }
     } else if (enemy.bossAction === "chargeWindup") {
@@ -70,9 +70,9 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
         cancelBossAction(enemy, runtime);
         return true;
       }
-      action.remaining -= movement;
-      damageArea(room, enemy.x, enemy.z, config.charge.radius, damage, action.hitPlayers, start);
-      if (action.remaining <= 0) cancelBossAction(enemy, runtime);
+      action.remaining -= Math.hypot(enemy.x - start.x, enemy.z - start.z);
+      damageArea(room, enemy.x, enemy.z, config.charge.radius, damage, action.hitPlayers, start, stats.heavyHitStatus);
+      if (action.remaining <= 0.01) cancelBossAction(enemy, runtime);
     }
     return true;
   }

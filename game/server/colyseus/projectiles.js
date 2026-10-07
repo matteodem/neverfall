@@ -77,7 +77,7 @@ export const createProjectiles = (room) => {
         };
         active.set(projectile.id, { ...projectile,
           radius: radius * PROJECTILE_AIM.hitboxScale + (locked ? MOBILE_TARGETING.hitPadding : 0),
-          remaining: lifetime, multiplier: skill.damageMultiplier, hitEnemies });
+          remaining: lifetime, multiplier: skill.damageMultiplier, hitStatus: skill.hitStatus, hitEnemies });
         room.broadcast("attack", { sessionId, projectile });
       }
     },
@@ -117,7 +117,7 @@ export const createProjectiles = (room) => {
           remove(projectile.id);
           if (projectile.hitEnemies.has(hit.enemy)) continue;
           projectile.hitEnemies.add(hit.enemy);
-          room.damageEnemy(projectile.sessionId, hit.enemyId, hit.enemy, projectile.multiplier)
+          room.damageEnemy(projectile.sessionId, hit.enemyId, hit.enemy, projectile.multiplier, false, projectile.hitStatus)
             .catch((error) => console.error("[Projectiles] Damage failed", error));
         } else if (terrainHit !== null || projectile.remaining <= 0) {
           remove(projectile.id);

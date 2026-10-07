@@ -73,6 +73,7 @@ export const ENEMY_TYPES = {
     animations: ANIMAL_ANIMATIONS,
   },
   bee: {
+    hitStatus: "poison",
     name: "Bee",
     model: "bee.glb",
     scale: 0.15,
@@ -91,6 +92,7 @@ export const ENEMY_TYPES = {
     animations: ANIMAL_ANIMATIONS,
   },
   forestGiant: {
+    heavyHitStatus: "slow",
     bossMechanics: BOSS_MECHANICS,
     aggroRadius: 12,
     accessoryDropChance: 0.50,
@@ -149,6 +151,7 @@ ENEMY_TYPES.alphaWolf = {
 
 ENEMY_TYPES.snowWolf = {
   ...ENEMY_TYPES.wolf,
+  hitStatus: "slow",
   name: "Snow Wolf",
   health: 240,
   healthPerLevel: 80,

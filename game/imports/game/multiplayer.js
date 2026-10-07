@@ -1108,13 +1108,21 @@ export const createMultiplayer =
             }
           );
 
-          const syncPotionBuffs = () => onLocalBuffChange?.({
-            speedPotionUntil: playerState.speedPotionUntil ?? 0,
-            powerPotionUntil: playerState.powerPotionUntil ?? 0,
-          });
-          syncPotionBuffs();
-          callbacks.listen(playerState, "speedPotionUntil", syncPotionBuffs);
-          callbacks.listen(playerState, "powerPotionUntil", syncPotionBuffs);
+          let previousBuffs;
+          const syncBuffs = () => {
+            const buffs = {
+              speedPotionUntil: playerState.speedPotionUntil ?? 0,
+              powerPotionUntil: playerState.powerPotionUntil ?? 0,
+              statusEffects: Array.from(playerState.statusEffects || [], ([id, effect]) => ({ id, expiresAt: effect.expiresAt })),
+            };
+            const signature = JSON.stringify(buffs);
+            if (signature === previousBuffs) return;
+            previousBuffs = signature;
+            onLocalBuffChange?.(buffs);
+          };
+          syncBuffs();
+          room.onStateChange(syncBuffs);
+          disposers.push(() => room.onStateChange.remove(syncBuffs));
 
           const syncCombat = () => onLocalCombatChange?.(playerState.inCombat);
           syncCombat();

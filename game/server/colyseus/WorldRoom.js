@@ -12,6 +12,8 @@ import { recordQuestEvent } from "../quests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { getFallDamage, resetFallTracking } from "./fallDamage";
+import { getStatusModifiers } from "../../imports/game/statusEffects";
+import { applyStatusEffect, clearStatusEffects, updateStatusEffects } from "./statusEffects";
 import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
@@ -116,6 +118,9 @@ const getStatsForPlayer = (player, now = Date.now()) => {
   const stats = getPlayerStats(player.currentLevel, getEquipmentForPlayer(player), player.gameClass, player.species, getSelectedTalents(player));
   if (player.speedPotionUntil > now) stats.movementSpeedMultiplier *= 1.1;
   if (player.powerPotionUntil > now) stats.damage *= 1.1;
+  const modifiers = getStatusModifiers(player, now);
+  stats.movementSpeedMultiplier *= modifiers.movementSpeed;
+  stats.damage *= modifiers.damage;
   return stats;
 };
 
@@ -323,6 +328,12 @@ export class WorldRoom
     player.maxHealth = stats.maxHealth;
     player.health = Math.min(player.health, player.maxHealth);
     if (player.inDungeon) this.dungeons?.syncPlayer(player);
+  }
+
+  applyPlayerStatusEffect(player, id) {
+    if (applyStatusEffect(player, id)) {
+      player.movementSpeedMultiplier = getStatsForPlayer(player).movementSpeedMultiplier;
+    }
   }
 
   applyPlayerTalents(player, talents) {
@@ -905,6 +916,7 @@ export class WorldRoom
       this.markPlayerInCombat(client.sessionId);
       player.mounted = false;
       player.respawnProtectedUntil = 0;
+      if (skill.selfStatus) this.applyPlayerStatusEffect(player, skill.selfStatus);
       if (code !== "Digit1") {
         client.send("skillCooldown", { code, duration: skill.cooldown });
       }
@@ -1331,6 +1343,11 @@ export class WorldRoom
       ]
       of this.state.players.entries()
     ) {
+      // The dungeon room owns active effects while the world avatar is parked.
+      if (!player.inDungeon) {
+        updateStatusEffects(player, (damage) => this.damagePlayer(sessionId, damage), now);
+        player.movementSpeedMultiplier = getStatsForPlayer(player, now).movementSpeedMultiplier;
+      }
       player.inCombat = player.health > 0 && this.isPlayerInCombat(sessionId, now);
 
       if (player.speedPotionUntil && player.speedPotionUntil <= now) {
@@ -1410,6 +1427,9 @@ export class WorldRoom
   }
 
   moveEnemy(enemy, x, z, runtime) {
+    const speed = getStatusModifiers(enemy).movementSpeed;
+    x = enemy.x + (x - enemy.x) * speed;
+    z = enemy.z + (z - enemy.z) * speed;
     if (runtime?.chaseOrigin && !runtime.returning) {
       const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare);
       if (Math.hypot(x - runtime.chaseOrigin.x, z - runtime.chaseOrigin.z) >= stats.chaseRadius) {
@@ -1426,7 +1446,8 @@ export class WorldRoom
 
   damagePlayer(
     sessionId,
-    damage
+    damage,
+    hitStatus = null
   ) {
     const player =
       this.state.players.get(
@@ -1458,6 +1479,8 @@ export class WorldRoom
       );
 
 
+    if (hitStatus) this.applyPlayerStatusEffect(player, hitStatus);
+
     if (
       player.health >
       0
@@ -1467,6 +1490,7 @@ export class WorldRoom
 
     player.speedPotionUntil = 0;
     player.powerPotionUntil = 0;
+    clearStatusEffects(player);
     player.movementSpeedMultiplier = getStatsForPlayer(player).movementSpeedMultiplier;
     void Characters.updateAsync(
       { _id: player.characterId, userId: player.userId },
@@ -1802,11 +1826,11 @@ export class WorldRoom
 
     // Snapshot targets so killing a dungeon pack cannot hit the next stage.
     await Promise.all(targets.map(({ enemyId, enemy }) =>
-      this.damageEnemy(sessionId, enemyId, enemy, skill.damageMultiplier, skill.aoe)));
+      this.damageEnemy(sessionId, enemyId, enemy, skill.damageMultiplier, skill.aoe, skill.hitStatus)));
   }
 
 
-  async damageEnemy(sessionId, enemyId, enemy, damageMultiplier, aoe = false) {
+  async damageEnemy(sessionId, enemyId, enemy, damageMultiplier, aoe = false, hitStatus = null) {
     const player = this.state.players.get(sessionId);
     if (!player || player.inDungeon || player.health <= 0 || enemy.health <= 0 || this.state.enemies.get(enemyId) !== enemy) return;
 
@@ -1876,22 +1900,18 @@ export class WorldRoom
 
     const stats = getStatsForPlayer(player);
 
+    if (hitStatus) applyStatusEffect(enemy, hitStatus);
+    await this.applyEnemyDamage(enemyId, enemy, stats.damage * damageMultiplier * (aoe ? stats.aoeDamageMultiplier : 1));
+  }
 
-    enemy.health =
-      Math.max(
-        0,
-        enemy.health -
-          stats.damage * damageMultiplier * (aoe ? stats.aoeDamageMultiplier : 1)
-      );
-
-
-    if (
-      enemy.health <=
-      0
-    ) {
-      await this.killEnemy(
-        enemyId
-      );
+  async applyEnemyDamage(enemyId, enemy, damage) {
+    const runtime = this.enemyRuntime.get(enemyId);
+    if (!runtime || enemy.health <= 0 || this.state.enemies.get(enemyId) !== enemy) return;
+    runtime.lastCombatAt = Date.now();
+    enemy.health = Math.max(0, enemy.health - damage);
+    if (enemy.health <= 0) {
+      clearStatusEffects(enemy);
+      await this.killEnemy(enemyId);
     }
   }
 
@@ -2082,6 +2102,11 @@ export class WorldRoom
       ]
       of this.state.enemies.entries()
     ) {
+      updateStatusEffects(enemy, (damage) => {
+        void this.applyEnemyDamage(enemyId, enemy, damage)
+          .catch((error) => console.error("[Status effects] Enemy damage failed", error));
+      });
+      if (this.state.enemies.get(enemyId) !== enemy) continue;
       const runtime =
         this.enemyRuntime.get(
           enemyId
@@ -2141,6 +2166,7 @@ export class WorldRoom
     deltaTime
   ) {
     const stats = this.getEnemyStats(enemy.type, enemy.level, enemy.rare, runtime.spawn.scaling);
+    stats.attackDamage *= getStatusModifiers(enemy).damage;
     if (runtime.isBoss && !runtime.targetSessionId && !runtime.chaseOrigin && !runtime.returning && enemy.health > 0) {
       let nearestDistance = stats.aggroRadius;
       for (const [sessionId, player] of this.state.players.entries()) {
@@ -2305,7 +2331,8 @@ export class WorldRoom
 
     this.damagePlayer(
       runtime.targetSessionId,
-      stats.attackDamage * damageMultiplier
+      stats.attackDamage * damageMultiplier,
+      stats.hitStatus
     );
   }
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { CONSUMABLES } from "../../game/consumables";
+import { STATUS_EFFECTS } from "../../game/statusEffects";
 import { Icon } from "./Icon";
 
 const BUFFS = [
@@ -7,17 +8,25 @@ const BUFFS = [
   { key: "powerPotionUntil", itemId: "power_potion", icon: "sword", color: "text-purple-400" },
 ];
 
-export const PotionBuffs = ({ buffs, isDead }) => {
+export const PotionBuffs = ({ buffs, isDead, mobile = false }) => {
   if (isDead) return null;
 
-  const active = BUFFS.filter(({ key }) => buffs?.[key] > Date.now());
+  const now = Date.now();
+  const active = BUFFS.filter(({ key }) => buffs?.[key] > now)
+    .map(({ key, itemId, icon, color }) => ({ key, icon, color, ...CONSUMABLES[itemId] }));
+  for (const { id, expiresAt } of buffs?.statusEffects || []) {
+    if (expiresAt > now && Object.hasOwn(STATUS_EFFECTS, id)) {
+      active.push({ key: id, ...STATUS_EFFECTS[id] });
+    }
+  }
   if (!active.length) return null;
 
   return (
-    <div className="absolute left-full top-1/2 ml-2 flex -translate-y-1/2 items-center gap-1 top-[16px]" aria-label="Active potion effects">
-      {active.map(({ key, itemId, icon, color }) => {
-        const item = CONSUMABLES[itemId];
-        const label = `${item.name}: ${item.description}`;
+    <div className={mobile
+      ? "absolute bottom-full left-0 mb-1 flex max-w-full flex-wrap items-center gap-1"
+      : "absolute left-full top-[16px] ml-2 flex -translate-y-1/2 items-center gap-1"} aria-label="Active effects">
+      {active.map(({ key, name, description, icon, color }) => {
+        const label = `${name}: ${description}`;
         return (
           <span
             key={key}

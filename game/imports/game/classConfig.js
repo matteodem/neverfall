@@ -18,8 +18,8 @@ export const CLASS_CONFIG = {
     swordVisible: true,
     skills: {
       ...WARRIOR_SKILLS,
-      Digit2: { ...WARRIOR_SKILLS.Digit2, name: "Heavy Strike", icon: "heavyStrike" },
-      Digit3: { ...WARRIOR_SKILLS.Digit3, name: "Cleave", icon: "cleave" },
+      Digit2: { ...WARRIOR_SKILLS.Digit2, name: "Heavy Strike", icon: "heavyStrike", selfStatus: "damageUp" },
+      Digit3: { ...WARRIOR_SKILLS.Digit3, name: "Cleave", icon: "cleave", hitStatus: "bleed" },
       Digit1: { ...WARRIOR_SKILLS.Digit1, name: "Basic Attack", icon: "sword" },
     },
   },
@@ -33,7 +33,7 @@ export const CLASS_CONFIG = {
     skills: {
       Digit1: projectileAttack("Arrow Shot", "arrow", "arrow", 0.9),
       Digit2: { ...projectileAttack("Strong Arrow", "strongArrow", "arrow", 0.9), damageMultiplier: 2, cooldown: 4000, requiresUnmounted: true },
-      Digit3: { ...projectileAttack("Multi Shot", "multiShot", "arrow", 0.9), damageMultiplier: 0.9, cooldown: 6000, projectiles: 3, spreadAngle: 12, requiresUnmounted: true },
+      Digit3: { ...projectileAttack("Multi Shot", "multiShot", "arrow", 0.9), damageMultiplier: 0.9, cooldown: 6000, projectiles: 3, spreadAngle: 12, requiresUnmounted: true, selfStatus: "speedUp" },
     },
   },
   mage: {

@@ -11,6 +11,7 @@ import { getWorldHeight } from "../../imports/game/worldConfig";
 import { collectLoot, spawnLoot } from "../inventory/loot";
 import { recordQuestEvent } from "../quests";
 import { QUESTS } from "../../imports/game/quests";
+import { copyStatusEffects } from "./statusEffects";
 
 const HUNT_FIELDS = QUESTS.map((quest) => quest.progressField).filter(Boolean);
 
@@ -108,6 +109,7 @@ export class DungeonRoom extends WorldRoom {
       player.speedPotionUntil = source.speedPotionUntil;
       player.powerPotionUntil = source.powerPotionUntil;
       player.movementSpeedMultiplier = source.movementSpeedMultiplier;
+      copyStatusEffects(source, player);
       player.respawnProtectedUntil = source.respawnProtectedUntil;
       this.respawnPosition(player);
       if (!this.participants.has(player.characterId)) {
@@ -250,6 +252,7 @@ export class DungeonRoom extends WorldRoom {
     const player = this.state.players.get(client.sessionId);
     const source = player && this.access.world.state.players.get(player.worldSessionId);
     if (source) {
+      copyStatusEffects(player, source);
       const runtime = this.access.world.playerRuntime.get(player.worldSessionId);
       if (runtime?.dungeonRoomId === this.roomId) {
         runtime.dungeonRoomId = null;
