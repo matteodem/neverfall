@@ -10,6 +10,7 @@ import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
+import { HIDDEN_CACHES } from "./hiddenCaches";
 import { getTerrainColorVariation } from "./environment/terrainColor";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
@@ -560,6 +561,7 @@ export const createWorld =
           includeFloor: false,
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
+            ...HIDDEN_CACHES.map((cache) => ({ center: cache.position, radius: 3 })),
             ...ENEMY_SPAWNS.filter((spawn) => ENEMY_TYPES[spawn.type]?.bossMechanics &&
               Math.abs(spawn.x - chunk.x) < CHUNK_SIZE / 2 && Math.abs(spawn.z - chunk.z) < CHUNK_SIZE / 2)
               .map((spawn) => ({ center: spawn, radius: 24 })),

@@ -24,6 +24,8 @@ export const MAX_CHARACTERS = 5;
 
   inventory: { items: [] },
 
+  lootedCacheIds: [],
+
   selectedTitle: null,
 
   assetFile:

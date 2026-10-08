@@ -6,8 +6,9 @@ import { useHudStore } from "../ui/stores/useHudStore";
 import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
 import { FROZEN_DISTURBANCE_POINTS } from "./quests";
 import { Characters } from "../api/characters/characters";
+import { getNearbyHiddenCache } from "./hiddenCaches";
 
-export const createDungeonInteractions = ({ room, player, visuals, dungeon }) => {
+export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals, dungeon }) => {
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
   const nearbyQuestSeal = (local) => {
     if (dungeon || !local?.characterId) return null;
@@ -16,6 +17,11 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     return nearDungeonObject(player.position, point, 4) ? point : null;
   };
   let elapsed = 100;
+  const nearbyCache = (local) => {
+    if (dungeon || local?.inDungeon || !local?.characterId) return null;
+    const character = Characters.findOne(local.characterId);
+    return character && getNearbyHiddenCache(player.position, character.lootedCacheIds);
+  };
   const update = (deltaTime) => {
     if (useDungeonStore.getState().location !== (dungeon ? "dungeon" : "world")) return;
     elapsed += deltaTime;
@@ -23,6 +29,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     elapsed %= 100;
     const state = room.state;
     const local = state?.players?.get(room.sessionId);
+    if (local?.characterId) cacheVisuals?.update(Characters.findOne(local.characterId)?.lootedCacheIds);
     const completed = dungeon && Boolean(state?.completed);
     const nearbyEntrance = !dungeon && DUNGEONS.find((entry) =>
       nearDungeonObject(player.position, entry.entrance, entry.interactionDistance));
@@ -44,6 +51,7 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
         && nearDungeonObject(player.position, config.chest, LOOT_RANGE)) prompt = "reward";
       if (dungeon && nearDungeonObject(player.position, config.exit, config.interactionDistance)) prompt = "exit";
       if (!prompt && nearbyQuestSeal(local)) prompt = "riftSeal";
+      if (!prompt && nearbyCache(local)) prompt = "hiddenCache";
     }
     useDungeonStore.getState().update({
       prompt, stage: dungeon ? state?.stage || 0 : 0, completed,
@@ -66,6 +74,10 @@ export const createDungeonInteractions = ({ room, player, visuals, dungeon }) =>
     if (state.busy || useHudStore.getState().activeModal) return true;
     if (state.prompt === "enter") enterDungeon(state.dungeonId);
     if (state.prompt === "towerChest") room.send("claimTowerChest");
+    if (state.prompt === "hiddenCache") {
+      const cache = nearbyCache(local);
+      if (cache) room.send("claimHiddenCache", cache.id);
+    }
     if (state.prompt === "riftSeal") {
       const point = nearbyQuestSeal(local);
       if (point) room.send("interactQuestPoint", point.id);

@@ -302,6 +302,8 @@ Meteor.methods({
 
       inventory: { items: [] },
 
+      lootedCacheIds: [],
+
       equipment: {
         ring: null,
         accessory: null,

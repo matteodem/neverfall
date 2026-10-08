@@ -1,4 +1,5 @@
-import { Color3, MeshBuilder, Ray, SceneLoader, StandardMaterial, TransformNode, Vector3 } from "@babylonjs/core";
+import { Ray, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
+import { createTreasureChest } from "./createTreasureChest";
 import { createNameplate } from "../nameplate";
 import { BASIC_TOWER_PLATFORM_POINT, BASIC_TOWER_POSITION, BASIC_TOWER_ROTATION_Y, BASIC_TOWER_SCALE } from "../basicTowerConfig";
 import { getWorldHeight } from "../worldConfig";
@@ -51,27 +52,11 @@ export const createBasicTower = async (scene) => {
 
   for (const mesh of towerMeshes) mesh.freezeWorldMatrix();
 
-  const chestRoot = new TransformNode("basicTowerRewardChest", scene);
+  const { root: chestRoot } = createTreasureChest(scene, "basicTowerRewardChest", { collisions: true });
   chestRoot.parent = root;
   chestRoot.position.copyFrom(Vector3.TransformCoordinates(
     surface.pickedPoint, root.getWorldMatrix().clone().invert()));
   chestRoot.position.y += 0.02;
-  const chestMaterial = new StandardMaterial("basicTowerChestGold", scene);
-  chestMaterial.diffuseColor = Color3.FromHexString("#b88b32");
-  chestMaterial.emissiveColor = Color3.FromHexString("#3e2c0a");
-  const chest = MeshBuilder.CreateBox("basicTowerChest", { width: 1.5, height: 0.9, depth: 1.1 }, scene);
-  chest.parent = chestRoot;
-  chest.position.y = 0.45;
-  chest.material = chestMaterial;
-  chest.checkCollisions = true;
-  chest.isPickable = false;
-  // The previous platforms approach from +Z, so the clasp faces that way.
-  const clasp = MeshBuilder.CreateBox("basicTowerChestClasp", { width: 0.2, height: 0.24, depth: 0.06 }, scene);
-  clasp.parent = chestRoot;
-  clasp.position.set(0, 0.45, 0.57);
-  clasp.material = new StandardMaterial("basicTowerChestClaspMaterial", scene);
-  clasp.material.diffuseColor = Color3.FromHexString("#3e2c0a");
-  clasp.isPickable = false;
   createNameplate({ scene, player: chestRoot, name: "Tower Chest", color: "#facc15", y: 1.7 });
   return root;
 };

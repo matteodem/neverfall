@@ -22,6 +22,7 @@ import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { withCharacterSlots } from "../characterSlots";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
+import { claimHiddenCache } from "./hiddenCaches";
 import { HEAL_SKILL, SKILL_CODES, getEquippedSkills, getPlayerSkills, isValidSkillLoadout } from "../../imports/game/skills";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
 import { CONSUMABLES, POTION_DURATION_MS } from "../../imports/game/consumables";
@@ -376,6 +377,7 @@ export class WorldRoom
   }
 
   messages = {
+    claimHiddenCache: (client, cacheId) => claimHiddenCache(this, client, cacheId),
     interactWorldEvent: (client) => this.worldEvents?.interact(client),
     interactQuestPoint: (client, target) => {
       const player = this.state.players.get(client.sessionId);

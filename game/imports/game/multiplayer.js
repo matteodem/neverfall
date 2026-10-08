@@ -14,6 +14,7 @@ import { getClassConfig } from "./classConfig";
 import { getPlayerTitle } from "./playerTitles";
 import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
+import { createHiddenCaches } from "./environment/createHiddenCaches";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
 import { getQuestArea, HUNT_QUESTS } from "./quests";
 import { WORLD_EVENT_INTERACTION_RADIUS } from "./worldEvents";
@@ -828,7 +829,8 @@ export const createMultiplayer =
     const mobile = getDevice().mobile;
     let attackFacingTargetId = null;
     let attackFacingUntil = 0;
-    const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, dungeon });
+    const cacheVisuals = dungeon ? null : createHiddenCaches({ scene, chunks: worldChunks });
+    const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, cacheVisuals, dungeon });
     let destroyed = false;
     const disposers = [];
     const quality = scene.metadata?.quality || QUALITY_PRESETS.standard;
@@ -1452,6 +1454,8 @@ export const createMultiplayer =
 
     onMessage("bossNotice", (text) => useBossNoticeStore.getState().show(text));
     onMessage("towerChestReward", (text) => useBossNoticeStore.getState().show(text));
+    onMessage("hiddenCacheReward", (text) => useBossNoticeStore.getState().show(text));
+    onMessage("hiddenCacheError", (text) => useBossNoticeStore.getState().show(text));
     onMessage("worldEventNotice", (text) => useBossNoticeStore.getState().show(text));
     onMessage("spawnPointUnlocked", (name) => useBossNoticeStore.getState().show(`Respawn Point Unlocked · ${name}`));
 
@@ -2176,6 +2180,7 @@ export const createMultiplayer =
         finishWaypoint();
         for (const stop of disposers) stop();
         dungeonInteractions.destroy();
+        cacheVisuals?.destroy();
         projectiles.destroy();
         bossVisuals.destroy();
         worldEventVisuals?.destroy();
