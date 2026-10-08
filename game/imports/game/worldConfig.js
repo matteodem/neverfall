@@ -12,6 +12,13 @@ export const SOUTHWEST_LAKE = { center: { x: -160, z: -160 }, radius: 14 };
 export const ANCIENT_FOREST_SHRINE = { x: -240, z: -65 };
 export const FROZEN_STONE_ARCH = { x: 250, z: -82 };
 export const SNOWY_MOUNTAINS = { boss: { x: 262, z: 0 } };
+// Southeast corner, south of the Forest Giant event's 65 m area.
+export const SOUTHEAST_MOUNTAIN = {
+  minX: 160, maxX: 260, minZ: -312, maxZ: -272,
+  summit: { x: 235, z: -292 }, height: 24,
+  summitHalfWidth: 12.5, summitHalfDepth: 10,
+  maxWalkSlopeDegrees: 40,
+};
 
 // Broad, authored slopes leave the camps, portals, and main routes on easy terrain.
 const TERRAIN_FEATURES = [
@@ -34,6 +41,22 @@ const clamp01 = (value) => Math.max(0, Math.min(1, value));
 export const getHighlandMix = (z) => smooth(clamp01((z - 50) / 220));
 export const getSnowMix = (x, z) =>
   smooth(clamp01((x - 145) / 95)) * (1 - smooth(clamp01((Math.abs(z) - 115) / 85)));
+
+export const isInSoutheastMountain = ({ x, z }, clearance = 0) =>
+  x >= SOUTHEAST_MOUNTAIN.minX - clearance && x <= SOUTHEAST_MOUNTAIN.maxX + clearance &&
+  z >= SOUTHEAST_MOUNTAIN.minZ - clearance && z <= SOUTHEAST_MOUNTAIN.maxZ + clearance;
+
+export const getSoutheastMountainHeight = (x, z) => {
+  const { minX, maxX, minZ, summit, height, summitHalfWidth, summitHalfDepth } = SOUTHEAST_MOUNTAIN;
+  // A 62.5 m western ramp, 20 m wide, leads to a flat 25 x 20 m summit.
+  // Shorter side/east slopes leave an intentional drop without extra colliders.
+  const approach = smooth(clamp01((x - minX) / (summit.x - summitHalfWidth - minX)));
+  const east = 1 - smooth(clamp01((x - summit.x - summitHalfWidth) /
+    (maxX - summit.x - summitHalfWidth)));
+  const sides = 1 - smooth(clamp01((Math.abs(z - summit.z) - summitHalfDepth) /
+    (summit.z - minZ - summitHalfDepth)));
+  return height * approach * east * sides;
+};
 
 export const getForestGiantHillHeight = (x, z) => {
   const distance = Math.hypot(x - FOREST_GIANT_HILL.center.x, z - FOREST_GIANT_HILL.center.z);
@@ -58,7 +81,7 @@ export const getWorldHeight = (x, z) => {
   const easternCliff = 180 * smooth(clamp01((x - WORLD_EAST_BOUNDARY) / 35));
   const bossRise = 5 * (1 - smooth(clamp01(
     (Math.hypot(x - SNOWY_MOUNTAINS.boss.x, z - SNOWY_MOUNTAINS.boss.z) - 15) / 25)));
-  return existingHeight + snowSlope + easternCliff + bossRise;
+  return existingHeight + snowSlope + easternCliff + bossRise + getSoutheastMountainHeight(x, z);
 };
 
 export const WORLD_REGIONS = {

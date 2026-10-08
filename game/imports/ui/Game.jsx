@@ -936,6 +936,7 @@ export const Game = ({
               const movement = playerAlive && !useWaypointStore.getState().traveling ?
                 updateMovement({
                   deltaTime,
+                  terrain: world.terrain,
 
                   input:
                     input.state,

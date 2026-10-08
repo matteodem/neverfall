@@ -1,6 +1,8 @@
 import {
+  Ray,
   Vector3,
 } from "@babylonjs/core";
+import { SOUTHEAST_MOUNTAIN, isInSoutheastMountain } from "./worldConfig";
 
 import {
   PLAYER,
@@ -105,12 +107,33 @@ export const isMoving = (
   );
 };
 
+const limitMountainClimb = (player, terrain, displacement) => {
+  // Include the ground mesh's outer triangles around the authored footprint.
+  if (!terrain || !isInSoutheastMountain(player.position, 8)) return;
+  const ahead = player.position.add(displacement.normalizeToNew().scale(
+    player.ellipsoid.x + displacement.length()));
+  // Probe the leading edge of the collision body, including normal jump height.
+  const hit = terrain.intersects(new Ray(
+    new Vector3(ahead.x, player.position.y + 3, ahead.z),
+    new Vector3(0, -1, 0), 6,
+  ), true);
+  const normal = hit.hit && hit.getNormal(true, false);
+  if (!normal || normal.y >= Math.cos(SOUTHEAST_MOUNTAIN.maxWalkSlopeDegrees * Math.PI / 180)) return;
+  const intoSlope = displacement.x * normal.x + displacement.z * normal.z;
+  if (intoSlope >= 0) return; // Descending and jumping away remain available.
+  const horizontalNormalLength = normal.x * normal.x + normal.z * normal.z;
+  // Remove only the uphill component, allowing movement along the contour.
+  displacement.x -= normal.x * intoSlope / horizontalNormalLength;
+  displacement.z -= normal.z * intoSlope / horizontalNormalLength;
+};
+
 
 export const updateMovement = ({
   deltaTime,
   input,
   camera,
   player,
+  terrain = null,
   speedMultiplier = 1,
 }) => {
   const movement =
@@ -144,6 +167,9 @@ export const updateMovement = ({
     movement.scale(
       distance
     );
+
+  limitMountainClimb(player, terrain, displacement);
+  movement.copyFrom(displacement).normalize();
 
   /*
    * Use Babylon collisions instead

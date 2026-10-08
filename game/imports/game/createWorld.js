@@ -2,7 +2,7 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, getHighlandMix, getSnowMix, getWorldHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldHeight, getSoutheastMountainHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -198,12 +198,14 @@ export const createWorld =
         const shade = 1 + variation.shade;
         const snow = getSnowMix(x, z);
         const stoneMix = Math.max(0, Math.min(1, (x - 275) / 45));
+        const mountainStone = Math.min(1, getSoutheastMountainHeight(x, z) / 8);
         const colorIndex = index / 3 * 4;
         for (const [offset, channel] of ["r", "g", "b"].entries()) {
           const warm = (forestColor[channel] + (highlandColor[channel] - forestColor[channel]) * mix) *
             shade * baseWeight + oliveColor[channel] * variation.olive + brownColor[channel] * variation.brown;
           const cold = snowColor[channel] + (coldStoneColor[channel] - snowColor[channel]) * stoneMix;
-          colors[colorIndex + offset] = warm * (1 - snow) + cold * snow * shade;
+          const terrain = warm * (1 - snow) + cold * snow * shade;
+          colors[colorIndex + offset] = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
         }
         colors[colorIndex + 3] = 1;
       }
@@ -561,6 +563,12 @@ export const createWorld =
           includeFloor: false,
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
+            // Keep fallback scenery off the mountain's approach and summit too.
+            { center: {
+              x: (SOUTHEAST_MOUNTAIN.minX + SOUTHEAST_MOUNTAIN.maxX) / 2,
+              z: SOUTHEAST_MOUNTAIN.summit.z,
+            }, radius: Math.hypot(SOUTHEAST_MOUNTAIN.maxX - SOUTHEAST_MOUNTAIN.minX,
+              SOUTHEAST_MOUNTAIN.maxZ - SOUTHEAST_MOUNTAIN.minZ) / 2 + 3 },
             ...HIDDEN_CACHES.map((cache) => ({ center: cache.position, radius: 3 })),
             ...ENEMY_SPAWNS.filter((spawn) => ENEMY_TYPES[spawn.type]?.bossMechanics &&
               Math.abs(spawn.x - chunk.x) < CHUNK_SIZE / 2 && Math.abs(spawn.z - chunk.z) < CHUNK_SIZE / 2)
@@ -702,6 +710,7 @@ export const createWorld =
 
     return {
       worldChunks: chunks,
+      terrain: dungeon ? null : ground,
       dungeonVisuals,
       player,
 

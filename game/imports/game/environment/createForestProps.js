@@ -7,7 +7,7 @@ import { QUESTS } from "../quests";
 import { DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, SPAWN_POINTS } from "../spawnPoints";
 import { WAYPOINTS } from "../waypoints";
 import { WORLD_EVENTS } from "../worldEvents";
-import { ANCIENT_FOREST_SHRINE, FOREST_GIANT_HILL, FROZEN_STONE_ARCH, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight } from "../worldConfig";
+import { ANCIENT_FOREST_SHRINE, FOREST_GIANT_HILL, FROZEN_STONE_ARCH, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight, isInSoutheastMountain } from "../worldConfig";
 
 const MODELS = {
   broadleaf: ["birch_1", "oak_2"],
@@ -103,6 +103,7 @@ const distanceToPath = (position, { from, to }) => {
 };
 
 const isOpen = (position, clearance, areas) =>
+  !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
     Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
   PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance);
