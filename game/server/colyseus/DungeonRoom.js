@@ -12,6 +12,7 @@ import { collectLoot, spawnLoot } from "../inventory/loot";
 import { recordQuestEvent } from "../quests";
 import { QUESTS } from "../../imports/game/quests";
 import { copyStatusEffects } from "./statusEffects";
+import { createDungeonExitTrace } from "../../imports/game/dungeonExitTrace";
 
 const HUNT_FIELDS = QUESTS.map((quest) => quest.progressField).filter(Boolean);
 
@@ -247,7 +248,16 @@ export class DungeonRoom extends WorldRoom {
   // WorldRoom.onLeave still handles aggro cleanup and last-played persistence.
   leaveGroup() {}
 
-  async onLeave(client) {
+  async onLeave(client, code) {
+    const trace = createDungeonExitTrace({
+      side: "server", dungeonRoomId: this.roomId,
+      dungeonSessionId: client.sessionId,
+      worldSessionId: this.state.players.get(client.sessionId)?.worldSessionId,
+    });
+    client.dungeonExitTrace = trace;
+    trace("DungeonRoom onLeave started", { code, completed: this.state.completed, socketState: client.ref.readyState });
+    if (client.ref.readyState !== 3)
+      client.ref.once("close", (closeCode) => trace("DungeonRoom server socket closed", { code: closeCode }));
     this.syncPartyState();
     const player = this.state.players.get(client.sessionId);
     const source = player && this.access.world.state.players.get(player.worldSessionId);
@@ -265,11 +275,21 @@ export class DungeonRoom extends WorldRoom {
       source.y = getWorldHeight(source.x, source.z);
       source.rotationY = 0;
       source.inDungeon = false;
+      trace("WorldRoom return state updated", { x: source.x, y: source.y, z: source.z, health: source.health });
     }
-    await super.onLeave(client);
+    try {
+      await super.onLeave(client);
+      trace("DungeonRoom onLeave completed", { playersRemaining: this.state.players.size });
+    } catch (error) {
+      trace("DungeonRoom cleanup failed", { message: error.message });
+      throw error;
+    } finally {
+      delete client.dungeonExitTrace;
+    }
   }
 
   onDispose() {
+    console.info("[dungeon-exit] DungeonRoom disposed", { at: new Date().toISOString(), dungeonRoomId: this.roomId });
     removeDungeonAccess(this.accessKey);
   }
 }

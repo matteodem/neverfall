@@ -1293,6 +1293,8 @@ export class WorldRoom
   async onLeave(
     client
   ) {
+    const trace = client.dungeonExitTrace;
+    trace?.("shared WorldRoom cleanup started");
     const leavingPlayer =
       this.state.players.get(
         client.sessionId
@@ -1344,6 +1346,7 @@ export class WorldRoom
     }
 
 
+    trace?.("lastPlayedAt persistence started");
     await Characters.updateAsync(
       leavingPlayer.characterId,
       {
@@ -1353,6 +1356,7 @@ export class WorldRoom
         },
       }
     );
+    trace?.("lastPlayedAt persistence completed");
 
 
     /*

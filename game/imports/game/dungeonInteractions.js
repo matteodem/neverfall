@@ -1,6 +1,6 @@
 import { LOOT_RANGE } from "./inventory";
 import { DUNGEONS, getDungeonConfig, nearDungeonObject } from "./dungeonConfig";
-import { enterDungeon, leaveDungeon } from "./gameSession";
+import { enterDungeon, leaveDungeon, traceDungeonExitRequested } from "./gameSession";
 import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useHudStore } from "../ui/stores/useHudStore";
 import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
@@ -85,6 +85,7 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
     if (state.prompt === "challengeMote") room.send("dungeonChallengeToggle");
     if (state.prompt === "reward") room.send("dungeonReward");
     if (state.prompt === "exit") {
+      traceDungeonExitRequested("portal");
       useDungeonStore.getState().setBusy(true);
       room.send("dungeonExit");
     }

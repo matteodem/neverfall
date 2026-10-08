@@ -7,9 +7,30 @@ import { useDungeonStore } from "../ui/stores/useDungeonStore";
 import { useQuestCompletionStore } from "../ui/stores/useQuestCompletionStore";
 import { useQuestStore } from "../ui/stores/useQuestStore";
 import { useTargetStore } from "../ui/stores/useTargetStore";
+import { createDungeonExitTrace } from "./dungeonExitTrace";
 
 let session = null;
 let connecting = null;
+
+export const getDungeonExitTrace = () => session?.exitTrace;
+export const clearDungeonExitTrace = (trace) => {
+  if (session && session.exitTrace === trace) session.exitTrace = null;
+};
+export const traceDungeonExitRequested = (reason) => {
+  const current = session;
+  if (!current || current.room === current.worldRoom) return null;
+  if (!current.exitTrace) {
+    current.exitTrace = createDungeonExitTrace({
+      side: "client", reason,
+      dungeonRoomId: current.room.roomId,
+      dungeonSessionId: current.room.sessionId,
+      worldRoomId: current.worldRoom.roomId,
+      worldSessionId: current.worldRoom.sessionId,
+    });
+    current.exitTrace("leave requested");
+  }
+  return current.exitTrace;
+};
 
 const leaveRoom = (room) => room?.connection?.isOpen ? room.leave() : Promise.resolve();
 
@@ -55,8 +76,14 @@ const finishEntry = async (current, { roomId, worldSessionId, dungeonId }) => {
     current.pendingRoom = null;
     current.room = room;
     room.onMessage("dungeonError", (message) => useDungeonStore.getState().setError(message));
-    room.onMessage("dungeonExitReady", () => finishExit(current));
-    room.onLeave(() => {
+    room.onMessage("dungeonExitReady", () => {
+      traceDungeonExitRequested("portal")?.("exit portal accepted by server");
+      return finishExit(current);
+    });
+    room.onDrop((code) => current.exitTrace?.("DungeonRoom transport dropped", { code }));
+    room.onReconnect(() => current.exitTrace?.("DungeonRoom transport reconnected"));
+    room.onLeave((code) => {
+      current.exitTrace?.("DungeonRoom socket closed", { code });
       if (session !== current || current.exiting) return;
       current.room = current.worldRoom;
       useDungeonStore.getState().setLocation("world");
@@ -74,20 +101,43 @@ const finishEntry = async (current, { roomId, worldSessionId, dungeonId }) => {
 
 const finishExit = async (current) => {
   if (session !== current || current.exiting || current.room === current.worldRoom) return;
+  const trace = traceDungeonExitRequested("manual");
+  let worldReturned = false;
+  const observeWorldReturn = (state) => {
+    const player = state?.players?.get(current.worldRoom.sessionId);
+    if (worldReturned || player?.inDungeon !== false) return;
+    worldReturned = true;
+    trace?.("WorldRoom return state received", { x: player.x, y: player.y, z: player.z, health: player.health });
+  };
+  current.worldRoom.onStateChange(observeWorldReturn);
+  observeWorldReturn(current.worldRoom.state);
   current.exiting = true;
   useDungeonStore.getState().setBusy(true);
   try {
+    // Production can report the close as 1005 (no status). This room is being
+    // deliberately retired: do not let SDK retries postpone its leave promise.
+    // Unexpected drops and the retained WorldRoom keep their normal recovery.
+    current.room.reconnection.enabled = false;
+    trace?.("DungeonRoom leave started", { socketOpen: Boolean(current.room.connection?.isOpen) });
     await leaveRoom(current.room);
+    trace?.("DungeonRoom leave completed");
     current.room = current.worldRoom;
+    trace?.("WorldRoom resume started", { reusedConnection: true, socketOpen: Boolean(current.worldRoom.connection?.isOpen) });
     await waitForState(current.worldRoom, (state) => state?.players?.get(current.worldRoom.sessionId)?.inDungeon === false);
-    if (session === current) useDungeonStore.getState().setLocation("world");
+    trace?.("WorldRoom resume completed");
+    if (session === current) {
+      trace?.("world scene transition requested");
+      useDungeonStore.getState().setLocation("world");
+    }
   } catch (error) {
+    trace?.("exit failed", { message: error.message });
     if (session === current) {
       current.room = current.worldRoom;
       useDungeonStore.getState().setLocation("world");
       useDungeonStore.getState().setError(error.message);
     }
   } finally {
+    current.worldRoom.onStateChange.remove(observeWorldReturn);
     current.exiting = false;
   }
 };
@@ -130,7 +180,10 @@ export const getGameSession = async () => {
       current.entering = false;
       useDungeonStore.getState().setError(message);
     });
-    worldRoom.onLeave(() => {
+    worldRoom.onDrop((code) => current.exitTrace?.("WorldRoom transport dropped", { code }));
+    worldRoom.onReconnect(() => current.exitTrace?.("WorldRoom transport reconnected"));
+    worldRoom.onLeave((code) => {
+      current.exitTrace?.("WorldRoom socket closed", { code });
       if (session !== current) return;
       session = null;
       current.disconnectGroups();

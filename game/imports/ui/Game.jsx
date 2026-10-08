@@ -1,6 +1,7 @@
 import { useQualityStore } from "./stores/useQualityStore";
 import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
+import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { Meteor } from "meteor/meteor";
@@ -142,6 +143,8 @@ export const Game = ({
 
   useEffect(
     () => {
+      const exitTrace = location === "world" ? getDungeonExitTrace() : null;
+      exitTrace?.("World scene loading started");
       setSelectedPlayer(null);
       let engine =
         null;
@@ -246,6 +249,7 @@ export const Game = ({
            * =====================================================
            */
 
+          exitTrace?.("world assets and starting chunk loading started");
           const world =
             await createWorld(
               scene,
@@ -261,8 +265,7 @@ export const Game = ({
                 quality: QUALITY_PRESETS[quality],
               }
             );
-
-
+          exitTrace?.("world assets and starting chunk loading completed");
           if (
             disposed
           ) {
@@ -357,6 +360,7 @@ export const Game = ({
            * =====================================================
            */
 
+          exitTrace?.("WorldRoom scene binding started");
           multiplayer =
             await createMultiplayer({
               scene,
@@ -415,8 +419,7 @@ export const Game = ({
                   );
                 },
             });
-
-
+          exitTrace?.("WorldRoom scene binding completed");
           if (
             disposed
           ) {
@@ -426,8 +429,12 @@ export const Game = ({
             return;
           }
 
+          exitTrace?.("return chunk loading started", { x: player.position.x, y: player.position.y, z: player.position.z });
           await world.worldChunks?.loadAt(player.position);
+          exitTrace?.("return chunk loading completed");
+          exitTrace?.("nearby enemy loading started");
           await multiplayer.preloadEnemiesAt(player.position);
+          exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
@@ -890,6 +897,11 @@ export const Game = ({
 
 
           engine.hideLoadingUI();
+          exitTrace?.("loading cleared");
+          if (exitTrace) scene.onAfterRenderObservable.addOnce(() => {
+            exitTrace("first world frame rendered; controls active");
+            clearDungeonExitTrace(exitTrace);
+          });
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
           if (world.worldChunks) scene.onAfterRenderObservable.addOnce(() => {
@@ -1083,6 +1095,7 @@ export const Game = ({
         (
           error
         ) => {
+          exitTrace?.("world scene loading failed", { message: error?.message });
           console.error(
             "[Game] Failed to initialize:",
             error
@@ -1121,6 +1134,8 @@ export const Game = ({
       return () => {
         disposed =
           true;
+        if (getDungeonExitTrace() === exitTrace)
+          exitTrace?.("world scene cleanup started", { location: useDungeonStore.getState().location });
 
 
         /*
