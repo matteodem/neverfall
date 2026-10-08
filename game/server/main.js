@@ -9,6 +9,7 @@ import "./methods/colyseusAuth";
 import "./methods/characters";
 import "./methods/guestCharacters";
 import "./methods/shop";
+import "./methods/inventory";
 import "./methods/onboarding";
 
 import "./publications/characters";

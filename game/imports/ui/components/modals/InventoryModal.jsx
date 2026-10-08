@@ -35,10 +35,10 @@ import { CONSUMABLES } from "../../../game/consumables";
 import { useHudStore } from "../../stores/useHudStore";
 import { SellItemModal } from "./SellItemModal";
 import { EquipmentInspection } from "./EquipmentInspection";
+import { getInventorySlots } from "../../../game/inventoryLayout";
+import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
+import { InventoryDropTarget, InventoryMoveFeedback } from "./InventoryDropTarget";
 
-
-const INVENTORY_SLOTS =
-  20;
 
 const ITEM_DISPLAY = {
   boar_skin: {
@@ -182,14 +182,16 @@ const InventorySlot = ({
   onClose,
   onSell,
   onInspect,
+  onMove,
   equipment,
 }) => {
   if (
     !item
   ) {
     return (
-      <div
+      <button type="button" aria-label="Empty backpack slot"
         className="
+          block w-full
           aspect-square
           min-w-0
 
@@ -267,6 +269,10 @@ const InventorySlot = ({
                 Use
               </button>
             </li>}
+            <li><button type="button" {...actionButtonHandlers(() => {
+              onClose();
+              onMove();
+            }, mobile)}>Move</button></li>
             {sellable && <li>
               <button type="button" {...actionButtonHandlers(() => {
                 onSell(item);
@@ -375,6 +381,9 @@ export const InventoryModal =
       money,
       items,
       equipment,
+      characterId,
+      rawItems,
+      slotOrder,
     } =
       useTracker(
         () => {
@@ -397,6 +406,9 @@ export const InventoryModal =
 
 
           return {
+            characterId: currentCharacterId,
+            rawItems: character?.inventory?.items || [],
+            slotOrder: character?.inventory?.slotOrder || [],
             equipment: character?.equipment || {},
             money:
               splitMoney(
@@ -425,22 +437,14 @@ export const InventoryModal =
       }
     }, [inspectedItemId, inspectedItem]);
 
-    const slots =
-      Array.from(
-        {
-          length:
-            INVENTORY_SLOTS,
-        },
-
-        (
-          _,
-          index
-        ) =>
-          items[
-            index
-          ] ||
-          null
-      );
+    const slots = getInventorySlots(rawItems, slotOrder);
+    const moveItem = (itemId) => useInventoryDragStore.getState().select({
+      characterId, itemId, type: "inventory", mode: "move",
+    });
+    useEffect(() => () => {
+      const state = useInventoryDragStore.getState();
+      if (state.source?.characterId === characterId && state.source.type === "inventory") state.clear();
+    }, [characterId]);
 
 
     return (
@@ -520,7 +524,7 @@ export const InventoryModal =
                 {" "}
                 /{" "}
                 {
-                  INVENTORY_SLOTS
+                  slots.length
                 }
                 {" "}
                 slots used
@@ -535,6 +539,7 @@ export const InventoryModal =
            * =====================================================
            */}
 
+          <InventoryMoveFeedback />
           <div
             className="
               grid
@@ -558,6 +563,8 @@ export const InventoryModal =
                 item,
                 index
               ) => (
+                <InventoryDropTarget key={index} characterId={characterId} itemId={item?.id}
+                  target={{ type: "inventory", index }} mobile={mobile} onDragStart={() => setOpenItem(null)}>
                 <InventorySlot
                   equipment={equipment}
                   onInspect={() => {
@@ -570,6 +577,7 @@ export const InventoryModal =
                   onToggle={() => setOpenItem((previous) => previous === item.id ? null : item.id)}
                   onClose={() => setOpenItem(null)}
                   onSell={openSell}
+                  onMove={() => moveItem(item.id)}
                   key={
                     item
                       ? `${item.id}-${index}`
@@ -579,6 +587,7 @@ export const InventoryModal =
                     item
                   }
                 />
+                </InventoryDropTarget>
               )
             )}
           </div>
@@ -625,7 +634,7 @@ export const InventoryModal =
       {sellingItem && <SellItemModal itemId={sellingItem.id} available={sellingItem.count}
         itemDisplay={ITEM_DISPLAY[sellingItem.id]} onClose={() => setSellingItem(null)} />}
       {inspectedItem && <EquipmentInspection item={inspectedItem} equipment={equipment} mobile={mobile}
-        onClose={() => setInspectedItemId(null)} onSell={openSell} />}
+        onClose={() => setInspectedItemId(null)} onSell={openSell} onMove={() => moveItem(inspectedItem.id)} />}
       </>
     );
   };

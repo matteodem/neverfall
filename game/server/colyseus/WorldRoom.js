@@ -22,6 +22,7 @@ import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { withCharacterSlots } from "../characterSlots";
 import { BASIC_TOWER_CHEST_POSITION } from "../../imports/game/basicTowerConfig";
+import { moveInventoryItem } from "../../imports/game/inventoryLayout";
 import { claimHiddenCache } from "./hiddenCaches";
 import { HEAL_SKILL, SKILL_CODES, getEquippedSkills, getPlayerSkills, isValidSkillLoadout } from "../../imports/game/skills";
 import { TALENT_LEVELS, TALENTS, getSelectedTalents, getTalentSkill } from "../../imports/game/talents";
@@ -339,13 +340,19 @@ export class WorldRoom
     if (player.inDungeon) this.dungeons?.syncPlayer(player);
   }
 
-  async persistPlayerEquipment(player, equipment, inventoryItems) {
+  async persistPlayerEquipment(player, equipment, inventoryItems, character, slotOrder) {
     const updated = await Characters.updateAsync(
-      { _id: player.characterId, userId: player.userId },
+      {
+        _id: player.characterId, userId: player.userId,
+        "inventory.items": character.inventory?.items ?? { $exists: false },
+        equipment: character.equipment ?? { $exists: false },
+        ...(slotOrder ? { "inventory.slotOrder": character.inventory?.slotOrder ?? { $exists: false } } : {}),
+      },
       {
         $set: {
           equipment,
           "inventory.items": inventoryItems,
+          ...(slotOrder ? { "inventory.slotOrder": slotOrder } : {}),
         },
       }
     );
@@ -558,18 +565,20 @@ export class WorldRoom
         ...(character.equipment || {}),
       };
       const replacedItemId = equipment[slot];
+      if (replacedItemId === itemId) return;
       inventoryItems.splice(itemIndex, 1);
       if (replacedItemId && replacedItemId !== itemId) {
         inventoryItems.push({ id: replacedItemId });
       }
       equipment[slot] = itemId;
 
-      if (await this.persistPlayerEquipment(player, equipment, inventoryItems)) {
+      if (await this.persistPlayerEquipment(player, equipment, inventoryItems, character)) {
         await trackAchievements(player.characterId, "equip");
       }
     },
 
-    unequipItem: async (client, slot) => {
+    unequipItem: async (client, target) => {
+      const slot = typeof target === "string" ? target : target?.slot;
       this.recordActivity(client.sessionId);
       const player = this.state.players.get(client.sessionId);
       if (!player || player.inDungeon || player.health <= 0 || !EQUIPMENT_SLOTS.includes(slot)) return;
@@ -586,11 +595,16 @@ export class WorldRoom
       };
       const equippedItemId = equipment[slot];
       if (!equippedItemId) return;
+      const dragging = typeof target === "object" && target !== null;
+      if (dragging && target.itemId !== equippedItemId) return;
 
       const inventoryItems = [...(character.inventory?.items || []), { id: equippedItemId }];
       equipment[slot] = null;
-
-      await this.persistPlayerEquipment(player, equipment, inventoryItems);
+      const slotOrder = dragging
+        ? moveInventoryItem(inventoryItems, character.inventory?.slotOrder, equippedItemId, target.inventoryIndex)
+        : undefined;
+      if (dragging && !slotOrder) return;
+      await this.persistPlayerEquipment(player, equipment, inventoryItems, character, slotOrder);
     },
 
     useConsumable: async (client, itemId) => {

@@ -7,7 +7,7 @@ import { useHudStore } from "../../stores/useHudStore";
 import { HudModal } from "../HudModal";
 import { actionButtonHandlers } from "../actionButtonHandlers";
 
-export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell }) => {
+export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, onMove }) => {
   const definition = EQUIPMENT_ITEMS[item.id];
   const { current, stats, isUpgrade } = getEquipmentComparison(definition, equipment);
   const slot = definition.slot[0].toUpperCase() + definition.slot.slice(1);
@@ -42,6 +42,10 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell }
         <span className="opacity-70">Compared to: </span>{current?.name || `Empty ${slot.toLowerCase()} slot`}
       </p>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
+        <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
+          close();
+          onMove();
+        }, mobile)}>Move</button>
         {sellable && <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
           close();
           onSell(item);

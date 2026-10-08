@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 
@@ -13,6 +13,8 @@ import { useEquipmentStore } from "../../stores/useEquipmentStore";
 import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { formatClassBonus, getUnlockedClassBonuses } from "../../../game/classProgression";
+import { InventoryDropTarget, InventoryMoveFeedback } from "./InventoryDropTarget";
+import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
 
 const EquipmentSlot = ({ slot, itemId }) => {
   const item = EQUIPMENT_ITEMS[itemId];
@@ -53,23 +55,32 @@ const EquipmentSlot = ({ slot, itemId }) => {
 
 export const GearModal = ({ embedded = false }) => {
   const { mobile } = useMobileDevice();
-  const { equipment, bonuses } = useTracker(() => {
+  const { equipment, bonuses, characterId } = useTracker(() => {
     const currentCharacterId = Meteor.user()?.profile?.currentCharacterId;
     const character = currentCharacterId ? Characters.findOne(currentCharacterId) : null;
 
     return {
+      characterId: currentCharacterId,
       equipment: { ...DEFAULT_EQUIPMENT, ...(character?.equipment || {}) },
       bonuses: getUnlockedClassBonuses(character?.gameClass, character?.currentLevel),
     };
   });
+  useEffect(() => () => {
+    const state = useInventoryDragStore.getState();
+    if (state.source?.characterId === characterId && state.source.type === "equipment") state.clear();
+  }, [characterId]);
 
   return (
     <HudModal id="gear" title="Gear" embedded={embedded} scrollable={mobile}>
       <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
         <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Equipped</h4>
+        <InventoryMoveFeedback />
         <div className="grid grid-cols-2 gap-2">
           {EQUIPMENT_SLOTS.map((slot) => (
-            <EquipmentSlot key={slot} slot={slot} itemId={equipment[slot]} />
+            <InventoryDropTarget key={slot} characterId={characterId} itemId={equipment[slot]}
+              target={{ type: "equipment", slot }} mobile={mobile}>
+              <EquipmentSlot slot={slot} itemId={equipment[slot]} />
+            </InventoryDropTarget>
           ))}
         </div>
         <div className="mt-3 border-t border-gray-200 pt-3">
