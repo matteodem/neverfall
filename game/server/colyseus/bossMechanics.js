@@ -2,6 +2,7 @@ import { ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 
 // Special attacks use the same authoritative damage path as normal melee.
 const damageArea = (room, x, z, radius, damage, hitPlayers, start, hitStatus) => {
+  const damagedPlayers = [];
   for (const [sessionId, player] of room.state.players) {
     if (player.inDungeon || player.health <= 0 || hitPlayers?.has(sessionId)) continue;
     let closestX = x;
@@ -17,8 +18,11 @@ const damageArea = (room, x, z, radius, damage, hitPlayers, start, hitStatus) =>
     }
     if (Math.hypot(player.x - closestX, player.z - closestZ) > radius) continue;
     hitPlayers?.add(sessionId);
+    const health = player.health;
     room.damagePlayer(sessionId, damage, hitStatus);
+    if (player.health < health) damagedPlayers.push(sessionId);
   }
+  return damagedPlayers;
 };
 
 const notify = (room, enemy, text) => {
@@ -55,7 +59,12 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
     runtime.lastCombatAt = now;
     if (enemy.bossAction === "aoe") {
       if (now >= action.endsAt) {
-        damageArea(room, enemy.bossTargetX, enemy.bossTargetZ, config.aoe.radius, damage, null, null, stats.heavyHitStatus);
+        const hitSessionIds = damageArea(room, enemy.bossTargetX, enemy.bossTargetZ,
+          config.aoe.radius, damage, null, null, stats.heavyHitStatus);
+        if (config.aoe.name) room.broadcast("bossImpact", {
+          enemyId: runtime.spawn.id, type: enemy.type,
+          x: enemy.bossTargetX, z: enemy.bossTargetZ, radius: config.aoe.radius, hitSessionIds,
+        });
         cancelBossAction(enemy, runtime);
       }
     } else if (enemy.bossAction === "chargeWindup") {
@@ -83,6 +92,7 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
     enemy.bossRadius = config.aoe.radius;
     runtime.bossAction = { endsAt: now + config.aoe.telegraphDuration };
     runtime.nextBossAoeAt = now + config.aoe.cooldown;
+    if (config.aoe.name) notify(room, enemy, `${stats.name}: ${config.aoe.name} — move out of the circle!`);
     return true;
   }
   if (now >= runtime.nextBossChargeAt) {

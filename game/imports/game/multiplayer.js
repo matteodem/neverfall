@@ -868,7 +868,11 @@ export const createMultiplayer =
 
     const loot = createLoot({ scene, room, callbacks, player });
     const projectiles = createProjectileVisuals(scene);
-    const bossVisuals = createBossVisuals(scene);
+    const bossVisuals = createBossVisuals(scene, { dungeon });
+    onMessage("bossImpact", (impact) => {
+      if (enemies.get(impact.enemyId)?.visibility.isVisible()) bossVisuals.impact(impact);
+      if (impact.hitSessionIds.includes(room.sessionId)) useCombatStore.getState().triggerCombat();
+    });
     const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene, forestProps);
     onMessage("movementCorrection", ({ x, y, z }) => {
       player.position.set(x, y + JUMP.groundY, z);

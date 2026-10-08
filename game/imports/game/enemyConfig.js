@@ -179,6 +179,11 @@ ENEMY_TYPES.frostboundSentinel = {
 };
 ENEMY_TYPES.frostOgre = {
   ...ENEMY_TYPES.forestGiant,
+  bossMechanics: {
+    ...BOSS_MECHANICS,
+    aoe: { ...BOSS_MECHANICS.aoe, name: "Frost Slam", color: "#72ddff" },
+  },
+  animations: { ...ENEMY_TYPES.forestGiant.animations, heavyAttack: "Attack" },
   name: "Frost Ogre",
   health: 3200,
   attackDamage: 110,
@@ -190,6 +195,10 @@ ENEMY_TYPES.frostOgre = {
 
 ENEMY_TYPES.hammerBoss = {
   ...ENEMY_TYPES.forestGiant,
+  bossMechanics: {
+    ...BOSS_MECHANICS,
+    aoe: { ...BOSS_MECHANICS.aoe, name: "Hammer Smash", color: "#ffb347", telegraphDuration: 1800 },
+  },
   name: "Hammer Guardian",
   model: "bosses/hammer-boss.glb",
   scale: 1.4,
@@ -258,6 +267,11 @@ ENEMY_TYPES.sunkenGuardian = {
 };
 ENEMY_TYPES.drownedWarden = {
   ...ENEMY_TYPES.dungeonWarden,
+  bossMechanics: {
+    ...BOSS_MECHANICS,
+    aoe: { ...BOSS_MECHANICS.aoe, name: "Crushing Undertow", color: "#63e6c6" },
+  },
+  animations: { ...ENEMY_TYPES.dungeonWarden.animations, heavyAttack: "Attack" },
   name: "The Drowned Warden",
   health: 900,
   attackDamage: 45,
