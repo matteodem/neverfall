@@ -1527,6 +1527,7 @@ export const createMultiplayer =
      */
 
     onMessage("projectileEnd", ({ id }) => projectiles.remove(id));
+    onMessage("projectileUpdate", (updates) => projectiles.correct(updates));
 
     onMessage(
       "enemyAttack",

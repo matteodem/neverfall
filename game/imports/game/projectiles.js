@@ -80,6 +80,19 @@ export const createProjectileVisuals = (scene) => {
         created: stats.reduce((sum, stat) => sum + stat.created, 0) };
     },
     remove,
+    correct(updates) {
+      for (const data of updates) {
+        const projectile = active.get(data.id);
+        if (!projectile) continue;
+        projectile.dx = data.dx;
+        projectile.dy = data.dy;
+        projectile.dz = data.dz;
+        projectile.remaining = data.remaining;
+        projectile.root.position.set(data.x, data.y, data.z);
+        projectile.root.rotation.set(-Math.atan2(data.dy, Math.hypot(data.dx, data.dz)),
+          Math.atan2(data.dx, data.dz), 0);
+      }
+    },
     update(deltaTime) {
       for (const projectile of active.values()) {
         const elapsed = Math.min(deltaTime, projectile.remaining);

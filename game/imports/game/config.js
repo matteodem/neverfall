@@ -35,6 +35,11 @@ export const PROJECTILE_AIM = {
   hitboxScale: 1.2,
 };
 
+export const PROJECTILE_HOMING = {
+  maxTurnDegreesPerSecond: 9,
+  maxTrackingAngleDegrees: 45,
+};
+
 export const WARRIOR_SKILLS = {
   Digit1: { damageMultiplier: 1, cooldown: ATTACK.cooldown, range: ATTACK.range },
   Digit2: { damageMultiplier: 2, cooldown: 4000, range: ATTACK.range },

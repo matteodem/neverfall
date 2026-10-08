@@ -173,7 +173,7 @@ export const getGameSession = async () => {
     const current = { client, room: worldRoom, worldRoom, entering: false, exiting: false, disconnectGroups: connectGroups(worldRoom) };
     session = current;
     // The party connection receives combat broadcasts while its scene is inactive.
-    for (const type of ["attack", "enemyAttack", "playerHeal", "healCooldown", "skillCooldown", "projectileEnd"]) worldRoom.onMessage(type, () => {});
+    for (const type of ["attack", "enemyAttack", "playerHeal", "healCooldown", "skillCooldown", "projectileEnd", "projectileUpdate"]) worldRoom.onMessage(type, () => {});
     worldRoom.onMessage("dungeonReady", (data) => finishEntry(current, data));
     worldRoom.onMessage("dungeonError", (message) => {
       clearTimeout(current.entryTimeout);

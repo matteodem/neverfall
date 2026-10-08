@@ -2183,7 +2183,9 @@ export class WorldRoom
       if (!nearby && runtime.aiElapsed < PERFORMANCE.inactiveEnemyInterval) continue;
       const elapsed = nearby ? deltaTime : runtime.aiElapsed;
       runtime.aiElapsed = 0;
+      const beforeMovement = { x: enemy.x, z: enemy.z };
       this.updateEnemy(enemyId, enemy, runtime, elapsed);
+      this.projectiles.recordTargetMovement(enemy, beforeMovement, elapsed);
 
       enemy.bossActive = Boolean(runtime.isBoss && runtime.targetSessionId);
       this.updateEnemyRegeneration(enemy, runtime, elapsed);

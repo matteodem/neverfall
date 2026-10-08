@@ -1,8 +1,11 @@
 // Projectiles use server positions and skill stats; clients only request attacks.
 import { MOBILE_TARGETING, PROJECTILE_AIM } from "../../imports/game/config";
+import { createProjectileLead } from "./projectileLead";
+import { guideProjectile } from "./projectileHoming";
 
 export const createProjectiles = (room) => {
   const active = new Map();
+  const lead = createProjectileLead();
   let nextId = 0;
 
   const remove = (id) => {
@@ -46,10 +49,10 @@ export const createProjectiles = (room) => {
         ? { dx: dx / distance, dy: dy / distance, dz: dz / distance }
         : { dx: forwardX, dy: 0, dz: forwardZ };
       if (firstTerrainHit(origin, direction, distance) !== null) continue;
-      if (id === preferredTargetId) return { enemy, locked };
+      if (id === preferredTargetId) return { id, enemy, locked };
       if (alignment > bestAlignment + 0.001 ||
         (Math.abs(alignment - bestAlignment) <= 0.001 && distance < bestDistance)) {
-        best = { enemy, locked: false };
+        best = { id, enemy, locked: false };
         bestAlignment = alignment;
         bestDistance = distance;
       }
@@ -58,16 +61,29 @@ export const createProjectiles = (room) => {
   };
 
   return {
+    recordTargetMovement: lead.record,
     fire(sessionId, player, skill, preferredTargetId = null, mobileLock = false) {
       const { type, speed, lifetime, radius, scale = 1 } = skill.projectile;
       const hitEnemies = new Set();
       const count = skill.projectiles || 1;
-      const { enemy: target, locked } = findAimTarget(player, skill, preferredTargetId, mobileLock) || {};
-      const horizontalDistance = target ? Math.hypot(target.x - player.x, target.z - player.z) : 0;
-      const pitch = target ? Math.atan2(target.y - player.y, horizontalDistance) : 0;
+      const { id: targetId, enemy: target, locked } = findAimTarget(player, skill, preferredTargetId, mobileLock) || {};
+      let aimTarget = lead.predict(player, target, speed);
+      if (aimTarget && aimTarget !== target) {
+        const dx = aimTarget.x - player.x;
+        const dy = aimTarget.y - player.y;
+        const dz = aimTarget.z - player.z;
+        const distance = Math.hypot(dx, dy, dz);
+        const direction = { dx: dx / distance, dy: dy / distance, dz: dz / distance };
+        // Keep the selected target, but don't lead a shot through terrain or beyond its range.
+        if (distance > speed * lifetime / 1000 || firstTerrainHit(
+          { x: player.x, y: player.y + 1, z: player.z }, direction, distance,
+        ) !== null) aimTarget = target;
+      }
+      const horizontalDistance = aimTarget ? Math.hypot(aimTarget.x - player.x, aimTarget.z - player.z) : 0;
+      const pitch = aimTarget ? Math.atan2(aimTarget.y - player.y, horizontalDistance) : 0;
       const horizontalSpeed = Math.cos(pitch);
       for (let index = 0; index < count; index++) {
-        const aim = target ? Math.atan2(target.x - player.x, target.z - player.z) : player.rotationY;
+        const aim = aimTarget ? Math.atan2(aimTarget.x - player.x, aimTarget.z - player.z) : player.rotationY;
         const angle = aim + (index - (count - 1) / 2) * (skill.spreadAngle || 0) * Math.PI / 180;
         const projectile = {
           id: `${room.roomId}-${++nextId}`,
@@ -76,14 +92,19 @@ export const createProjectiles = (room) => {
           dx: Math.sin(angle) * horizontalSpeed, dy: Math.sin(pitch), dz: Math.cos(angle) * horizontalSpeed,
         };
         active.set(projectile.id, { ...projectile,
+          homingTarget: target, homingTargetId: targetId,
           radius: radius * PROJECTILE_AIM.hitboxScale + (locked ? MOBILE_TARGETING.hitPadding : 0),
           remaining: lifetime, multiplier: skill.damageMultiplier, hitStatus: skill.hitStatus, hitEnemies });
         room.broadcast("attack", { sessionId, projectile });
       }
     },
     update(deltaTime) {
+      const corrections = [];
       for (const projectile of active.values()) {
         const elapsed = Math.min(deltaTime, projectile.remaining);
+        const wasHoming = Boolean(projectile.homingTarget);
+        if (wasHoming && !guideProjectile(projectile, room, elapsed, firstTerrainHit))
+          projectile.homingTarget = null;
         const distance = projectile.speed * elapsed / 1000;
         const terrainHit = firstTerrainHit(projectile, projectile, distance);
         const travel = terrainHit ?? distance;
@@ -121,8 +142,12 @@ export const createProjectiles = (room) => {
             .catch((error) => console.error("[Projectiles] Damage failed", error));
         } else if (terrainHit !== null || projectile.remaining <= 0) {
           remove(projectile.id);
+        } else if (wasHoming) {
+          corrections.push({ id: projectile.id, x: projectile.x, y: projectile.y, z: projectile.z,
+            dx: projectile.dx, dy: projectile.dy, dz: projectile.dz, remaining: projectile.remaining });
         }
       }
+      if (corrections.length) room.broadcast("projectileUpdate", corrections);
     },
     removePlayer(sessionId) {
       for (const projectile of active.values()) {
