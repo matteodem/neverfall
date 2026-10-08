@@ -28,13 +28,13 @@ import {
 import { Icon } from "../Icon";
 import {
   EQUIPMENT_ITEMS,
-  formatEquipmentStats,
 } from "../../../game/equipment";
-import { useEquipmentStore } from "../../stores/useEquipmentStore";
+import { getEquipmentComparison } from "../../../game/equipmentComparison";
 import { useConsumableStore } from "../../stores/useConsumableStore";
 import { CONSUMABLES } from "../../../game/consumables";
 import { useHudStore } from "../../stores/useHudStore";
 import { SellItemModal } from "./SellItemModal";
+import { EquipmentInspection } from "./EquipmentInspection";
 
 
 const INVENTORY_SLOTS =
@@ -181,6 +181,8 @@ const InventorySlot = ({
   onToggle,
   onClose,
   onSell,
+  onInspect,
+  equipment,
 }) => {
   if (
     !item
@@ -222,6 +224,7 @@ const InventorySlot = ({
   const consumable = CONSUMABLES[item.id];
   const sellPrice = ITEM_SELL_PRICES[item.id];
   const sellable = Number.isFinite(sellPrice) && sellPrice > 0 && Number.isSafeInteger(sellPrice * 10000);
+  const isUpgrade = itemDefinition && getEquipmentComparison(itemDefinition, equipment).isUpgrade;
 
 
   return (
@@ -229,7 +232,12 @@ const InventorySlot = ({
       className="tooltip tooltip-top block aspect-square min-w-0"
       data-tip={name}
     >
-      {itemDefinition || consumable || sellable ? (
+      {itemDefinition ? (
+        <button type="button" className="block h-full w-full" aria-label={`Inspect ${name}${isUpgrade ? ", Upgrade" : ""}`}
+          {...actionButtonHandlers(onInspect, mobile)}>
+          <InventorySlotContent item={item} name={name} itemDisplay={itemDisplay} rarityClass={rarityClass} isUpgrade={isUpgrade} />
+        </button>
+      ) : consumable || sellable ? (
         <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${open ? "dropdown-open z-[100]" : ""}`}>
           <button type="button" className="block h-full w-full" aria-expanded={open}
             {...actionButtonHandlers(onToggle, mobile)}>
@@ -241,24 +249,22 @@ const InventorySlot = ({
             />
           </button>
           {open && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
-            {(itemDefinition || consumable) && <li>
+            <li>
               <div className="pointer-events-none block">
-                <strong className="block text-xs">{(itemDefinition || consumable).name}</strong>
-                {(consumable ? [consumable.description] : formatEquipmentStats(itemDefinition)).map((stat) => (
-                  <span key={stat} className="mt-1 block text-[11px] text-gray-600">{stat}</span>
-                ))}
+                <strong className={`block text-xs ${item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>
+                <span className="mt-1 block text-xs text-gray-600">{consumable ? "Consumable" : "Material"}</span>
+                {consumable && <span className="mt-1 block text-xs text-gray-600">{consumable.description}</span>}
               </div>
-            </li>}
-            {(itemDefinition || consumable) && <li>
+            </li>
+            {consumable && <li>
               <button
                 type="button"
                 {...actionButtonHandlers(() => {
-                  if (consumable) useConsumableStore.getState().requestUse(item.id);
-                  else useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: itemDefinition.slot });
+                  useConsumableStore.getState().requestUse(item.id);
                   onClose();
                 }, mobile)}
               >
-                {consumable ? "Use" : "Equip item"}
+                Use
               </button>
             </li>}
             {sellable && <li>
@@ -281,7 +287,7 @@ const InventorySlot = ({
   );
 };
 
-const InventorySlotContent = ({ item, name, itemDisplay, rarityClass }) => (
+const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade = false }) => (
   <div
         className={[
           "group relative aspect-square min-w-0 cursor-default overflow-hidden rounded-md border bg-gradient-to-br from-amber-50 to-gray-100 shadow-sm transition hover:brightness-105",
@@ -318,6 +324,7 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass }) => (
         </div>
 
 
+        {isUpgrade && <span className="absolute bottom-1 left-1 rounded bg-green-700 px-1 text-[10px] font-semibold text-white">↑<span className="sr-only"> Upgrade</span></span>}
         {item.count >
           1 && (
           <span
@@ -351,6 +358,7 @@ export const InventoryModal =
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
     const [sellingItem, setSellingItem] = useState(null);
+    const [inspectedItemId, setInspectedItemId] = useState(null);
     const openSell = (item) => {
       setSellingItem(item);
       useHudStore.getState().openModal("sell-item");
@@ -366,6 +374,7 @@ export const InventoryModal =
     const {
       money,
       items,
+      equipment,
     } =
       useTracker(
         () => {
@@ -388,6 +397,7 @@ export const InventoryModal =
 
 
           return {
+            equipment: character?.equipment || {},
             money:
               splitMoney(
                 user
@@ -407,6 +417,13 @@ export const InventoryModal =
         }
       );
 
+    const inspectedItem = items.find((item) => item.id === inspectedItemId);
+    useEffect(() => {
+      if (inspectedItemId && !inspectedItem) {
+        setInspectedItemId(null);
+        useHudStore.getState().closeModal("equipment-inspection");
+      }
+    }, [inspectedItemId, inspectedItem]);
 
     const slots =
       Array.from(
@@ -542,6 +559,12 @@ export const InventoryModal =
                 index
               ) => (
                 <InventorySlot
+                  equipment={equipment}
+                  onInspect={() => {
+                    setOpenItem(null);
+                    setInspectedItemId(item.id);
+                    useHudStore.getState().openModal("equipment-inspection");
+                  }}
                   mobile={mobile}
                   open={openItem === item?.id}
                   onToggle={() => setOpenItem((previous) => previous === item.id ? null : item.id)}
@@ -601,6 +624,8 @@ export const InventoryModal =
       </HudModal>
       {sellingItem && <SellItemModal itemId={sellingItem.id} available={sellingItem.count}
         itemDisplay={ITEM_DISPLAY[sellingItem.id]} onClose={() => setSellingItem(null)} />}
+      {inspectedItem && <EquipmentInspection item={inspectedItem} equipment={equipment} mobile={mobile}
+        onClose={() => setInspectedItemId(null)} onSell={openSell} />}
       </>
     );
   };

@@ -16,14 +16,14 @@ export const useHudStore = create((set) => ({
 
   openSection: (modal, tab) => set((state) => {
     const openModals = state.openModals.filter((openModal) => openModal !== modal &&
-      !(modal === "items" && tab !== "inventory" && openModal === "sell-item"));
+      !(modal === "items" && tab !== "inventory" && ["sell-item", "equipment-inspection"].includes(openModal)));
     openModals.push(modal);
     return { openModals, activeModal: modal, tabs: { ...state.tabs, [modal]: tab } };
   }),
 
   setTab: (modal, tab) => set((state) => {
     const openModals = state.openModals.filter((openModal) =>
-      !(modal === "items" && tab !== "inventory" && openModal === "sell-item"));
+      !(modal === "items" && tab !== "inventory" && ["sell-item", "equipment-inspection"].includes(openModal)));
     return { tabs: { ...state.tabs, [modal]: tab }, openModals,
       activeModal: openModals[openModals.length - 1] || null };
   }),
@@ -32,7 +32,7 @@ export const useHudStore = create((set) => ({
     if (!modal) return { openModals: [], activeModal: null };
 
     const openModals = state.openModals.filter((openModal) => openModal !== modal &&
-      !(modal === "items" && openModal === "sell-item"));
+      !(modal === "items" && ["sell-item", "equipment-inspection"].includes(openModal)));
     return { openModals, activeModal: openModals[openModals.length - 1] || null };
   }),
 }));
