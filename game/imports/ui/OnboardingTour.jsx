@@ -1,23 +1,27 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Meteor } from "meteor/meteor";
 import { NextStepProvider, NextStepReact, useNextStep } from "nextstepjs";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { useLoadingStore } from "./stores/useLoadingStore";
+import { useMobileDevice } from "./hooks/useMobileDevice";
+import { useHudStore } from "./stores/useHudStore";
 
 export const ONBOARDING_TOUR = "neverfall-onboarding";
 
-const steps = [{
+const getSteps = (mobile) => [{
   tour: ONBOARDING_TOUR,
   steps: [
-    { title: "Movement", content: "Move with WASD. Hold right or left mouse button to rotate the camera." },
-    { title: "Combat", content: "Use keys 1–4 to activate your abilities.", selector: "#onboarding-action-bar", side: "top-right", pointerPadding: 12, cardOffset: 12 },
-    { title: "Health", content: "Watch your health. You respawn at camp when defeated.", selector: "#onboarding-health", side: "top" },
-    { title: "Items", content: "Open Items for your inventory and the shop.", selector: "#onboarding-inventory", side: "bottom-left" },
-    { title: "Adventure Guide", content: "Follow one recommended goal at a time as you level up.", selector: "#onboarding-adventure-guide", side: "left" },
-    { title: "Hero", content: "Open Hero for gear, quests, achievements, and talents. Press Q for quests.", selector: "#onboarding-quests", side: "bottom-left" },
-    { title: "Map", content: "Explore regions, dungeons and objectives with the map.", selector: "#onboarding-map", side: "bottom-right", pointerPadding: 12, cardOffset: 12 },
-    { title: "Multiplayer", content: "Group with other players for dungeons and world events.", selector: "#onboarding-chat", side: "top-left", pointerPadding: 12, cardOffset: 12 },
-    { title: "You're ready", content: "Explore Neverfall and have fun!" },
+    { title: "Start at Central Camp", content: mobile
+      ? "Use the joystick to move. Your first goal is a boar just outside camp."
+      : "Move with WASD; drag with a mouse button to turn the camera. Find a boar just outside camp." },
+    { title: "Your first fight", content: mobile
+      ? "Move close to a boar and tap a skill below. Watch your health; defeat returns you to camp."
+      : "Move close to a boar and press 1–4 to use skills. Watch your health; defeat returns you to camp.",
+      selector: "#onboarding-action-bar", side: "top-right", pointerPadding: 12, cardOffset: 12 },
+    { title: "Your next goal", content: mobile
+      ? "Follow the Adventure Guide under Objectives. Its buttons open the menu you need. Hunts track automatically."
+      : "Follow the Adventure Guide one goal at a time. Its buttons open the menu you need. Hunts track automatically.",
+      selector: mobile ? undefined : "#onboarding-adventure-guide", side: "left" },
   ],
 }];
 
@@ -42,34 +46,39 @@ const saveCompletion = () => {
   });
 };
 
-export const OnboardingTour = ({ children }) => (
-  <NextStepProvider>
-    <NextStepReact
-      steps={steps}
-      cardComponent={OnboardingCard}
-      shadowOpacity="0.35"
-      overlayZIndex={40000}
-      scrollToTop={false}
-      noInViewScroll
-      onComplete={saveCompletion}
-      onSkip={saveCompletion}
-    >
-      {children}
-    </NextStepReact>
-  </NextStepProvider>
-);
+export const OnboardingTour = ({ children }) => {
+  const { mobile } = useMobileDevice();
+  const steps = useMemo(() => getSteps(mobile), [mobile]);
+  return (
+    <NextStepProvider>
+      <NextStepReact
+        steps={steps}
+        cardComponent={OnboardingCard}
+        shadowOpacity="0.35"
+        overlayZIndex={40000}
+        scrollToTop={false}
+        noInViewScroll
+        onComplete={saveCompletion}
+        onSkip={saveCompletion}
+      >
+        {children}
+      </NextStepReact>
+    </NextStepProvider>
+  );
+};
 
 export const OnboardingAutoStart = ({ completed }) => {
   const { startNextStep } = useNextStep();
   const started = useRef(false);
   const ready = useLoadingStore((state) => state.progress === 100 && !state.visible);
   const location = useDungeonStore((state) => state.location);
+  const hasOpenModal = useHudStore((state) => state.openModals.length > 0);
 
   useEffect(() => {
-    if (!ready || location !== "world" || completed || started.current) return;
+    if (!ready || location !== "world" || hasOpenModal || completed || started.current) return;
     started.current = true;
     startNextStep(ONBOARDING_TOUR);
-  }, [ready, location, completed, startNextStep]);
+  }, [ready, location, hasOpenModal, completed, startNextStep]);
 
   return null;
 };

@@ -754,10 +754,11 @@ export const Hud = ({
   healCooldownUntil,
   mounted = false,
   inCombat = false,
+  showInitialObjectives = false,
 }) => {
   const { mobile, portrait } = useMobileDevice();
-  const [showObjectives, setShowObjectives] = useState(() => !mobile);
-  useEffect(() => setShowObjectives(!mobile), [mobile]);
+  const [showObjectives, setShowObjectives] = useState(() => !mobile || showInitialObjectives);
+  useEffect(() => setShowObjectives(!mobile || showInitialObjectives), [mobile, showInitialObjectives]);
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
   const dungeonBusy = useDungeonStore((state) => state.busy);
   const leaveDungeon = useDungeonStore((state) => state.leaveDungeon);

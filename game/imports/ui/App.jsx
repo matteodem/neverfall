@@ -383,6 +383,7 @@ const AppContent = () => {
 
       <div className={uiVisible ? "" : "hidden"}>
         <Hud
+          showInitialObjectives={Boolean(currentCharacter && !currentCharacter.adventureGuide?.openedMap)}
           gameClass={currentCharacter?.gameClass}
           species={currentCharacter?.species}
           talents={currentCharacter?.talents}
