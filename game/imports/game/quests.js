@@ -40,7 +40,7 @@ export const GIANT_HUNT_QUEST = {
   id: "giant-hunt",
   title: "Forest Giant Hunt",
   description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
-  recommendedLevel: 5,
+  recommendedLevel: 3,
   progressField: "giantQuestKills",
   target: 1,
   rewardXp: 500,
@@ -128,7 +128,7 @@ export const QUESTS = [
   },
   {
     id: "giant-threat", title: "Giant Threat", description: "Defeat the Forest Giant northeast of Central Camp.",
-    recommendedLevel: 5,
+    recommendedLevel: 3,
     objective: { type: "Boss", target: "forestGiant", amount: 1 },
     rewards: { xp: 500, gold: 2 },
   },

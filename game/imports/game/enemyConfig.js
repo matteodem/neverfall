@@ -280,6 +280,25 @@ ENEMY_TYPES.drownedWarden = {
   emissiveColor: [0.06, 0.16, 0.18],
 };
 
+// Tune the early encounter after derived bosses copy the original ogre defaults.
+// This keeps the Awakened Giant, dungeon bosses, Frost Ogre and Hammer Guardian unchanged.
+ENEMY_TYPES.forestGiant = {
+  ...ENEMY_TYPES.forestGiant,
+  health: 3000,
+  healthPerLevel: 0,
+  attackDamage: 40,
+  speed: 4 / 2.3, // WorldRoom applies the existing 2.3x movement multiplier.
+  attackCooldown: 1600,
+  damageOverTimeMultiplier: 0.1,
+  bossMechanics: {
+    aoe: { ...BOSS_MECHANICS.aoe, name: "Forest Slam", color: "#e5b55b",
+      telegraphDuration: 2000, cooldown: 10000 },
+    charge: { ...BOSS_MECHANICS.charge, windup: 1400, speed: 10, maxDistance: 12, cooldown: 14000 },
+    enrage: { ...BOSS_MECHANICS.enrage, damageMultiplier: 1.2, speedMultiplier: 1.1 },
+  },
+  animations: { ...ENEMY_TYPES.forestGiant.animations, heavyAttack: "Attack" },
+};
+
 export const getEnemyStats = (type = "boar", level = 1, rare = false) => {
   const config = { ...BASE_STATS, ...ENEMY_TYPES[type] };
   const variant = rare && !config.bossMechanics;
@@ -307,7 +326,7 @@ export const ENEMY_SPAWNS = [
   { id: "wolf-3", type: "wolf", level: 3, x: -80, y: 0, z: 65 },
   { id: "wolf-4", type: "wolf", level: 3, x: -60, y: 0, z: 80 },
   { id: "wolf-5", type: "wolf", level: 3, x: -77, y: 0, z: 82 },
-  { id: "forest-giant", type: "forestGiant", level: 5, ...FOREST_GIANT_HILL.center,
+  { id: "forest-giant", type: "forestGiant", level: 3, ...FOREST_GIANT_HILL.center,
     y: getForestGiantHillHeight(FOREST_GIANT_HILL.center.x, FOREST_GIANT_HILL.center.z) },
   // Northern highlands: goats west, rats central, bees east.
   { id: "goat-1", type: "goat", level: 5, x: -160, y: 0, z: 180 },

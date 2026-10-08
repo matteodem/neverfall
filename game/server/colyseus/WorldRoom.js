@@ -14,7 +14,7 @@ import { createGroups } from "./groups";
 import { getFallDamage, resetFallTracking } from "./fallDamage";
 import { getStatusModifiers } from "../../imports/game/statusEffects";
 import { applyStatusEffect, clearStatusEffects, updateStatusEffects } from "./statusEffects";
-import { ENEMY_SPAWNS, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
+import { ENEMY_SPAWNS, ENEMY_TYPES, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
 import { getQuestArea, FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
@@ -2152,7 +2152,9 @@ export class WorldRoom
       of this.state.enemies.entries()
     ) {
       updateStatusEffects(enemy, (damage) => {
-        void this.applyEnemyDamage(enemyId, enemy, damage)
+        // The early Giant needs to survive percentage-based DoTs without weakening other enemies.
+        const multiplier = ENEMY_TYPES[enemy.type]?.damageOverTimeMultiplier ?? 1;
+        void this.applyEnemyDamage(enemyId, enemy, damage * multiplier)
           .catch((error) => console.error("[Status effects] Enemy damage failed", error));
       });
       if (this.state.enemies.get(enemyId) !== enemy) continue;
