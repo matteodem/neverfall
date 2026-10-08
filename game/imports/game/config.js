@@ -12,6 +12,8 @@ export const CAMERA = {
 
   mouseSensitivity: 0.005,
   zoomSensitivity: 0.01,
+  nearPlane: 0.1,
+  groundClearance: 0.5,
 };
 
 export const ATTACK = {

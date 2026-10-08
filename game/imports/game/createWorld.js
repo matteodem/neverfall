@@ -698,7 +698,8 @@ export const createWorld =
     const camera =
       createGameCamera(
         scene,
-        player
+        player,
+        ground
       );
 
 

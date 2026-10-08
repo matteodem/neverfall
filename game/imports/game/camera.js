@@ -6,6 +6,7 @@ import {
 import {
   CAMERA,
 } from "./config";
+import { keepCameraAboveTerrain } from "./cameraTerrainClearance";
 
 const clamp = (
   value,
@@ -20,7 +21,8 @@ const clamp = (
 
 export const createGameCamera = (
   scene,
-  player
+  player,
+  ground
 ) => {
   const camera =
     new ArcRotateCamera(
@@ -34,6 +36,11 @@ export const createGameCamera = (
 
   camera.lockedTarget =
     player;
+
+  camera.minZ = CAMERA.nearPlane;
+  camera.lowerRadiusLimit = CAMERA.minRadius;
+  camera.upperRadiusLimit = CAMERA.maxRadius;
+  if (ground) keepCameraAboveTerrain(camera, ground);
 
   return camera;
 };
