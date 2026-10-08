@@ -7,7 +7,7 @@ export const QuestCompletionOverlay = () => {
 
   useEffect(() => {
     if (!current) return;
-    const timeout = setTimeout(dismiss, 4000);
+    const timeout = setTimeout(dismiss, 3000);
     return () => clearTimeout(timeout);
   }, [current, dismiss]);
 
@@ -21,10 +21,10 @@ export const QuestCompletionOverlay = () => {
 
   return (
     <div className="pointer-events-none fixed inset-x-0 top-[20dvh] z-[11001] flex justify-center px-4" role="status" aria-live="polite">
-      <div className="max-w-full rounded-xl border border-yellow-300/60 bg-black/80 px-8 py-5 text-center text-white shadow-[0_0_50px_rgba(250,204,21,0.35)] backdrop-blur-sm">
-        <div className="text-sm font-bold uppercase tracking-widest text-yellow-300">Quest Complete!</div>
-        <div className="mt-2 text-2xl font-bold">{current.title}</div>
-        {rewards && <div className="mt-2 text-sm text-yellow-200">Reward: {rewards}</div>}
+      <div className="w-full max-w-sm rounded-lg border border-yellow-300/60 bg-black/80 px-4 py-3 text-center text-white shadow-lg">
+        <div className="text-xs font-semibold uppercase text-yellow-300">Quest Complete</div>
+        <div className="mt-1 text-base font-bold">{current.title}</div>
+        {rewards && <div className="mt-1 text-xs text-yellow-200">{rewards}</div>}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export const HuntsModal = ({ embedded = false }) => {
     return id ? Characters.findOne(id)?.questProgress || {} : {};
   });
   const hunts = Object.entries(HUNT_QUESTS).sort(([a], [b]) => (a === area ? -1 : b === area ? 1 : 0))
-    .map(([type, quest]) => ({ ...quest, objective: { amount: quest.target }, nearby: type === area }));
+    .map(([type, quest]) => ({ ...quest, repeatable: true, objective: { amount: quest.target }, nearby: type === area }));
 
   return (
     <HudModal id="hunts" title="Hunts" embedded={embedded} maxHeight="calc(var(--game-height, 100vh) * 0.5)">

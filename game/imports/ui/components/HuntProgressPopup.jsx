@@ -9,7 +9,7 @@ export const HuntProgressPopup = () => {
 
   return (
     <div
-      className={`pointer-events-none fixed left-1/2 top-[58%] z-[11000] -translate-x-1/2 text-center text-lg font-bold text-yellow-300 drop-shadow-[0_2px_3px_black] transition-opacity duration-500 ${visible ? "opacity-100" : "opacity-0"}`}
+      className={`pointer-events-none fixed left-1/2 top-[58%] z-[11000] max-w-[calc(var(--game-width,100vw)-2rem)] -translate-x-1/2 rounded-lg bg-black/75 px-3 py-2 text-center text-sm font-semibold text-yellow-200 transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`}
       role="status"
       aria-live="polite"
       aria-hidden={!visible}

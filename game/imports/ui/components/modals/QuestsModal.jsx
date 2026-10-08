@@ -3,6 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../../api/characters/characters";
 import { QUESTS } from "../../../game/quests";
+import { getQuestObjectiveDisplay } from "../../../game/questObjectiveDisplay";
 import { HudModal } from "../HudModal";
 
 const storyQuests = QUESTS.filter((quest) => !quest.repeatable);
@@ -10,29 +11,36 @@ const storyQuests = QUESTS.filter((quest) => !quest.repeatable);
 export const QuestList = ({ quests, progress }) => (
   <div className="space-y-2">
     {quests.map((quest) => {
-      const count = Math.min(progress[quest.id] || 0, quest.objective.amount);
+      const display = getQuestObjectiveDisplay(quest, progress[quest.id] || 0);
       return (
         <div key={quest.id} className={`rounded-lg border p-3 text-sm ${quest.nearby ? "border-blue-600 bg-blue-600 text-white" : "border-base-300"}`}>
-          <div className="font-semibold">{quest.title}{quest.nearby ? " · Nearby" : ""}</div>
-          <div className="opacity-70">{quest.description}</div>
-          {quest.recommendedLevel && <div className="mt-1 text-xs opacity-70">Recommended Level {quest.recommendedLevel}</div>}
-          <div className={`mt-1 text-xs ${quest.nearby ? "text-white" : "text-primary"}`}>
-            {count >= quest.objective.amount && !quest.repeatable ? "Completed" : `${count} / ${quest.objective.amount}`}
-            {quest.repeatable ? " · Repeatable" : ""}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="font-semibold">{quest.title}{quest.nearby ? " · Nearby" : ""}</div>
+            <span className={`rounded px-2 py-1 text-xs font-semibold ${quest.nearby ? "bg-white/20" : "bg-base-200"}`}>
+              {display.completed ? "✓ Completed" : `${display.count} / ${display.total}`}
+            </span>
           </div>
-          {quest.objectives && <ol className="mt-2 list-decimal pl-5 text-xs">
-            {quest.objectives.map((objective, index) => {
-              const before = quest.objectives.slice(0, index).reduce((total, step) => total + (step.amount || 1), 0);
-              const amount = objective.amount || 1;
-              const done = Math.min(Math.max(count - before, 0), amount);
-              return <li key={objective.target} className={done === amount ? "opacity-60" : ""}>
-                {objective.label}{amount > 1 ? ` (${done} / ${amount})` : done ? " ✓" : ""}
-              </li>;
-            })}
-          </ol>}
-          {quest.objectives && <div className="mt-2 text-xs opacity-70">
-            Rewards: {quest.rewards.xp} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}
+          {display.current && <div className="mt-2">
+            {quest.objectives && <div className="text-xs opacity-70">Next · Step {display.current.number} / {display.steps.length}</div>}
+            <div className="font-medium">{display.current.label}</div>
+            {quest.objectives && display.current.total > 1 && <div className="text-xs font-semibold">
+              {display.current.count} / {display.current.total}
+            </div>}
           </div>}
+          <details className="mt-2 text-xs">
+            <summary className="cursor-pointer py-1 font-semibold">Details{quest.repeatable ? " · Repeatable" : ""}</summary>
+            {(quest.objectives || display.completed) && <p className="mt-1 opacity-70">{quest.description}</p>}
+            {quest.recommendedLevel && <div className="mt-1 opacity-70">Recommended Level {quest.recommendedLevel}</div>}
+            {quest.objectives && <ol className="mt-2 list-decimal space-y-1 pl-5">
+              {display.steps.map((step) => <li key={step.number}
+                className={step.completed ? "opacity-60" : step.number === display.current?.number ? "font-semibold" : "opacity-70"}>
+                {step.label}{step.completed ? " ✓" : step.total > 1 ? ` (${step.count} / ${step.total})` : ""}
+              </li>)}
+            </ol>}
+            {quest.objectives && <div className="mt-2 opacity-70">
+              Rewards: {quest.rewards.xp} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}
+            </div>}
+          </details>
         </div>
       );
     })}

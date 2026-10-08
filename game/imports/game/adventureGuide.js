@@ -1,3 +1,6 @@
+import { QUESTS } from "./quests";
+import { getQuestObjectiveDisplay } from "./questObjectiveDisplay";
+
 export const getAdventureGuideObjective = (character) => {
   const achievements = character?.achievements || {};
   const guide = character?.adventureGuide || {};
@@ -91,5 +94,17 @@ export const getAdventureGuideObjective = (character) => {
     { id: "explore", title: "Explore Neverfall",
       hint: "Try Hunts, quests, dungeons, world events, bosses, landmarks and group content.", done: false },
   ];
-  return steps.find((step) => !step.done);
+  const step = steps.find((candidate) => !candidate.done);
+  const quest = QUESTS.find((candidate) => candidate.id === step.id && candidate.objectives);
+  if (!quest) return step;
+  const display = getQuestObjectiveDisplay(quest, quests[quest.id] || 0);
+  if (!display.current) return step;
+  return {
+    ...step,
+    title: quest.title,
+    progress: `${display.current.count} / ${display.current.total}`,
+    hint: display.current.label,
+    stepProgress: `Step ${display.current.number} / ${display.steps.length}`,
+    action: { label: "View Quest", modal: "hero", tab: "quests" },
+  };
 };

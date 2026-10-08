@@ -27,7 +27,7 @@ export const useQuestStore =
 
       showHuntProgress(title, count, target) {
         clearTimeout(popupTimeout);
-        set({ huntPopup: `${title}: ${count} / ${target} defeated`, huntPopupVisible: true });
+        set({ huntPopup: `${title}: ${count} / ${target}`, huntPopupVisible: true });
         popupTimeout = setTimeout(() => {
           set({ huntPopupVisible: false });
           popupTimeout = null;
