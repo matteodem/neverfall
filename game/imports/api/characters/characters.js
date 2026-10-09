@@ -19,6 +19,12 @@ export const MAX_CHARACTERS = 5;
 
   gameClass: "warrior",
 
+  appearance: {
+    head: "head-01", hair: "hair-51", skinTone: "medium", bodyType: "medium", gender: "female",
+    outfit: { torso: "torso-01", arms: "arms-01", hands: "hands-01", legs: "legs-01", feet: "feet-01" },
+    equipment: { hat: null, glasses: null, mask: null, leftHand: null, rightHand: null, back: null }
+  },
+
   currentLevel: 1,
   currentXp: 0,
 

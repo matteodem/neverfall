@@ -54,12 +54,8 @@ import {
 } from "./environment/createForestArea";
 
 import {
-  createKayKitCharacter,
-} from "./character/createKayKitCharacter";
-
-import {
-  createKayKitAnimationController,
-} from "./character/createKayKitAnimationController";
+  createAmirCharacter,
+} from "./character/amir/createAmirCharacter";
 
 export const createWorld =
   async (
@@ -252,7 +248,7 @@ export const createWorld =
      */
 
     const [character, swordResult] = await Promise.all([
-      createKayKitCharacter({
+      createAmirCharacter({
         scene,
         appearance,
         gameClass,
@@ -266,7 +262,7 @@ export const createWorld =
     * PLAYER COLLIDER
     * =====================================================
     *
-    * The KayKit character root is a TransformNode,
+    * The visual character root is a TransformNode,
     * which cannot use moveWithCollisions().
     *
     * Keep gameplay collision separate from
@@ -330,7 +326,7 @@ export const createWorld =
 
 
     /*
-    * KayKit root also uses the
+    * The visual root also uses the
     * player's foot position.
     */
 
@@ -368,9 +364,7 @@ export const createWorld =
      */
 
     const animations =
-      createKayKitAnimationController(
-        character
-      );
+      character.createAnimationController();
 
 
     /*
@@ -402,12 +396,12 @@ export const createWorld =
      * SWORD
      * =====================================================
      *
-     * Sword still uses the existing GLB.
-     * The player itself no longer does.
+     * A selected Amir weapon uses the existing procedural swing.
+     * The existing sword GLB remains the fallback.
      */
 
-    const sword =
-      swordResult.meshes[0];
+    const sword = character.weaponMesh || swordResult.meshes[0];
+    if (character.weaponMesh) swordResult.meshes[0].dispose();
 
 
     /*
@@ -448,47 +442,49 @@ export const createWorld =
     swordGrip.parent =
       swordPivot;
 
-    sword.parent =
-      swordGrip;
+    if (character.weaponMesh) sword.setParent(swordGrip);
+    else sword.parent = swordGrip;
 
 
     /*
      * Existing weapon config.
      */
 
-    swordGrip.position.set(
-      SWORD.position.x,
-      SWORD.position.y,
-      SWORD.position.z
-    );
+    if (!character.weaponMesh) {
+      swordGrip.position.set(
+        SWORD.position.x,
+        SWORD.position.y,
+        SWORD.position.z
+      );
 
-    swordGrip.rotation.set(
-      SWORD.rotation.x,
-      SWORD.rotation.y,
-      SWORD.rotation.z
-    );
+      swordGrip.rotation.set(
+        SWORD.rotation.x,
+        SWORD.rotation.y,
+        SWORD.rotation.z
+      );
 
-    sword.scaling.setAll(
-      SWORD.scale
-    );
+      sword.scaling.setAll(
+        SWORD.scale
+      );
 
 
-    /*
-     * Sword imported root should
-     * not have an additional offset.
-     */
+      /*
+       * Sword imported root should
+       * not have an additional offset.
+       */
 
-    sword.position.set(
-      0,
-      0,
-      0
-    );
+      sword.position.set(
+        0,
+        0,
+        0
+      );
 
-    sword.rotation.set(
-      0,
-      0,
-      0
-    );
+      sword.rotation.set(
+        0,
+        0,
+        0
+      );
+    }
 
 
     /*
@@ -515,11 +511,15 @@ export const createWorld =
       1.2,
       0
     );
+    if (character.weaponMesh) {
+      const { minimum, maximum } = sword.getBoundingInfo().boundingBox;
+      swordTip.position.set((minimum.x + maximum.x) / 2, maximum.y, (minimum.z + maximum.z) / 2);
+    }
 
     swordTip.isVisible =
       false;
 
-    swordPivot.setEnabled(getClassConfig(gameClass).swordVisible);
+    swordPivot.setEnabled(Boolean(character.weaponMesh) || getClassConfig(gameClass).swordVisible);
 
 
     let forest, forestProps, jumpingPuzzle, clearingCamp;
