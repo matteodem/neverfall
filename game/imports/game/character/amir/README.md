@@ -1,6 +1,7 @@
 # Amir production adapter (MVP)
 
-The local player in `createWorld.js` now uses `createAmirCharacter({ scene, appearance })`.
+The local player in `createWorld.js` and remote players in `multiplayer.js` use
+`createAmirCharacter({ scene, appearance })`.
 The temporary `amirPreview` entry-point branch and standalone preview scene are removed.
 The same loader works for future NPCs without accounts, Colyseus, or persistence imports.
 
@@ -140,11 +141,46 @@ alternative heads, mask/glasses, and a mixed outfit:
 - No sampled combination failed to load. `hands-102` remains absent from the asset
   and is consequently absent from the controls.
 
+## Remote-player replication
+
+`WorldRoom.onJoin` normalizes the authenticated character's persisted appearance and
+serializes its visual fields into `PlayerState.appearance`. This replaces the four
+legacy flat fields rather than adding a parallel appearance model. The JSON payload
+uses the same head/hair/skin/body/outfit/equipment keys and null semantics; gender is
+omitted because it is metadata only. No client message can author this payload, and
+unchanged appearance is not resent in movement/health patches. Dungeon rooms inherit
+the same join path and player schema.
+
+Remote players assemble through the production adapter and obtain their animation
+controller from it. Cosmetic right-hand equipment uses the same normalized anchor,
+authored transform, combat pivot and tip placement as the local player. Otherwise the
+existing class-dependent fallback sword remains. Movement interpolation, health bars,
+nameplates, combat timings, mounting, death visibility and respawn snapping are retained.
+A per-spawn token rejects loads that complete after removal, replacement or scene exit.
+Removal and failed assembly release owned actor, label, fallback weapon and mount
+resources, including texture wrappers cloned during skin tinting.
+
+Focused checks used the installed Colyseus schema encoder/decoder and an isolated
+Chromium/WebGL scene with real GLBs and the remote assembly/join/removal code:
+
+- World and dungeon snapshots carried appearance intact; later health patches decoded.
+- Customized and legacy appearances selected the correct parts, null hair, isolated
+  skin palettes, independent rigs and adapter animation mappings.
+- Existing movement targets, running timeout, nameplate text, authored weapon attacks,
+  death/respawn visibility, dungeon hiding/return and mounted removal worked.
+- Remove/re-add during loading, leaving during loading, and scene exit discarded stale
+  actors without affecting another player's rig.
+- Syntax checks, standalone Rspack compilation and diff whitespace checks passed.
+
+These checks do not replace an end-to-end session with a live Meteor database and two
+connected clients. Each remote actor currently imports the full roughly 6 MB GLB and
+keeps disabled geometry plus its own rig, palette and mapped animations. Existing
+visibility culling pauses distant rendering/animation; it does not eliminate import
+cost or retained geometry. Asset caching/pruning and crowd/mobile profiling remain
+follow-up work rather than part of this MVP.
+
 ## Remaining work for wider rollout
 
-- **Remote players still use KayKit.** They need the Amir adapter and replicated
-  modular appearance fields before multiplayer visuals can match local appearance.
-  Remote-player replication is outside the creator implementation.
 - There is no appearance-edit flow for existing characters. The creation method
   persists new appearances; later editing needs ownership validation and live refresh.
 - Review allowed head/hair/hat and mixed outfit combinations for clipping before
@@ -157,5 +193,5 @@ alternative heads, mask/glasses, and a mixed outfit:
   polish, and weapon-specific grip/trail calibration remain unverified. The full
   asset geometry is retained, although only the mapped animation groups remain live.
 
-The local creator now uses the production appearance contract and adapter.
-Multiplayer appearance replication remains the main integration dependency for a wider rollout.
+The creator, local player, and remote players share the production appearance contract
+and adapter. Crowd/mobile profiling remains necessary before a wider rollout.

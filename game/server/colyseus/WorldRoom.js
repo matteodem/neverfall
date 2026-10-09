@@ -1,3 +1,4 @@
+import { normalizeAmirAppearance } from "../../imports/game/character/amir/appearance";
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
@@ -1125,9 +1126,9 @@ export class WorldRoom
       await trackAchievements(character._id, "worldEvent");
     }
 
-    const appearance =
-      character.appearance ||
-      {};
+    // Reuse the persistent contract, including defaults for legacy characters.
+    // Gender is metadata only and does not affect this rig's rendering.
+    const { gender, ...appearance } = normalizeAmirAppearance(character.appearance);
 
 
     const currentLevel =
@@ -1207,21 +1208,7 @@ export class WorldRoom
         maxHealth:
           stats.maxHealth,
 
-        gender:
-          appearance.gender ||
-          "female",
-
-        skinTone:
-          appearance.skinTone ||
-          "medium",
-
-        bodyType:
-          appearance.bodyType ||
-          "medium",
-
-        head:
-          appearance.head ||
-          "head1",
+        appearance: JSON.stringify(appearance),
 
         ...Object.fromEntries(QUESTS.filter((quest) => quest.progressField).map((quest) =>
           [quest.progressField, character.questProgress?.[quest.id] || 0])),

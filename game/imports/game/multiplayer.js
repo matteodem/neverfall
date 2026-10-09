@@ -40,6 +40,7 @@ import {
 
 import {
   ATTACK,
+  SWORD,
   JUMP,
   MOBILE_TARGETING,
   COMBAT_CAMERA_IMPULSE,
@@ -61,13 +62,7 @@ import {
   createNameplate,
 } from "./nameplate";
 
-import {
-  createKayKitCharacter,
-} from "./character/createKayKitCharacter";
-
-import {
-  createKayKitAnimationController,
-} from "./character/createKayKitAnimationController";
+import { createAmirCharacter } from "./character/amir/createAmirCharacter";
 
 import { createHorseMount } from "./mounts";
 import { areNearbyChunks } from "./worldConfig";
@@ -479,328 +474,258 @@ const createRemotePlayer =
      * PLAYER
      */
 
-    const character =
-      await createKayKitCharacter({
+    const cleanup = [];
+    const dispose = () => cleanup.splice(0).reverse().forEach((stop) => stop());
+    try {
+      const character = await createAmirCharacter({
         scene,
-        gameClass: playerState.gameClass,
-
-        appearance: {
-          gender:
-            playerState.gender ||
-            "female",
-
-          skinTone:
-            playerState.skinTone ||
-            "medium",
-
-          bodyType:
-            playerState.bodyType ||
-            "medium",
-
-          head:
-            playerState.head ||
-            "head1",
-        },
+        appearance: JSON.parse(playerState.appearance || "{}"),
       });
+      cleanup.push(() => character.dispose());
+      const characterRoot = character.root;
+      const swordVisible = Boolean(character.weaponMesh) || getClassConfig(playerState.gameClass).swordVisible;
+      const root = new TransformNode(`remote-player-${sessionId}`, scene);
+      cleanup.unshift(() => root.dispose());
+      root.setEnabled(false); // Keep partially loaded players out of the scene.
+      root.metadata = { remotePlayerId: sessionId };
+      characterRoot.parent = root;
+      characterRoot.position.set(0, 0, 0);
+      const animations = character.createAnimationController();
+      cleanup.push(() => animations.destroy());
+
+      /*
+       * NAMEPLATE
+       */
+
+      const getNameplateText =
+        (
+          playerName,
+          level
+        ) => {
+          return `${getPlayerNameplateText(playerName, playerState.guildTag)} (Level ${level})`;
+        };
 
 
-    const characterRoot = character.root;
-    const swordVisible = getClassConfig(playerState.gameClass).swordVisible;
-    const root = new TransformNode(`remote-player-${sessionId}`, scene);
-    root.metadata = { remotePlayerId: sessionId };
-    characterRoot.parent = root;
-    characterRoot.position.set(0, 0, 0);
+      const nameplate =
+        createNameplate({
+          scene,
+
+          scale: 1.5,
+
+          player:
+            root,
+
+          name:
+            getNameplateText(
+              playerState.name,
+              playerState.currentLevel
+            ),
+
+          color:
+            "#4ade80",
+
+          title: getPlayerTitle(playerState.selectedTitle)?.label || "",
+
+          y:
+            -0.4,
+        });
 
 
-    const animations =
-      createKayKitAnimationController(
-        character
-      );
+      cleanup.push(() => nameplate.destroy());
+
+      /*
+       * HEALTH BAR
+       */
+
+      const healthBar =
+        createHealthBar({
+          scene,
+
+          player:
+            root,
+        });
 
 
-    /*
-     * NAMEPLATE
-     */
+      cleanup.push(() => healthBar.destroy());
 
-    const getNameplateText =
-      (
-        playerName,
-        level
-      ) => {
-        return `${getPlayerNameplateText(playerName, playerState.guildTag)} (Level ${level})`;
-      };
+      /*
+       * SWORD
+       */
 
+      // Authored cosmetic weapons use the adapter's normalized attachment, as locally.
+      let sword = character.weaponMesh;
+      if (!sword) {
+        const result = await SceneLoader.ImportMeshAsync("", "/models/", "sword.glb", scene);
+        sword = result.meshes[0];
+        const materials = new Set(result.meshes.map((mesh) => mesh.material).filter(Boolean));
+        cleanup.push(() => {
+          sword.dispose();
+          materials.forEach((material) => material.dispose(false, true));
+        });
+      }
 
-    const nameplate =
-      createNameplate({
-        scene,
-
-        scale: 1.5,
-
-        player:
-          root,
-
-        name:
-          getNameplateText(
-            playerState.name,
-            playerState.currentLevel
-          ),
-
-        color:
-          "#4ade80",
-
-        title: getPlayerTitle(playerState.selectedTitle)?.label || "",
-
-        y:
-          -0.4,
-      });
+      const swordPivot =
+        new TransformNode(
+          `remote-sword-pivot-${sessionId}`,
+          scene
+        );
 
 
-    /*
-     * HEALTH BAR
-     */
-
-    const healthBar =
-      createHealthBar({
-        scene,
-
-        player:
-          root,
-      });
+      const swordGrip =
+        new TransformNode(
+          `remote-sword-grip-${sessionId}`,
+          scene
+        );
 
 
-    /*
-     * SWORD
-     */
+      cleanup.push(() => swordPivot.dispose(), () => swordGrip.dispose());
+      swordPivot.parent = character.weaponAnchor;
+      swordGrip.parent = swordPivot;
+      if (character.weaponMesh) sword.setParent(swordGrip);
+      else {
+        sword.parent = swordGrip;
+        swordGrip.position.set(SWORD.position.x, SWORD.position.y, SWORD.position.z);
+        swordGrip.rotation.set(SWORD.rotation.x, SWORD.rotation.y, SWORD.rotation.z);
+        sword.scaling.setAll(SWORD.scale);
+        sword.position.set(0, 0, 0);
+      }
 
-    const swordResult =
-      await SceneLoader.ImportMeshAsync(
-        "",
-        "/models/",
-        "sword.glb",
-        scene
-      );
+      /*
+       * SWORD TIP
+       */
+
+      const swordTip =
+        MeshBuilder.CreateSphere(
+          `remote-sword-tip-${sessionId}`,
+          {
+            diameter:
+              0.03,
+          },
+          scene
+        );
 
 
-    const sword =
-      swordResult.meshes[
+      swordTip.parent =
+        sword;
+
+
+      swordTip.position.set(
+        0,
+        1.2,
         0
-      ];
-
-
-    const swordPivot =
-      new TransformNode(
-        `remote-sword-pivot-${sessionId}`,
-        scene
       );
 
 
-    const swordGrip =
-      new TransformNode(
-        `remote-sword-grip-${sessionId}`,
-        scene
-      );
+      if (character.weaponMesh) {
+        const { center, maximum } = sword.getBoundingInfo().boundingBox;
+        swordTip.position.set(center.x, maximum.y, center.z);
+      }
+      swordTip.isVisible = false;
+      cleanup.push(() => swordTip.dispose());
+
+      /*
+       * COMBAT
+       */
+
+      const combat =
+        createRemoteCombat({
+          scene,
+          swordPivot,
+          swordTip,
+        });
+
+      cleanup.push(() => combat.destroy());
+      const mount = await createHorseMount({ scene, parent: root, character });
+      cleanup.push(() => mount.destroy());
+      mount.setMounted(playerState.mounted);
+      let alive = playerState.health > 0;
+      swordPivot.setEnabled(alive && swordVisible);
 
 
-    /*
-     * The procedural character has
-     * no skeleton anymore.
-     *
-     * Attach the sword directly to
-     * the right arm pivot.
-     */
-
-    swordPivot.parent =
-      character.weaponAnchor;
-
-    swordPivot.position.set(
-      0,
-      0,
-      0
-    );
-
-
-    swordGrip.parent =
-      swordPivot;
-
-
-    sword.parent =
-      swordGrip;
-
-
-    swordGrip.rotation.set(
-      Math.PI /
-        2,
-      0,
-      0
-    );
-
-
-    sword.scaling.setAll(
-      0.7
-    );
-
-
-    sword.position.set(
-      0,
-      0,
-      0
-    );
-
-
-    /*
-     * SWORD TIP
-     */
-
-    const swordTip =
-      MeshBuilder.CreateSphere(
-        `remote-sword-tip-${sessionId}`,
-        {
-          diameter:
-            0.03,
-        },
-        scene
-      );
-
-
-    swordTip.parent =
-      sword;
-
-
-    swordTip.position.set(
-      0,
-      1.2,
-      0
-    );
-
-
-    swordTip.isVisible =
-      false;
-
-
-    /*
-     * COMBAT
-     */
-
-    const combat =
-      createRemoteCombat({
-        scene,
-        swordPivot,
-        swordTip,
+      root.setEnabled(true);
+      const targetPosition = Vector3.Zero();
+      const visibility = createEntityVisibility({
+        root, targetPosition, nameplate, healthBar,
+        controllers: [animations, mount, combat], alive: () => alive,
       });
 
-    const mount = await createHorseMount({ scene, parent: root, character });
-    mount.setMounted(playerState.mounted);
-    let alive = playerState.health > 0;
-    swordPivot.setEnabled(alive && swordVisible);
+      return {
+        visibility,
+        root,
+        character,
+
+        nameplate,
+        healthBar,
+
+        sword,
+        swordPivot,
+        swordGrip,
+        swordTip,
+
+        animations,
+        combat,
+        mount,
+
+        targetPosition,
+
+        targetRotationY:
+          0,
+
+        movingUntil:
+          0,
 
 
-    const targetPosition = Vector3.Zero();
-    const visibility = createEntityVisibility({
-      root, targetPosition, nameplate, healthBar,
-      controllers: [animations, mount, combat], alive: () => alive,
-    });
-
-    return {
-      visibility,
-      root,
-      character,
-
-      nameplate,
-      healthBar,
-
-      sword,
-      swordPivot,
-      swordGrip,
-      swordTip,
-
-      animations,
-      combat,
-      mount,
-
-      targetPosition,
-
-      targetRotationY:
-        0,
-
-      movingUntil:
-        0,
+        setLevel(
+          level
+        ) {
+          nameplate.setName(
+            getNameplateText(
+              playerState.name,
+              level
+            )
+          );
+        },
 
 
-      setLevel(
-        level
-      ) {
-        nameplate.setName(
-          getNameplateText(
-            playerState.name,
-            level
-          )
-        );
-      },
+        setAlive(
+          isAlive
+        ) {
+          alive = isAlive;
+          if (!alive) mount.setMounted(false);
+          swordPivot.setEnabled(
+            alive && swordVisible
+          );
 
 
-      setAlive(
-        isAlive
-      ) {
-        alive = isAlive;
-        if (!alive) mount.setMounted(false);
-        swordPivot.setEnabled(
-          alive && swordVisible
-        );
+          swordGrip.setEnabled(
+            alive && swordVisible
+          );
 
 
-        swordGrip.setEnabled(
-          alive && swordVisible
-        );
+          sword.setEnabled(
+            alive && swordVisible
+          );
 
 
-        sword.setEnabled(
-          alive && swordVisible
-        );
+          swordTip.setEnabled(
+            alive && swordVisible
+          );
 
 
-        swordTip.setEnabled(
-          alive && swordVisible
-        );
+          visibility.apply();
+        },
+
+        setMounted(value) {
+          mount.setMounted(alive && value);
+        },
 
 
-        visibility.apply();
-      },
-
-      setMounted(value) {
-        mount.setMounted(alive && value);
-      },
-
-
-      destroy() {
-        animations.destroy();
-
-
-        combat.destroy();
-        mount.destroy();
-
-
-        nameplate.destroy();
-
-
-        healthBar.destroy();
-
-
-        swordTip.dispose();
-
-
-        sword.dispose();
-
-
-        swordGrip.dispose();
-
-
-        swordPivot.dispose();
-
-
-        root.dispose();
-      },
-    };
+        destroy: dispose,
+      };
+    } catch (error) {
+      dispose();
+      throw error;
+    }
   };
 
 
@@ -979,8 +904,7 @@ export const createMultiplayer =
       null;
 
 
-    const removedPlayers =
-      new Set();
+    const pendingPlayers = new Map();
 
 
     /*
@@ -1174,35 +1098,21 @@ export const createMultiplayer =
          * REMOTE PLAYER
          */
 
-        removedPlayers.delete(
-          sessionId
-        );
-
-
-        const entity =
-          await createRemotePlayer(
-            scene,
-            sessionId,
-            playerState
-          );
-
-
-        /*
-         * Player may have left while
-         * sword.glb was loading.
-         */
-
-        if (
-          destroyed || removedPlayers.has(
-            sessionId
-          )
-        ) {
+        const spawnToken = {};
+        pendingPlayers.set(sessionId, spawnToken);
+        let entity;
+        try {
+          entity = await createRemotePlayer(scene, sessionId, playerState);
+        } catch (error) {
+          if (pendingPlayers.get(sessionId) === spawnToken) pendingPlayers.delete(sessionId);
+          throw error;
+        }
+        // Removal/re-addition and scene switches can happen while the assets load.
+        if (destroyed || pendingPlayers.get(sessionId) !== spawnToken) {
           entity.destroy();
-
-
           return;
         }
-
+        pendingPlayers.delete(sessionId);
 
         entity.root.position.set(
           playerState.x,
@@ -1367,7 +1277,7 @@ export const createMultiplayer =
 
 
             if (
-              !remote
+              !remote || remote.playerState !== playerState
             ) {
               return;
             }
@@ -1437,9 +1347,7 @@ export const createMultiplayer =
         _playerState,
         sessionId
       ) => {
-        removedPlayers.add(
-          sessionId
-        );
+        pendingPlayers.delete(sessionId);
 
 
         const entity =
@@ -2240,6 +2148,7 @@ export const createMultiplayer =
 
 
         remotePlayers.clear();
+        pendingPlayers.clear();
 
 
         for (

@@ -26,6 +26,8 @@ export const applyAmirSkinTone = async (container, skinTone, scene) => {
     texture.wrapU = source.wrapU;
     texture.wrapV = source.wrapV;
     const material = original.clone(`${original.name}-amir-skin`);
+    // Babylon clones texture wrappers too; own them before replacing the albedo.
+    container.textures.push(...material.getActiveTextures().filter((value) => !container.textures.includes(value)));
     material.albedoTexture = texture;
     for (const mesh of body) if (mesh.material === original) mesh.material = material;
     // Own per-character palette resources so another actor's appearance cannot be recolored.
