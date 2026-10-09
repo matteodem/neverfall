@@ -1834,7 +1834,8 @@ export class WorldRoom
       ...stats,
       speed: stats.speed * WORLD_ENEMY_SPEED_MULTIPLIER,
       health: stats.health * (scaling.health ?? 1),
-      attackDamage: stats.attackDamage * (scaling.damage ?? 1) * 0.5,
+      attackDamage: stats.attackDamage * (scaling.damage ?? 1) * 0.5 +
+        (type === "wolf" && level === 2 ? 10 : 0),
     };
   }
 
