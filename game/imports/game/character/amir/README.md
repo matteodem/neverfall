@@ -35,7 +35,9 @@ real meshes; optional hair/equipment slots accept null. Legacy `head1`–`head5`
 normalize to real Amir heads. Existing documents get missing fields at assembly time;
 there is no destructive migration. Unknown fields are discarded and invalid part IDs
 are rejected. The creator UI reads `AMIR_PART_OPTIONS` directly and submits
-`normalizeAmirAppearance(creator)` through the existing creation method.
+`createAmirStartingAppearance(creator, gameClass)` through the existing creation method.
+The example above remains the legacy normalization fallback; new creations use the
+class presets below.
 
 ## Plus asset catalog
 
@@ -44,7 +46,8 @@ The production adapter now loads `Modular Character Plus.glb` (7,532,936 bytes).
 appearance normalization/validation, creator controls and assembly. No appearance
 fields, free-pack defaults, legacy head aliases or null semantics were changed.
 Local players, remote players, NPC assembly and the live preview all use this adapter.
-The creator displays each slot's available count; wings use the existing back slot.
+The creator displays counts for Head, Hair, Hat and Glasses. Other catalog slots
+remain supported for saved appearances and future equipment changes.
 
 Regenerate after replacing the GLB, from the repository root:
 
@@ -61,7 +64,7 @@ same generated data without reading public assets or loading rendering code.
 
 Plus contains 137 usable geometry meshes (72 additions): 16 heads; 16 each of torso,
 arms, legs and feet; 15 hands; 5 hair; 10 hats; 4 glasses; 1 mask; 6 left-hand items;
-10 right-hand items; and 6 back items. Player weapon choices are filtered by class;
+10 right-hand items; and 6 back items. Saved player weapon variants are filtered by class;
 classless NPC assembly retains access to the full catalog.
 Required body slots still require a mesh; hair and equipment retain **None**.
 
@@ -120,7 +123,8 @@ crowd/mobile profiling and asset caching/pruning remain follow-up work.
 
 The existing `gameClass` and `appearance.equipment` determine player weapons.
 `AMIR_CLASS_WEAPONS`, `getAmirEquipmentOptions` and `applyAmirClassWeapon` in
-`appearance.js` share the class rules between assembly, creator options and submission.
+`appearance.js` share the class rules for assembly. Default weapon IDs come from
+`classEquipmentPresets.js`, which also owns new-character outfits.
 There is no new inventory, weapon-selection field, persistence model or realtime field.
 
 | Class | Default asset ID | Bone / slot | Compatible saved variants |
@@ -130,7 +134,7 @@ There is no new inventory, weapon-selection field, persistence model or realtime
 | Mage | `staff-02.col` | `RightHand` / `rightHand` | `hammer-01.col`, `staff-02.col`, `staff-03.col` |
 
 Null or a saved weapon of another type resolves to the class default. Warrior/Mage
-left-hand shields remain selectable; bows are reserved for Rangers. Ranger right-hand
+saved left-hand shields remain supported; bows are reserved for Rangers. Ranger right-hand
 weapons are suppressed so an older saved sword cannot appear alongside the bow.
 The normalized free-pack defaults remain unchanged. Resolution copies appearance
 rather than rewriting existing documents. New creator submissions store the resolved
@@ -234,16 +238,39 @@ only the GLB is used at runtime.
 ## Creator preview and controls
 
 The existing Species → Class → Appearance → Name wizard now offers head, hair,
-species-specific skin tones, body type, individual outfit parts, and equipment.
-It stores the existing appearance fields in the creator draft and uses the shared
-normalizer for both preview and submission. No second appearance schema is used.
+species-specific Skin Tone, Body Type, Hat and Glasses only.
+It stores the existing appearance fields in the creator draft and uses
+`createAmirStartingAppearance` for both preview and submission. The server applies
+the same helper before existing validation, so hidden outfit/equipment input cannot
+override starting gear. No second appearance schema is used.
+
+`classEquipmentPresets.js` centrally configures each class in the existing
+`appearance.outfit` / `appearance.equipment` shape:
+
+| Class | Torso | Arms | Hands | Legs | Feet | Left hand | Right hand |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Warrior | `torso-00` | `arms-00` | `hands-00` | `legs-00` | `feet-00` | null | `sword-01.col` |
+| Ranger | `torso-00` | `arms-00` | `hands-00` | `legs-00` | `feet-00` | `bow-01.col` | null |
+| Mage | `torso-00` | `arms-00` | `hands-00` | `legs-00` | `feet-00` | null | `staff-02.col` |
+
+Mask and back start null; Hat and Glasses come from the creator selections.
+These presets apply only to new creations. Existing characters retain their saved
+slots and the unchanged legacy fallback. Future gear can replace individual saved
+slots without touching the creator or reapplying the full preset during assembly.
+The existing class weapon compatibility rules still apply.
+
+Focused checks for the simplified creator: all three class previews assembled the
+configured meshes on one rig, cosmetic selections survived class changes, and the
+creation payload matched the preview. Checked the six controls on desktop and mobile,
+server-side preset enforcement, legacy normalization and saved slot preservation.
+No Meteor builds or test suites were run.
 
 `CharacterPreview.jsx` delegates Babylon rendering to `createAmirCharacterPreview.js`,
 which uses the production adapter. Selection changes are coalesced for 120 ms;
 the engine and drag rotation survive appearance changes, and stale loads are discarded.
 Load failures show a message. The same preview component also serves character overview.
 
-Focused Chromium/WebGL checks used the actual React wizard, existing DaisyUI/Tailwind
+Earlier full-catalog Chromium/WebGL checks used the actual React wizard, existing DaisyUI/Tailwind
 styles, and real GLB, with a temporary Meteor-call stub (not a Meteor server/database):
 
 - Exercised head/hair/skin/outfit/equipment selectors and confirmed enabled GLB meshes

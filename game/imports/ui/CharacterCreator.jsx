@@ -4,7 +4,7 @@ import React, {
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
 import { SPECIES } from "../game/species";
-import { normalizeAmirAppearance, applyAmirClassWeapon } from "../game/character/amir/appearance";
+import { createAmirStartingAppearance } from "../game/character/amir/appearance";
 import { AmirAppearanceControls } from "./components/AmirAppearanceControls";
 
 import {
@@ -108,7 +108,7 @@ const AppearanceStep = () => {
       <h2 className="mb-4 text-center text-3xl font-bold">Character Appearance</h2>
       <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
         <div className="order-first h-[260px] overflow-hidden rounded-xl border border-white/10 bg-black/20 md:order-last md:sticky md:top-0 md:h-[440px]">
-          <CharacterPreview appearance={normalizeAmirAppearance(creator)} gameClass={creator.gameClass} />
+          <CharacterPreview appearance={createAmirStartingAppearance(creator, creator.gameClass)} gameClass={creator.gameClass} />
         </div>
         <AmirAppearanceControls />
       </div>
@@ -297,7 +297,7 @@ const NameStep = ({
             gameClass:
               creator.gameClass,
 
-            appearance: applyAmirClassWeapon(normalizeAmirAppearance(creator), creator.gameClass),
+            appearance: createAmirStartingAppearance(creator, creator.gameClass),
           }
         );
 

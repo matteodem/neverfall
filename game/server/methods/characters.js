@@ -20,7 +20,7 @@ import { DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { removeGuildCharacter } from "../guilds";
 import { getPlayerTitle } from "../../imports/game/playerTitles";
 import { setOnlineSelectedTitle } from "../colyseus/onlineGuildTags";
-import { AMIR_PART_OPTIONS, normalizeAmirAppearance, isValidAmirAppearance } from "../../imports/game/character/amir/appearance";
+import { AMIR_PART_OPTIONS, createAmirStartingAppearance, isValidAmirAppearance } from "../../imports/game/character/amir/appearance";
 
 const VALID_APPEARANCE = {
   gender: [
@@ -63,9 +63,10 @@ const requireUser = (
 
 const normalizeAppearance = (
   appearance,
-  species
+  species,
+  gameClass
 ) => {
-  return normalizeAmirAppearance(appearance, {
+  return createAmirStartingAppearance(appearance, gameClass, {
     skinTone: SPECIES[species].defaultSkinTone,
     bodyType: SPECIES[species].defaultBodyType,
   });
@@ -224,7 +225,8 @@ Meteor.methods({
     const normalizedAppearance =
       normalizeAppearance(
         appearance,
-        species
+        species,
+        gameClass
       );
 
     validateAppearance(

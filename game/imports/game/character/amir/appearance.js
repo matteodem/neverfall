@@ -1,14 +1,15 @@
 import { SKIN_TONES } from "../../species";
 import catalog from "./catalog.json";
+import { AMIR_CLASS_EQUIPMENT_PRESETS } from "./classEquipmentPresets";
 
 // Generated from the shipped GLB; persistence, assembly and UI share this whitelist.
 export const AMIR_PART_OPTIONS = catalog.options;
 
 // Class weapons still live in appearance.equipment; these are visual defaults, not item stats.
 export const AMIR_CLASS_WEAPONS = {
-  warrior: { slot: "rightHand", defaultId: "sword-01.col", options: AMIR_PART_OPTIONS.rightHand.filter((id) => id?.startsWith("sword-")) },
-  ranger: { slot: "leftHand", defaultId: "bow-01.col", options: AMIR_PART_OPTIONS.leftHand.filter((id) => id?.startsWith("bow-")) },
-  mage: { slot: "rightHand", defaultId: "staff-02.col", options: AMIR_PART_OPTIONS.rightHand.filter((id) => /^(staff|hammer)-/.test(id || "")) },
+  warrior: { slot: "rightHand", defaultId: AMIR_CLASS_EQUIPMENT_PRESETS.warrior.equipment.rightHand, options: AMIR_PART_OPTIONS.rightHand.filter((id) => id?.startsWith("sword-")) },
+  ranger: { slot: "leftHand", defaultId: AMIR_CLASS_EQUIPMENT_PRESETS.ranger.equipment.leftHand, options: AMIR_PART_OPTIONS.leftHand.filter((id) => id?.startsWith("bow-")) },
+  mage: { slot: "rightHand", defaultId: AMIR_CLASS_EQUIPMENT_PRESETS.mage.equipment.rightHand, options: AMIR_PART_OPTIONS.rightHand.filter((id) => /^(staff|hammer)-/.test(id || "")) },
 };
 
 export const getAmirEquipmentOptions = (slot, gameClass) => {
@@ -51,6 +52,23 @@ export const normalizeAmirAppearance = (appearance = {}, defaults = {}) => ({
   equipment: Object.fromEntries(Object.entries(DEFAULT_AMIR_APPEARANCE.equipment).map(([slot, value]) =>
     [slot, appearance?.equipment?.[slot] === undefined ? value : appearance.equipment[slot]])),
 });
+
+// Creation only: hidden outfit/equipment input cannot override the class preset.
+// Runtime assembly continues normalizing saved slots without reapplying this preset.
+export const createAmirStartingAppearance = (input, gameClass, defaults = {}) => {
+  const selected = normalizeAmirAppearance(input, defaults);
+  const preset = AMIR_CLASS_EQUIPMENT_PRESETS[gameClass];
+  if (!preset) throw new Error(`Unknown Amir class: ${gameClass}`);
+  return {
+    ...selected,
+    outfit: { ...preset.outfit },
+    equipment: {
+      ...preset.equipment,
+      hat: selected.equipment.hat,
+      glasses: selected.equipment.glasses,
+    },
+  };
+};
 
 export const isValidAmirAppearance = (appearance) => Boolean(
   typeof appearance.skinTone === "string" && Object.hasOwn(SKIN_TONES, appearance.skinTone) &&

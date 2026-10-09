@@ -1,20 +1,16 @@
 import React from "react";
-import { AMIR_PART_OPTIONS, DEFAULT_AMIR_APPEARANCE, AMIR_CLASS_WEAPONS, getAmirEquipmentOptions } from "../../game/character/amir/appearance";
+import { AMIR_PART_OPTIONS } from "../../game/character/amir/appearance";
 import { SPECIES, SKIN_TONES } from "../../game/species";
 import { useCharacterStore } from "../stores/useCharacterStore";
 
-const LABELS = { head: "Head", hair: "Hair", torso: "Torso", arms: "Arms", hands: "Hands", legs: "Legs", feet: "Feet",
-  hat: "Hat", glasses: "Glasses", mask: "Mask", leftHand: "Left-hand equipment", rightHand: "Right-hand equipment", back: "Back equipment" };
+const LABELS = { head: "Head", hair: "Hair", hat: "Hat", glasses: "Glasses" };
 
 export const AmirAppearanceControls = () => {
   const creator = useCharacterStore((state) => state.creator);
   const setField = useCharacterStore((state) => state.setCreatorField);
   const select = (slot, group) => {
-    const options = group === "equipment" ? getAmirEquipmentOptions(slot, creator.gameClass) : AMIR_PART_OPTIONS[slot];
-    if (options.length === 1 && options[0] === null) return null;
+    const options = AMIR_PART_OPTIONS[slot];
     const selected = group ? creator[group][slot] : creator[slot];
-    const weapon = AMIR_CLASS_WEAPONS[creator.gameClass];
-    const emptyLabel = weapon?.slot === slot ? `Class default (${weapon.defaultId.replace(/\.col$/, "")})` : "None";
     return (
     <label key={slot} className="flex min-w-0 flex-col gap-1 text-sm">
       <span>{LABELS[slot]} <span className="text-xs opacity-60">({options.filter(Boolean).length})</span></span>
@@ -24,7 +20,7 @@ export const AmirAppearanceControls = () => {
           const value = event.target.value || null;
           setField(group || slot, group ? { ...creator[group], [slot]: value } : value);
         }}>
-        {options.map((id) => <option key={id || "none"} value={id || ""}>{id ? id.replace(/\.col$/, "") : emptyLabel}</option>)}
+        {options.map((id) => <option key={id || "none"} value={id || ""}>{id ? id.replace(/\.col$/, "") : "None"}</option>)}
       </select>
     </label>
     );
@@ -45,24 +41,13 @@ export const AmirAppearanceControls = () => {
       </div>
       <label className="flex flex-col gap-1 text-sm">
         <span>Body Type</span>
-        <select className="select select-bordered select-sm w-full text-base-content" value={creator.bodyType}
+        <select className="select select-bordered select-sm w-full text-base-content" aria-label="Body Type" value={creator.bodyType}
           onChange={(event) => setField("bodyType", event.target.value)}>
           {["slim", "medium", "large"].map((type) => <option key={type} value={type}>{type}</option>)}
         </select>
       </label>
-      <fieldset>
-        <legend className="mb-2 font-bold">Outfit parts</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {Object.keys(DEFAULT_AMIR_APPEARANCE.outfit).map((slot) => select(slot, "outfit"))}
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend className="mb-2 font-bold">Equipment</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {Object.keys(DEFAULT_AMIR_APPEARANCE.equipment).map((slot) => select(slot, "equipment"))}
-        </div>
-      </fieldset>
-      <p className="text-xs text-white/60">Weapons follow your class; Class default uses its standard weapon. Drag the preview to rotate. Back equipment includes wings. Some hair, hats and mixed outfits may overlap; choose None to remove an accessory.</p>
+      <div className="grid grid-cols-2 gap-3">{select("hat", "equipment")}{select("glasses", "equipment")}</div>
+      <p className="text-xs text-white/60">Starting outfit and weapon follow your class. Drag the preview to rotate. Some hair and hats may overlap; choose None to remove an accessory.</p>
     </div>
   );
 };
