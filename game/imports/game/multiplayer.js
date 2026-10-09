@@ -73,6 +73,7 @@ import { createHorseMount } from "./mounts";
 import { areNearbyChunks } from "./worldConfig";
 import { useLoadingStore } from "../ui/stores/useLoadingStore";
 import { useWaypointStore } from "../ui/stores/useWaypointStore";
+import { createZoneEntryFeedback } from "./zoneEntryFeedback";
 
 import {
   useCombatStore,
@@ -828,6 +829,8 @@ export const createMultiplayer =
     const session = await getGameSession();
     const room = session.room;
     const dungeon = room !== session.worldRoom;
+    const zoneEntryFeedback = dungeon ? null : createZoneEntryFeedback((text, duration) =>
+      useBossNoticeStore.getState().show(text, duration));
     const mobile = getDevice().mobile;
     let attackFacingTargetId = null;
     let attackFacingUntil = 0;
@@ -899,6 +902,7 @@ export const createMultiplayer =
       resetCameraImpulse(scene.activeCamera);
       player.position.set(x, y + JUMP.groundY, z);
       player.rotation.y = rotationY;
+      zoneEntryFeedback?.update(player.position, 0, true);
       onLocalRespawn?.();
     });
 
@@ -922,6 +926,7 @@ export const createMultiplayer =
         onLocalRespawn?.();
         player.position.set(x, y + JUMP.groundY, z);
         player.rotation.y = rotationY;
+        zoneEntryFeedback?.update(player.position, 0, true);
         worldChunks?.update();
         for (const enemy of enemies.values()) enemy.visibility.update(player.position, enemyVisibility);
         finishWaypoint();
@@ -1012,6 +1017,7 @@ export const createMultiplayer =
           callbacks.listen(playerState, "selectedTitle", syncLocalTitle);
           player.position.set(playerState.x, playerState.y + JUMP.groundY, playerState.z);
           player.rotation.y = playerState.rotationY;
+          zoneEntryFeedback?.reset(player.position);
 
 
           /*
@@ -1922,6 +1928,7 @@ export const createMultiplayer =
         useBossHealthStore.getState().sync(room.state, room.sessionId, player.position);
         useTargetStore.getState().sync(room.state, localPlayerState);
         loot.update();
+        if (localPlayerState) zoneEntryFeedback?.update(player.position, deltaTime);
         if (!dungeon) {
           const area = getQuestArea(player.position);
           if (useQuestStore.getState().area !== area) useQuestStore.getState().setArea(area);
