@@ -1,16 +1,8 @@
 import { SKIN_TONES } from "../../species";
+import catalog from "./catalog.json";
 
-const variants = (slot, ids = ["00", "01", "02", "101", "102", "51", "52"]) => ids.map((id) => `${slot}-${id}`);
-export const AMIR_PART_OPTIONS = {
-  head: variants("head"), hair: [null, "hair-51", "hair-102"],
-  torso: variants("torso"), arms: variants("arms"), legs: variants("legs"), feet: variants("feet"),
-  hands: variants("hands", ["00", "01", "02", "101", "51", "52"]),
-  hat: [null, "hat-01", "hat-02", "hat-101", "hat-51"],
-  glasses: [null, "glasses-102", "glasses-52"], mask: [null, "mask-102"],
-  leftHand: [null, "bow-01.col", "bow-02.col", "shield-01.col", "shield-02.col"],
-  rightHand: [null, "2Hgun-51.col", "axe-01.col", "gun-101.col", "hammer-01.col", "staff-02.col", "sword-01.col", "sword-02.col"],
-  back: [null, "arrows-01.col", "arrows-02.col", "backpack-01.col", "cloak-01.col"],
-};
+// Generated from the shipped GLB; persistence, assembly and UI share this whitelist.
+export const AMIR_PART_OPTIONS = catalog.options;
 
 export const DEFAULT_AMIR_APPEARANCE = {
   head: "head-01", hair: "hair-51", skinTone: "medium", bodyType: "medium", gender: "female",

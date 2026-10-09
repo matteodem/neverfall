@@ -17,7 +17,7 @@ appearance: {
   hair: "hair-51", // null hides hair
   skinTone: "medium",
   bodyType: "medium", // existing slim / medium / large width scaling
-  gender: "female", // retained metadata; the free pack does not supply gender-specific rigs
+  gender: "female", // retained metadata; the pack does not supply gender-specific rigs
   outfit: {
     torso: "torso-01", arms: "arms-01", hands: "hands-01",
     legs: "legs-01", feet: "feet-01"
@@ -36,6 +36,84 @@ normalize to real Amir heads. Existing documents get missing fields at assembly 
 there is no destructive migration. Unknown fields are discarded and invalid part IDs
 are rejected. The creator UI reads `AMIR_PART_OPTIONS` directly and submits
 `normalizeAmirAppearance(creator)` through the existing creation method.
+
+## Plus asset catalog
+
+The production adapter now loads `Modular Character Plus.glb` (7,532,936 bytes).
+`catalog.json` is generated from this exact file and is the single whitelist used by
+appearance normalization/validation, creator controls and assembly. No appearance
+fields, free-pack defaults, legacy head aliases or null semantics were changed.
+Local players, remote players, NPC assembly and the live preview all use this adapter.
+The creator displays each slot's available count; wings use the existing back slot.
+
+Regenerate after replacing the GLB, from the repository root:
+
+```sh
+node tools/generate-amir-catalog.cjs
+node tools/generate-amir-catalog.cjs --check
+```
+
+Discovery uses actual geometry names, rig skinning and authored attachment parents,
+not guessed numeric variant ranges. The generator rejects unclassified, duplicate or
+multi-primitive mesh nodes for review rather than silently exposing incompatible data.
+It requires no dependencies or Babylon runtime, so Meteor validation can import the
+same generated data without reading public assets or loading rendering code.
+
+Plus contains 137 usable geometry meshes (72 additions): 16 heads; 16 each of torso,
+arms, legs and feet; 15 hands; 5 hair; 10 hats; 4 glasses; 1 mask; 6 left-hand items;
+10 right-hand items; and 6 back items. All are selectable in the existing controls.
+Required body slots still require a mesh; hair and equipment retain **None**.
+
+### Plus compatibility and focused checks
+
+- Every free-pack mesh ID is present. Geometry, indices and skin weights of the 65
+  existing meshes are byte-for-byte identical; the same 65 bone names are retained.
+  Internal glTF node indices differ, so the adapter continues to resolve bones by name.
+- All 51 animation names and sampler data are unchanged. All three embedded palette
+  PNGs are byte-for-byte identical, preserving the existing skin-tone swatches.
+  Plus has nine material variants; the current skin adapter handles their body
+  materials while retaining accessory/hair palettes.
+- In isolated Chromium/WebGL, exercised the real React creator across 16 outfit
+  families and previewed every one of the 137 geometry choices through its controls.
+  Option lists matched the generated catalog; all selections rendered with one rig
+  and the ten mapped animation groups. The submitted appearance matched the preview,
+  including Plus equipment and null hair. Also checked a 667 × 375 viewport.
+- Exercised all ten mapped animation poses on a Plus actor, procedural weapon attacks,
+  independent skin palettes, a legacy actor, mounted removal, death/respawn, dungeon
+  visibility, remove/re-add during loading, and scene exit. Actor meshes, rigs, groups,
+  materials and textures were released; only the scene's shared default material and
+  BRDF texture remained.
+- Catalog freshness, shared validation for all 137 IDs, legacy aliases/defaults,
+  rejection of unknown IDs, JS/JSX syntax, standalone Rspack compilation and diff
+  whitespace checks passed. No Meteor builds or test suites were run.
+
+### Plus visual findings and naming
+
+Sampled all 16 outfit families, then compared 16 close-up combinations on `head-00`
+using `hat-03`, `hat-04`, `hat-54`, `hat-105` and each of the three new hairstyles
+against a hair-free baseline:
+
+- `hair-04`, `hair-103` and `hair-55` protrude through `hat-04`'s upper surface.
+- `hair-103` and `hair-55` intersect/cover `hat-03`'s crown; `hair-103` also
+  protrudes through the top of `hat-105`. Hair **None** removes these overlaps.
+- `hat-54` is shaped like a molded hairstyle/brow accessory rather than a conventional
+  hat, and visibly overlaps `hair-04` and `hair-103` on the crown/forehead.
+- On `head-00`, the face also intersects the green visor area of `hat-105` even with
+  hair **None**. Its fit should be reviewed per head before promising clean combinations.
+- `sych-103.col` is the scythe-shaped right-hand item; its unusual spelling is the
+  actual asset ID and is retained. `.col` items are renderable attached geometry,
+  not collision-only meshes. `hands-102` is still absent; it is not offered.
+- The `03` body family includes extra `COLOR_0`/`COLOR_1` vertex attributes, containing
+  white values. No rendering or animation incompatibility was observed for it.
+- No geometry was excluded and no new rig/animation incompatibility was found.
+  Every possible mixed combination and animation angle has not been visually reviewed.
+  Larger weapons, paired shields and wings still need combination-specific grip/overlap
+  polish; they use the existing attachment and combat behavior, with no new attack poses.
+
+The existing free-pack clipping findings below still apply. Options remain independently
+selectable; the adapter does not silently rewrite appearances to hide clipping.
+The larger pack retains all 137 meshes and imports/tints its own materials per actor;
+crowd/mobile profiling and asset caching/pruning remain follow-up work.
 
 ## Assembly and compatibility
 
@@ -173,7 +251,7 @@ Chromium/WebGL scene with real GLBs and the remote assembly/join/removal code:
 - Syntax checks, standalone Rspack compilation and diff whitespace checks passed.
 
 These checks do not replace an end-to-end session with a live Meteor database and two
-connected clients. Each remote actor currently imports the full roughly 6 MB GLB and
+connected clients. Each remote actor currently imports the full roughly 7.5 MB Plus GLB and
 keeps disabled geometry plus its own rig, palette and mapped animations. Existing
 visibility culling pauses distant rendering/animation; it does not eliminate import
 cost or retained geometry. Asset caching/pruning and crowd/mobile profiling remain
@@ -187,7 +265,7 @@ follow-up work rather than part of this MVP.
   exposing every combination. Some heads already contain thematic details; paired
   arms/legs/hands/feet cannot be customized left/right independently. `hands-102`
   does not exist and must not be offered.
-- Gender remains metadata; the free asset has one rig and limited geometry variants.
+- Gender remains metadata; the pack has one rig and fixed geometry variants.
   Skin swatch mapping is specific to this GLB and must be reviewed if the asset changes.
 - NPC instancing, geometry pruning/caching, crowd/mobile performance, mounted pose
   polish, and weapon-specific grip/trail calibration remain unverified. The full

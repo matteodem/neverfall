@@ -11,7 +11,7 @@ export const AmirAppearanceControls = () => {
   const setField = useCharacterStore((state) => state.setCreatorField);
   const select = (slot, group) => (
     <label key={slot} className="flex min-w-0 flex-col gap-1 text-sm">
-      <span>{LABELS[slot]}</span>
+      <span>{LABELS[slot]} <span className="text-xs opacity-60">({AMIR_PART_OPTIONS[slot].filter(Boolean).length})</span></span>
       <select className="select select-bordered select-sm w-full min-w-0 text-base-content"
         aria-label={LABELS[slot]} value={(group ? creator[group][slot] : creator[slot]) ?? ""}
         onChange={(event) => {
@@ -55,7 +55,7 @@ export const AmirAppearanceControls = () => {
           {Object.keys(DEFAULT_AMIR_APPEARANCE.equipment).map((slot) => select(slot, "equipment"))}
         </div>
       </fieldset>
-      <p className="text-xs text-white/60">Drag the preview to rotate. Some hair, hats and mixed outfits may overlap; choose None to remove an accessory.</p>
+      <p className="text-xs text-white/60">Drag the preview to rotate. Back equipment includes wings. Some hair, hats and mixed outfits may overlap; choose None to remove an accessory.</p>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import "@babylonjs/loaders/glTF";
 import { createKayKitAnimationController } from "../createKayKitAnimationController";
 import { normalizeAmirAppearance, isValidAmirAppearance } from "./appearance";
 import { applyAmirSkinTone } from "./applyAmirSkinTone";
+import catalog from "./catalog.json";
 
 // Adapt the shared locomotion controller's clip contract without changing its timing/state logic.
 const ANIMATION_MAP = {
@@ -20,7 +21,7 @@ export const createAmirCharacter = async ({ scene, appearance: input = {} }) => 
   const appearance = normalizeAmirAppearance(input);
   if (!isValidAmirAppearance(appearance)) throw new Error("Invalid Amir appearance");
   const container = await SceneLoader.LoadAssetContainerAsync(
-    "/models/characters/amir/", "Modular Character Free.glb", scene
+    "/models/characters/amir/", catalog.modelFile, scene
   );
   const root = new TransformNode("amir-character", scene);
   try {
