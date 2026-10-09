@@ -316,7 +316,7 @@ export const WOLF_AREA = { minX: -95, maxX: -40, minZ: 40, maxZ: 95 };
 export { WORLD_SIZE as FOREST_SIZE } from "./worldConfig";
 
 export const ENEMY_SPAWNS = [
-  { id: "boar-1", type: "boar", level: 1, x: -20, y: 0, z: 16 },
+  { id: "boar-1", type: "boar", level: 1, x: -11, y: 0, z: 9, rareChance: 0 },
   { id: "boar-2", type: "boar", level: 1, x: 19, y: 0, z: 18 },
   { id: "boar-3", type: "boar", level: 1, x: -19, y: 0, z: -17 },
   { id: "boar-4", type: "boar", level: 1, x: 20, y: 0, z: -15 },

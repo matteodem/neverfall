@@ -1,7 +1,8 @@
 import { QUESTS } from "./quests";
 import { getQuestObjectiveDisplay } from "./questObjectiveDisplay";
+import { getClassSkills, getEquippedSkills } from "./skills";
 
-export const getAdventureGuideObjective = (character) => {
+export const getAdventureGuideObjective = (character, playerHealth, equippedSkills) => {
   const achievements = character?.achievements || {};
   const guide = character?.adventureGuide || {};
   const quests = character?.questProgress || {};
@@ -13,11 +14,24 @@ export const getAdventureGuideObjective = (character) => {
   const ratKills = achievements.ratHunter?.progress || 0;
   const beeKills = achievements.beeHunter?.progress || 0;
   const snowWolfKills = achievements.snowWolfHunter?.progress || 0;
+  const skills = getClassSkills(character?.gameClass);
+  const loadout = getEquippedSkills(character?.gameClass, equippedSkills || character?.equippedSkills);
+  const attackIndex = loadout.findIndex((id) => skills.find((skill) => skill.id === id)?.damageMultiplier);
+  const attackName = skills.find((skill) => skill.id === loadout[attackIndex])?.name;
+  const healIndex = loadout.indexOf("heal");
+  const needsHeal = healIndex >= 0 && playerHealth?.health > 0 && playerHealth.health < playerHealth.maxHealth;
   const steps = [
     { id: "boars", title: "Defeat your first boar", progress: `${Math.min(boarKills, 1)} / 1`,
-      hint: "Find a boar just outside Central Camp. Move close and use a skill.", done: boarKills >= 1 },
-    { id: "loot", title: "Collect enemy loot", hint: "Walk up to enemy loot and press F to collect it.",
-      mobileHint: "Walk up to enemy loot and tap Loot.",
+      hint: needsHeal ? `Press ${healIndex + 1} to Heal, then keep attacking.`
+        : `Use WASD to approach a boar just outside camp. Press ${attackIndex + 1} to attack.`,
+      mobileHint: needsHeal ? "Tap Heal to recover, then keep attacking."
+        : `Use the joystick to approach a boar just outside camp. Tap ${attackName} to attack.`,
+      done: boarKills >= 1 },
+    { id: "loot", title: "Collect enemy loot",
+      hint: needsHeal ? `Press ${healIndex + 1} to Heal, then walk up to loot and press F.`
+        : "Walk up to enemy loot and press F to collect it.",
+      mobileHint: needsHeal ? "Tap Heal to recover, then walk up to loot and tap Loot."
+        : "Walk up to enemy loot and tap Loot.",
       done: achievements.treasureHunter?.unlocked },
     { id: "map", title: "Open the World Map",
       hint: "Find nearby hunts around Central Camp, then close the map.", done: guide.openedMap,

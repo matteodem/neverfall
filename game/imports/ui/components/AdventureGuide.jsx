@@ -6,9 +6,11 @@ import { getAdventureGuideObjective } from "../../game/adventureGuide";
 import { useHudStore } from "../stores/useHudStore";
 import { useMobileDevice } from "../hooks/useMobileDevice";
 import { actionButtonHandlers } from "./actionButtonHandlers";
+import { useSkillsStore } from "../stores/useSkillsStore";
 
-export const AdventureGuide = () => {
+export const AdventureGuide = ({ playerHealth }) => {
   const { mobile } = useMobileDevice();
+  const equippedSkills = useSkillsStore((state) => state.equippedSkills);
   const openModal = useHudStore((state) => state.openModal);
   const openSection = useHudStore((state) => state.openSection);
   const character = useTracker(() => {
@@ -16,7 +18,7 @@ export const AdventureGuide = () => {
     return id ? Characters.findOne(id) : null;
   });
   if (!character) return null;
-  const objective = getAdventureGuideObjective(character);
+  const objective = getAdventureGuideObjective(character, playerHealth, equippedSkills);
 
   return (
     <div id="onboarding-adventure-guide" className="w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-white/10 bg-black/60 p-4 text-white shadow-lg" role="status">

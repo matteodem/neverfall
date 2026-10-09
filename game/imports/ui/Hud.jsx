@@ -823,7 +823,7 @@ export const Hud = ({
           </button>}
           <div id="hud-objectives" className="flex flex-col items-end gap-2" style={{ display: !mobile || showObjectives ? "flex" : "none" }}>
             {!inDungeon && <WorldEventTracker />}
-            <AdventureGuide currentLevel={currentLevel} />
+            <AdventureGuide playerHealth={playerHealth} />
           </div>
         </div>
       </div>

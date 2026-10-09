@@ -1745,7 +1745,8 @@ export class WorldRoom
     spawn
   ) {
     if (this.campSafeZoneEnabled) spawn = { ...spawn, ...outsideCampPosition(spawn) };
-    const rare = !getEnemyStats(spawn.type, spawn.level).bossMechanics && Math.random() < RARE_ENEMY.chance;
+    const rare = !getEnemyStats(spawn.type, spawn.level).bossMechanics &&
+      Math.random() < (spawn.rareChance ?? RARE_ENEMY.chance);
     const stats = this.getEnemyStats(spawn.type, spawn.level, rare, spawn.scaling);
     const enemy =
       new EnemyState({
@@ -2061,6 +2062,7 @@ export class WorldRoom
     const rare = enemy?.rare;
     const lootOwners = new Set();
     const lootSessions = new Map();
+    const firstKills = new Set();
     const nearbyHuntKills = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
       if (!spawn.eventId && !player.inDungeon && contributors.has(player.characterId) &&
@@ -2093,6 +2095,7 @@ export class WorldRoom
       const newlyUnlocked = await trackAchievements(characterId, "kill", spawn.type || "boar");
       const sessionId = lootSessions.get(characterId);
       const firstKill = newlyUnlocked.has("firstBlood");
+      if (firstKill) firstKills.add(characterId);
       if (sessionId && this.state.players.get(sessionId)?.characterId === characterId &&
         (firstKill || !stats.moneyReward || stats.accessoryDropChance)) {
         spawnLoot(this, enemy, sessionId, firstKill);
@@ -2123,6 +2126,14 @@ export class WorldRoom
           characterId,
           stats.xpReward
         );
+      }
+
+      if (firstKills.has(characterId)) {
+        const sessionId = lootSessions.get(characterId);
+        if (this.state.players.get(sessionId)?.characterId === characterId) {
+          this.clients.find((client) => client.sessionId === sessionId)
+            ?.send("bossNotice", `${stats.name} defeated · ${stats.xpReward > 0 ? "XP earned · " : ""}Collect your loot`);
+        }
       }
 
 

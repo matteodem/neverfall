@@ -207,6 +207,30 @@ export const createEnemy = async ({
   let targetRotationY =
     state.rotationY;
 
+  let previousHealth = state.health;
+  let hitStartedAt = 0;
+  let hitObserver = null;
+  const stopHitReaction = () => {
+    if (hitObserver) scene.onBeforeRenderObservable.remove(hitObserver);
+    hitObserver = null;
+    modelRoot.scaling.setAll(config.scale);
+    modelRoot.rotation.z = 0;
+  };
+  const playHitReaction = () => {
+    // A visual recoil for the nearby starter boar; authoritative movement stays unchanged.
+    if (id !== "boar-1" || state.type !== "boar") return;
+    hitStartedAt = performance.now();
+    if (hitObserver) return;
+    hitObserver = scene.onBeforeRenderObservable.add(() => {
+      const progress = (performance.now() - hitStartedAt) / 180;
+      if (progress >= 1) return stopHitReaction();
+      const impact = Math.sin(progress * Math.PI);
+      modelRoot.scaling.set(config.scale * (1 + impact * 0.14),
+        config.scale * (1 - impact * 0.14), config.scale);
+      modelRoot.rotation.z = impact * 0.12;
+    });
+  };
+
   /*
    * =====================================================
    * PUBLIC API
@@ -237,6 +261,8 @@ export const createEnemy = async ({
       health,
       maxHealth
     ) {
+      if (health < previousHealth) playHitReaction();
+      previousHealth = health;
       healthBar.setHealth(
         health,
         maxHealth
@@ -244,6 +270,7 @@ export const createEnemy = async ({
     },
 
     destroy() {
+      stopHitReaction();
       healthBar.destroy();
 
       animations.destroy();
