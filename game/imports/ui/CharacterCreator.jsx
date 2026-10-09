@@ -3,7 +3,9 @@ import React, {
   useState,
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
-import { SPECIES, SKIN_TONES } from "../game/species";
+import { SPECIES } from "../game/species";
+import { normalizeAmirAppearance } from "../game/character/amir/appearance";
+import { AmirAppearanceControls } from "./components/AmirAppearanceControls";
 
 import {
   Meteor,
@@ -21,31 +23,6 @@ import {
 import {
   CharacterPreview,
 } from "./CharacterPreview";
-
-
-const BODY_TYPES = [
-  "slim",
-  "medium",
-  "large",
-];
-
-
-/*
- * Gender and head customization
- * are intentionally disabled
- * for the current KayKit character.
- *
- * We still persist defaults when
- * creating the character so the
- * existing data model remains
- * backwards compatible.
- */
-
-const DEFAULT_GENDER =
-  "male";
-
-const DEFAULT_HEAD =
-  "head1";
 
 
 const Screen = ({
@@ -124,201 +101,20 @@ const Navigation = () => {
 };
 
 
-const AppearanceStep =
-  () => {
-    const creator =
-      useCharacterStore(
-        (state) =>
-          state.creator
-      );
-
-    const setCreatorField =
-      useCharacterStore(
-        (state) =>
-          state.setCreatorField
-      );
-
-
-    const appearance = {
-      gender:
-        DEFAULT_GENDER,
-
-      skinTone:
-        creator.skinTone,
-
-      bodyType:
-        creator.bodyType,
-
-      head:
-        DEFAULT_HEAD,
-    };
-
-
-    return (
-      <div className="character-creator-appearance mb-12">
-        <h2 className="mb-8 text-center text-3xl font-bold">
-          Character Appearance
-        </h2>
-
-        <div className="character-creator-appearance-grid grid min-h-[440px] grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-
-          {/*
-           * ==========================================
-           * APPEARANCE SETTINGS
-           * ==========================================
-           */}
-
-          <div className="character-creator-settings flex flex-col gap-8">
-
-            {/*
-             * ==========================================
-             * GENDER
-             * ==========================================
-             *
-             * Disabled for now.
-             *
-             * KayKit Knight currently has no separate
-             * male/female model variants wired into
-             * the character creator.
-             */}
-
-
-            {/*
-             * ==========================================
-             * SKIN TONE
-             * ==========================================
-             */}
-
-            <div>
-              <h3 className="mb-3 font-bold">
-                Skin Tone
-              </h3>
-
-              <div className="character-creator-skin-tones flex flex-wrap gap-3">
-                {SPECIES[creator.species].skinTones.map(
-                  (
-                    skinTone
-                  ) => (
-                    <button
-                      key={
-                        skinTone
-                      }
-                      type="button"
-                      title={
-                        skinTone
-                      }
-                      aria-label={
-                        `Skin tone ${skinTone}`
-                      }
-                      onClick={
-                        () =>
-                          setCreatorField(
-                            "skinTone",
-                            skinTone
-                          )
-                      }
-                      className={[
-                        "character-creator-skin-tone h-10 w-10 cursor-pointer rounded-full border-4 transition",
-
-                        creator.skinTone ===
-                        skinTone
-                          ? "border-primary"
-                          : "border-white/20",
-                      ].join(
-                        " "
-                      )}
-                      style={{
-                        backgroundColor:
-                          SKIN_TONES[skinTone],
-                      }}
-                    />
-                  )
-                )}
-              </div>
-            </div>
-
-
-            {/*
-             * ==========================================
-             * BODY TYPE
-             * ==========================================
-             */}
-
-            <div>
-              <h3 className="mb-3 font-bold">
-                Body Type
-              </h3>
-
-              <div className="character-creator-body-types flex flex-wrap gap-2">
-                {BODY_TYPES.map(
-                  (
-                    bodyType
-                  ) => (
-                    <button
-                      key={
-                        bodyType
-                      }
-                      type="button"
-                      onClick={
-                        () =>
-                          setCreatorField(
-                            "bodyType",
-                            bodyType
-                          )
-                      }
-                      className={[
-                        "character-creator-body-type btn cursor-pointer capitalize",
-
-                        creator.bodyType ===
-                        bodyType
-                          ? "btn-primary"
-                          : "btn-outline text-white hover:text-black",
-                      ].join(
-                        " "
-                      )}
-                    >
-                      {bodyType}
-                    </button>
-                  )
-                )}
-              </div>
-            </div>
-
-
-            {/*
-             * ==========================================
-             * HEAD
-             * ==========================================
-             *
-             * Disabled for now.
-             *
-             * The current KayKit Knight only exposes
-             * one head mesh, so the old five-head
-             * selector does not currently make sense.
-             */}
-          </div>
-
-
-          {/*
-           * ==========================================
-           * CHARACTER PREVIEW
-           * ==========================================
-           */}
-
-          <div className="flex items-center justify-center">
-            <div className="character-creator-preview h-[280px] w-full max-w-[280px] overflow-hidden rounded-xl border border-white/10 bg-black/20 sm:h-[380px]">
-              <CharacterPreview
-                gameClass={creator.gameClass}
-                appearance={
-                  appearance
-                }
-              />
-            </div>
-          </div>
+const AppearanceStep = () => {
+  const creator = useCharacterStore((state) => state.creator);
+  return (
+    <div className="character-creator-appearance mb-4">
+      <h2 className="mb-4 text-center text-3xl font-bold">Character Appearance</h2>
+      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="order-first h-[260px] overflow-hidden rounded-xl border border-white/10 bg-black/20 md:order-last md:sticky md:top-0 md:h-[440px]">
+          <CharacterPreview appearance={normalizeAmirAppearance(creator)} />
         </div>
+        <AmirAppearanceControls />
       </div>
-    );
-  };
+    </div>
+  );
+};
 
 
 const SpeciesStep =
@@ -501,25 +297,7 @@ const NameStep = ({
             gameClass:
               creator.gameClass,
 
-            appearance: {
-              /*
-               * Gender/head stay in the
-               * document for compatibility,
-               * but aren't customizable yet.
-               */
-
-              gender:
-                DEFAULT_GENDER,
-
-              skinTone:
-                creator.skinTone,
-
-              bodyType:
-                creator.bodyType,
-
-              head:
-                DEFAULT_HEAD,
-            },
+            appearance: normalizeAmirAppearance(creator),
           }
         );
 
