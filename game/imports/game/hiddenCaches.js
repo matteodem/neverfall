@@ -1,6 +1,8 @@
 import { SOUTHEAST_MOUNTAIN, getWorldHeight } from "./worldConfig";
 
 const mountainSummit = SOUTHEAST_MOUNTAIN.summit;
+// A short detour into the forest west of the Wolf Hunt area.
+const earlyForestCache = { x: -112, z: 68 };
 
 // Fixed bottom-center anchors; original placements are in docs/treasure-cache-positions.md.
 export const HIDDEN_CACHE_RANGE = 3;
@@ -12,6 +14,9 @@ export const HIDDEN_CACHE_REWARDS = {
 };
 
 export const HIDDEN_CACHES = [
+  { id: "cache-central-camp", region: "Forest", position: {
+    ...earlyForestCache, y: getWorldHeight(earlyForestCache.x, earlyForestCache.z),
+  }, rewardTier: "small" },
   { id: "cache-forest-01", region: "Forest", position: { x: -270, y: 0.051369, z: -35 }, rewardTier: "small" },
   { id: "cache-forest-02", region: "Forest", position: { x: 86, y: 0.946931, z: 28 }, rewardTier: "small" },
   { id: "cache-forest-03", region: "Forest", position: { x: 28, y: 1.986536, z: -250 }, rewardTier: "stocked" },
