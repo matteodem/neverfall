@@ -1,7 +1,7 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
 import { createKayKitAnimationController } from "../createKayKitAnimationController";
-import { normalizeAmirAppearance, isValidAmirAppearance } from "./appearance";
+import { normalizeAmirAppearance, isValidAmirAppearance, applyAmirClassWeapon, AMIR_CLASS_WEAPONS } from "./appearance";
 import { applyAmirSkinTone } from "./applyAmirSkinTone";
 import catalog from "./catalog.json";
 
@@ -17,9 +17,10 @@ const MODEL_SCALE = 6;
 // The source rig is in centimetres; normalize external attachments to gameplay metres.
 const RIG_SCALE = 0.01;
 
-export const createAmirCharacter = async ({ scene, appearance: input = {} }) => {
-  const appearance = normalizeAmirAppearance(input);
-  if (!isValidAmirAppearance(appearance)) throw new Error("Invalid Amir appearance");
+export const createAmirCharacter = async ({ scene, appearance: input = {}, gameClass }) => {
+  const savedAppearance = normalizeAmirAppearance(input);
+  if (!isValidAmirAppearance(savedAppearance)) throw new Error("Invalid Amir appearance");
+  const appearance = applyAmirClassWeapon(savedAppearance, gameClass);
   const container = await SceneLoader.LoadAssetContainerAsync(
     "/models/characters/amir/", catalog.modelFile, scene
   );
@@ -76,11 +77,14 @@ export const createAmirCharacter = async ({ scene, appearance: input = {} }) => 
       attachments[slot] = anchor;
     }
     // Preserve the authored weapon transform when moving it to the normalized combat anchor.
-    parts.rightHand?.setParent(attachments.rightHand);
+    const weaponSlot = AMIR_CLASS_WEAPONS[gameClass]?.slot || "rightHand";
+    const weaponAnchor = attachments[weaponSlot];
+    const weaponMesh = parts[weaponSlot] || null;
+    weaponMesh?.setParent(weaponAnchor);
 
     return {
       root, meshes: container.meshes, skeleton: container.skeletons[0], animations, appearance, parts, attachments,
-      weaponAnchor: attachments.rightHand, weaponMesh: parts.rightHand || null,
+      weaponAnchor, weaponMesh,
       createAnimationController: () => createKayKitAnimationController({ animations }),
       dispose() { container.dispose(); root.dispose(); },
     };

@@ -1,5 +1,5 @@
 import React from "react";
-import { AMIR_PART_OPTIONS, DEFAULT_AMIR_APPEARANCE } from "../../game/character/amir/appearance";
+import { AMIR_PART_OPTIONS, DEFAULT_AMIR_APPEARANCE, AMIR_CLASS_WEAPONS, getAmirEquipmentOptions } from "../../game/character/amir/appearance";
 import { SPECIES, SKIN_TONES } from "../../game/species";
 import { useCharacterStore } from "../stores/useCharacterStore";
 
@@ -9,19 +9,26 @@ const LABELS = { head: "Head", hair: "Hair", torso: "Torso", arms: "Arms", hands
 export const AmirAppearanceControls = () => {
   const creator = useCharacterStore((state) => state.creator);
   const setField = useCharacterStore((state) => state.setCreatorField);
-  const select = (slot, group) => (
+  const select = (slot, group) => {
+    const options = group === "equipment" ? getAmirEquipmentOptions(slot, creator.gameClass) : AMIR_PART_OPTIONS[slot];
+    if (options.length === 1 && options[0] === null) return null;
+    const selected = group ? creator[group][slot] : creator[slot];
+    const weapon = AMIR_CLASS_WEAPONS[creator.gameClass];
+    const emptyLabel = weapon?.slot === slot ? `Class default (${weapon.defaultId.replace(/\.col$/, "")})` : "None";
+    return (
     <label key={slot} className="flex min-w-0 flex-col gap-1 text-sm">
-      <span>{LABELS[slot]} <span className="text-xs opacity-60">({AMIR_PART_OPTIONS[slot].filter(Boolean).length})</span></span>
+      <span>{LABELS[slot]} <span className="text-xs opacity-60">({options.filter(Boolean).length})</span></span>
       <select className="select select-bordered select-sm w-full min-w-0 text-base-content"
-        aria-label={LABELS[slot]} value={(group ? creator[group][slot] : creator[slot]) ?? ""}
+        aria-label={LABELS[slot]} value={options.includes(selected) ? selected ?? "" : ""}
         onChange={(event) => {
           const value = event.target.value || null;
           setField(group || slot, group ? { ...creator[group], [slot]: value } : value);
         }}>
-        {AMIR_PART_OPTIONS[slot].map((id) => <option key={id || "none"} value={id || ""}>{id ? id.replace(/\.col$/, "") : "None"}</option>)}
+        {options.map((id) => <option key={id || "none"} value={id || ""}>{id ? id.replace(/\.col$/, "") : emptyLabel}</option>)}
       </select>
     </label>
-  );
+    );
+  };
 
   return (
     <div className="character-creator-settings flex min-w-0 flex-col gap-5">
@@ -55,7 +62,7 @@ export const AmirAppearanceControls = () => {
           {Object.keys(DEFAULT_AMIR_APPEARANCE.equipment).map((slot) => select(slot, "equipment"))}
         </div>
       </fieldset>
-      <p className="text-xs text-white/60">Drag the preview to rotate. Back equipment includes wings. Some hair, hats and mixed outfits may overlap; choose None to remove an accessory.</p>
+      <p className="text-xs text-white/60">Weapons follow your class; Class default uses its standard weapon. Drag the preview to rotate. Back equipment includes wings. Some hair, hats and mixed outfits may overlap; choose None to remove an accessory.</p>
     </div>
   );
 };

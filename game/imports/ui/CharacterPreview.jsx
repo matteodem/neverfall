@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { normalizeAmirAppearance } from "../game/character/amir/appearance";
 import { createAmirCharacterPreview } from "../game/character/amir/createAmirCharacterPreview";
 
-export const CharacterPreview = ({ appearance }) => {
+export const CharacterPreview = ({ appearance, gameClass = "warrior" }) => {
   const canvasRef = useRef(null);
   const previewRef = useRef(null);
   const [loading, setLoading] = useState(true);
@@ -21,9 +21,9 @@ export const CharacterPreview = ({ appearance }) => {
   useEffect(() => {
     // Coalesce rapid selector changes without rebuilding the engine or losing drag rotation.
     setLoading(true);
-    const timeout = setTimeout(() => previewRef.current?.setAppearance(JSON.parse(appearanceKey)), 120);
+    const timeout = setTimeout(() => previewRef.current?.setAppearance(JSON.parse(appearanceKey), gameClass), 120);
     return () => clearTimeout(timeout);
-  }, [appearanceKey]);
+  }, [appearanceKey, gameClass]);
 
   return (
     <div className="relative h-full w-full">

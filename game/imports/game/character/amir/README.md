@@ -1,7 +1,7 @@
 # Amir production adapter (MVP)
 
 The local player in `createWorld.js` and remote players in `multiplayer.js` use
-`createAmirCharacter({ scene, appearance })`.
+`createAmirCharacter({ scene, appearance, gameClass })`.
 The temporary `amirPreview` entry-point branch and standalone preview scene are removed.
 The same loader works for future NPCs without accounts, Colyseus, or persistence imports.
 
@@ -61,7 +61,8 @@ same generated data without reading public assets or loading rendering code.
 
 Plus contains 137 usable geometry meshes (72 additions): 16 heads; 16 each of torso,
 arms, legs and feet; 15 hands; 5 hair; 10 hats; 4 glasses; 1 mask; 6 left-hand items;
-10 right-hand items; and 6 back items. All are selectable in the existing controls.
+10 right-hand items; and 6 back items. Player weapon choices are filtered by class;
+classless NPC assembly retains access to the full catalog.
 Required body slots still require a mesh; hair and equipment retain **None**.
 
 ### Plus compatibility and focused checks
@@ -115,6 +116,59 @@ selectable; the adapter does not silently rewrite appearances to hide clipping.
 The larger pack retains all 137 meshes and imports/tints its own materials per actor;
 crowd/mobile profiling and asset caching/pruning remain follow-up work.
 
+## Class weapons
+
+The existing `gameClass` and `appearance.equipment` determine player weapons.
+`AMIR_CLASS_WEAPONS`, `getAmirEquipmentOptions` and `applyAmirClassWeapon` in
+`appearance.js` share the class rules between assembly, creator options and submission.
+There is no new inventory, weapon-selection field, persistence model or realtime field.
+
+| Class | Default asset ID | Bone / slot | Compatible saved variants |
+| --- | --- | --- | --- |
+| Warrior | `sword-01.col` | `RightHand` / `rightHand` | `sword-01.col`, `sword-02.col`, `sword-03.col` |
+| Ranger | `bow-01.col` | `LeftHand` / `leftHand` | `bow-01.col`, `bow-02.col` |
+| Mage | `staff-02.col` | `RightHand` / `rightHand` | `hammer-01.col`, `staff-02.col`, `staff-03.col` |
+
+Null or a saved weapon of another type resolves to the class default. Warrior/Mage
+left-hand shields remain selectable; bows are reserved for Rangers. Ranger right-hand
+weapons are suppressed so an older saved sword cannot appear alongside the bow.
+The normalized free-pack defaults remain unchanged. Resolution copies appearance
+rather than rewriting existing documents. New creator submissions store the resolved
+appearance through the existing creation method and validation. A classless NPC keeps
+its unrestricted saved appearance and the adapter's original right-hand weapon behavior.
+
+The local world loader already supplied class; remote assembly now supplies the existing
+replicated `PlayerState.gameClass`. Creator/overview previews pass class through the
+same helper and refresh on class-only changes. The adapter returns the selected mesh
+and its corresponding normalized hand anchor to the existing local/remote swing code.
+Reparenting preserves the GLB's authored transform. No per-class rotation, position or
+scale corrections were necessary: model scale remains 6, rig scale 0.01, and normalized
+hand anchors compensate by 1 / (6 × 0.01).
+
+Focused checks used the real creator and an isolated Babylon/Chromium scene:
+
+- Changed only class with otherwise identical appearance and verified sword/bow/staff
+  preview meshes and their hand bones. Selected the Mage hammer, checked mobile layout,
+  and confirmed the submitted class/appearance matched the visible selection.
+- Exercised compatible variants and cross-class saved hand selections through the
+  shared rules; validation passed, saved inputs were unchanged, and classless assembly
+  retained its previous behavior.
+- Used the actual local combat attachment block for all three defaults plus sword-03,
+  bow-02, hammer-01 and staff-03. World matrices stayed within 0.0001 through attachment;
+  the existing combat controller started, swung and recovered for each weapon.
+- Exercised remote Warrior/Ranger weapons and the Mage hammer, all ten mapped animation
+  poses, movement, death/respawn, dungeon visibility, mounts, stale loads and disposal.
+  No actor mesh, rig, animation or owned material/texture remained after removal.
+- Catalog freshness, JS/JSX syntax, standalone Rspack compilation and diff whitespace
+  checks passed. No Meteor build or test suite was run; a live two-client Meteor session
+  was not exercised.
+
+No new attachment, scale or animation failures were found. Authored idle weapons carry
+across the front of the body, including the bow and staff. Existing projectile attacks
+and procedural swings are preserved; there is no added bow draw/release, staff casting,
+two-hand grip or weapon-specific trail calibration. Large weapons, off-hand shields and
+mixed outfits may still overlap in poses that were not visually reviewed.
+
 ## Assembly and compatibility
 
 ```js
@@ -142,9 +196,10 @@ controls, attack cooldowns, damage, and procedural sword-swing code are retained
 
 The source approximately 0.31 m character scales by six to about 1.88 m. Hand anchors
 compensate for the rig's centimetre scale so the existing sword configuration works.
-A configured Amir right-hand mesh replaces the fallback sword, preserving its authored
-transform and using the same combat pivot/trail. Explicit cosmetic weapons remain
-visible for any class; the default fallback still follows existing class visibility.
+A resolved Amir class weapon (or a classless NPC's right-hand mesh) replaces the
+fallback sword, preserving its authored transform and using the same combat pivot/trail.
+Player defaults now use Amir geometry; the legacy fallback retains existing behavior
+for callers without an Amir weapon.
 
 `applyAmirSkinTone.js` copies each actor's body palette and replaces four verified
 skin swatches in the supplied 128 × 128 Imphenzia texture. Other palette cells and
@@ -230,9 +285,9 @@ unchanged appearance is not resent in movement/health patches. Dungeon rooms inh
 the same join path and player schema.
 
 Remote players assemble through the production adapter and obtain their animation
-controller from it. Cosmetic right-hand equipment uses the same normalized anchor,
-authored transform, combat pivot and tip placement as the local player. Otherwise the
-existing class-dependent fallback sword remains. Movement interpolation, health bars,
+controller from it. Resolved class weapons use the same normalized hand anchor,
+authored transform, combat pivot and tip placement as the local player. Existing
+class-dependent fallback behavior remains for callers without an Amir weapon. Movement interpolation, health bars,
 nameplates, combat timings, mounting, death visibility and respawn snapping are retained.
 A per-spawn token rejects loads that complete after removal, replacement or scene exit.
 Removal and failed assembly release owned actor, label, fallback weapon and mount

@@ -480,6 +480,7 @@ const createRemotePlayer =
       const character = await createAmirCharacter({
         scene,
         appearance: JSON.parse(playerState.appearance || "{}"),
+        gameClass: playerState.gameClass,
       });
       cleanup.push(() => character.dispose());
       const characterRoot = character.root;

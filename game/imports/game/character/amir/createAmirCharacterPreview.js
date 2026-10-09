@@ -44,7 +44,7 @@ export const createAmirCharacterPreview = (canvas, { onLoading, onError }) => {
   });
 
   return {
-    async setAppearance(appearance) {
+    async setAppearance(appearance, gameClass) {
       const current = ++request;
       onLoading(true);
       onError(null);
@@ -53,7 +53,7 @@ export const createAmirCharacterPreview = (canvas, { onLoading, onError }) => {
       controller = null;
       actor = null;
       try {
-        const next = await createAmirCharacter({ scene, appearance });
+        const next = await createAmirCharacter({ scene, appearance, gameClass });
         if (disposed || current !== request) { next.dispose(); return; }
         actor = next;
         actor.root.rotation.y = rotation;
