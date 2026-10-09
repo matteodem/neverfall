@@ -2,6 +2,7 @@ import { Characters } from "../imports/api/characters/characters";
 import { ACHIEVEMENTS } from "../imports/game/achievements";
 
 export const trackAchievements = async (characterId, event, value) => {
+  const newlyUnlocked = new Set();
   try {
     for (const definition of ACHIEVEMENTS) {
       if (definition.event !== event ||
@@ -22,10 +23,14 @@ export const trackAchievements = async (characterId, event, value) => {
           { _id: characterId, [path]: previous || { $exists: false } },
           { $set: { [path]: { progress, unlocked: progress >= definition.target } } }
         );
-        if (updated) break;
+        if (updated) {
+          if (progress >= definition.target) newlyUnlocked.add(definition.id);
+          break;
+        }
       }
     }
   } catch (error) {
     console.error("[Achievements] Failed to save progress", error);
   }
+  return newlyUnlocked;
 };

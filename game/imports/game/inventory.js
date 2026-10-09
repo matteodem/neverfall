@@ -60,7 +60,7 @@ export const rollRandomRingId = (random = Math.random) => {
   return ringIds[Math.floor(random() * ringIds.length)];
 };
 
-export const rollLoot = (random = Math.random, enemyType = "boar", rare = false) => {
+export const rollLoot = (random = Math.random, enemyType = "boar", rare = false, guaranteeItem = false) => {
   const bossDrop = Boolean(ENEMY_TYPES[enemyType]?.bossMechanics);
   const chestDungeon = DUNGEONS.find((dungeon) => dungeon.rewards.lootType === enemyType);
   const accessoryDropChance = chestDungeon
@@ -78,6 +78,11 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false)
   if (random() < Math.min(1, accessoryDropChance * lootMultiplier)) {
     const accessoryIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "accessory").map(({ id }) => id);
     items.push({ id: accessoryIds[Math.floor(random() * accessoryIds.length)] });
+  }
+
+  // First-kill onboarding uses the normal table, with a skin only if every roll missed.
+  if (guaranteeItem && !items.length) {
+    items.push({ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" });
   }
 
   return {

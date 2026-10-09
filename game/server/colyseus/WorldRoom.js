@@ -2056,8 +2056,10 @@ export class WorldRoom
 
 
     const stats = this.getEnemyStats(spawn.type, spawn.level);
-    const rare = this.state.enemies.get(enemyId)?.rare;
+    const enemy = this.state.enemies.get(enemyId);
+    const rare = enemy?.rare;
     const lootOwners = new Set();
+    const lootSessions = new Map();
     const nearbyHuntKills = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
       if (!spawn.eventId && !player.inDungeon && contributors.has(player.characterId) &&
@@ -2065,9 +2067,7 @@ export class WorldRoom
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
         continue;
       }
-      if (!stats.moneyReward || stats.accessoryDropChance) {
-        spawnLoot(this, this.state.enemies.get(enemyId), sessionId);
-      }
+      lootSessions.set(player.characterId, sessionId);
       lootOwners.add(player.userId);
     }
 
@@ -2089,7 +2089,13 @@ export class WorldRoom
     if (!spawn.eventId) this.clock.setTimeout(() => this.spawnEnemy(spawn), stats.respawnDelay);
 
     for (const characterId of contributors) {
-      await trackAchievements(characterId, "kill", spawn.type || "boar");
+      const newlyUnlocked = await trackAchievements(characterId, "kill", spawn.type || "boar");
+      const sessionId = lootSessions.get(characterId);
+      const firstKill = newlyUnlocked.has("firstBlood");
+      if (sessionId && this.state.players.get(sessionId)?.characterId === characterId &&
+        (firstKill || !stats.moneyReward || stats.accessoryDropChance)) {
+        spawnLoot(this, enemy, sessionId, firstKill);
+      }
       if (rare) await trackAchievements(characterId, "rare");
     }
 

@@ -30,7 +30,7 @@ export const WOLF_HUNT_QUEST = {
   id: "wolf-hunt",
   title: "Wolf Hunt",
   description: "Defeat 5 wolves northwest of Central Camp.",
-  recommendedLevel: 3,
+  recommendedLevel: 2,
   progressField: "wolfQuestKills",
   target: 5,
   rewardXp: 250,
@@ -122,7 +122,7 @@ export const QUESTS = [
   })),
   {
     id: "wolf-problem", title: "Wolf Problem", description: "Defeat 10 wolves northwest of Central Camp.",
-    recommendedLevel: 3,
+    recommendedLevel: 2,
     objective: { type: "Kill", target: "wolf", amount: 10 },
     rewards: { xp: 300, gold: 1 },
   },

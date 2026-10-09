@@ -16,11 +16,11 @@ describe("wolves", function () {
     assert.ok(getEnemyStats("wolf", 4).attackDamage > wolf.attackDamage);
   });
 
-  it("places five level-3 wolves and their wander areas inside the northwest forest", function () {
+  it("places five level-2 wolves and their wander areas inside the northwest forest", function () {
     const wolves = ENEMY_SPAWNS.filter((spawn) => spawn.type === "wolf");
     assert.strictEqual(wolves.length, 5);
     for (const spawn of wolves) {
-      assert.strictEqual(spawn.level, 3);
+      assert.strictEqual(spawn.level, 2);
       assert.strictEqual(getQuestArea(spawn), "wolf");
       const radius = getEnemyStats(spawn.type, spawn.level).wanderRadius;
       assert.ok(Math.abs(spawn.x) + radius < FOREST_SIZE / 2);
@@ -82,8 +82,8 @@ describe("wolves", function () {
       assert.strictEqual(room.state.loot.size, 10);
       const respawned = room.state.enemies.get(spawn.id);
       assert.strictEqual(respawned.type, "wolf");
-      assert.strictEqual(respawned.level, 3);
-      assert.strictEqual(respawned.health, 200);
+      assert.strictEqual(respawned.level, 2);
+      assert.strictEqual(respawned.health, 150);
       assert.strictEqual(respawned.x, spawn.x);
       let damage;
       room.broadcast = () => {};

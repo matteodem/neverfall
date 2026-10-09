@@ -31,7 +31,7 @@ export const getAdventureGuideObjective = (character) => {
       hint: "Find nearby hunts on the map. Visit camps and waypoints to unlock fast travel.", done: guide.openedMap,
       action: { label: "Open Map", modal: "map" } },
     { id: "wolf-hunt", title: "Defeat 10 Wolves", progress: `${Math.min(wolfKills, 10)} / 10`,
-      hint: "Find level 3 wolves northwest of camp. Wolf Hunt and Wolf Problem track automatically.", done: wolfKills >= 10,
+      hint: "Find level 2 wolves northwest of camp. Wolf Hunt and Wolf Problem track automatically.", done: wolfKills >= 10,
       action: { label: "View Quests", modal: "hero", tab: "quests" } },
     { id: "giant", title: "Defeat the Forest Giant",
       hint: "A Forest Giant has been spotted on the hill northeast of Central Camp.",

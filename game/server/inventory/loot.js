@@ -8,19 +8,30 @@ import { Characters } from "../../imports/api/characters/characters";
 // Retain partial progress if a drop is restored after a persistence failure.
 const pendingRewards = new WeakMap();
 
-export const spawnLoot = (room, enemy, sessionId) => {
+export const spawnLoot = (room, enemy, sessionId, guaranteeItem = false) => {
   const player = room.state.players.get(sessionId);
   if (!enemy || !player) return;
 
   const id = randomUUID();
-  room.state.loot.set(id, new LootState({
+  const loot = new LootState({
     ownerId: player.userId,
+    ownerCharacterId: guaranteeItem ? player.characterId : "",
     enemyType: enemy.type || "boar",
     rare: enemy.rare,
     x: enemy.x,
     y: enemy.y,
     z: enemy.z,
-  }));
+  });
+  if (guaranteeItem) {
+    // Keep the first kill's reward on its pickup, including across save retries.
+    pendingRewards.set(loot, {
+      reward: rollLoot(Math.random, loot.enemyType, loot.rare, true),
+      characterId: player.characterId,
+      itemsSaved: false,
+      xpSaved: false,
+    });
+  }
+  room.state.loot.set(id, loot);
 };
 
 export const collectLoot = async (room, client, id) => {
