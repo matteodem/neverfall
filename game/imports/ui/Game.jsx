@@ -370,7 +370,10 @@ export const Game = ({
               forestProps: world.forestProps,
               dungeonVisuals: world.dungeonVisuals,
               worldChunks: world.worldChunks,
-              onLocalRespawn: () => jump?.reset(),
+              onLocalRespawn: () => {
+                jump?.reset();
+                animations.resetAirborneState?.();
+              },
               isGrounded: () => !jump?.isJumping(),
               onLocalBuffChange: setPotionBuffs,
               onLocalCombatChange: (active) => {
@@ -925,6 +928,8 @@ export const Game = ({
               const deltaTime =
                 engine
                   .getDeltaTime();
+              // Avoid a large local physics step after a stall; network timers use real elapsed time.
+              const movementDeltaTime = Math.min(deltaTime, 50);
 
 
               /*
@@ -935,8 +940,9 @@ export const Game = ({
 
               const movement = playerAlive && !useWaypointStore.getState().traveling ?
                 updateMovement({
-                  deltaTime,
+                  deltaTime: movementDeltaTime,
                   terrain: world.terrain,
+                  grounded: !jump.isJumping(),
 
                   input:
                     input.state,
@@ -974,7 +980,7 @@ export const Game = ({
                * ---------------------
                */
 
-              if (playerAlive) jump.update(deltaTime);
+              if (playerAlive) jump.update(movementDeltaTime);
 
 
               /*
@@ -1009,6 +1015,7 @@ export const Game = ({
               }
 
 
+              animations.setAirborneState?.(playerAlive ? jump.getPhase() : null);
               animations.setChatAnimation?.(multiplayer?.getChatAnimation() || "");
               animations.update(
                 deltaTime

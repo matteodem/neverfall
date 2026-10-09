@@ -135,6 +135,7 @@ export const updateMovement = ({
   player,
   terrain = null,
   speedMultiplier = 1,
+  grounded = false,
 }) => {
   const movement =
     getMovementDirection({
@@ -170,6 +171,18 @@ export const updateMovement = ({
 
   limitMountainClimb(player, terrain, displacement);
   movement.copyFrom(displacement).normalize();
+
+  if (grounded && terrain && displacement.lengthSquared() > 0) {
+    const groundY = terrain.getHeightAtCoordinates(player.position.x, player.position.z);
+    const aheadY = terrain.getHeightAtCoordinates(player.position.x + displacement.x,
+      player.position.z + displacement.z);
+    const rise = aheadY - groundY;
+    // Follow ordinary terrain without snapping from platforms or across steep edges.
+    if (Math.abs(player.position.y - groundY) < 0.3 &&
+      Math.abs(rise) <= displacement.length() * Math.tan(SOUTHEAST_MOUNTAIN.maxWalkSlopeDegrees * Math.PI / 180)) {
+      displacement.y = rise;
+    }
+  }
 
   /*
    * Use Babylon collisions instead
@@ -260,6 +273,7 @@ export const createJumpController = (
 
   const isStandingOnSurface =
     () => {
+      const before = player.position.clone();
       const probeDistance =
         -0.08;
 
@@ -288,17 +302,11 @@ export const createJumpController = (
 
 
       /*
-       * If the probe actually moved
-       * the player slightly down,
-       * restore the original position.
+       * A grounding check must not move the player, including sideways
+       * collision sliding on slopes.
        */
 
-      if (
-        !standing
-      ) {
-        player.position.y -=
-          movedY;
-      }
+      player.position.copyFrom(before);
 
 
       return standing;
@@ -368,20 +376,18 @@ export const createJumpController = (
        * =====================================================
        */
 
-      velocityY -=
-        JUMP.gravity *
-        deltaSeconds;
-
-
       const requestedMovement =
-        velocityY *
-        deltaSeconds;
+        velocityY * deltaSeconds - 0.5 * JUMP.gravity * deltaSeconds * deltaSeconds;
+      velocityY -= JUMP.gravity * deltaSeconds;
 
 
       const movedY =
         moveVertical(
           requestedMovement
         );
+
+      // Stop upward velocity on a ceiling hit instead of hovering against it.
+      if (requestedMovement > 0 && movedY < requestedMovement * 0.5) velocityY = 0;
 
 
       /*
@@ -391,7 +397,7 @@ export const createJumpController = (
        */
 
       if (
-        velocityY <
+        requestedMovement <
           0 &&
         Math.abs(
           movedY
@@ -441,8 +447,7 @@ export const createJumpController = (
       jumping =
         false;
 
-      player.position.y =
-        JUMP.groundY;
+      // Position is supplied by the server on respawn / waypoint arrival.
     };
 
 
@@ -457,5 +462,6 @@ export const createJumpController = (
     update,
     reset,
     isJumping,
+    getPhase: () => !jumping ? "grounded" : velocityY > 0 ? "rising" : "falling",
   };
 };

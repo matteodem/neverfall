@@ -38,6 +38,14 @@ export const createKayKitAnimationController =
         "Hit_A"
       );
 
+    const jumpStart = getAnimation(animations, "Jump_Start") || jump;
+    const jumpIdle = getAnimation(animations, "Jump_Idle") || jump;
+    const jumpLand = getAnimation(animations, "Jump_Land");
+    // Only the local controller supplies physical phases; remote playback stays unchanged.
+    let airbornePhase = null;
+    let airborneElapsed = 0;
+    let landingRemaining = 0;
+
     const death =
       getAnimation(
         animations,
@@ -85,6 +93,11 @@ export const createKayKitAnimationController =
 
         currentAnimation =
           animation;
+
+        if (airbornePhase !== null) {
+          animation.enableBlending = true;
+          animation.blendingSpeed = 0.15;
+        }
 
         animation.start(
           loop
@@ -134,7 +147,7 @@ export const createKayKitAnimationController =
 
 
     const update =
-      () => {
+      (deltaTime = 0) => {
         if (
           mounted
         ) {
@@ -142,6 +155,21 @@ export const createKayKitAnimationController =
             idle
           );
 
+          return;
+        }
+
+        if (airbornePhase && airbornePhase !== "grounded") {
+          airborneElapsed += deltaTime;
+          if (airbornePhase === "rising" && currentAnimation !== jumpStart && currentAnimation !== jumpIdle) {
+            play(jumpStart, false);
+          } else if (airbornePhase === "falling" || !currentAnimation?.isPlaying) {
+            play(jumpIdle, true);
+          }
+          return;
+        }
+        if (landingRemaining > 0 && jumpLand) {
+          landingRemaining = Math.max(0, landingRemaining - deltaTime);
+          play(jumpLand, false);
           return;
         }
 
@@ -216,6 +244,19 @@ export const createKayKitAnimationController =
 
 
     return {
+      setAirborneState(phase) {
+        if (phase === airbornePhase) return;
+        // Ignore tiny terrain-edge drops and mounted transitions.
+        landingRemaining = phase === "grounded" && airborneElapsed >= 100 && !mounted ? 150 : 0;
+        if (!phase || phase === "grounded") airborneElapsed = 0;
+        airbornePhase = phase;
+      },
+      resetAirborneState() {
+        airbornePhase = "grounded";
+        airborneElapsed = 0;
+        landingRemaining = 0;
+        jumping = false;
+      },
       setChatAnimation(value) { chatAnimation = value; },
       setVisible(value) {
         visible = value;

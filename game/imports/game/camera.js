@@ -34,8 +34,15 @@ export const createGameCamera = (
       scene
     );
 
-  camera.lockedTarget =
-    player;
+  const target = player.position.clone();
+  camera.lockedTarget = target;
+  scene.onBeforeRenderObservable.add(() => {
+    const snap = Vector3.DistanceSquared(target, player.position) > 64;
+    const smoothing = 1 - Math.exp(-18 * Math.min(scene.getEngine().getDeltaTime(), 50) / 1000);
+    target.y = snap ? player.position.y : target.y + (player.position.y - target.y) * smoothing;
+    target.x = player.position.x;
+    target.z = player.position.z;
+  });
 
   camera.minZ = CAMERA.nearPlane;
   camera.lowerRadiusLimit = CAMERA.minRadius;
@@ -49,20 +56,8 @@ export const getCameraForward = (
   camera,
   player
 ) => {
-  const forward =
-    player.position.subtract(
-      camera.position
-    );
-
-  forward.y = 0;
-
-  if (
-    forward.lengthSquared() > 0
-  ) {
-    forward.normalize();
-  }
-
-  return forward;
+  // Use the current orbit, not the previous frame's camera position.
+  return new Vector3(-Math.cos(camera.alpha), 0, -Math.sin(camera.alpha));
 };
 
 export const getCameraRight = (
