@@ -1901,7 +1901,8 @@ export class WorldRoom
     this.onEnemyAttacked?.();
 
     this.clients.find((client) => client.sessionId === sessionId)
-      ?.send("enemyEngaged", { id: enemyId, level: enemy.level });
+      ?.send("enemyEngaged", { id: enemyId, level: enemy.level,
+        damageMultiplier });
 
 
     this.markPlayerInCombat(
@@ -2389,10 +2390,17 @@ export class WorldRoom
      * There is no ENEMY_ID anymore.
      */
 
+    const healthBeforeHit = target.health;
+    this.damagePlayer(
+      runtime.targetSessionId,
+      stats.attackDamage * damageMultiplier,
+      stats.hitStatus
+    );
     this.broadcast(
       "enemyAttack",
       {
         enemyId,
+        damage: healthBeforeHit - target.health,
 
         targetSessionId:
           runtime.targetSessionId,
@@ -2400,11 +2408,6 @@ export class WorldRoom
     );
 
 
-    this.damagePlayer(
-      runtime.targetSessionId,
-      stats.attackDamage * damageMultiplier,
-      stats.hitStatus
-    );
   }
 
 

@@ -1,4 +1,5 @@
 import { PERFORMANCE, QUALITY_PRESETS } from "./performanceConfig";
+import { resetCameraImpulse, triggerCameraImpulse } from "./cameraImpulse";
 import { useTargetStore } from "../ui/stores/useTargetStore";
 import { getDevice } from "../ui/hooks/useMobileDevice";
 import { useBossHealthStore } from "../ui/stores/useBossHealthStore";
@@ -41,6 +42,7 @@ import {
   ATTACK,
   JUMP,
   MOBILE_TARGETING,
+  COMBAT_CAMERA_IMPULSE,
 } from "./config";
 
 import {
@@ -872,14 +874,29 @@ export const createMultiplayer =
     const projectiles = createProjectileVisuals(scene);
     const bossVisuals = createBossVisuals(scene, { dungeon });
     onMessage("bossImpact", (impact) => {
-      if (enemies.get(impact.enemyId)?.visibility.isVisible()) bossVisuals.impact(impact);
+      if (enemies.get(impact.enemyId)?.visibility.isVisible()) {
+        bossVisuals.impact(impact);
+        if (localPlayerState?.health > 0) {
+          const range = impact.radius + COMBAT_CAMERA_IMPULSE.bossRangePadding;
+          const distance = Math.hypot(player.position.x - impact.x, player.position.z - impact.z);
+          const strength = impact.hitSessionIds.includes(room.sessionId) ? 1 : 1 - distance / range;
+          if (strength > 0) triggerCameraImpulse(scene.activeCamera, "boss", mobile, strength);
+        }
+      }
       if (impact.hitSessionIds.includes(room.sessionId)) useCombatStore.getState().triggerCombat();
+    });
+    onMessage("enemyEngaged", ({ damageMultiplier }) => {
+      if (localPlayerState?.health > 0 && damageMultiplier >= COMBAT_CAMERA_IMPULSE.heavyAttackMultiplier) {
+        triggerCameraImpulse(scene.activeCamera, "heavy", mobile);
+      }
     });
     const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene, forestProps);
     onMessage("movementCorrection", ({ x, y, z }) => {
+      resetCameraImpulse(scene.activeCamera);
       player.position.set(x, y + JUMP.groundY, z);
     });
     onMessage("respawn", ({ x, y, z, rotationY }) => {
+      resetCameraImpulse(scene.activeCamera);
       player.position.set(x, y + JUMP.groundY, z);
       player.rotation.y = rotationY;
       onLocalRespawn?.();
@@ -901,6 +918,7 @@ export const createMultiplayer =
     };
     onMessage("waypointTravel", ({ sessionId, x, y, z, rotationY }) => {
       if (sessionId === room.sessionId) {
+        resetCameraImpulse(scene.activeCamera);
         onLocalRespawn?.();
         player.position.set(x, y + JUMP.groundY, z);
         player.rotation.y = rotationY;
@@ -1095,6 +1113,7 @@ export const createMultiplayer =
             playerState,
             "health",
             () => {
+              if (playerState.health <= 0) resetCameraImpulse(scene.activeCamera);
               onLocalHealthChange?.({
                 health:
                   playerState.health,
@@ -1534,6 +1553,7 @@ export const createMultiplayer =
       ({
         enemyId,
         targetSessionId,
+        damage = 0,
       }) => {
         /*
          * Play attack animation
@@ -1566,6 +1586,11 @@ export const createMultiplayer =
           return;
         }
 
+
+        if (localPlayerState?.health > 0 && damage >= Math.max(
+          COMBAT_CAMERA_IMPULSE.strongHitMinimumDamage,
+          localPlayerState.maxHealth * COMBAT_CAMERA_IMPULSE.strongHitHealthFraction,
+        )) triggerCameraImpulse(scene.activeCamera, "strong", mobile);
 
         useCombatStore
           .getState()
@@ -2178,6 +2203,7 @@ export const createMultiplayer =
     const destroy =
       async ({ keepConnection = false } = {}) => {
         destroyed = true;
+        resetCameraImpulse(scene.activeCamera);
         finishWaypoint();
         for (const stop of disposers) stop();
         dungeonInteractions.destroy();

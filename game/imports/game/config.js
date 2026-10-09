@@ -16,6 +16,20 @@ export const CAMERA = {
   groundClearance: 0.5,
 };
 
+export const COMBAT_CAMERA_IMPULSE = {
+  duration: 160,
+  cooldown: 450,
+  maxAmplitude: 0.025,
+  heavy: 0.018,
+  strong: 0.012,
+  boss: 0.025,
+  mobileMultiplier: 0.5,
+  strongHitHealthFraction: 0.15,
+  strongHitMinimumDamage: 12,
+  heavyAttackMultiplier: 1.5,
+  bossRangePadding: 8,
+};
+
 export const ATTACK = {
   duration: 500,
   range: 2.5,

@@ -7,6 +7,7 @@ import {
   CAMERA,
 } from "./config";
 import { keepCameraAboveTerrain } from "./cameraTerrainClearance";
+import { createCameraImpulse } from "./cameraImpulse";
 
 const clamp = (
   value,
@@ -35,13 +36,18 @@ export const createGameCamera = (
     );
 
   const target = player.position.clone();
-  camera.lockedTarget = target;
+  const cameraTarget = target.clone();
+  const impulse = createCameraImpulse(camera);
+  camera.lockedTarget = cameraTarget;
   scene.onBeforeRenderObservable.add(() => {
     const snap = Vector3.DistanceSquared(target, player.position) > 64;
     const smoothing = 1 - Math.exp(-18 * Math.min(scene.getEngine().getDeltaTime(), 50) / 1000);
     target.y = snap ? player.position.y : target.y + (player.position.y - target.y) * smoothing;
     target.x = player.position.x;
     target.z = player.position.z;
+    if (snap) impulse.reset();
+    const offset = impulse.sample();
+    cameraTarget.set(target.x + offset.x, target.y + offset.y, target.z + offset.z);
   });
 
   camera.minZ = CAMERA.nearPlane;

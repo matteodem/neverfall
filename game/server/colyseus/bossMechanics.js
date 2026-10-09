@@ -61,7 +61,7 @@ export const updateBossMechanics = (room, enemy, runtime, target, stats, deltaTi
       if (now >= action.endsAt) {
         const hitSessionIds = damageArea(room, enemy.bossTargetX, enemy.bossTargetZ,
           config.aoe.radius, damage, null, null, stats.heavyHitStatus);
-        if (config.aoe.name) room.broadcast("bossImpact", {
+        room.broadcast("bossImpact", {
           enemyId: runtime.spawn.id, type: enemy.type,
           x: enemy.bossTargetX, z: enemy.bossTargetZ, radius: config.aoe.radius, hitSessionIds,
         });
