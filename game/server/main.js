@@ -10,6 +10,7 @@ import "./methods/characters";
 import "./methods/guestCharacters";
 import "./methods/shop";
 import "./methods/inventory";
+import "./methods/crafting";
 import "./methods/onboarding";
 
 import "./publications/characters";

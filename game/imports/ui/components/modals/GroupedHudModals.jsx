@@ -4,6 +4,8 @@ import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { InventoryModal } from "./InventoryModal";
 import { ShopModal } from "./ShopModal";
+import { CraftingModal } from "./CraftingModal";
+import { CraftingIngredientsModal } from "./CraftingIngredientsModal";
 import { GearModal } from "./GearModal";
 import { QuestsModal } from "./QuestsModal";
 import { HuntsModal } from "./HuntsModal";
@@ -15,6 +17,7 @@ const SECTIONS = {
   items: {
     inventory: { label: "Inventory", Content: InventoryModal },
     shop: { label: "Shop", Content: ShopModal },
+    crafting: { label: "Crafting", Content: CraftingModal },
   },
   hero: {
     gear: { label: "Gear", Content: GearModal },
@@ -35,6 +38,7 @@ const GroupedHudModal = ({ id, title }) => {
   const Content = sections[tab].Content;
 
   return (
+    <>
     <HudModal id={id} title={title} width={600} maxHeight={750} scrollable={mobile || (tab !== "inventory" && tab !== "gear")}>
       <div role="tablist" aria-label={`${title} sections`} className="tabs tabs-border mb-4 flex-nowrap overflow-x-auto">
         {Object.entries(sections).map(([key, section]) => (
@@ -52,6 +56,8 @@ const GroupedHudModal = ({ id, title }) => {
       </div>
       {open && <Content embedded />}
     </HudModal>
+    {id === "items" && open && tab === "crafting" && <CraftingIngredientsModal />}
+    </>
   );
 };
 

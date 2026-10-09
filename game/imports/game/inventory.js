@@ -6,6 +6,7 @@ import {
   EQUIPMENT_ITEMS,
 } from "./equipment";
 import { CONSUMABLES } from "./consumables";
+import { CRAFTING_MATERIALS } from "./crafting";
 
 export const LOOT_RANGE = 2.5;
 
@@ -26,6 +27,9 @@ export const ITEM_SELL_PRICES = {
 export const ITEM_NAMES = {
   boar_skin: "Boar Skin",
   wolf_skin: "Wolf Skin",
+  ...Object.fromEntries(
+    Object.entries(CRAFTING_MATERIALS).map(([id, item]) => [id, item.name])
+  ),
   ...Object.fromEntries(
     Object.values(EQUIPMENT_ITEMS).map(({ id, name }) => [id, name])
   ),
@@ -83,6 +87,11 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false,
   // First-kill onboarding uses the normal table, with a skin only if every roll missed.
   if (guaranteeItem && !items.length) {
     items.push({ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" });
+  }
+
+  for (const [id, material] of Object.entries(CRAFTING_MATERIALS)) {
+    const chance = material.drops[enemyType];
+    if (chance && random() < chance) items.push({ id });
   }
 
   return {

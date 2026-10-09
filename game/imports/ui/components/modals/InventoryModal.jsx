@@ -32,6 +32,7 @@ import {
 import { getEquipmentComparison } from "../../../game/equipmentComparison";
 import { useConsumableStore } from "../../stores/useConsumableStore";
 import { CONSUMABLES } from "../../../game/consumables";
+import { CRAFTING_MATERIALS } from "../../../game/crafting";
 import { useHudStore } from "../../stores/useHudStore";
 import { SellItemModal } from "./SellItemModal";
 import { EquipmentInspection } from "./EquipmentInspection";
@@ -224,6 +225,7 @@ const InventorySlot = ({
   const itemDisplay = ITEM_DISPLAY[item.id];
   const itemDefinition = EQUIPMENT_ITEMS[item.id];
   const consumable = CONSUMABLES[item.id];
+  const material = CRAFTING_MATERIALS[item.id];
   const sellPrice = ITEM_SELL_PRICES[item.id];
   const sellable = Number.isFinite(sellPrice) && sellPrice > 0 && Number.isSafeInteger(sellPrice * 10000);
   const isUpgrade = itemDefinition && getEquipmentComparison(itemDefinition, equipment).isUpgrade;
@@ -239,7 +241,7 @@ const InventorySlot = ({
           {...actionButtonHandlers(onInspect, mobile)}>
           <InventorySlotContent item={item} name={name} itemDisplay={itemDisplay} rarityClass={rarityClass} isUpgrade={isUpgrade} />
         </button>
-      ) : consumable || sellable ? (
+      ) : consumable || sellable || material ? (
         <div className={`inventory-item-dropdown dropdown dropdown-top focus-within:z-[100] h-full w-full ${open ? "dropdown-open z-[100]" : ""}`}>
           <button type="button" className="block h-full w-full" aria-expanded={open}
             {...actionButtonHandlers(onToggle, mobile)}>
@@ -256,6 +258,7 @@ const InventorySlot = ({
                 <strong className={`block text-xs ${item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>
                 <span className="mt-1 block text-xs text-gray-600">{consumable ? "Consumable" : "Material"}</span>
                 {consumable && <span className="mt-1 block text-xs text-gray-600">{consumable.description}</span>}
+                {material && <span className="mt-1 block text-xs text-gray-600">{material.description}</span>}
               </div>
             </li>
             {consumable && <li>

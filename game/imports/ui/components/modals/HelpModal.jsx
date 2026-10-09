@@ -14,6 +14,7 @@ const KEYBOARD_CONTROLS = [
   ["F", "Loot"],
   ["I", "Toggle Inventory"],
   ["B", "Toggle Shop"],
+  ["C", "Toggle Crafting"],
   ["G", "Toggle Gear"],
   ["Q", "Toggle Quests"],
   ["H", "Toggle Hunts"],
