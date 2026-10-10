@@ -1,15 +1,16 @@
 import { NPC_DEFINITIONS } from "./npcDefinitions";
-import { NPC_QUESTS, getNpcQuestState } from "./npcQuests";
+import { NPC_QUESTS, getNpcQuestState, canAcceptQuest } from "./npcQuests";
 import { getQuestObjectiveDisplay } from "../questObjectiveDisplay";
 
 export const getNpcQuestMarker = (npcId, character) => {
   if (!character) return null;
   let available = false;
+  const npc = NPC_DEFINITIONS.find((entry) => entry.id === npcId);
   for (const quest of NPC_QUESTS) {
     const state = getNpcQuestState(quest, character);
-    if (quest.giverNpcId === npcId) {
+    if (npc?.offeredQuestIds?.includes(quest.id)) {
       if (state === "active" || state === "completed") return "?";
-      if (state === "available") available = true;
+      if (canAcceptQuest({ character, quest, npc })) available = true;
     }
     if (state === "active") {
       const current = getQuestObjectiveDisplay(quest, character.questProgress?.[quest.id] || 0).current;

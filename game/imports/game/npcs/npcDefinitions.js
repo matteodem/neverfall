@@ -6,6 +6,12 @@ export const NPC_DEFINITIONS = [
     id: "forest-guard-01",
     name: "Forest Guard",
     npcType: "generic",
+    offeredQuestIds: [
+      "forest-boars", "forest-mini-boss", "speak-with-mage",
+      "boar-hunt", "wolf-hunt", "giant-hunt", "wolf-problem", "giant-threat",
+      "goat-hunt", "rat-hunt", "bee-hunt", "snow-wolf-hunt", "mountain-goat-hunt", "frost-ogre-hunt",
+      "defend-northern-camp", "awakened-threat",
+    ],
     gameClass: "warrior",
     position: { x: -2, y: 0, z: -7 },
     rotationY: 0,
@@ -19,6 +25,10 @@ export const NPC_DEFINITIONS = [
     id: "wandering-mage-01",
     name: "Wandering Mage",
     npcType: "quest",
+    offeredQuestIds: [
+      "explore-highlands", "find-the-depths", "into-the-depths", "northern-ruins-quest",
+      "explore-snowy-mountains", "highlands-relics", "frozen-disturbance",
+    ],
     gameClass: "mage",
     position: { x: 3, y: 0, z: -10 },
     rotationY: 0,
@@ -32,6 +42,7 @@ export const NPC_DEFINITIONS = [
     id: "camp-merchant-01",
     name: "Merchant",
     npcType: "merchant",
+    offeredQuestIds: ["seal-hunt", "hammer-guardian-hunt", "trouble-at-southwest-lake"],
     position: { x: 9, y: 0, z: -8 },
     rotationY: 0,
     appearance: {

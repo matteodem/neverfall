@@ -31,6 +31,7 @@ import React, {
 
 import {
   useHudStore,
+  hasBlockingModal,
 } from "./stores/useHudStore";
 
 import {
@@ -585,6 +586,8 @@ const ActionBar = ({
 
 
   const equippedSkills = useSkillsStore((state) => state.equippedSkills);
+  const blockingModalOpen = useHudStore(hasBlockingModal);
+  if (blockingModalOpen) return null;
   const actionSlots =
     getActionSlots(
       currentLevel,

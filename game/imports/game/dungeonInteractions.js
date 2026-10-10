@@ -7,7 +7,7 @@ import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
 import { FROZEN_DISTURBANCE_POINTS } from "./quests";
 import { Characters } from "../api/characters/characters";
 import { getNearbyHiddenCache } from "./hiddenCaches";
-import { NPC_QUESTS, NPC_QUEST_LOCATIONS } from "./npcs/npcQuests";
+import { NPC_QUESTS, NPC_QUEST_LOCATIONS, getNpcQuestState } from "./npcs/npcQuests";
 
 export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals, dungeon }) => {
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
@@ -23,7 +23,7 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
     const character = Characters.findOne(local.characterId);
     return NPC_QUEST_LOCATIONS.find((point) =>
       nearDungeonObject(player.position, point, point.interactionRange) && NPC_QUESTS.some((quest) =>
-        character?.questStates?.[quest.id] === "active" &&
+        getNpcQuestState(quest, character) === "active" &&
         (quest.objectives || [quest.objective]).some((objective) => objective.type === "Interact" && objective.target === point.id)));
   };
   const nearbyCache = (local) => {

@@ -1,6 +1,7 @@
 import {
   create,
 } from "zustand";
+import { hasBlockingModal, useHudStore } from "./useHudStore";
 
 export const useActionBarStore =
   create(
@@ -31,6 +32,7 @@ export const useActionBarStore =
       triggerSkill(
         code
       ) {
+        if (hasBlockingModal(useHudStore.getState())) return;
         get()
           .skillHandler
           ?.(

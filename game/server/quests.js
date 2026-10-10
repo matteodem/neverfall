@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../imports/api/characters/characters";
 import { QUESTS } from "../imports/game/quests";
+import { getNpcQuestState } from "../imports/game/npcs/npcQuests";
 import { ITEM_NAMES, rollRandomRingId } from "../imports/game/inventory";
 import { trackAchievements } from "./achievements";
 import { spawnLoot } from "./inventory/loot";
@@ -30,7 +31,10 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
     let advanced = false;
 
     for (const quest of matches) {
-      if (quest.giverNpcId && character.questStates?.[quest.id] !== "active") continue;
+      if (getNpcQuestState(quest, character) !== "active") {
+        // Previously visited locations must remain retryable for newly accepted quests.
+        continue;
+      }
       const amount = quest.objective.amount;
       const progress = character.questProgress?.[quest.id] || 0;
       if (!quest.repeatable && progress >= amount) {
@@ -49,7 +53,8 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
       const update = { [`questProgress.${quest.id}`]: next };
-      if (quest.giverNpcId && completed) update[`questStates.${quest.id}`] = "completed";
+      update[`questStates.${quest.id}`] = completed && !quest.repeatable
+        ? quest.turnInRequired ? "completed" : "rewarded" : "active";
       const ringId = completed && quest.rewards?.randomRing ? rollRandomRingId() : null;
       if (completed && quest.repeatable && !character.adventureGuide?.firstHunt) {
         update["adventureGuide.firstHunt"] = true;
@@ -64,8 +69,8 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       character.questProgress[quest.id] = next;
       advanced = true;
 
-      // NPC quests wait for an explicit turn-in; legacy quests retain auto rewards.
-      if (quest.giverNpcId) continue;
+      // Preserve each quest's configured turn-in or automatic reward flow.
+      if (quest.turnInRequired) continue;
 
       if (quest.progressField) {
         for (const player of room.state.players.values()) {

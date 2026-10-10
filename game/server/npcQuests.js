@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../imports/api/characters/characters";
 import { NPC_DEFINITIONS, NPC_INTERACTION_RANGE } from "../imports/game/npcs/npcDefinitions";
-import { NPC_QUESTS, getNpcQuestState } from "../imports/game/npcs/npcQuests";
+import { NPC_QUESTS, getNpcQuestState, getQuestAcceptanceError } from "../imports/game/npcs/npcQuests";
 import { recordQuestEvent, withQuestUpdate } from "./quests";
 
 const getNearbyNpc = (room, client, npcId) => {
@@ -19,12 +19,12 @@ export const handleNpcQuest = async (room, client, request) => {
   const { action, npcId, questId, requestId } = request || {};
   try {
     if (!["interact", "accept", "complete"].includes(action)) throw new Error("Unknown quest action.");
-    const { player } = getNearbyNpc(room, client, npcId);
+    const { player, npc } = getNearbyNpc(room, client, npcId);
     room.recordActivity(client.sessionId);
     if (action === "interact") {
       await recordQuestEvent(room, player.characterId, "InteractNpc", npcId);
     } else {
-      const quest = NPC_QUESTS.find((entry) => entry.id === questId && entry.giverNpcId === npcId);
+      const quest = NPC_QUESTS.find((entry) => entry.id === questId && npc.offeredQuestIds?.includes(entry.id));
       if (!quest) throw new Error("This NPC does not offer that quest.");
       await withQuestUpdate(player.characterId, async () => {
         getNearbyNpc(room, client, npcId);
@@ -32,10 +32,16 @@ export const handleNpcQuest = async (room, client, request) => {
         if (!character) throw new Error("Character unavailable.");
         const state = getNpcQuestState(quest, character);
         if (action === "accept") {
-          if (state !== "available") throw new Error("This quest has already been accepted.");
-          await Characters.updateAsync({ _id: character._id, [`questStates.${quest.id}`]: { $exists: false } }, {
+          const error = getQuestAcceptanceError({ character, quest, npc });
+          if (error) throw new Error(error);
+          await Characters.updateAsync({ _id: character._id,
+            [`questStates.${quest.id}`]: character.questStates?.[quest.id] ?? { $exists: false } }, {
             $set: { [`questStates.${quest.id}`]: "active", [`questProgress.${quest.id}`]: 0 },
           });
+          // Shared location targets may have been visited for a different quest.
+          const runtime = room.playerRuntime.get(client.sessionId);
+          runtime?.reachedQuestLocations?.clear();
+          runtime?.questLocationRetryAt?.clear();
           return;
         }
         if (state === "rewarded") return;

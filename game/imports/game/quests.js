@@ -17,7 +17,7 @@ export const BOAR_HUNT_QUEST = {
   description:
     "Defeat 5 boars near Central Camp.",
 
-  recommendedLevel: 1,
+  recommendedLevel: 1, requiredLevel: 1,
 
   target:
     5,
@@ -30,7 +30,7 @@ export const WOLF_HUNT_QUEST = {
   id: "wolf-hunt",
   title: "Wolf Hunt",
   description: "Defeat 5 wolves northwest of Central Camp.",
-  recommendedLevel: 2,
+  recommendedLevel: 2, requiredLevel: 2,
   progressField: "wolfQuestKills",
   target: 5,
   rewardXp: 250,
@@ -40,7 +40,7 @@ export const GIANT_HUNT_QUEST = {
   id: "giant-hunt",
   title: "Forest Giant Hunt",
   description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
-  recommendedLevel: 3,
+  recommendedLevel: 3, requiredLevel: 3,
   progressField: "giantQuestKills",
   target: 1,
   rewardXp: 500,
@@ -53,50 +53,50 @@ export const HUNT_QUESTS = {
   goat: {
     ...BOAR_HUNT_QUEST,
     id: "goat-hunt", title: "Goat Hunt", description: "Defeat 5 goats in the western Highlands.",
-    recommendedLevel: 5,
+    recommendedLevel: 5, requiredLevel: 5,
     progressField: "goatQuestKills", rewardXp: 500,
   },
   rat: {
     ...BOAR_HUNT_QUEST,
     id: "rat-hunt", title: "Rat Hunt", description: "Defeat 5 rats in the central Highlands.",
-    recommendedLevel: 7,
+    recommendedLevel: 7, requiredLevel: 7,
     progressField: "ratQuestKills", rewardXp: 750,
   },
   bee: {
     ...BOAR_HUNT_QUEST,
     id: "bee-hunt", title: "Bee Hunt", description: "Defeat 5 bees in the eastern Highlands.",
-    recommendedLevel: 9,
+    recommendedLevel: 9, requiredLevel: 9,
     progressField: "beeQuestKills", rewardXp: 1000,
   },
   seal: {
     ...BOAR_HUNT_QUEST,
     id: "seal-hunt", title: "Seal Hunt", description: "Defeat 5 seals around Southwest Lake.",
-    recommendedLevel: 15,
+    recommendedLevel: 15, requiredLevel: 15,
     progressField: "sealQuestKills", rewardXp: 0, rewardGold: 1,
   },
   snowWolf: {
     ...BOAR_HUNT_QUEST,
     id: "snow-wolf-hunt", title: "Snow Wolf Hunt", description: "Defeat 5 snow wolves north of the Snowy Mountains waypoint.",
-    recommendedLevel: 10,
+    recommendedLevel: 10, requiredLevel: 10,
     progressField: "snowWolfQuestKills", rewardXp: 1250,
   },
   mountainGoat: {
     ...BOAR_HUNT_QUEST,
     id: "mountain-goat-hunt", title: "Mountain Goat Hunt", description: "Defeat 5 mountain goats south of the Snowy Mountains waypoint.",
-    recommendedLevel: 12,
+    recommendedLevel: 12, requiredLevel: 12,
     progressField: "mountainGoatQuestKills", rewardXp: 1500,
   },
   frostOgre: {
     ...GIANT_HUNT_QUEST,
     id: "frost-ogre-hunt", title: "Frost Ogre Hunt", description: "Defeat the Frost Ogre in the eastern Snowy Mountains.",
-    recommendedLevel: 14,
+    recommendedLevel: 14, requiredLevel: 14,
     progressField: "frostOgreQuestKills", rewardXp: 2000,
   },
   hammerBoss: {
     ...GIANT_HUNT_QUEST,
     id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt",
     description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
-    recommendedLevel: 17,
+    recommendedLevel: 17, requiredLevel: 17,
     progressField: "hammerBossQuestKills", rewardXp: 2500,
   },
 };
@@ -111,23 +111,22 @@ export const FROZEN_DISTURBANCE_POINTS = frozenSeals.map((point, index) => ({
   id: `${frozenRift.id}-seal-${index + 1}`, label: `Activate frozen rift seal ${index + 1}`, ...point,
 }));
 
-// New quests are available automatically; NPC quest givers can use the same
-// definitions later without changing how objectives advance.
+// Acquisition belongs to NPC offeredQuestIds; objectives and rewards stay here.
 export const QUESTS = [
   {
-    id: "forest-boars", title: "Boar Problem", giverNpcId: "forest-guard-01",
+    id: "forest-boars", title: "Boar Problem", requiredLevel: 1, turnInRequired: true,
     description: "The forest paths are becoming dangerous. Defeat 5 boars.",
     objective: { type: "Kill", target: "boar", amount: 5, label: "Defeat Boars" },
     rewards: { xp: 100, gold: 1 },
   },
   {
-    id: "forest-mini-boss", title: "A Greater Threat", giverNpcId: "forest-guard-01",
+    id: "forest-mini-boss", title: "A Greater Threat", requiredLevel: 3, turnInRequired: true,
     description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
     objective: { type: "Boss", target: "forestGiant", amount: 1, label: "Defeat the Forest Giant" },
     rewards: { xp: 250, gold: 1 },
   },
   {
-    id: "speak-with-mage", title: "Speak With the Mage", giverNpcId: "forest-guard-01",
+    id: "speak-with-mage", title: "Speak With the Mage", requiredLevel: 1, turnInRequired: true,
     description: "Speak with the Wandering Mage near Central Camp.",
     objective: { type: "InteractNpc", target: "wandering-mage-01", amount: 1, label: "Speak with the Wandering Mage" },
     rewards: { xp: 50 },
@@ -140,61 +139,61 @@ export const QUESTS = [
   })),
   {
     id: "wolf-problem", title: "Wolf Problem", description: "Defeat 10 wolves northwest of Central Camp.",
-    recommendedLevel: 2,
+    recommendedLevel: 2, requiredLevel: 2,
     objective: { type: "Kill", target: "wolf", amount: 10 },
     rewards: { xp: 300, gold: 1 },
   },
   {
     id: "giant-threat", title: "Giant Threat", description: "Defeat the Forest Giant northeast of Central Camp.",
-    recommendedLevel: 3,
+    recommendedLevel: 3, requiredLevel: 3,
     objective: { type: "Boss", target: "forestGiant", amount: 1 },
     rewards: { xp: 500, gold: 2 },
   },
   {
     id: "explore-highlands", title: "Explore the Highlands", description: "Reach the Highlands Lookout north of Northern Camp.",
-    recommendedLevel: 5,
+    recommendedLevel: 5, requiredLevel: 5,
     objective: { type: "ReachLocation", target: "highlands-lookout", amount: 1, x: 40, z: 245, radius: 12 },
     rewards: { xp: 200, gold: 1 },
   },
   {
     id: "find-the-depths", title: "Find the Forest Dungeon", description: "Enter the Forest Dungeon south of Central Camp.",
-    recommendedLevel: 7,
+    recommendedLevel: 7, requiredLevel: 7,
     objective: { type: "Interact", target: "dungeon-entrance", amount: 1 },
     rewards: { xp: 100 },
   },
   {
     id: "defend-northern-camp", title: "Defend Northern Camp", description: "Complete the Wolf Invasion world event at Northern Camp.",
-    recommendedLevel: 7,
+    recommendedLevel: 7, requiredLevel: 7,
     objective: { type: "CompleteEvent", target: "wolf-invasion", amount: 1 },
     rewards: { xp: 300, gold: 1 },
   },
   {
     id: "awakened-threat", title: "Awakened Threat", description: "Complete the Forest Giant Awakening world event in the southeast forest.",
-    recommendedLevel: 8,
+    recommendedLevel: 8, requiredLevel: 8,
     objective: { type: "CompleteEvent", target: "forest-giant-awakening", amount: 1 },
     rewards: { xp: 500, gold: 2 },
   },
   {
     id: "into-the-depths", title: "Into the Depths", description: "Complete the Forest Dungeon.",
-    recommendedLevel: 7,
+    recommendedLevel: 7, requiredLevel: 7,
     objective: { type: "CompleteDungeon", target: "dungeon-01", amount: 1 },
     rewards: { xp: 250, gold: 2 },
   },
   {
     id: "northern-ruins-quest", title: "Northern Ruins", description: "Complete the Northern Ruins east of Northern Camp.",
-    recommendedLevel: 10,
+    recommendedLevel: 10, requiredLevel: 10,
     objective: { type: "CompleteDungeon", target: "northern-ruins", amount: 1 },
     rewards: { xp: 400, gold: 2 },
   },
   {
     id: "explore-snowy-mountains", title: "Explore Snowy Mountains", description: "Reach the Snowy Mountains waypoint east of Central Camp.",
-    recommendedLevel: 10,
+    recommendedLevel: 10, requiredLevel: 10,
     objective: { type: "ReachLocation", target: "snowy-mountains-waypoint", amount: 1,
       x: snowyMountainsWaypoint.position.x, z: snowyMountainsWaypoint.position.z, radius: 16 },
     rewards: { xp: 400, gold: 1 },
   },
   {
-    id: "highlands-relics", title: "Highlands Relics", recommendedLevel: 9,
+    id: "highlands-relics", title: "Highlands Relics", recommendedLevel: 9, requiredLevel: 9,
     description: "Investigate Highlands Lookout and the Northern Ruins entrance, then defeat the guardian nearby.",
     objective: { type: "Sequence", amount: 3 },
     objectives: [
@@ -207,7 +206,7 @@ export const QUESTS = [
     rewards: { xp: 900, gold: 2 },
   },
   {
-    id: "frozen-disturbance", title: "Frozen Disturbance", recommendedLevel: 11,
+    id: "frozen-disturbance", title: "Frozen Disturbance", recommendedLevel: 11, requiredLevel: 11,
     description: "Reach the Snowy Mountains waypoint, activate the frozen rift seals near the Frozen Stone Arch, and defeat the Frostbound Sentinel.",
     objective: { type: "Sequence", amount: 4 },
     objectives: [
@@ -220,7 +219,7 @@ export const QUESTS = [
     rewards: { xp: 1300, gold: 3 },
   },
   {
-    id: "trouble-at-southwest-lake", title: "Trouble at Southwest Lake", recommendedLevel: 14,
+    id: "trouble-at-southwest-lake", title: "Trouble at Southwest Lake", recommendedLevel: 14, requiredLevel: 14,
     description: "Investigate Southwest Lake, defeat nearby seals, then confront the Hammer Guardian southwest of the lake.",
     objective: { type: "Sequence", amount: 5 },
     objectives: [
