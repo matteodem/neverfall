@@ -296,6 +296,16 @@ It stores the existing appearance fields in the creator draft and uses
 the same helper before existing validation, so hidden outfit/equipment input cannot
 override starting gear. No second appearance schema is used.
 
+In development only (`Meteor.isDevelopment`), **Show all customizations
+(Development Environment)** reveals the outfit, mask, hand and back selectors below
+the six normal appearance controls. They reuse the catalog and existing creator draft. Development preview uses classless
+assembly so every catalog item can be inspected, including other classes' weapons.
+The first enable starts from the current class preset;
+hiding/revealing the controls retains manual selections for that appearance step.
+These are preview-only overrides: turning the toggle off restores the preset preview,
+and submission/server validation continue applying the class preset. Production
+renders neither the toggle nor extra controls and always previews the class preset.
+
 `classEquipmentPresets.js` centrally configures each class in the existing
 `appearance.outfit` / `appearance.equipment` shape:
 

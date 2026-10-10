@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Meteor } from "meteor/meteor";
 import { normalizeAmirAppearance } from "../game/character/amir/appearance";
 import { createAmirCharacterPreview } from "../game/character/amir/createAmirCharacterPreview";
 
-export const CharacterPreview = ({ appearance, gameClass = "warrior" }) => {
+export const CharacterPreview = ({ appearance, gameClass = "warrior", previewAllEquipment = false }) => {
   const canvasRef = useRef(null);
   const previewRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const appearanceKey = JSON.stringify(normalizeAmirAppearance(appearance));
+  // Classless assembly allows every catalog slot in this development preview.
+  const previewClass = Meteor.isDevelopment && previewAllEquipment ? null : gameClass;
 
   useEffect(() => {
     const preview = createAmirCharacterPreview(canvasRef.current, { onLoading: setLoading, onError: setError });
@@ -21,9 +24,9 @@ export const CharacterPreview = ({ appearance, gameClass = "warrior" }) => {
   useEffect(() => {
     // Coalesce rapid selector changes without rebuilding the engine or losing drag rotation.
     setLoading(true);
-    const timeout = setTimeout(() => previewRef.current?.setAppearance(JSON.parse(appearanceKey), gameClass), 120);
+    const timeout = setTimeout(() => previewRef.current?.setAppearance(JSON.parse(appearanceKey), previewClass), 120);
     return () => clearTimeout(timeout);
-  }, [appearanceKey, gameClass]);
+  }, [appearanceKey, previewClass]);
 
   return (
     <div className="relative h-full w-full">

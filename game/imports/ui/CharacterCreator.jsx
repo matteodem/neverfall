@@ -1,10 +1,11 @@
 import React, {
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
 import { SPECIES } from "../game/species";
-import { createAmirStartingAppearance } from "../game/character/amir/appearance";
+import { createAmirStartingAppearance, normalizeAmirAppearance } from "../game/character/amir/appearance";
 import { AmirAppearanceControls } from "./components/AmirAppearanceControls";
 
 import {
@@ -103,14 +104,30 @@ const Navigation = () => {
 
 const AppearanceStep = () => {
   const creator = useCharacterStore((state) => state.creator);
+  const setField = useCharacterStore((state) => state.setCreatorField);
+  const [showAllCustomizations, setShowAllCustomizations] = useState(false);
+  const initializedDevelopmentOptions = useRef(false);
+  const developmentPreview = Meteor.isDevelopment && showAllCustomizations;
+  const toggleCustomizations = (show) => {
+    if (!Meteor.isDevelopment) return;
+    if (show && !initializedDevelopmentOptions.current) {
+      // Start manual exploration from the outfit currently shown in the preview.
+      const startingAppearance = createAmirStartingAppearance(creator, creator.gameClass);
+      setField("outfit", startingAppearance.outfit);
+      setField("equipment", startingAppearance.equipment);
+      initializedDevelopmentOptions.current = true;
+    }
+    setShowAllCustomizations(show);
+  };
   return (
     <div className="character-creator-appearance mb-4">
       <h2 className="mb-4 text-center text-3xl font-bold">Character Appearance</h2>
       <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
         <div className="order-first h-[260px] overflow-hidden rounded-xl border border-white/10 bg-black/20 md:order-last md:sticky md:top-0 md:h-[440px]">
-          <CharacterPreview appearance={createAmirStartingAppearance(creator, creator.gameClass)} gameClass={creator.gameClass} />
+          <CharacterPreview appearance={developmentPreview ? normalizeAmirAppearance(creator) : createAmirStartingAppearance(creator, creator.gameClass)}
+            gameClass={creator.gameClass} previewAllEquipment={developmentPreview} />
         </div>
-        <AmirAppearanceControls />
+        <AmirAppearanceControls showAllCustomizations={developmentPreview} onShowAllCustomizationsChange={toggleCustomizations} />
       </div>
     </div>
   );

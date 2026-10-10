@@ -1,11 +1,16 @@
 import React from "react";
-import { AMIR_PART_OPTIONS } from "../../game/character/amir/appearance";
+import { Meteor } from "meteor/meteor";
+import { AMIR_PART_OPTIONS, DEFAULT_AMIR_APPEARANCE } from "../../game/character/amir/appearance";
 import { SPECIES, SKIN_TONES } from "../../game/species";
 import { useCharacterStore } from "../stores/useCharacterStore";
 
-const LABELS = { head: "Head", hair: "Hair", hat: "Hat", glasses: "Glasses" };
+const LABELS = {
+  head: "Head", hair: "Hair", hat: "Hat", glasses: "Glasses",
+  torso: "Torso", arms: "Arms", hands: "Hands", legs: "Legs", feet: "Feet",
+  mask: "Mask", leftHand: "Left-hand equipment", rightHand: "Right-hand equipment", back: "Back equipment",
+};
 
-export const AmirAppearanceControls = () => {
+export const AmirAppearanceControls = ({ showAllCustomizations, onShowAllCustomizationsChange }) => {
   const creator = useCharacterStore((state) => state.creator);
   const setField = useCharacterStore((state) => state.setCreatorField);
   const select = (slot, group) => {
@@ -47,6 +52,29 @@ export const AmirAppearanceControls = () => {
         </select>
       </label>
       <div className="grid grid-cols-2 gap-3">{select("hat", "equipment")}{select("glasses", "equipment")}</div>
+      {Meteor.isDevelopment && <>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" className="toggle toggle-sm shrink-0"
+            checked={showAllCustomizations} onChange={(event) => onShowAllCustomizationsChange(event.target.checked)} />
+          <span>Show all customizations (Development Environment)</span>
+        </label>
+        {showAllCustomizations && <div className="flex flex-col gap-4">
+          <p className="text-xs text-white/60">Development preview only. Creating a character still uses the configured class equipment preset.</p>
+          <fieldset>
+            <legend className="mb-2 font-bold">Outfit parts</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.keys(DEFAULT_AMIR_APPEARANCE.outfit).map((slot) => select(slot, "outfit"))}
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend className="mb-2 font-bold">Equipment</legend>
+            <div className="grid grid-cols-2 gap-3">
+              {Object.keys(DEFAULT_AMIR_APPEARANCE.equipment).filter((slot) => !["hat", "glasses"].includes(slot))
+                .map((slot) => select(slot, "equipment"))}
+            </div>
+          </fieldset>
+        </div>}
+      </>}
       <p className="text-xs text-white/60">Starting outfit and weapon follow your class. Drag the preview to rotate. Some hair and hats may overlap; choose None to remove an accessory.</p>
     </div>
   );
