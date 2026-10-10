@@ -50,11 +50,12 @@ export const recordQuestEvent = (room, characterId, type, target, { spawnId } = 
       }
 
       const completed = progress + 1 >= amount;
-      const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
+      const autoRepeat = quest.repeatable && !quest.turnInRequired;
+      const next = completed && autoRepeat ? 0 : Math.min(progress + 1, amount);
       const update = { [`questProgress.${quest.id}`]: next };
-      update[`questStates.${quest.id}`] = completed && !quest.repeatable
+      update[`questStates.${quest.id}`] = completed && !autoRepeat
         ? quest.turnInRequired ? "completed" : "rewarded" : "active";
-      const ringId = completed && quest.rewards?.randomRing ? rollRandomRingId() : null;
+      const ringId = completed && !quest.turnInRequired && quest.rewards?.randomRing ? rollRandomRingId() : null;
       await Characters.updateAsync(characterId, {
         $set: update,
         ...(ringId ? { $push: { "inventory.items": { id: ringId } } } : {}),

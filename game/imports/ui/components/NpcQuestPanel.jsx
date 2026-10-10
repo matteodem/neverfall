@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../api/characters/characters";
-import { getNpcQuests, getNpcQuestState, getQuestAcceptanceError } from "../../game/npcs/npcQuests";
+import { getNpcQuests, getNpcQuestState, getQuestAcceptanceError, isQuestAvailable } from "../../game/npcs/npcQuests";
 import { useNpcStore } from "../stores/useNpcStore";
 import { NpcQuestCard } from "./NpcQuestCard";
 
@@ -30,7 +30,7 @@ export const NpcQuestPanel = ({ npc }) => {
     {visibleQuests.map((quest) => {
       const state = getNpcQuestState(quest, character);
       const acceptanceError = getQuestAcceptanceError({ character, quest, npc });
-      const offer = state === "available" || (quest.repeatable && state === "rewarded");
+      const offer = isQuestAvailable(quest, character);
       return <NpcQuestCard key={quest.id} quest={quest} character={character}>
         <p className="mt-2 text-xs opacity-70">{
           state === "available" ? "Could you help us?" : state === "active" ? "Come back when you have finished the objectives." :

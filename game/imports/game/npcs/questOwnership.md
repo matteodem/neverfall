@@ -1,10 +1,17 @@
 # Regional NPC quest ownership
 
-All 26 quests use centralized `QUESTS` definitions and NPC `offeredQuestIds`.
-The 11 former Hunts are ordinary repeatable quests, retaining their IDs, objectives,
-required levels, XP/gold amounts, and the Boar Hunt random-ring reward. They remain
-active across reward cycles. The three original turn-in quests still require a
-return to their NPC; other quests retain automatic rewards on objective completion.
+All quests use centralized `QUESTS` definitions and NPC `offeredQuestIds`.
+`QUEST_DEFAULTS` applies `turnInRequired: true` and `repeatable: false` before
+individual quest overrides. Normal quests follow available → active → completed
+(ready to turn in) → rewarded. Rewards are paid at the owning NPC, and rewarded
+non-repeatable quests cannot be accepted again. Explicit automatic-completion or
+repeatability overrides remain supported.
+
+The eight enabled former Hunts (Goat, Rat, Bee, Seal, Snow Wolf, Mountain Goat,
+Frost Ogre, and Hammer Guardian) inherit these one-time turn-in defaults. The
+Boar, Wolf, and Forest Giant Hunt definitions remain commented out; their former
+repeatability overrides were also removed. IDs, objectives, required levels,
+reward amounts, and the disabled Boar Hunt random-ring reward are preserved.
 
 ## Regional hubs
 
@@ -27,10 +34,15 @@ No progress-copy migration or quest reset is needed: the existing Hunt service
 already saved counts in `questProgress[questId]` and acceptance in `questStates`.
 These identifiers and values remain unchanged when ownership moves to a regional
 NPC. No completion event, XP grant, gold grant, or item grant runs during migration.
-Completed repeatable cycles stay at zero, so previously paid cycles are not replayed.
+No rewards are paid simply by applying the new defaults. Explicit rewarded states
+remain rewarded, and active counts remain unchanged. The old repeatable flow reset
+paid cycles to zero without retaining per-quest reward history. Those records cannot
+be distinguished from newly accepted zero-progress quests, or active progress after
+an earlier paid cycle. They remain active; historical paid cycles cannot be recovered
+reliably from this data. After the change, each normal quest can be turned in once.
 
 Explicit `questStates` wins. A legacy saved progress key without a state remains an
-active quest, including zero for repeatable quests. Finished non-repeatable legacy
+active quest, including zero left by formerly repeatable quests. Finished legacy
 progress remains rewarded, preserving the existing compatibility rule. Untouched
 quests require NPC acceptance. An old implicit zero-progress quest with no saved key
 cannot be distinguished from an unaccepted quest and is not automatically accepted.
@@ -40,6 +52,13 @@ on character join to preserve the renamed First Quest achievement. They no longe
 receive writes or drive gameplay. This backfill pays no quest rewards. New automatic
 quest completions and NPC turn-ins use the shared `quest` achievement event.
 Historical database markers are left inert rather than deleting character data.
+
+Turn-in commits reward state, XP, and any random-ring item in one character update.
+Gold retains its separate atomic receipt guard. `questRewardCounts[questId]` records
+successful turn-ins so future explicitly repeatable quests can use a separate gold
+receipt per cycle. Availability is shared by NPC offers, server acceptance, and
+quest markers; active/ready quests show `?`, available quests show `!`, and rewarded
+non-repeatable quests contribute no marker.
 
 The Hunt-only Colyseus counters, client store, network messages, popup, Hero tab,
 H shortcut, area restrictions, and map overlays are removed. Enemy kill and boss
@@ -53,9 +72,9 @@ Deploy client and server together because the obsolete realtime schema fields we
 | Central Forest / Forest Guard | forest-boars | 1 |
 | Central Forest / Forest Guard | forest-mini-boss | 3 |
 | Central Forest / Forest Guard | speak-with-mage | 1 |
-| Central Forest / Forest Guard | boar-hunt | 1 |
-| Central Forest / Forest Guard | wolf-hunt | 2 |
-| Central Forest / Forest Guard | giant-hunt | 3 |
+| Central Forest / Forest Guard | boar-hunt (disabled) | 1 |
+| Central Forest / Forest Guard | wolf-hunt (disabled) | 2 |
+| Central Forest / Forest Guard | giant-hunt (disabled) | 3 |
 | Central Forest / Forest Guard | wolf-problem | 2 |
 | Central Forest / Forest Guard | giant-threat | 3 |
 | Central Forest / Forest Guard | awakened-threat | 8 |

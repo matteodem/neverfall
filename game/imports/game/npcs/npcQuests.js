@@ -5,6 +5,11 @@ export const NPC_QUESTS = QUESTS.filter((quest) => NPC_DEFINITIONS.some((npc) =>
 
 export const getNpcQuests = (npc) => NPC_QUESTS.filter((quest) => npc?.offeredQuestIds?.includes(quest.id));
 
+export const isQuestAvailable = (quest, character) => {
+  const state = getNpcQuestState(quest, character);
+  return state === "available" || (quest.repeatable && state === "rewarded");
+};
+
 export const getNpcQuestState = (quest, character) => {
   const saved = character?.questStates?.[quest.id];
   if (saved) return saved;
@@ -19,8 +24,7 @@ export const getNpcQuestState = (quest, character) => {
 export const getQuestAcceptanceError = ({ character, quest, npc }) => {
   if (!character) return "Character unavailable.";
   if (!quest || !npc?.offeredQuestIds?.includes(quest.id)) return "This NPC does not offer that quest.";
-  const state = getNpcQuestState(quest, character);
-  if (state !== "available" && !(quest.repeatable && state === "rewarded")) return "This quest has already been accepted or rewarded.";
+  if (!isQuestAvailable(quest, character)) return "This quest has already been accepted or rewarded.";
   if ((character.currentLevel ?? 1) < (quest.requiredLevel ?? 0)) return `Requires Level ${quest.requiredLevel}`;
   return null;
 };

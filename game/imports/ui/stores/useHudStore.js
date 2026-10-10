@@ -1,13 +1,12 @@
 import { create } from "zustand";
 
-// Floating panels stay non-blocking; these dialogs and grouped tabs block gameplay.
+// Floating panels and grouped tabs stay non-blocking; these dialogs block gameplay.
 const BLOCKING_MODALS = new Set([
   "npcDialogue", "quests", "shop", "sell-item", "settings",
   "equipment-inspection", "crafting-ingredients",
 ]);
 
-export const isBlockingModal = (state, id) => BLOCKING_MODALS.has(id) ||
-  (id === "hero" && state.tabs.hero === "quests");
+export const isBlockingModal = (state, id) => BLOCKING_MODALS.has(id);
 
 export const hasBlockingModal = (state) => state.openModals.some((id) => isBlockingModal(state, id));
 

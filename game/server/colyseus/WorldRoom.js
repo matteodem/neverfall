@@ -1662,6 +1662,7 @@ export class WorldRoom
           currentXp:
             progress.currentXp,
         },
+        ...(commit.items?.length ? { $push: { "inventory.items": { $each: commit.items } } } : {}),
       }
     );
 

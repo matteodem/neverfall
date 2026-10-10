@@ -5,6 +5,7 @@ import { NPC_QUESTS, getNpcQuestState, getQuestAcceptanceError } from "../import
 import { recordQuestEvent, withQuestUpdate } from "./quests";
 import { rememberMerchantInteraction } from "./merchantInteractions";
 import { trackAchievements } from "./achievements";
+import { rollRandomRingId } from "../imports/game/inventory";
 
 const getNearbyNpc = (room, client, npcId) => {
   const player = room.state.players.get(client.sessionId);
@@ -54,8 +55,9 @@ export const handleNpcQuest = async (room, client, request) => {
         }
         // Money and its receipt change atomically. If XP persistence fails, retrying
         // turn-in cannot pay gold twice; the quest stays completed until XP commits.
+        const rewardCount = character.questRewardCounts?.[quest.id] || 0;
         if (quest.rewards.gold) {
-          const receipt = `${character._id}:${quest.id}`;
+          const receipt = `${character._id}:${quest.id}${quest.repeatable ? `:${rewardCount}` : ""}`;
           await Meteor.users.updateAsync({
             _id: character.userId, "profile.npcQuestGoldRewards": { $ne: receipt },
           }, {
@@ -63,10 +65,12 @@ export const handleNpcQuest = async (room, client, request) => {
             $addToSet: { "profile.npcQuestGoldRewards": receipt },
           });
         }
-        // Reward state and XP are committed in one character update.
+        // Reward state, XP, and any item reward are committed together.
+        const ringId = quest.rewards.randomRing ? rollRandomRingId() : null;
         const awarded = await room.awardXp(character._id, quest.rewards.xp || 0, true, {
           selector: { [`questStates.${quest.id}`]: "completed" },
-          fields: { [`questStates.${quest.id}`]: "rewarded" },
+          fields: { [`questStates.${quest.id}`]: "rewarded", [`questRewardCounts.${quest.id}`]: rewardCount + 1 },
+          ...(ringId ? { items: [{ id: ringId }] } : {}),
         });
         if (awarded === false) throw new Error("Quest changed. Please reopen the dialogue and try again.");
         await trackAchievements(character._id, "quest");

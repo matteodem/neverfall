@@ -14,88 +14,90 @@ export const FROZEN_DISTURBANCE_POINTS = frozenSeals.map((point, index) => ({
   id: `${frozenRift.id}-seal-${index + 1}`, label: `Activate frozen rift seal ${index + 1}`, ...point,
 }));
 
+export const QUEST_DEFAULTS = { turnInRequired: true, repeatable: false };
+
 // Acquisition belongs to NPC offeredQuestIds; objectives and rewards stay here.
 export const QUESTS = [
   {
-    id: "forest-boars", title: "Boar Problem", requiredLevel: 1, turnInRequired: true,
+    id: "forest-boars", title: "Boar Problem", requiredLevel: 1,
     description: "The forest paths are becoming dangerous. Defeat 5 boars.",
     objective: { type: "Kill", target: "boar", amount: 5, label: "Defeat Boars" },
     rewards: { xp: 100, gold: 1 },
   },
   {
-    id: "forest-mini-boss", title: "A Greater Threat", requiredLevel: 3, turnInRequired: true,
+    id: "forest-mini-boss", title: "A Greater Threat", requiredLevel: 3,
     description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
     objective: { type: "Boss", target: "forestGiant", amount: 1, label: "Defeat the Forest Giant" },
     rewards: { xp: 1000, gold: 2 },
   },
   {
-    id: "speak-with-mage", title: "Speak With the Mage", requiredLevel: 1, turnInRequired: true,
+    id: "speak-with-mage", title: "Speak With the Mage", requiredLevel: 1,
     description: "Speak with the Wandering Mage near Central Camp.",
     objective: { type: "InteractNpc", target: "wandering-mage-01", amount: 1, label: "Speak with the Wandering Mage" },
     rewards: { xp: 50 },
   },
   /*{
-    id: "boar-hunt", title: "Boar Hunt", requiredLevel: 1, repeatable: true,
-    description: "Defeat 5 boars near Central Camp.",
-    objective: { type: "Kill", target: "boar", amount: 5 },
-    rewards: { xp: 100, randomRing: true },
+    id: "boar-hunt", title: "Boar Hunt", requiredLevel: 1,
+    description: "Defeat 10 boars near Central Camp.",
+    objective: { type: "Kill", target: "boar", amount: 10 },
+    rewards: { xp: 200, randomRing: true },
   },
   {
-    id: "wolf-hunt", title: "Wolf Hunt", requiredLevel: 2, repeatable: true,
-    description: "Defeat 5 wolves northwest of Central Camp.",
-    objective: { type: "Kill", target: "wolf", amount: 5 },
-    rewards: { xp: 250 },
+    id: "wolf-hunt", title: "Wolf Hunt", requiredLevel: 2,
+    description: "Defeat 10 wolves northwest of Central Camp.",
+    objective: { type: "Kill", target: "wolf", amount: 10 },
+    rewards: { xp: 500 },
   },
   {
-    id: "giant-hunt", title: "Forest Giant Hunt", requiredLevel: 3, repeatable: true,
+    id: "giant-hunt", title: "Forest Giant Hunt", requiredLevel: 3,
     description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
     objective: { type: "Boss", target: "forestGiant", amount: 1 },
     rewards: { xp: 500 },
   },*/
   {
-    id: "goat-hunt", title: "Goat Hunt", requiredLevel: 5, repeatable: true,
-    description: "Defeat 5 goats in the western Highlands.",
-    objective: { type: "Kill", target: "goat", amount: 5 },
-    rewards: { xp: 500 },
-  },
-  {
-    id: "rat-hunt", title: "Rat Hunt", requiredLevel: 7, repeatable: true,
-    description: "Defeat 5 rats in the central Highlands.",
-    objective: { type: "Kill", target: "rat", amount: 5 },
-    rewards: { xp: 750 },
-  },
-  {
-    id: "bee-hunt", title: "Bee Hunt", requiredLevel: 9, repeatable: true,
-    description: "Defeat 5 bees in the eastern Highlands.",
-    objective: { type: "Kill", target: "bee", amount: 5 },
+    id: "goat-hunt", title: "Goat Hunt", requiredLevel: 5,
+    description: "Defeat 10 goats in the western Highlands.",
+    objective: { type: "Kill", target: "goat", amount: 10 },
     rewards: { xp: 1000 },
   },
   {
-    id: "seal-hunt", title: "Seal Hunt", requiredLevel: 15, repeatable: true,
-    description: "Defeat 5 seals around Southwest Lake.",
-    objective: { type: "Kill", target: "seal", amount: 5 },
-    rewards: { xp: 0, gold: 1 },
-  },
-  {
-    id: "snow-wolf-hunt", title: "Snow Wolf Hunt", requiredLevel: 10, repeatable: true,
-    description: "Defeat 5 snow wolves north of the Snowy Mountains waypoint.",
-    objective: { type: "Kill", target: "snowWolf", amount: 5 },
-    rewards: { xp: 1250 },
-  },
-  {
-    id: "mountain-goat-hunt", title: "Mountain Goat Hunt", requiredLevel: 12, repeatable: true,
-    description: "Defeat 5 mountain goats south of the Snowy Mountains waypoint.",
-    objective: { type: "Kill", target: "mountainGoat", amount: 5 },
+    id: "rat-hunt", title: "Rat Hunt", requiredLevel: 7,
+    description: "Defeat 10 rats in the central Highlands.",
+    objective: { type: "Kill", target: "rat", amount: 10 },
     rewards: { xp: 1500 },
   },
   {
-    id: "frost-ogre-hunt", title: "Frost Ogre Hunt", requiredLevel: 14, repeatable: true,
+    id: "bee-hunt", title: "Bee Hunt", requiredLevel: 9,
+    description: "Defeat 10 bees in the eastern Highlands.",
+    objective: { type: "Kill", target: "bee", amount: 10 },
+    rewards: { xp: 2000 },
+  },
+  {
+    id: "seal-hunt", title: "Seal Hunt", requiredLevel: 15,
+    description: "Defeat 10 seals around Southwest Lake.",
+    objective: { type: "Kill", target: "seal", amount: 10 },
+    rewards: { xp: 3500, gold: 1 },
+  },
+  {
+    id: "snow-wolf-hunt", title: "Snow Wolf Hunt", requiredLevel: 10,
+    description: "Defeat 10 snow wolves north of the Snowy Mountains waypoint.",
+    objective: { type: "Kill", target: "snowWolf", amount: 10 },
+    rewards: { xp: 2500 },
+  },
+  {
+    id: "mountain-goat-hunt", title: "Mountain Goat Hunt", requiredLevel: 12,
+    description: "Defeat 10 mountain goats south of the Snowy Mountains waypoint.",
+    objective: { type: "Kill", target: "mountainGoat", amount: 10 },
+    rewards: { xp: 3000 },
+  },
+  {
+    id: "frost-ogre-hunt", title: "Frost Ogre Hunt", requiredLevel: 14,
     description: "Defeat the Frost Ogre in the eastern Snowy Mountains.",
     objective: { type: "Boss", target: "frostOgre", amount: 1 },
     rewards: { xp: 2000 },
   },
   {
-    id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt", requiredLevel: 17, repeatable: true,
+    id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt", requiredLevel: 17,
     description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
     objective: { type: "Boss", target: "hammerBoss", amount: 1 },
     rewards: { xp: 2500 },
@@ -193,4 +195,4 @@ export const QUESTS = [
     ],
     rewards: { xp: 2200, gold: 5 },
   },
-];
+].map((quest) => ({ ...QUEST_DEFAULTS, ...quest }));
