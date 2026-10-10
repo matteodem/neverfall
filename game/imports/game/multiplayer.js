@@ -186,8 +186,8 @@ const createRemoteCombat =
         "remoteSwordTrail",
         swordTip,
         scene,
-        0.12,
-        20,
+        0.06,
+        12,
         true
       );
 
@@ -208,7 +208,7 @@ const createRemoteCombat =
 
 
     trailMaterial.alpha =
-      0.65;
+      0.3;
 
 
     trail.material =
