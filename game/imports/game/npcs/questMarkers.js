@@ -8,15 +8,14 @@ export const getNpcQuestMarker = (npcId, character) => {
   const npc = NPC_DEFINITIONS.find((entry) => entry.id === npcId);
   for (const quest of NPC_QUESTS) {
     const state = getNpcQuestState(quest, character);
+    const current = state === "active"
+      ? getQuestObjectiveDisplay(quest, character.questProgress?.[quest.id] || 0).current : null;
+    const objective = (quest.objectives || [quest.objective])[current?.number - 1];
     if (npc?.offeredQuestIds?.includes(quest.id)) {
-      if (state === "active" || state === "completed") return "?";
+      if (state === "completed" || (state === "active" && objective?.type !== "InteractNpc")) return "?";
       if (canAcceptQuest({ character, quest, npc })) available = true;
     }
-    if (state === "active") {
-      const current = getQuestObjectiveDisplay(quest, character.questProgress?.[quest.id] || 0).current;
-      const objective = (quest.objectives || [quest.objective])[current?.number - 1];
-      if (objective?.type === "InteractNpc" && objective.target === npcId) return "?";
-    }
+    if (objective?.type === "InteractNpc" && objective.target === npcId) return "?";
   }
   return available ? "!" : null;
 };
