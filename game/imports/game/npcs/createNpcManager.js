@@ -3,12 +3,20 @@ import { createNameplate } from "../nameplate";
 import { NPC_DEFINITIONS, NPC_INTERACTION_RANGE } from "./npcDefinitions";
 import { useNpcStore } from "../../ui/stores/useNpcStore";
 import { useHudStore } from "../../ui/stores/useHudStore";
+import { getNpcQuestMarker } from "./questMarkers";
 
 // Deterministic client-side entities; no player movement, combat or network state.
-export const createNpcManager = ({ scene, player, canInteract = () => true, definitions = NPC_DEFINITIONS }) => {
+export const createNpcManager = ({ scene, player, canInteract = () => true, getCharacter = () => null, definitions = NPC_DEFINITIONS }) => {
   const npcs = [];
   let disposed = false;
   const store = () => useNpcStore.getState();
+  const updateMarker = (npc) => {
+    const marker = getNpcQuestMarker(npc.definition.id, getCharacter());
+    if (marker === npc.marker) return;
+    npc.marker = marker;
+    npc.questMarker.setName(marker || "");
+    npc.questMarker.setVisible(Boolean(marker));
+  };
   const distanceTo = (npc) => Math.hypot(
     player.position.x - npc.position.x,
     player.position.y - npc.position.y,
@@ -39,7 +47,8 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, defi
   const destroy = () => {
     if (disposed) return;
     disposed = true;
-    for (const { actor, animations, nameplate } of npcs.splice(0)) {
+    for (const { actor, animations, nameplate, questMarker } of npcs.splice(0)) {
+      questMarker.destroy();
       nameplate.destroy();
       animations.destroy();
       actor.dispose();
@@ -55,6 +64,7 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, defi
       let actor;
       let animations;
       let nameplate;
+      let questMarker;
       try {
         actor = await createAmirCharacter({ scene, appearance: definition.appearance, gameClass: definition.gameClass });
         if (disposed || scene.isDisposed) { actor.dispose(); return; }
@@ -64,8 +74,12 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, defi
         animations = actor.createAnimationController();
         animations.update(0);
         nameplate = createNameplate({ scene, player: actor.root, name: definition.name, y: 2.3, color: "#facc15" });
-        npcs.push({ definition, actor, animations, nameplate });
+        questMarker = createNameplate({ scene, player: actor.root, name: "", y: 2.55, scale: 1.8, color: "#facc15" });
+        const npc = { definition, actor, animations, nameplate, questMarker };
+        updateMarker(npc);
+        npcs.push(npc);
       } catch (error) {
+        questMarker?.destroy();
         nameplate?.destroy();
         animations?.destroy();
         actor?.dispose();
@@ -79,7 +93,10 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, defi
     interact,
     update(deltaTime) {
       if (disposed) return;
-      for (const npc of npcs) npc.animations.update(deltaTime);
+      for (const npc of npcs) {
+        npc.animations.update(deltaTime);
+        updateMarker(npc);
+      }
       store().setNearby(nearest());
       const dialogue = store().dialogue;
       if (dialogue && (!canInteract() || !inRange(dialogue))) store().closeDialogue();

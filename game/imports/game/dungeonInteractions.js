@@ -7,6 +7,7 @@ import { BASIC_TOWER_CHEST_POSITION } from "./basicTowerConfig";
 import { FROZEN_DISTURBANCE_POINTS } from "./quests";
 import { Characters } from "../api/characters/characters";
 import { getNearbyHiddenCache } from "./hiddenCaches";
+import { NPC_QUESTS, NPC_QUEST_LOCATIONS } from "./npcs/npcQuests";
 
 export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals, dungeon }) => {
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
@@ -17,6 +18,14 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
     return nearDungeonObject(player.position, point, 4) ? point : null;
   };
   let elapsed = 100;
+  const nearbyQuestLocation = (local) => {
+    if (dungeon || !local?.characterId || !NPC_QUEST_LOCATIONS.length) return null;
+    const character = Characters.findOne(local.characterId);
+    return NPC_QUEST_LOCATIONS.find((point) =>
+      nearDungeonObject(player.position, point, point.interactionRange) && NPC_QUESTS.some((quest) =>
+        character?.questStates?.[quest.id] === "active" &&
+        (quest.objectives || [quest.objective]).some((objective) => objective.type === "Interact" && objective.target === point.id)));
+  };
   const nearbyCache = (local) => {
     if (dungeon || local?.inDungeon || !local?.characterId) return null;
     const character = Characters.findOne(local.characterId);
@@ -52,6 +61,7 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
       if (dungeon && nearDungeonObject(player.position, config.exit, config.interactionDistance)) prompt = "exit";
       if (!prompt && nearbyQuestSeal(local)) prompt = "riftSeal";
       if (!prompt && nearbyCache(local)) prompt = "hiddenCache";
+      if (!prompt && nearbyQuestLocation(local)) prompt = "questLocation";
     }
     useDungeonStore.getState().update({
       prompt, stage: dungeon ? state?.stage || 0 : 0, completed,
@@ -80,6 +90,10 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
     }
     if (state.prompt === "riftSeal") {
       const point = nearbyQuestSeal(local);
+      if (point) room.send("interactQuestPoint", point.id);
+    }
+    if (state.prompt === "questLocation") {
+      const point = nearbyQuestLocation(local);
       if (point) room.send("interactQuestPoint", point.id);
     }
     if (state.prompt === "challengeMote") room.send("dungeonChallengeToggle");

@@ -11,6 +11,7 @@ import { useWorldEventStore } from "../ui/stores/useWorldEventStore";
 import { getGameSession, closeGameSession } from "./gameSession";
 import { getEquippedSkill, getPlayerSkills } from "./skills";
 import { useSkillsStore } from "../ui/stores/useSkillsStore";
+import { useNpcStore } from "../ui/stores/useNpcStore";
 import { getClassConfig } from "./classConfig";
 import { getPlayerTitle } from "./playerTitles";
 import { createProjectileVisuals } from "./projectiles";
@@ -1405,6 +1406,8 @@ export const createMultiplayer =
       for (const [code, duration] of Object.entries(result.cooldowns || {})) useActionBarStore.getState().setCooldown(code, duration);
     });
 
+    onMessage("npcQuestResult", (result) => useNpcStore.getState().finishQuestAction(result));
+
     onMessage("skillCooldown", ({ code, duration }) => {
       useActionBarStore.getState().setCooldown(code, duration);
     });
@@ -2225,6 +2228,7 @@ export const createMultiplayer =
 
       sendMovement,
       sendAttack,
+      npcQuestAction: (request) => room.send("npcQuest", request),
       faceAttackTarget,
       sendHeal,
       equipItem,

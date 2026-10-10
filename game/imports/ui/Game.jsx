@@ -5,6 +5,7 @@ import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession"
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { createNpcManager } from "../game/npcs/createNpcManager";
+import { useNpcStore } from "./stores/useNpcStore";
 import { Meteor } from "meteor/meteor";
 import { ENTITY_VISIBILITY } from "../game/entityVisibility";
 import { createPerformanceOverlay } from "../game/performanceOverlay";
@@ -443,9 +444,11 @@ export const Game = ({
           exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
+          if (location === "world") useNpcStore.getState().setQuestHandler(multiplayer.npcQuestAction);
           if (location === "world") npcManager = createNpcManager({
             scene,
             player,
+            getCharacter: () => characterRef.current,
             canInteract: () => playerAlive && !useWaypointStore.getState().traveling && useDungeonStore.getState().location === "world",
           });
 

@@ -4,6 +4,11 @@ import { WORLD_EVENTS } from "../../game/worldEvents";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import { useWorldEventStore } from "../stores/useWorldEventStore";
 import React from "react";
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { Characters } from "../../api/characters/characters";
+import { getNpcQuestMarkers } from "../../game/npcs/questMarkers";
+import { WorldMapMarkerIcon } from "./modals/WorldMapMarker";
 import { Icon } from "./Icon";
 
 import { DUNGEON_MAP_RADIUS, WORLD_RADIUS, worldToPercent } from "../../game/worldMap";
@@ -70,7 +75,7 @@ const LocalPlayerMarker = ({
 
   return (
     <div
-      className="absolute z-20 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+      className="absolute z-40 drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
       style={{
         left:
           position.left,
@@ -126,6 +131,10 @@ const Legend = ({ location, activeEvent }) => {
       outlined: false,
     }] : []),
     ...(activeEvent ? [{ label: "Event", color: "#fb923c", outlined: false }] : []),
+    ...(location === "world" ? [
+      { label: "Available quest", kind: "questAvailable" },
+      { label: "Active / turn-in quest", kind: "questActive" },
+    ] : []),
   ];
 
   return (
@@ -138,13 +147,13 @@ const Legend = ({ location, activeEvent }) => {
             }
             className="flex items-center gap-1"
           >
-            <span
+            {item.kind ? <WorldMapMarkerIcon kind={item.kind} /> : <span
               className={`h-2 w-2 rounded-full ${item.outlined === false ? "" : "shadow"}`}
               style={{
                 backgroundColor:
                   item.color,
               }}
-            />
+            />}
 
             <span>
               {
@@ -161,6 +170,11 @@ const Legend = ({ location, activeEvent }) => {
 export const Minimap =
   () => {
     const location = useDungeonStore((state) => state.location);
+    const character = useTracker(() => {
+      const id = Meteor.user()?.profile?.currentCharacterId;
+      return id ? Characters.findOne(id) : null;
+    });
+    const questMarkers = getNpcQuestMarkers(character);
     const dungeonId = useDungeonStore((state) => state.dungeonId);
     const dungeonConfig = getDungeonConfig(dungeonId);
     const event = useWorldEventStore((state) => state.event);
@@ -323,6 +337,14 @@ export const Minimap =
           {/*
            * Local player
            */}
+          {location === "world" && questMarkers.map((npc) => (
+            <div key={npc.id} className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
+              style={worldToPercent(npc.position)}
+              title={`${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}
+              aria-label={`${npc.name}: ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}>
+              <WorldMapMarkerIcon kind={npc.marker === "!" ? "questAvailable" : "questActive"} />
+            </div>
+          ))}
           <LocalPlayerMarker
             x={
               localPlayer.x

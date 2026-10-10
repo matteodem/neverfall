@@ -7,6 +7,15 @@ import { spawnLoot } from "./inventory/loot";
 
 const pending = new Map();
 
+export const withQuestUpdate = (characterId, action) => {
+  const previous = pending.get(characterId) || Promise.resolve();
+  const work = previous.catch(() => {}).then(action);
+  pending.set(characterId, work);
+  return work.finally(() => {
+    if (pending.get(characterId) === work) pending.delete(characterId);
+  });
+};
+
 export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true, spawnId } = {}) => {
   const matches = QUESTS.filter((quest) =>
     ((quest.objective.type === type && quest.objective.target === target) ||
@@ -15,13 +24,13 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
   if (!matches.length) return Promise.resolve();
 
   // Serialize updates for a character, including events from separate rooms.
-  const previous = pending.get(characterId) || Promise.resolve();
-  const work = previous.catch(() => {}).then(async () => {
+  return withQuestUpdate(characterId, async () => {
     const character = await Characters.findOneAsync(characterId);
     if (!character) return;
     let advanced = false;
 
     for (const quest of matches) {
+      if (quest.giverNpcId && character.questStates?.[quest.id] !== "active") continue;
       const amount = quest.objective.amount;
       const progress = character.questProgress?.[quest.id] || 0;
       if (!quest.repeatable && progress >= amount) {
@@ -40,6 +49,7 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       const completed = progress + 1 >= amount;
       const next = completed && quest.repeatable ? 0 : Math.min(progress + 1, amount);
       const update = { [`questProgress.${quest.id}`]: next };
+      if (quest.giverNpcId && completed) update[`questStates.${quest.id}`] = "completed";
       const ringId = completed && quest.rewards?.randomRing ? rollRandomRingId() : null;
       if (completed && quest.repeatable && !character.adventureGuide?.firstHunt) {
         update["adventureGuide.firstHunt"] = true;
@@ -53,6 +63,9 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       character.questProgress ||= {};
       character.questProgress[quest.id] = next;
       advanced = true;
+
+      // NPC quests wait for an explicit turn-in; legacy quests retain auto rewards.
+      if (quest.giverNpcId) continue;
 
       if (quest.progressField) {
         for (const player of room.state.players.values()) {
@@ -89,9 +102,5 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       }
     }
     return advanced;
-  });
-  pending.set(characterId, work);
-  return work.finally(() => {
-    if (pending.get(characterId) === work) pending.delete(characterId);
   });
 };

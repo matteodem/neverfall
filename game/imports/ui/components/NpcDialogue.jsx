@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { HudModal } from "./HudModal";
+import { NpcQuestPanel } from "./NpcQuestPanel";
 import { NPC_DIALOGUE_MODAL, useNpcStore } from "../stores/useNpcStore";
 import { useHudStore } from "../stores/useHudStore";
 import { useDungeonStore } from "../stores/useDungeonStore";
@@ -33,6 +34,7 @@ export const NpcDialogue = () => {
     )}
     {dialogue && <HudModal id={NPC_DIALOGUE_MODAL} title={dialogue.name} onClose={closeDialogue} backdrop>
       <p className="whitespace-pre-line">{dialogue.dialogue?.text || "Hello, traveler."}</p>
+      <NpcQuestPanel key={dialogue.id} npc={dialogue} />
       <div className="mt-4 flex justify-end">
         <button type="button" className="btn btn-primary" onClick={closeDialogue}>Close</button>
       </div>

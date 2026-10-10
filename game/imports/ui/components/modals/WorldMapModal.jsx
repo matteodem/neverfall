@@ -10,6 +10,7 @@ import { BASIC_TOWER_POSITION } from "../../../game/basicTowerConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS, ENEMY_TYPES } from "../../../game/enemyConfig";
 import { HUNT_QUESTS } from "../../../game/quests";
+import { getNpcQuestMarkers } from "../../../game/npcs/questMarkers";
 import { DUNGEON_MAP_RADIUS, percentToWorld, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
 import { useHudStore } from "../../stores/useHudStore";
@@ -38,6 +39,8 @@ const LEGEND = [
   { kind: "dungeon", label: "Dungeon" },
   { kind: "hunt", label: "Hunt" },
   { kind: "boss", label: "Boss" },
+  { kind: "questAvailable", label: "Available quest" },
+  { kind: "questActive", label: "Active / turn-in quest" },
   { kind: "puzzle", label: "Jumping puzzle" },
   { kind: "landmark", label: "Landmark" },
   { kind: "event", label: "Active world event" },
@@ -89,6 +92,7 @@ const MapContent = () => {
     return id ? Characters.findOne(id) : null;
   });
   const unlockedWaypoints = getUnlockedWaypoints(character?.unlockedWaypoints);
+  const questMarkers = getNpcQuestMarkers(character);
   const undiscoveredWaypoints = WAYPOINTS.filter((point) => !point.isDefault && !unlockedWaypoints.includes(point));
   const selectedWaypoint = unlockedWaypoints.find((point) => point.id === selectedWaypointId);
   const selectMarker = (id) => {
@@ -260,6 +264,13 @@ const MapContent = () => {
           <WorldMapMarker key={entry.id} id={`dungeon-${entry.id}`} kind="dungeon"
             label={`${entry.name} · Level ${entry.recommendedLevel}`} position={worldToPercent(entry.entrance)}
             mobile={mobile} selected={activeMarkerId === `dungeon-${entry.id}`} onSelect={selectMarker} />
+        ))}
+        {!dungeon && questMarkers.map((npc) => (
+          <WorldMapMarker key={`quest-${npc.id}`} id={`quest-${npc.id}`}
+            kind={npc.marker === "!" ? "questAvailable" : "questActive"}
+            label={`${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}
+            position={worldToPercent(npc.position)} mobile={mobile}
+            selected={activeMarkerId === `quest-${npc.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && worldEvent && (
           <WorldMapMarker id="world-event" kind="event"

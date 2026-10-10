@@ -10,6 +10,8 @@ import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { updateEnemyLeash } from "./enemyLeash";
 import { trackAchievements } from "../achievements";
 import { recordQuestEvent } from "../quests";
+import { handleNpcQuest } from "../npcQuests";
+import { NPC_QUEST_LOCATIONS } from "../../imports/game/npcs/npcQuests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
 import { getFallDamage, resetFallTracking } from "./fallDamage";
@@ -385,13 +387,14 @@ export class WorldRoom
   }
 
   messages = {
+    npcQuest: (client, request) => handleNpcQuest(this, client, request),
     claimHiddenCache: (client, cacheId) => claimHiddenCache(this, client, cacheId),
     interactWorldEvent: (client) => this.worldEvents?.interact(client),
     interactQuestPoint: (client, target) => {
       const player = this.state.players.get(client.sessionId);
-      const point = FROZEN_DISTURBANCE_POINTS.find((entry) => entry.id === target);
+      const point = [...FROZEN_DISTURBANCE_POINTS, ...NPC_QUEST_LOCATIONS].find((entry) => entry.id === target);
       if (!player || player.health <= 0 || player.inDungeon || !point ||
-        Math.hypot(player.x - point.x, player.z - point.z) > 4) return;
+        Math.hypot(player.x - point.x, player.z - point.z) > (point.interactionRange ?? 4)) return;
       void recordQuestEvent(this, player.characterId, "Interact", point.id)
         .catch((error) => console.error("[Quests] Could not save interaction progress", error));
     },
@@ -1605,7 +1608,8 @@ export class WorldRoom
   async awardXp(
     characterId,
     amount,
-    applyXpGainMultiplier = true
+    applyXpGainMultiplier = true,
+    commit = {}
   ) {
     const character =
       await Characters.findOneAsync(
@@ -1645,10 +1649,11 @@ export class WorldRoom
       previousLevel;
 
 
-    await Characters.updateAsync(
-      characterId,
+    const updated = await Characters.updateAsync(
+      { _id: characterId, ...commit.selector },
       {
         $set: {
+          ...commit.fields,
           currentLevel:
             progress.currentLevel,
 
@@ -1658,6 +1663,7 @@ export class WorldRoom
       }
     );
 
+    if (!updated) return false;
 
     await trackAchievements(characterId, "level", progress.currentLevel);
 

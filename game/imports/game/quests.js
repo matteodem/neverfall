@@ -114,6 +114,24 @@ export const FROZEN_DISTURBANCE_POINTS = frozenSeals.map((point, index) => ({
 // New quests are available automatically; NPC quest givers can use the same
 // definitions later without changing how objectives advance.
 export const QUESTS = [
+  {
+    id: "forest-boars", title: "Boar Problem", giverNpcId: "forest-guard-01",
+    description: "The forest paths are becoming dangerous. Defeat 5 boars.",
+    objective: { type: "Kill", target: "boar", amount: 5, label: "Defeat Boars" },
+    rewards: { xp: 100, gold: 1 },
+  },
+  {
+    id: "forest-mini-boss", title: "A Greater Threat", giverNpcId: "forest-guard-01",
+    description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
+    objective: { type: "Boss", target: "forestGiant", amount: 1, label: "Defeat the Forest Giant" },
+    rewards: { xp: 250, gold: 1 },
+  },
+  {
+    id: "speak-with-mage", title: "Speak With the Mage", giverNpcId: "forest-guard-01",
+    description: "Speak with the Wandering Mage near Central Camp.",
+    objective: { type: "InteractNpc", target: "wandering-mage-01", amount: 1, label: "Speak with the Wandering Mage" },
+    rewards: { xp: 50 },
+  },
   ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
     ...hunt,
     objective: { type: ENEMY_TYPES[type]?.bossMechanics ? "Boss" : "Kill", target: type, amount: hunt.target },
