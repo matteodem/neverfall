@@ -39,13 +39,17 @@ export const recordQuestEvent = (room, characterId, type, target, { spawnId } = 
     let advanced = false;
 
     for (const quest of matches) {
-      if (getNpcQuestState(quest, character) !== "active") {
+      const state = getNpcQuestState(quest, character);
+      // Interaction quests saved before automatic rewards may still be ready to turn in.
+      const pendingInteractionReward = state === "completed" &&
+        quest.objective.type === "InteractNpc" && !quest.turnInRequired;
+      if (state !== "active" && !pendingInteractionReward) {
         // Previously visited locations must remain retryable for newly accepted quests.
         continue;
       }
       const amount = quest.objective.amount;
       const progress = character.questProgress?.[quest.id] || 0;
-      if (!quest.repeatable && progress >= amount) {
+      if (!quest.repeatable && progress >= amount && !pendingInteractionReward) {
         advanced = true;
         continue;
       }

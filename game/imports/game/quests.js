@@ -537,5 +537,6 @@ export const QUESTS = [
   },
 ].map((quest) => ({
   ...QUEST_DEFAULTS,
+  turnInRequired: quest.objective.type === "InteractNpc" ? false : QUEST_DEFAULTS.turnInRequired,
   ...quest,
 }));

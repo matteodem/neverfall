@@ -24,8 +24,11 @@ reward amounts, and the disabled Boar Hunt random-ring reward are preserved.
 Discovery quests replace the Adventure Guide. Forest Guard offers Discover the
 Highlands at level 5; Highlands Scout offers Discover the Snowy Mountains at level
 10; Mountain Researcher offers Discover Southwest Lake at level 14. Each uses an
-ordinary `InteractNpc` objective for the destination NPC, then requires returning
-to its offering NPC for rewards. They do not unlock regions or auto-grant quests.
+ordinary `InteractNpc` objective for the destination NPC. Interaction quests default
+to `turnInRequired: false`: talking to the target pays rewards, removes the quest
+from the active log, and clears its tracking. Older ready-to-turn-in interaction
+quests also finish when the player speaks to the target again. They do not unlock
+regions or auto-grant quests.
 
 `trackedQuestId` is persisted on each character. Accepting a quest selects it;
 Hero → Quests can replace that selection with any active/ready quest. The HUD below
