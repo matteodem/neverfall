@@ -1431,13 +1431,12 @@ export const createMultiplayer =
       "attack",
       ({
         sessionId,
-        code,
         projectile,
         effect,
       }) => {
-        // Ranged attacks carry their own projectile but share the same actor playback.
+        // The server broadcasts attack only for damaging skills, regardless of slot.
         const attacker = remotePlayers.get(sessionId);
-        if (code === "Digit1" && attacker?.playerState?.health > 0 && !attacker.playerState.mounted) {
+        if (attacker?.playerState?.health > 0 && !attacker.playerState.mounted) {
           attacker.animations.playAttack();
         }
         if (effect) {

@@ -527,13 +527,13 @@ export const Game = ({
             }
             if (skill.projectile || skill.effect) {
               actionBar.setCooldown(code, skill.cooldown);
-              if (code === "Digit1") animations.playAttack();
+              animations.playAttack();
               multiplayer?.sendMovement(player, 0, mounted, true);
               multiplayer?.sendAttack(code);
               return;
             }
             if (!combat?.startAttack()) return;
-            if (code === "Digit1") animations.playAttack();
+            animations.playAttack();
             actionBar.setCooldown(code, skill.cooldown);
             playGameSound("attack");
             multiplayer?.sendAttack(code);
