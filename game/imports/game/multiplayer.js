@@ -490,6 +490,11 @@ const createRemotePlayer =
       root.setEnabled(false); // Keep partially loaded players out of the scene.
       root.metadata = { remotePlayerId: sessionId };
       characterRoot.parent = root;
+      // Remote players must be pickable for the existing Whisper/Invite menu.
+      // The shared adapter keeps local-player and preview meshes unpickable.
+      character.meshes.forEach((mesh) => {
+        if (mesh.getTotalVertices() > 0) mesh.isPickable = true;
+      });
       characterRoot.position.set(0, 0, 0);
       const animations = character.createAnimationController();
       cleanup.push(() => animations.destroy());
