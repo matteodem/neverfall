@@ -236,7 +236,13 @@ const InventorySlot = ({
       className="tooltip tooltip-top block aspect-square min-w-0"
       data-tip={name}
     >
-      {itemDefinition ? (
+      {onSell ? (
+        <button type="button" className="block h-full w-full" disabled={!sellable}
+          aria-label={sellable ? `Sell ${name}` : `${name} cannot be sold`}
+          {...actionButtonHandlers(() => onSell(item), mobile)}>
+          <InventorySlotContent item={item} name={name} itemDisplay={itemDisplay} rarityClass={rarityClass} />
+        </button>
+      ) : itemDefinition ? (
         <button type="button" className="block h-full w-full" aria-label={`Inspect ${name}${isUpgrade ? ", Upgrade" : ""}`}
           {...actionButtonHandlers(onInspect, mobile)}>
           <InventorySlotContent item={item} name={name} itemDisplay={itemDisplay} rarityClass={rarityClass} isUpgrade={isUpgrade} />

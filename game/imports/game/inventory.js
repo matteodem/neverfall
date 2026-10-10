@@ -14,6 +14,10 @@ export const LOOT_RANGE = 2.5;
 export const ITEM_SELL_PRICES = {
   boar_skin: 0.1,
   wolf_skin: 0.1,
+  // A full recipe's ingredients sell for less than its crafted potion.
+  healing_herb: 0.05,
+  beast_fang: 0.05,
+  wild_honey: 0.05,
   health_potion: 0.5,
   speed_potion: 0.5,
   power_potion: 0.5,
