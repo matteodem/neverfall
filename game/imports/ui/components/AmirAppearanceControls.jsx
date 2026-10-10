@@ -10,6 +10,10 @@ const LABELS = {
   mask: "Mask", leftHand: "Left-hand equipment", rightHand: "Right-hand equipment", back: "Back equipment",
 };
 
+const formatOptionLabel = (id) => id
+  ? id.replace(/\.col$/, "").replace(/-/g, " ").replace(/\b[a-z]/g, (letter) => letter.toUpperCase())
+  : "None";
+
 export const AmirAppearanceControls = ({ showAllCustomizations, onShowAllCustomizationsChange }) => {
   const creator = useCharacterStore((state) => state.creator);
   const setField = useCharacterStore((state) => state.setCreatorField);
@@ -25,7 +29,7 @@ export const AmirAppearanceControls = ({ showAllCustomizations, onShowAllCustomi
           const value = event.target.value || null;
           setField(group || slot, group ? { ...creator[group], [slot]: value } : value);
         }}>
-        {options.map((id) => <option key={id || "none"} value={id || ""}>{id ? id.replace(/\.col$/, "") : "None"}</option>)}
+        {options.map((id) => <option key={id || "none"} value={id || ""}>{formatOptionLabel(id)}</option>)}
       </select>
     </label>
     );
