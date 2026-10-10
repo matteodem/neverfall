@@ -17,11 +17,10 @@ export const withQuestUpdate = (characterId, action) => {
   });
 };
 
-export const recordQuestEvent = (room, characterId, type, target, { includeHunts = true, spawnId } = {}) => {
+export const recordQuestEvent = (room, characterId, type, target, { spawnId } = {}) => {
   const matches = QUESTS.filter((quest) =>
     ((quest.objective.type === type && quest.objective.target === target) ||
-      quest.objectives?.some((objective) => objective.type === type && objective.target === target)) &&
-    (includeHunts || !quest.progressField));
+      quest.objectives?.some((objective) => objective.type === type && objective.target === target)));
   if (!matches.length) return Promise.resolve();
 
   // Serialize updates for a character, including events from separate rooms.
@@ -56,11 +55,6 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       update[`questStates.${quest.id}`] = completed && !quest.repeatable
         ? quest.turnInRequired ? "completed" : "rewarded" : "active";
       const ringId = completed && quest.rewards?.randomRing ? rollRandomRingId() : null;
-      if (completed && quest.repeatable && !character.adventureGuide?.firstHunt) {
-        update["adventureGuide.firstHunt"] = true;
-        character.adventureGuide ||= {};
-        character.adventureGuide.firstHunt = true;
-      }
       await Characters.updateAsync(characterId, {
         $set: update,
         ...(ringId ? { $push: { "inventory.items": { id: ringId } } } : {}),
@@ -72,19 +66,8 @@ export const recordQuestEvent = (room, characterId, type, target, { includeHunts
       // Preserve each quest's configured turn-in or automatic reward flow.
       if (quest.turnInRequired) continue;
 
-      if (quest.progressField) {
-        for (const player of room.state.players.values()) {
-          if (player.characterId === characterId) player[quest.progressField] = next;
-        }
-        for (const client of room.clients) {
-          if (room.state.players.get(client.sessionId)?.characterId === characterId) {
-            client.send("huntProgress", { title: quest.title, count: next, target: amount, completed });
-          }
-        }
-      }
-
       if (!completed) continue;
-      if (quest.repeatable) await trackAchievements(characterId, "hunt");
+      await trackAchievements(characterId, "quest");
       for (const client of room.clients) {
         if (room.state.players.get(client.sessionId)?.characterId === characterId) {
           client.send("questCompleted", { title: quest.title,

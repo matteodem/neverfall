@@ -15,7 +15,7 @@ export const ACHIEVEMENTS = [
   { id: "equipped", name: "Equipped", description: "Equip your first item.", event: "equip", target: 1 },
   { id: "mounted", name: "Mounted", description: "Use a mount for the first time.", event: "mount", target: 1 },
   { id: "bossKiller", name: "Boss Killer", description: "Defeat the Forest Giant.", event: "kill", enemyType: "forestGiant", target: 1 },
-  { id: "firstHunt", name: "First Hunt", description: "Complete a Hunt.", event: "hunt", target: 1 },
+  { id: "firstQuest", name: "First Quest", description: "Complete a quest.", event: "quest", target: 1 },
   { id: "northernCamp", name: "Northern Camp", description: "Unlock the Northern Camp waypoint.", event: "waypoint", targetId: "northern-camp", target: 1 },
   { id: "snowyExplorer", name: "Snowy Explorer", description: "Unlock the Snowy Mountains waypoint.", event: "waypoint", targetId: "snowy-mountains-waypoint", target: 1 },
   { id: "rareHunter", name: "Rare Hunter", description: "Defeat a rare enemy.", event: "rare", target: 1 },

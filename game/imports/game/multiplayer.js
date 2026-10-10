@@ -18,9 +18,7 @@ import { createProjectileVisuals } from "./projectiles";
 import { createDungeonInteractions } from "./dungeonInteractions";
 import { createHiddenCaches } from "./environment/createHiddenCaches";
 import { createEntityVisibility, ENTITY_VISIBILITY } from "./entityVisibility";
-import { getQuestArea, HUNT_QUESTS } from "./quests";
 import { WORLD_EVENT_INTERACTION_RADIUS } from "./worldEvents";
-import { useQuestStore } from "../ui/stores/useQuestStore";
 import { createLoot } from "./loot";
 import "@babylonjs/loaders/glTF";
 
@@ -756,7 +754,6 @@ export const createMultiplayer =
     onLocalRespawn,
     isGrounded,
     onHealCooldown,
-    onBoarQuestChange,
     dungeonVisuals,
     worldChunks,
   }) => {
@@ -952,54 +949,6 @@ export const createMultiplayer =
           player.rotation.y = playerState.rotationY;
           zoneEntryFeedback?.reset(player.position);
 
-
-          /*
-           * BOAR HUNT QUEST
-           */
-
-          onBoarQuestChange?.(
-            playerState.boarQuestKills ??
-            0
-          );
-
-
-          callbacks.listen(
-            playerState,
-            "boarQuestKills",
-            () => {
-              onBoarQuestChange?.(
-                playerState.boarQuestKills ??
-                0
-              );
-            }
-          );
-
-
-          useQuestStore.getState().setGiantKills(playerState.giantQuestKills ?? 0);
-          callbacks.listen(playerState, "giantQuestKills", () => {
-            useQuestStore.getState().setGiantKills(playerState.giantQuestKills ?? 0);
-          });
-
-          useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
-          callbacks.listen(playerState, "wolfQuestKills", () => {
-            useQuestStore.getState().setWolfKills(playerState.wolfQuestKills ?? 0);
-          });
-
-          for (const [type, setter] of [
-            ["goat", "setGoatKills"],
-            ["rat", "setRatKills"],
-            ["bee", "setBeeKills"],
-            ["seal", "setSealKills"],
-            ["snowWolf", "setSnowWolfKills"],
-            ["mountainGoat", "setMountainGoatKills"],
-            ["frostOgre", "setFrostOgreKills"],
-            ["hammerBoss", "setHammerBossKills"],
-          ]) {
-            const field = HUNT_QUESTS[type].progressField;
-            const syncKills = () => useQuestStore.getState()[setter](playerState[field] ?? 0);
-            syncKills();
-            callbacks.listen(playerState, field, syncKills);
-          }
 
           /*
            * LEVEL UP
@@ -1853,10 +1802,7 @@ export const createMultiplayer =
         useTargetStore.getState().sync(room.state, localPlayerState);
         loot.update();
         if (localPlayerState) zoneEntryFeedback?.update(player.position, deltaTime);
-        if (!dungeon) {
-          const area = getQuestArea(player.position);
-          if (useQuestStore.getState().area !== area) useQuestStore.getState().setArea(area);
-        }
+
 
         const smoothing =
           1 -
@@ -2148,7 +2094,6 @@ export const createMultiplayer =
         useBossNoticeStore.getState().reset();
         useWorldEventStore.getState().reset();
         loot.destroy();
-        useQuestStore.getState().reset();
 
         useCombatStore
           .getState()

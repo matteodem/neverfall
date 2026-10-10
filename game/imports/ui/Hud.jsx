@@ -10,7 +10,6 @@ import { MobileJoystick } from "./components/MobileJoystick";
 import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
 import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
-import { HuntProgressPopup } from "./components/HuntProgressPopup";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { AchievementToast } from "./components/modals/AchievementModal";
@@ -110,7 +109,7 @@ const HUD_BUTTONS = [
 
   { id: "items", icon: "backpack", label: "Items", shortcut: "I / C", defaultTab: "inventory" },
 
-  { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / H / Z / T", defaultTab: "gear" },
+  { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / Z / T", defaultTab: "gear" },
 
   { id: "social", icon: "social", label: "Social", shortcut: "E" },
 
@@ -790,7 +789,6 @@ export const Hud = ({
 
 
       <LevelUpOverlay />
-      <HuntProgressPopup />
       <QuestCompletionOverlay />
       <BossNotice />
       <BossHealthBar />
@@ -828,7 +826,7 @@ export const Hud = ({
           </button>}
           <div id="hud-objectives" className="flex flex-col items-end gap-2" style={{ display: !mobile || showObjectives ? "flex" : "none" }}>
             {!inDungeon && <WorldEventTracker />}
-            <AdventureGuide playerHealth={playerHealth} />
+            <AdventureGuide />
           </div>
         </div>
       </div>

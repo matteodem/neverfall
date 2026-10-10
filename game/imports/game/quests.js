@@ -1,105 +1,8 @@
-import { ENEMY_SPAWNS, ENEMY_TYPES, WOLF_AREA } from "./enemyConfig";
 import { WAYPOINTS } from "./waypoints";
 import { LANDMARKS } from "./landmarks";
 import { DUNGEONS } from "./dungeonConfig";
 import { WORLD_EVENTS } from "./worldEvents";
 import { SOUTHWEST_LAKE } from "./worldConfig";
-
-export const BOAR_HUNT_QUEST = {
-  progressField: "boarQuestKills",
-
-  id:
-    "boar-hunt",
-
-  title:
-    "Boar Hunt",
-
-  description:
-    "Defeat 5 boars near Central Camp.",
-
-  recommendedLevel: 1, requiredLevel: 1,
-
-  target:
-    5,
-
-  rewardXp:
-    100,
-};
-
-export const WOLF_HUNT_QUEST = {
-  id: "wolf-hunt",
-  title: "Wolf Hunt",
-  description: "Defeat 5 wolves northwest of Central Camp.",
-  recommendedLevel: 2, requiredLevel: 2,
-  progressField: "wolfQuestKills",
-  target: 5,
-  rewardXp: 250,
-};
-
-export const GIANT_HUNT_QUEST = {
-  id: "giant-hunt",
-  title: "Forest Giant Hunt",
-  description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
-  recommendedLevel: 3, requiredLevel: 3,
-  progressField: "giantQuestKills",
-  target: 1,
-  rewardXp: 500,
-};
-
-export const HUNT_QUESTS = {
-  boar: BOAR_HUNT_QUEST,
-  wolf: WOLF_HUNT_QUEST,
-  forestGiant: GIANT_HUNT_QUEST,
-  goat: {
-    ...BOAR_HUNT_QUEST,
-    id: "goat-hunt", title: "Goat Hunt", description: "Defeat 5 goats in the western Highlands.",
-    recommendedLevel: 5, requiredLevel: 5,
-    progressField: "goatQuestKills", rewardXp: 500,
-  },
-  rat: {
-    ...BOAR_HUNT_QUEST,
-    id: "rat-hunt", title: "Rat Hunt", description: "Defeat 5 rats in the central Highlands.",
-    recommendedLevel: 7, requiredLevel: 7,
-    progressField: "ratQuestKills", rewardXp: 750,
-  },
-  bee: {
-    ...BOAR_HUNT_QUEST,
-    id: "bee-hunt", title: "Bee Hunt", description: "Defeat 5 bees in the eastern Highlands.",
-    recommendedLevel: 9, requiredLevel: 9,
-    progressField: "beeQuestKills", rewardXp: 1000,
-  },
-  seal: {
-    ...BOAR_HUNT_QUEST,
-    id: "seal-hunt", title: "Seal Hunt", description: "Defeat 5 seals around Southwest Lake.",
-    recommendedLevel: 15, requiredLevel: 15,
-    progressField: "sealQuestKills", rewardXp: 0, rewardGold: 1,
-  },
-  snowWolf: {
-    ...BOAR_HUNT_QUEST,
-    id: "snow-wolf-hunt", title: "Snow Wolf Hunt", description: "Defeat 5 snow wolves north of the Snowy Mountains waypoint.",
-    recommendedLevel: 10, requiredLevel: 10,
-    progressField: "snowWolfQuestKills", rewardXp: 1250,
-  },
-  mountainGoat: {
-    ...BOAR_HUNT_QUEST,
-    id: "mountain-goat-hunt", title: "Mountain Goat Hunt", description: "Defeat 5 mountain goats south of the Snowy Mountains waypoint.",
-    recommendedLevel: 12, requiredLevel: 12,
-    progressField: "mountainGoatQuestKills", rewardXp: 1500,
-  },
-  frostOgre: {
-    ...GIANT_HUNT_QUEST,
-    id: "frost-ogre-hunt", title: "Frost Ogre Hunt", description: "Defeat the Frost Ogre in the eastern Snowy Mountains.",
-    recommendedLevel: 14, requiredLevel: 14,
-    progressField: "frostOgreQuestKills", rewardXp: 2000,
-  },
-  hammerBoss: {
-    ...GIANT_HUNT_QUEST,
-    id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt",
-    description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
-    recommendedLevel: 17, requiredLevel: 17,
-    progressField: "hammerBossQuestKills", rewardXp: 2500,
-  },
-};
 
 const snowyMountainsWaypoint = WAYPOINTS.find((point) => point.id === "snowy-mountains-waypoint");
 const highlandsLookout = LANDMARKS.find((landmark) => landmark.id === "highlands-lookout");
@@ -123,7 +26,7 @@ export const QUESTS = [
     id: "forest-mini-boss", title: "A Greater Threat", requiredLevel: 3, turnInRequired: true,
     description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
     objective: { type: "Boss", target: "forestGiant", amount: 1, label: "Defeat the Forest Giant" },
-    rewards: { xp: 250, gold: 1 },
+    rewards: { xp: 1000, gold: 2 },
   },
   {
     id: "speak-with-mage", title: "Speak With the Mage", requiredLevel: 1, turnInRequired: true,
@@ -131,24 +34,84 @@ export const QUESTS = [
     objective: { type: "InteractNpc", target: "wandering-mage-01", amount: 1, label: "Speak with the Wandering Mage" },
     rewards: { xp: 50 },
   },
-  ...Object.entries(HUNT_QUESTS).map(([type, hunt]) => ({
-    ...hunt,
-    objective: { type: ENEMY_TYPES[type]?.bossMechanics ? "Boss" : "Kill", target: type, amount: hunt.target },
-    rewards: { xp: hunt.rewardXp, gold: hunt.rewardGold, ...(type === "boar" ? { randomRing: true } : {}) },
-    repeatable: true,
-  })),
+  /*{
+    id: "boar-hunt", title: "Boar Hunt", requiredLevel: 1, repeatable: true,
+    description: "Defeat 5 boars near Central Camp.",
+    objective: { type: "Kill", target: "boar", amount: 5 },
+    rewards: { xp: 100, randomRing: true },
+  },
+  {
+    id: "wolf-hunt", title: "Wolf Hunt", requiredLevel: 2, repeatable: true,
+    description: "Defeat 5 wolves northwest of Central Camp.",
+    objective: { type: "Kill", target: "wolf", amount: 5 },
+    rewards: { xp: 250 },
+  },
+  {
+    id: "giant-hunt", title: "Forest Giant Hunt", requiredLevel: 3, repeatable: true,
+    description: "Defeat the Forest Giant on the hill northeast of Central Camp.",
+    objective: { type: "Boss", target: "forestGiant", amount: 1 },
+    rewards: { xp: 500 },
+  },*/
+  {
+    id: "goat-hunt", title: "Goat Hunt", requiredLevel: 5, repeatable: true,
+    description: "Defeat 5 goats in the western Highlands.",
+    objective: { type: "Kill", target: "goat", amount: 5 },
+    rewards: { xp: 500 },
+  },
+  {
+    id: "rat-hunt", title: "Rat Hunt", requiredLevel: 7, repeatable: true,
+    description: "Defeat 5 rats in the central Highlands.",
+    objective: { type: "Kill", target: "rat", amount: 5 },
+    rewards: { xp: 750 },
+  },
+  {
+    id: "bee-hunt", title: "Bee Hunt", requiredLevel: 9, repeatable: true,
+    description: "Defeat 5 bees in the eastern Highlands.",
+    objective: { type: "Kill", target: "bee", amount: 5 },
+    rewards: { xp: 1000 },
+  },
+  {
+    id: "seal-hunt", title: "Seal Hunt", requiredLevel: 15, repeatable: true,
+    description: "Defeat 5 seals around Southwest Lake.",
+    objective: { type: "Kill", target: "seal", amount: 5 },
+    rewards: { xp: 0, gold: 1 },
+  },
+  {
+    id: "snow-wolf-hunt", title: "Snow Wolf Hunt", requiredLevel: 10, repeatable: true,
+    description: "Defeat 5 snow wolves north of the Snowy Mountains waypoint.",
+    objective: { type: "Kill", target: "snowWolf", amount: 5 },
+    rewards: { xp: 1250 },
+  },
+  {
+    id: "mountain-goat-hunt", title: "Mountain Goat Hunt", requiredLevel: 12, repeatable: true,
+    description: "Defeat 5 mountain goats south of the Snowy Mountains waypoint.",
+    objective: { type: "Kill", target: "mountainGoat", amount: 5 },
+    rewards: { xp: 1500 },
+  },
+  {
+    id: "frost-ogre-hunt", title: "Frost Ogre Hunt", requiredLevel: 14, repeatable: true,
+    description: "Defeat the Frost Ogre in the eastern Snowy Mountains.",
+    objective: { type: "Boss", target: "frostOgre", amount: 1 },
+    rewards: { xp: 2000 },
+  },
+  {
+    id: "hammer-guardian-hunt", title: "Hammer Guardian Hunt", requiredLevel: 17, repeatable: true,
+    description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
+    objective: { type: "Boss", target: "hammerBoss", amount: 1 },
+    rewards: { xp: 2500 },
+  },
   {
     id: "wolf-problem", title: "Wolf Problem", description: "Defeat 10 wolves northwest of Central Camp.",
     recommendedLevel: 2, requiredLevel: 2,
     objective: { type: "Kill", target: "wolf", amount: 10 },
     rewards: { xp: 300, gold: 1 },
   },
-  {
+  /*{
     id: "giant-threat", title: "Giant Threat", description: "Defeat the Forest Giant northeast of Central Camp.",
     recommendedLevel: 3, requiredLevel: 3,
     objective: { type: "Boss", target: "forestGiant", amount: 1 },
     rewards: { xp: 500, gold: 2 },
-  },
+  },*/
   {
     id: "explore-highlands", title: "Explore the Highlands", description: "Reach the Highlands Lookout north of Northern Camp.",
     recommendedLevel: 5, requiredLevel: 5,
@@ -231,44 +194,3 @@ export const QUESTS = [
     rewards: { xp: 2200, gold: 5 },
   },
 ];
-
-const boarSpawns = ENEMY_SPAWNS.filter(({ type }) => type === "boar");
-const BOAR_AREA_PADDING = 20;
-const BOAR_AREA = {
-  minX: Math.min(...boarSpawns.map(({ x }) => x)) - BOAR_AREA_PADDING,
-  maxX: Math.max(...boarSpawns.map(({ x }) => x)) + BOAR_AREA_PADDING,
-  minZ: Math.min(...boarSpawns.map(({ z }) => z)) - BOAR_AREA_PADDING,
-  maxZ: Math.max(...boarSpawns.map(({ z }) => z)) + BOAR_AREA_PADDING,
-};
-
-const BOSS_HUNT_RADIUS = 25;
-const bossHuntSpawns = ENEMY_SPAWNS.filter(({ type }) => HUNT_QUESTS[type] && ENEMY_TYPES[type]?.bossMechanics);
-
-const newHuntAreas = ["goat", "rat", "bee", "seal", "snowWolf", "mountainGoat"].map((type) => {
-  const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
-  return {
-    type,
-    minX: Math.min(...spawns.map(({ x }) => x)) - BOAR_AREA_PADDING,
-    maxX: Math.max(...spawns.map(({ x }) => x)) + BOAR_AREA_PADDING,
-    minZ: Math.min(...spawns.map(({ z }) => z)) - BOAR_AREA_PADDING,
-    maxZ: Math.max(...spawns.map(({ z }) => z)) + BOAR_AREA_PADDING,
-  };
-});
-
-export const getQuestArea = ({ x, z }) => {
-  const bossArea = bossHuntSpawns.find((spawn) =>
-    Math.hypot(x - spawn.x, z - spawn.z) <= BOSS_HUNT_RADIUS);
-  if (bossArea) return bossArea.type;
-  const huntArea = newHuntAreas.find((area) =>
-    x >= area.minX && x <= area.maxX && z >= area.minZ && z <= area.maxZ);
-  if (huntArea) return huntArea.type;
-  if (x >= WOLF_AREA.minX && x <= WOLF_AREA.maxX &&
-      z >= WOLF_AREA.minZ && z <= WOLF_AREA.maxZ) {
-    return "wolf";
-  }
-  if (x >= BOAR_AREA.minX && x <= BOAR_AREA.maxX &&
-      z >= BOAR_AREA.minZ && z <= BOAR_AREA.maxZ) {
-    return "boar";
-  }
-  return null;
-};

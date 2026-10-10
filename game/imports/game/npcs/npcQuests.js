@@ -9,7 +9,7 @@ export const getNpcQuestState = (quest, character) => {
   const saved = character?.questStates?.[quest.id];
   if (saved) return saved;
   // Legacy automatic quests wrote progress without state, including zero after
-  // repeatable hunts. Finished non-repeatable quests already paid their rewards.
+  // repeatable quests. Finished non-repeatable quests already paid their rewards.
   if (Object.hasOwn(character?.questProgress || {}, quest.id)) {
     return !quest.repeatable && character.questProgress[quest.id] >= quest.objective.amount ? "rewarded" : "active";
   }

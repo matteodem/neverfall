@@ -98,19 +98,6 @@ export const PlayerState =
       // Canonical cosmetic appearance JSON, sent once on join; never client-authored.
       appearance: t.string().default(""),
 
-      giantQuestKills: t.number().default(0),
-      wolfQuestKills: t.number().default(0),
-      goatQuestKills: t.number().default(0),
-      ratQuestKills: t.number().default(0),
-      beeQuestKills: t.number().default(0),
-      sealQuestKills: t.number().default(0),
-      snowWolfQuestKills: t.number().default(0),
-      mountainGoatQuestKills: t.number().default(0),
-      frostOgreQuestKills: t.number().default(0),
-      hammerBossQuestKills: t.number().default(0),
-
-      boarQuestKills:
-        t.number().default(0),
     },
     "PlayerState"
   );

@@ -1,3 +1,13 @@
+import { WAYPOINTS } from "../waypoints";
+import { getWorldHeight } from "../worldConfig";
+
+const nearWaypoint = (id) => {
+  const point = WAYPOINTS.find((entry) => entry.id === id).position;
+  const x = point.x - 6;
+  const z = point.z - 6;
+  return { x, y: getWorldHeight(x, z), z };
+};
+
 // Static world NPCs. Appearance uses the shared Amir catalog/slot structure.
 export const NPC_INTERACTION_RANGE = 3;
 
@@ -9,8 +19,7 @@ export const NPC_DEFINITIONS = [
     offeredQuestIds: [
       "forest-boars", "forest-mini-boss", "speak-with-mage",
       "boar-hunt", "wolf-hunt", "giant-hunt", "wolf-problem", "giant-threat",
-      "goat-hunt", "rat-hunt", "bee-hunt", "snow-wolf-hunt", "mountain-goat-hunt", "frost-ogre-hunt",
-      "defend-northern-camp", "awakened-threat",
+      "awakened-threat",
     ],
     gameClass: "warrior",
     position: { x: -2, y: 0, z: -7 },
@@ -26,8 +35,7 @@ export const NPC_DEFINITIONS = [
     name: "Wandering Mage",
     npcType: "quest",
     offeredQuestIds: [
-      "explore-highlands", "find-the-depths", "into-the-depths", "northern-ruins-quest",
-      "explore-snowy-mountains", "highlands-relics", "frozen-disturbance",
+      "find-the-depths", "into-the-depths",
     ],
     gameClass: "mage",
     position: { x: 3, y: 0, z: -10 },
@@ -43,7 +51,7 @@ export const NPC_DEFINITIONS = [
     name: "Merchant",
     npcType: "merchant",
     merchant: { shopId: "forest-general-store", canBuy: true, canSell: true },
-    offeredQuestIds: ["seal-hunt", "hammer-guardian-hunt", "trouble-at-southwest-lake"],
+    offeredQuestIds: [],
     position: { x: 9, y: 0, z: -8 },
     rotationY: 0,
     appearance: {
@@ -52,5 +60,31 @@ export const NPC_DEFINITIONS = [
       equipment: { glasses: "glasses-52", back: "backpack-01.col" },
     },
     dialogue: { text: "Welcome, traveler! Looking for supplies, or have something to sell?" },
+  },
+  {
+    id: "highlands-scout-01", name: "Highlands Scout", npcType: "quest",
+    offeredQuestIds: ["goat-hunt", "rat-hunt", "bee-hunt", "explore-highlands",
+      "defend-northern-camp", "highlands-relics", "northern-ruins-quest"],
+    gameClass: "ranger",
+    position: nearWaypoint("northern-camp"), rotationY: 0,
+    appearance: { head: "head-02", hair: "hair-04", skinTone: "tan", bodyType: "medium" },
+    dialogue: { text: "Northern Camp needs your help. Scout the Highlands and keep the roads safe." },
+  },
+  {
+    id: "mountain-researcher-01", name: "Mountain Researcher", npcType: "quest",
+    offeredQuestIds: ["snow-wolf-hunt", "mountain-goat-hunt", "frost-ogre-hunt",
+      "explore-snowy-mountains", "frozen-disturbance"],
+    gameClass: "mage",
+    position: nearWaypoint("snowy-mountains-waypoint"), rotationY: 0,
+    appearance: { head: "head-51", hair: "hair-51", skinTone: "light", bodyType: "slim" },
+    dialogue: { text: "Our expedition is studying the snowy peaks. Will you help investigate the frozen rift?" },
+  },
+  {
+    id: "lake-ranger-01", name: "Lake Ranger", npcType: "quest",
+    offeredQuestIds: ["seal-hunt", "hammer-guardian-hunt", "trouble-at-southwest-lake"],
+    gameClass: "ranger",
+    position: nearWaypoint("lake-waypoint"), rotationY: 0,
+    appearance: { head: "head-00", hair: null, skinTone: "brown", bodyType: "large" },
+    dialogue: { text: "Something is disturbing Southwest Lake. Help us investigate and protect its shores." },
   },
 ];

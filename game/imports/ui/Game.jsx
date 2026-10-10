@@ -73,10 +73,6 @@ import {
 } from "./stores/useLoadingStore";
 
 import {
-  useQuestStore,
-} from "./stores/useQuestStore";
-
-import {
   useMinimapStore,
 } from "./stores/useMinimapStore";
 
@@ -117,15 +113,6 @@ export const Game = ({
     useActionBarStore(
       (state) =>
         state.setSkillHandler
-    );
-
-
-  const setBoarKills =
-    useQuestStore(
-      (
-        state
-      ) =>
-        state.setBoarKills
     );
 
 
@@ -412,9 +399,6 @@ export const Game = ({
                     );
                   }
                 },
-
-              onBoarQuestChange:
-                setBoarKills,
 
               onHealCooldown:
                 (
@@ -770,9 +754,9 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE" || event.code === "KeyU"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE" || event.code === "KeyU"
               ) {
-                if ((event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
+                if ((event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
                   event.target?.closest?.(
                     "input, textarea, select, [contenteditable='true']"
@@ -794,7 +778,6 @@ export const Game = ({
                   KeyC: ["items", "crafting"],
                   KeyG: ["hero", "gear"],
                   KeyQ: ["hero", "quests"],
-                  KeyH: ["hero", "hunts"],
                   KeyZ: ["hero", "achievements"],
                   KeyT: ["hero", "talents"],
                   KeyO: ["hero", "skills"],

@@ -9,7 +9,6 @@ import { LANDMARKS } from "../../../game/landmarks";
 import { BASIC_TOWER_POSITION } from "../../../game/basicTowerConfig";
 import { DUNGEONS, getDungeonConfig } from "../../../game/dungeonConfig";
 import { ENEMY_SPAWNS, ENEMY_TYPES } from "../../../game/enemyConfig";
-import { HUNT_QUESTS } from "../../../game/quests";
 import { getNpcQuestMarkers } from "../../../game/npcs/questMarkers";
 import { DUNGEON_MAP_RADIUS, percentToWorld, worldToPercent } from "../../../game/worldMap";
 import { useDungeonStore } from "../../stores/useDungeonStore";
@@ -37,7 +36,6 @@ const LEGEND = [
   { kind: "undiscovered", label: "Undiscovered waypoint" },
   { kind: "spawn", label: "Respawn point / camp" },
   { kind: "dungeon", label: "Dungeon" },
-  { kind: "hunt", label: "Hunt" },
   { kind: "boss", label: "Boss" },
   { kind: "questAvailable", label: "Available quest" },
   { kind: "questActive", label: "Active / turn-in quest" },
@@ -46,22 +44,6 @@ const LEGEND = [
   { kind: "event", label: "Active world event" },
   { kind: "custom", label: "Custom Marker" },
 ];
-const HUNT_MARKERS = Object.entries(HUNT_QUESTS).map(([type, quest]) => {
-  const spawns = ENEMY_SPAWNS.filter((spawn) => spawn.type === type);
-  const bossHunt = Boolean(ENEMY_TYPES[type]?.bossMechanics);
-  const position = type === "seal"
-    ? spawns.reduce((south, spawn) => spawn.z < south.z ? spawn : south)
-    : {
-      x: spawns.reduce((sum, spawn) => sum + spawn.x, 0) / spawns.length,
-      z: spawns.reduce((sum, spawn) => sum + spawn.z, 0) / spawns.length,
-    };
-  return {
-    id: quest.id, title: quest.title, position,
-    labelBelow: type === "seal" || type === "snowWolf" || bossHunt,
-    alignEnd: position.x > 230,
-    bossHunt,
-  };
-});
 const BOSS_MARKERS = ENEMY_SPAWNS.filter((spawn) => ENEMY_TYPES[spawn.type]?.bossMechanics);
 
 const MapContent = () => {
@@ -245,15 +227,6 @@ const MapContent = () => {
             </span>
           </div>
         )}
-        {!dungeon && HUNT_MARKERS.map((hunt) => (
-          <div key={hunt.id} className="pointer-events-none absolute z-10"
-            style={{ ...worldToPercent(hunt.position), transform: hunt.bossHunt ? "translateX(-18px)" : undefined }} title={hunt.title}>
-            <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-3 w-3 rounded-full border border-white bg-amber-400 shadow" />
-            <span className={`world-map-marker-label absolute whitespace-nowrap rounded bg-black/75 px-1 text-[10px] font-semibold text-amber-200 ${hunt.alignEnd ? "right-0" : "left-0 -translate-x-1/2"} ${hunt.labelBelow ? "top-2" : "bottom-2"}`}>
-              {hunt.title}
-            </span>
-          </div>
-        ))}
         {!dungeon && BOSS_MARKERS.map((spawn) => (
           <WorldMapMarker key={spawn.id} id={`boss-${spawn.id}`} kind="boss"
             label={`${ENEMY_TYPES[spawn.type].name} · Level ${spawn.level}`}

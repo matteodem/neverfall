@@ -4,6 +4,7 @@ import { NPC_DEFINITIONS, NPC_INTERACTION_RANGE } from "../imports/game/npcs/npc
 import { NPC_QUESTS, getNpcQuestState, getQuestAcceptanceError } from "../imports/game/npcs/npcQuests";
 import { recordQuestEvent, withQuestUpdate } from "./quests";
 import { rememberMerchantInteraction } from "./merchantInteractions";
+import { trackAchievements } from "./achievements";
 
 const getNearbyNpc = (room, client, npcId) => {
   const player = room.state.players.get(client.sessionId);
@@ -68,6 +69,7 @@ export const handleNpcQuest = async (room, client, request) => {
           fields: { [`questStates.${quest.id}`]: "rewarded" },
         });
         if (awarded === false) throw new Error("Quest changed. Please reopen the dialogue and try again.");
+        await trackAchievements(character._id, "quest");
       });
     }
     client.send("npcQuestResult", { requestId });

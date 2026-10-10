@@ -10,11 +10,8 @@ import { getDungeonConfig, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../.
 import { getWorldHeight } from "../../imports/game/worldConfig";
 import { collectLoot, spawnLoot } from "../inventory/loot";
 import { recordQuestEvent } from "../quests";
-import { QUESTS } from "../../imports/game/quests";
 import { copyStatusEffects } from "./statusEffects";
 import { createDungeonExitTrace } from "../../imports/game/dungeonExitTrace";
-
-const HUNT_FIELDS = QUESTS.map((quest) => quest.progressField).filter(Boolean);
 
 const COMBAT_TIMERS = ["skillAvailableAt", "healAvailableAt", "attackAvailableAt", "heavyStrikeAvailableAt", "cleaveAvailableAt", "lastCombatAt"];
 
@@ -180,9 +177,9 @@ export class DungeonRoom extends WorldRoom {
     for (const characterId of runtime.contributors) {
       void trackAchievements(characterId, "kill", runtime.spawn.type || "boar");
       if (enemy?.rare) void trackAchievements(characterId, "rare");
-      void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar", { includeHunts: false })
+      void recordQuestEvent(this, characterId, "Kill", runtime.spawn.type || "boar")
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
-      void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar", { includeHunts: false })
+      void recordQuestEvent(this, characterId, "Boss", runtime.spawn.type || "boar")
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
     this.state.enemies.delete(enemyId);
@@ -241,7 +238,6 @@ export class DungeonRoom extends WorldRoom {
       if (!source) continue;
       player.groupId = source.groupId;
       for (const key of DUNGEON_PLAYER_FIELDS) source[key] = player[key];
-      for (const key of HUNT_FIELDS) source[key] = player[key];
     }
   }
 

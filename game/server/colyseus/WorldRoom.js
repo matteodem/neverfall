@@ -21,7 +21,7 @@ import { applyStatusEffect, clearStatusEffects, updateStatusEffects } from "./st
 import { ENEMY_SPAWNS, ENEMY_TYPES, getEnemyStats, RARE_ENEMY, ENEMY_COMBAT_SPEED_MULTIPLIER } from "../../imports/game/enemyConfig";
 import { getWorldHeight, WORLD_EAST_PLAYER_LIMIT, WORLD_PLAYER_LIMIT } from "../../imports/game/worldConfig";
 import { LANDMARKS } from "../../imports/game/landmarks";
-import { getQuestArea, FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
+import { FROZEN_DISTURBANCE_POINTS } from "../../imports/game/quests";
 import { Guilds } from "../../imports/api/guilds/guilds";
 import { registerGuildPlayer, unregisterGuildPlayer } from "./onlineGuildTags";
 import { withCharacterSlots } from "../characterSlots";
@@ -1118,7 +1118,10 @@ export class WorldRoom
 
 
     await trackAchievements(character._id, "level", character.currentLevel ?? 1);
-    if (character.adventureGuide?.firstHunt) await trackAchievements(character._id, "hunt");
+    // Legacy completion markers only restore the achievement; no quest rewards are replayed.
+    if (character.adventureGuide?.firstHunt || character.achievements?.firstHunt?.unlocked) {
+      await trackAchievements(character._id, "quest");
+    }
     for (const id of ["northern-camp", "snowy-mountains-waypoint"]) {
       if (unlockedWaypoints.has(id)) await trackAchievements(character._id, "waypoint", id);
     }
@@ -1215,9 +1218,6 @@ export class WorldRoom
           stats.maxHealth,
 
         appearance: JSON.stringify(appearance),
-
-        ...Object.fromEntries(QUESTS.filter((quest) => quest.progressField).map((quest) =>
-          [quest.progressField, character.questProgress?.[quest.id] || 0])),
       });
 
 
@@ -2061,10 +2061,7 @@ export class WorldRoom
     const lootOwners = new Set();
     const lootSessions = new Map();
     const firstKills = new Set();
-    const nearbyHuntKills = new Set();
     for (const [sessionId, player] of this.state.players.entries()) {
-      if (!spawn.eventId && !player.inDungeon && contributors.has(player.characterId) &&
-        getQuestArea(player) === spawn.type) nearbyHuntKills.add(player.characterId);
       if (!contributors.has(player.characterId) || lootOwners.has(player.userId)) {
         continue;
       }
@@ -2135,11 +2132,10 @@ export class WorldRoom
       }
 
 
-      await recordQuestEvent(this, characterId, "Kill", spawn.type || "boar",
-        { includeHunts: nearbyHuntKills.has(characterId) })
+      await recordQuestEvent(this, characterId, "Kill", spawn.type || "boar")
         .catch((error) => console.error("[Quests] Could not save kill progress", error));
       await recordQuestEvent(this, characterId, "Boss", spawn.type || "boar",
-        { includeHunts: nearbyHuntKills.has(characterId), spawnId: spawn.id })
+        { spawnId: spawn.id })
         .catch((error) => console.error("[Quests] Could not save boss progress", error));
     }
 

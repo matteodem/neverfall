@@ -16,7 +16,6 @@ const KEYBOARD_CONTROLS = [
   ["C", "Toggle Crafting"],
   ["G", "Toggle Gear"],
   ["Q", "Toggle Quests"],
-  ["H", "Toggle Hunts"],
   ["Z", "Toggle Achievements"],
   ["T", "Toggle Talents"],
   ["O", "Toggle Skills"],

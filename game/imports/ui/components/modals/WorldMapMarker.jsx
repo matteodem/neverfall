@@ -6,7 +6,6 @@ const ICONS = {
   waypoint: { className: "h-4 w-4 border-2 border-white bg-sky-700 text-[10px] font-bold text-white", glyph: "◆" },
   undiscovered: { className: "h-4 w-4 border-2 border-white bg-slate-600 text-[10px] text-white", glyph: "◆" },
   dungeon: { className: "world-map-point h-3 w-3 border-2 border-white bg-violet-500" },
-  hunt: { className: "world-map-point h-3 w-3 border border-white bg-amber-400" },
   boss: { className: "world-map-point h-4 w-4 border-2 border-white bg-red-700", glyph: "!" },
   questAvailable: { className: "h-5 w-5 border border-amber-200 bg-slate-900 text-sm font-bold text-yellow-300", glyph: "!" },
   questActive: { className: "h-5 w-5 border border-amber-200 bg-slate-900 text-sm font-bold text-yellow-300", glyph: "?" },
