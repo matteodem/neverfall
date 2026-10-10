@@ -20,6 +20,7 @@ import { getTalentSkill } from "../game/talents";
 import { STATUS_EFFECTS } from "../game/statusEffects";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { DungeonPrompt } from "./components/DungeonPrompt";
+import { NpcDialogue } from "./components/NpcDialogue";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
 import { LootPrompt } from "./components/LootPrompt";
@@ -778,6 +779,7 @@ export const Hud = ({
       <Chat />
       <LootPrompt />
       <DungeonPrompt />
+      <NpcDialogue />
       <GroupPanel />
       <GroupInvitationModal />
 

@@ -4,6 +4,7 @@ import { useDungeonStore } from "./stores/useDungeonStore";
 import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession";
 import { createPlayerSelection } from "../game/playerSelection";
 import { PlayerDropdown } from "./components/PlayerDropdown";
+import { createNpcManager } from "../game/npcs/createNpcManager";
 import { Meteor } from "meteor/meteor";
 import { ENTITY_VISIBILITY } from "../game/entityVisibility";
 import { createPerformanceOverlay } from "../game/performanceOverlay";
@@ -159,6 +160,7 @@ export const Game = ({
         null;
 
       let jump = null;
+      let npcManager = null;
 
       let combat =
         null;
@@ -441,6 +443,12 @@ export const Game = ({
           exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
+          if (location === "world") npcManager = createNpcManager({
+            scene,
+            player,
+            canInteract: () => playerAlive && !useWaypointStore.getState().traveling && useDungeonStore.getState().location === "world",
+          });
+
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
             if (action === "equip") {
               multiplayer.equipItem(payload.itemId, payload.slot);
@@ -542,7 +550,7 @@ export const Game = ({
           const SKILL_HANDLERS = {
             Space: () => { if (playerAlive && !useWaypointStore.getState().traveling) jump.jump(); },
             KeyF: () => {
-              if (!multiplayer?.interactDungeon() && !multiplayer?.interactWorldEvent()) multiplayer?.collectLoot();
+              if (!multiplayer?.interactDungeon() && !multiplayer?.interactWorldEvent() && !npcManager?.interact()) multiplayer?.collectLoot();
             },
             KeyV() {
               if (
@@ -1072,6 +1080,7 @@ export const Game = ({
                 ?.update(
                   deltaTime
                 );
+              npcManager?.update(deltaTime);
 
 
               /*
@@ -1197,6 +1206,7 @@ export const Game = ({
         engine
           ?.stopRenderLoop();
 
+        npcManager?.destroy();
 
         scene
           ?.dispose();
