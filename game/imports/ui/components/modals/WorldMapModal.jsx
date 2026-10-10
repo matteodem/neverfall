@@ -87,12 +87,6 @@ const MapContent = () => {
     if (waypoint) setSelectedWaypointId(id.slice("waypoint-".length));
     else setActiveMarkerId(activeMarkerId === id ? null : id);
   };
-  React.useEffect(() => {
-    if (dungeon || !character || character.adventureGuide?.openedMap) return;
-    Meteor.callAsync("adventureGuide.openMap").catch((error) =>
-      console.error("[Adventure Guide] Could not save map visit", error));
-  }, [dungeon, character?._id, character?.adventureGuide?.openedMap]);
-
   const clampView = React.useCallback((zoom, x, y) => {
     const edge = (zoom - 1) * (viewportRef.current?.clientWidth || 0) / 2;
     return { zoom, x: Math.max(-edge, Math.min(edge, x)), y: Math.max(-edge, Math.min(edge, y)) };

@@ -1,7 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../imports/api/characters/characters";
 import { QUESTS } from "../imports/game/quests";
-import { getNpcQuestState } from "../imports/game/npcs/npcQuests";
+import { getNpcQuestState, getTrackedQuest } from "../imports/game/npcs/npcQuests";
 import { ITEM_NAMES, rollRandomRingId } from "../imports/game/inventory";
 import { trackAchievements } from "./achievements";
 import { spawnLoot } from "./inventory/loot";
@@ -16,6 +16,15 @@ export const withQuestUpdate = (characterId, action) => {
     if (pending.get(characterId) === work) pending.delete(characterId);
   });
 };
+
+export const clearInvalidTrackedQuest = (character) => withQuestUpdate(character._id, async () => {
+  const current = await Characters.findOneAsync(character._id);
+  if (current?.trackedQuestId != null && !getTrackedQuest(current)) {
+    await Characters.updateAsync({ _id: current._id, trackedQuestId: current.trackedQuestId }, {
+      $set: { trackedQuestId: null },
+    });
+  }
+});
 
 export const recordQuestEvent = (room, characterId, type, target, { spawnId } = {}) => {
   const matches = QUESTS.filter((quest) =>
@@ -55,6 +64,7 @@ export const recordQuestEvent = (room, characterId, type, target, { spawnId } = 
       const update = { [`questProgress.${quest.id}`]: next };
       update[`questStates.${quest.id}`] = completed && !autoRepeat
         ? quest.turnInRequired ? "completed" : "rewarded" : "active";
+      if (completed && !quest.turnInRequired && character.trackedQuestId === quest.id) update.trackedQuestId = null;
       const ringId = completed && !quest.turnInRequired && quest.rewards?.randomRing ? rollRandomRingId() : null;
       await Characters.updateAsync(characterId, {
         $set: update,

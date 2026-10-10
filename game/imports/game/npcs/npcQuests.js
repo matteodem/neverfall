@@ -31,6 +31,11 @@ export const getQuestAcceptanceError = ({ character, quest, npc }) => {
 
 export const canAcceptQuest = (options) => !getQuestAcceptanceError(options);
 
+export const getTrackedQuest = (character) => {
+  const quest = QUESTS.find((entry) => entry.id === character?.trackedQuestId);
+  return quest && ["active", "completed"].includes(getNpcQuestState(quest, character)) ? quest : null;
+};
+
 // Configured world objects can use the same validated interaction message as seals.
 // Location objectives use the existing Interact type and an authored position/range.
 export const NPC_QUEST_LOCATIONS = NPC_QUESTS.flatMap((quest) =>

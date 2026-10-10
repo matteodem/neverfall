@@ -41,7 +41,7 @@ export const handleNpcQuest = async (room, client, request) => {
           if (error) throw new Error(error);
           await Characters.updateAsync({ _id: character._id,
             [`questStates.${quest.id}`]: character.questStates?.[quest.id] ?? { $exists: false } }, {
-            $set: { [`questStates.${quest.id}`]: "active", [`questProgress.${quest.id}`]: 0 },
+            $set: { [`questStates.${quest.id}`]: "active", [`questProgress.${quest.id}`]: 0, trackedQuestId: quest.id },
           });
           // Shared location targets may have been visited for a different quest.
           const runtime = room.playerRuntime.get(client.sessionId);
@@ -69,7 +69,8 @@ export const handleNpcQuest = async (room, client, request) => {
         const ringId = quest.rewards.randomRing ? rollRandomRingId() : null;
         const awarded = await room.awardXp(character._id, quest.rewards.xp || 0, true, {
           selector: { [`questStates.${quest.id}`]: "completed" },
-          fields: { [`questStates.${quest.id}`]: "rewarded", [`questRewardCounts.${quest.id}`]: rewardCount + 1 },
+          fields: { [`questStates.${quest.id}`]: "rewarded", [`questRewardCounts.${quest.id}`]: rewardCount + 1,
+            ...(character.trackedQuestId === quest.id ? { trackedQuestId: null } : {}) },
           ...(ringId ? { items: [{ id: ringId }] } : {}),
         });
         if (awarded === false) throw new Error("Quest changed. Please reopen the dialogue and try again.");

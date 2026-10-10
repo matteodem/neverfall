@@ -19,7 +19,7 @@ export const NPC_DEFINITIONS = [
     offeredQuestIds: [
       "forest-boars", "forest-mini-boss", "speak-with-mage",
       "boar-hunt", "wolf-hunt", "giant-hunt", "wolf-problem", "giant-threat",
-      "awakened-threat",
+      "awakened-threat", "discover-highlands",
     ],
     gameClass: "warrior",
     position: { x: -2, y: 0, z: -7 },
@@ -64,7 +64,7 @@ export const NPC_DEFINITIONS = [
   {
     id: "highlands-scout-01", name: "Highlands Scout", npcType: "quest",
     offeredQuestIds: ["goat-hunt", "rat-hunt", "bee-hunt", "explore-highlands",
-      "defend-northern-camp", "highlands-relics", "northern-ruins-quest"],
+      "defend-northern-camp", "highlands-relics", "northern-ruins-quest", "discover-snowy-mountains"],
     gameClass: "ranger",
     position: nearWaypoint("northern-camp"), rotationY: 0,
     appearance: { head: "head-02", hair: "hair-04", skinTone: "tan", bodyType: "medium" },
@@ -73,7 +73,7 @@ export const NPC_DEFINITIONS = [
   {
     id: "mountain-researcher-01", name: "Mountain Researcher", npcType: "quest",
     offeredQuestIds: ["snow-wolf-hunt", "mountain-goat-hunt", "frost-ogre-hunt",
-      "explore-snowy-mountains", "frozen-disturbance"],
+      "explore-snowy-mountains", "frozen-disturbance", "discover-southwest-lake"],
     gameClass: "mage",
     position: nearWaypoint("snowy-mountains-waypoint"), rotationY: 0,
     appearance: { head: "head-51", hair: "hair-51", skinTone: "light", bodyType: "slim" },

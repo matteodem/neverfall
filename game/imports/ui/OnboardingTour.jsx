@@ -19,9 +19,8 @@ const getSteps = (mobile) => [{
       : "Move close to a boar and press 1–4 to use skills. Watch your health; defeat returns you to camp.",
       selector: "#onboarding-action-bar", side: "top-right", pointerPadding: 12, cardOffset: 12 },
     { title: "Your next goal", content: mobile
-      ? "Follow the Adventure Guide under Objectives to regional NPCs. Accept quests from them and track progress in Hero → Quests."
-      : "Follow the Adventure Guide to regional NPCs. Accept quests from them and track progress in Hero → Quests.",
-      selector: mobile ? undefined : "#onboarding-adventure-guide", side: "left" },
+      ? "Speak with the Forest Guard at Central Camp to accept quests. Use Hero → Quests to track one quest under Objectives. Discovery quests lead you to new regional NPCs."
+      : "Speak with the Forest Guard at Central Camp to accept quests. Use Hero → Quests to track one quest in the HUD. Discovery quests lead you to new regional NPCs." },
   ],
 }];
 

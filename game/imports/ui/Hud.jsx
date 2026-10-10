@@ -11,7 +11,7 @@ import { actionButtonHandlers } from "./components/actionButtonHandlers";
 import { BossNotice } from "./components/BossNotice";
 import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
 import { WorldEventTracker } from "./components/WorldEventTracker";
-import { AdventureGuide } from "./components/AdventureGuide";
+import { TrackedQuestHud } from "./components/TrackedQuestHud";
 import { AchievementToast } from "./components/modals/AchievementModal";
 import { QuestProgressToast } from "./components/QuestProgressToast";
 import { SKILL_CODES } from "../game/skills";
@@ -758,11 +758,10 @@ export const Hud = ({
   healCooldownUntil,
   mounted = false,
   inCombat = false,
-  showInitialObjectives = false,
 }) => {
   const { mobile, portrait } = useMobileDevice();
-  const [showObjectives, setShowObjectives] = useState(() => !mobile || showInitialObjectives);
-  useEffect(() => setShowObjectives(!mobile || showInitialObjectives), [mobile, showInitialObjectives]);
+  const [showObjectives, setShowObjectives] = useState(() => !mobile);
+  useEffect(() => setShowObjectives(!mobile), [mobile]);
   const inDungeon = useDungeonStore((state) => state.location === "dungeon");
   const dungeonBusy = useDungeonStore((state) => state.busy);
   const leaveDungeon = useDungeonStore((state) => state.leaveDungeon);
@@ -827,7 +826,7 @@ export const Hud = ({
           </button>}
           <div id="hud-objectives" className="flex flex-col items-end gap-2" style={{ display: !mobile || showObjectives ? "flex" : "none" }}>
             {!inDungeon && <WorldEventTracker />}
-            <AdventureGuide />
+            <TrackedQuestHud />
           </div>
         </div>
       </div>

@@ -21,10 +21,19 @@ reward amounts, and the disabled Boar Hunt random-ring reward are preserved.
 - Southwest Lake: Lake Ranger near the Lake waypoint.
 - Merchant remains at Central Camp with Shop/Sell; lake quests move to Lake Ranger.
 
-The Adventure Guide shows only the highest-level hub available to the player.
-Each hub's starting level is the minimum `requiredLevel`
-of its offered quests: 1, 5, 10, and 14 respectively. The guide does not accept
-quests, store progress, count kills, or award rewards. Hero → Quests shows progress.
+Discovery quests replace the Adventure Guide. Forest Guard offers Discover the
+Highlands at level 5; Highlands Scout offers Discover the Snowy Mountains at level
+10; Mountain Researcher offers Discover Southwest Lake at level 14. Each uses an
+ordinary `InteractNpc` objective for the destination NPC, then requires returning
+to its offering NPC for rewards. They do not unlock regions or auto-grant quests.
+
+`trackedQuestId` is persisted on each character. Accepting a quest selects it;
+Hero → Quests can replace that selection with any active/ready quest. The HUD below
+World Event displays only that quest using existing progress, retaining ready
+quests until reward collection clears the selection. Invalid saved selections are
+cleared on world join. No next quest is selected automatically. Adventure Guide
+UI, recommendations, and writes are removed; old fields remain read-only for
+spawn-point, waypoint, landmark, and achievement compatibility.
 NPC rendering, acceptance validation, and `!` / `?` markers use the existing shared
 quest ownership and level-gating helpers.
 

@@ -48,6 +48,30 @@ export const QUEST_DEFAULTS = {
 // Enemy/world XP remains useful as bonus progression.
 
 export const QUESTS = [
+  {
+    id: "discover-highlands",
+    title: "Discover the Highlands",
+    requiredLevel: 5,
+    description: "Travel to the Highlands and speak with the Highlands Scout.",
+    objective: { type: "InteractNpc", target: "highlands-scout-01", amount: 1, label: "Speak with the Highlands Scout" },
+    rewards: { xp: 250, gold: 1 },
+  },
+  {
+    id: "discover-snowy-mountains",
+    title: "Discover the Snowy Mountains",
+    requiredLevel: 10,
+    description: "Travel to the Snowy Mountains and speak with the Mountain Researcher.",
+    objective: { type: "InteractNpc", target: "mountain-researcher-01", amount: 1, label: "Speak with the Mountain Researcher" },
+    rewards: { xp: 500, gold: 1 },
+  },
+  {
+    id: "discover-southwest-lake",
+    title: "Discover Southwest Lake",
+    requiredLevel: 14,
+    description: "Travel to Southwest Lake and speak with the Lake Ranger.",
+    objective: { type: "InteractNpc", target: "lake-ranger-01", amount: 1, label: "Speak with the Lake Ranger" },
+    rewards: { xp: 750, gold: 1 },
+  },
   // ---------------------------------------------------------------------------
   // Central Forest — Levels 1–4
   // Goal: starter quests should naturally carry the player toward level 5.

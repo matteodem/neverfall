@@ -12,6 +12,7 @@ import "./methods/shop";
 import "./methods/inventory";
 import "./methods/crafting";
 import "./methods/onboarding";
+import "./methods/quests";
 
 import "./publications/characters";
 

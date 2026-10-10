@@ -278,6 +278,8 @@ Meteor.methods({
 
       questProgress: {},
 
+      trackedQuestId: null,
+
       inventory: { items: [] },
 
       lootedCacheIds: [],

@@ -1,7 +1,7 @@
 import { normalizeAmirAppearance } from "../../imports/game/character/amir/appearance";
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
-import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
+import { CAMP_PROTECTION } from "../../imports/game/campProtection";
 import { SPAWN_POINTS, DEFAULT_SPAWN_POINT, NORTHERN_SPAWN_POINT, getNearestUnlockedSpawnPoint } from "../../imports/game/spawnPoints";
 import { WAYPOINTS, DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { crossesCamp, isInsideCamp, outsideCampPosition } from "./campProtection";
@@ -9,7 +9,7 @@ import { sendChat } from "../chat";
 import { cancelBossAction, updateBossMechanics } from "./bossMechanics";
 import { updateEnemyLeash } from "./enemyLeash";
 import { trackAchievements } from "../achievements";
-import { recordQuestEvent } from "../quests";
+import { recordQuestEvent, clearInvalidTrackedQuest } from "../quests";
 import { handleNpcQuest } from "../npcQuests";
 import { clearMerchantInteraction } from "../merchantInteractions";
 import { NPC_QUEST_LOCATIONS } from "../../imports/game/npcs/npcQuests";
@@ -442,15 +442,6 @@ export class WorldRoom
         sessionId: client.sessionId, x: player.x, y: player.y, z: player.z,
         rotationY: player.rotationY,
       });
-      if (!runtime.usedWaypoint) {
-        runtime.usedWaypoint = true;
-        void Characters.updateAsync({ _id: player.characterId, userId: player.userId }, {
-          $set: { "adventureGuide.usedWaypoint": true },
-        }).catch((error) => {
-          runtime.usedWaypoint = false;
-          console.error("[Adventure Guide] Could not save waypoint travel", error);
-        });
-      }
     },
     setSkills: async (client, equippedSkills) => {
       const player = this.state.players.get(client.sessionId);
@@ -770,16 +761,6 @@ export class WorldRoom
             console.error("[Waypoints] Could not save discovery", error);
           });
         }
-        if (!runtime.visitedNorthernCamp &&
-          Math.hypot(player.x - NORTHERN_CAMP.center.x, player.z - NORTHERN_CAMP.center.z) <= NORTHERN_CAMP.clearingRadius) {
-          runtime.visitedNorthernCamp = true;
-          void Characters.updateAsync({ _id: player.characterId, userId: player.userId }, {
-            $set: { "adventureGuide.visitedNorthernCamp": true },
-          }).catch((error) => {
-            runtime.visitedNorthernCamp = false;
-            console.error("[Adventure Guide] Could not save Northern Camp visit", error);
-          });
-        }
         for (const landmark of LANDMARKS) {
           if (runtime.discoveredLandmarks.has(landmark.id) ||
             Math.hypot(player.x - landmark.position.x, player.z - landmark.position.z) > landmark.discoveryRadius) continue;
@@ -1068,6 +1049,8 @@ export class WorldRoom
       );
     }
 
+    await clearInvalidTrackedQuest(character);
+
     const user = await Meteor.users.findOneAsync(auth.userId, {
       fields: { "profile.claimedTowerChestCharacterIds": 1 },
     });
@@ -1257,8 +1240,6 @@ export class WorldRoom
           0,
 
         lastActivityAt: Date.now(),
-        visitedNorthernCamp: Boolean(character.adventureGuide?.visitedNorthernCamp),
-        usedWaypoint: Boolean(character.adventureGuide?.usedWaypoint),
         discoveredLandmarks,
         unlockedSpawnPoints,
         unlockedWaypoints,
