@@ -13,6 +13,7 @@ import { QuestCompletionOverlay } from "./components/QuestCompletionOverlay";
 import { WorldEventTracker } from "./components/WorldEventTracker";
 import { AdventureGuide } from "./components/AdventureGuide";
 import { AchievementToast } from "./components/modals/AchievementModal";
+import { QuestProgressToast } from "./components/QuestProgressToast";
 import { SKILL_CODES } from "../game/skills";
 import { useSkillsStore } from "./stores/useSkillsStore";
 import { getTalentSkill } from "../game/talents";
@@ -865,6 +866,7 @@ export const Hud = ({
       <HeroModal />
       <SocialModal />
       <AchievementToast />
+      <QuestProgressToast />
 
       <HelpModal />
 
