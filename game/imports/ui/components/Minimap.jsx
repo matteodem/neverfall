@@ -3,7 +3,8 @@ import { ENEMY_TYPES } from "../../game/enemyConfig";
 import { WORLD_EVENTS } from "../../game/worldEvents";
 import { useDungeonStore } from "../stores/useDungeonStore";
 import { useWorldEventStore } from "../stores/useWorldEventStore";
-import React from "react";
+import React, { useState } from "react";
+import { useMobileDevice } from "../hooks/useMobileDevice";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { Characters } from "../../api/characters/characters";
@@ -99,7 +100,7 @@ const LocalPlayerMarker = ({
   );
 };
 
-const Legend = ({ location, activeEvent }) => {
+const Legend = ({ location, activeEvent, showLabels }) => {
   const ITEMS = [
     {
       label:
@@ -146,6 +147,7 @@ const Legend = ({ location, activeEvent }) => {
               item.label
             }
             className="flex items-center gap-1"
+            title={showLabels ? item.label : undefined}
           >
             {item.kind ? <WorldMapMarkerIcon kind={item.kind} /> : <span
               className={`h-2 w-2 rounded-full ${item.outlined === false ? "" : "shadow"}`}
@@ -155,7 +157,7 @@ const Legend = ({ location, activeEvent }) => {
               }}
             />}
 
-            <span>
+            <span className={showLabels ? undefined : "hidden"}>
               {
                 item.label
               }
@@ -169,6 +171,9 @@ const Legend = ({ location, activeEvent }) => {
 
 export const Minimap =
   () => {
+    const { mobile } = useMobileDevice();
+    const [mobileLabels, setMobileLabels] = useState(false);
+    const showLabels = !mobile || mobileLabels;
     const location = useDungeonStore((state) => state.location);
     const character = useTracker(() => {
       const id = Meteor.user()?.profile?.currentCharacterId;
@@ -208,6 +213,22 @@ export const Minimap =
     return (
       <div
         id="onboarding-map"
+        role={mobile ? "button" : undefined}
+        tabIndex={mobile ? 0 : undefined}
+        aria-label={mobile ? `${showLabels ? "Hide" : "Show"} minimap labels` : undefined}
+        aria-pressed={mobile ? showLabels : undefined}
+        onPointerDown={mobile ? (event) => event.stopPropagation() : undefined}
+        onClick={mobile ? (event) => {
+          event.stopPropagation();
+          setMobileLabels((visible) => !visible);
+        } : undefined}
+        onKeyDown={mobile ? (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            setMobileLabels((visible) => !visible);
+          }
+        } : undefined}
         className="
           hud-minimap
           rounded-3xl
@@ -263,7 +284,7 @@ export const Minimap =
           {activeEvent && (
             <div
               className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-orange-400 bg-orange-400/25"
-              title={activeEvent.name}
+              title={showLabels ? activeEvent.name : undefined}
               aria-label={`Active event: ${activeEvent.name}`}
               style={{ ...eventPosition, width: eventDiameter, height: eventDiameter }}
             />
@@ -277,7 +298,7 @@ export const Minimap =
             <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size="var(--minimap-dot-size, 10px)" className="z-10" />)}
           {location === "world" && customMarker && (
             <div className="absolute z-[15] -translate-x-1/2 -translate-y-1/2 text-rose-400"
-              style={worldToPercent(customMarker)} title="Custom Marker" aria-label="Custom Marker">
+              style={worldToPercent(customMarker)} title={showLabels ? "Custom Marker" : undefined} aria-label="Custom Marker">
               <Icon icon="mapPin" className="h-4 w-4 drop-shadow-[0_1px_2px_black]" />
             </div>
           )}
@@ -340,7 +361,7 @@ export const Minimap =
           {location === "world" && questMarkers.map((npc) => (
             <div key={npc.id} className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
               style={worldToPercent(npc.position)}
-              title={`${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}
+              title={showLabels ? `${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}` : undefined}
               aria-label={`${npc.name}: ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}>
               <WorldMapMarkerIcon kind={npc.marker === "!" ? "questAvailable" : "questActive"} />
             </div>
@@ -358,7 +379,8 @@ export const Minimap =
           />
         </div>
 
-        <Legend location={location} activeEvent={activeEvent} />
+        {showLabels && <Legend location={location} activeEvent={activeEvent} showLabels={showLabels} />}
+        {mobile && <p className="mt-1 text-center text-[10px] text-white/60">Hide / Show labels</p>}
       </div>
     );
   };

@@ -121,7 +121,7 @@ body {
 .mobile-game .hud-menu { top: 8px; left: 8px; padding: 6px 8px; }
 .mobile-game .hud-menu > div { gap: 10px; }
 .mobile-game .hud-menu button { width: 36px; height: 36px; min-height: 36px; }
-.mobile-game .hud-world-panel { top: 8px; right: 8px; gap: 10px; transform: scale(0.8); transform-origin: top right; }
+.mobile-game .hud-world-panel { top: 8px; right: 8px; gap: 10px; z-index: 10003; transform: scale(0.8); transform-origin: top right; }
 .mobile-game .hud-action-bar { display: grid; grid-template-columns: repeat(2, 44px); justify-content: flex-end; gap: 14px; }
 .mobile-game .hud-action-bar button { width: 44px; height: 44px; }
 .mobile-game .mobile-player-bars { gap: 10px; transform: translateX(-50%) scale(0.7); transform-origin: bottom center; }
@@ -155,7 +155,7 @@ body {
 .mobile-game .hud-modal .help-controls tbody tr { font-size: 24px; }
 .mobile-game .hud-modal .help-controls .kbd { font-size: 24px; --size: 40px; }
 
-.mobile-game .hud-minimap { order: 2; width: 170px; padding: 10px; flex-shrink: 0; --minimap-dot-size: 6px; }
+.mobile-game .hud-minimap { position: relative; z-index: 1; order: 2; width: 170px; padding: 10px; flex-shrink: 0; --minimap-dot-size: 6px; }
 .mobile-game .hud-minimap .text-sm { font-size: 15px; }
 .mobile-game .hud-minimap [class~="text-[10px]"] { font-size: 11px; line-height: 1.25; }
 
