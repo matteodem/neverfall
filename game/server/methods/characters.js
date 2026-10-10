@@ -20,6 +20,7 @@ import { DEFAULT_WAYPOINT } from "../../imports/game/waypoints";
 import { removeGuildCharacter } from "../guilds";
 import { getPlayerTitle } from "../../imports/game/playerTitles";
 import { setOnlineSelectedTitle } from "../colyseus/onlineGuildTags";
+import { AMIR_PART_OPTIONS, createAmirStartingAppearance, isValidAmirAppearance } from "../../imports/game/character/amir/appearance";
 
 const VALID_APPEARANCE = {
   gender: [
@@ -33,22 +34,7 @@ const VALID_APPEARANCE = {
     "large",
   ],
 
-  head: [
-    "head1",
-    "head2",
-    "head3",
-    "head4",
-    "head5",
-  ],
-};
-
-
-const DEFAULT_APPEARANCE = {
-  gender:
-    "female",
-
-  head:
-    "head1",
+  head: AMIR_PART_OPTIONS.head,
 };
 
 
@@ -77,25 +63,13 @@ const requireUser = (
 
 const normalizeAppearance = (
   appearance,
-  species
+  species,
+  gameClass
 ) => {
-  return {
-    gender:
-      appearance?.gender ||
-      DEFAULT_APPEARANCE.gender,
-
-    skinTone:
-      appearance?.skinTone ||
-      SPECIES[species].defaultSkinTone,
-
-    bodyType:
-      appearance?.bodyType ||
-      SPECIES[species].defaultBodyType,
-
-    head:
-      appearance?.head ||
-      DEFAULT_APPEARANCE.head,
-  };
+  return createAmirStartingAppearance(appearance, gameClass, {
+    skinTone: SPECIES[species].defaultSkinTone,
+    bodyType: SPECIES[species].defaultBodyType,
+  });
 };
 
 
@@ -129,6 +103,9 @@ const validateAppearance = (
 
   if (!SPECIES[species].skinTones.includes(appearance.skinTone)) {
     throw new Meteor.Error("invalid-skinTone");
+  }
+  if (!isValidAmirAppearance(appearance)) {
+    throw new Meteor.Error("invalid-appearance", "Choose valid character parts and equipment.");
   }
 };
 
@@ -248,7 +225,8 @@ Meteor.methods({
     const normalizedAppearance =
       normalizeAppearance(
         appearance,
-        species
+        species,
+        gameClass
       );
 
     validateAppearance(

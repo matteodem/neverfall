@@ -13,7 +13,10 @@ const getAnimation = (
 export const createKayKitAnimationController =
   ({
     animations,
+    attackDuration = 500,
   }) => {
+    const attack = getAnimation(animations, "Attack_A");
+    let attackRemaining = 0;
     const idle =
       getAnimation(
         animations,
@@ -77,7 +80,8 @@ export const createKayKitAnimationController =
     const play =
       (
         animation,
-        loop = true
+        loop = true,
+        speedRatio = 1
       ) => {
         if (
           !visible ||
@@ -100,9 +104,31 @@ export const createKayKitAnimationController =
         }
 
         animation.start(
-          loop
+          loop,
+          speedRatio
         );
       };
+
+    const stopAttack = () => {
+      attackRemaining = 0;
+      if (currentAnimation === attack) {
+        attack.stop();
+        currentAnimation = null;
+      }
+    };
+
+    const playAttack = () => {
+      if (!attack || !visible || mounted || jumping || (airbornePhase && airbornePhase !== "grounded")) return false;
+      stopAttack();
+      attackRemaining = attackDuration;
+      // Fit the authored one-shot to the existing visual swing window, not combat cooldowns.
+      const fps = attack.targetedAnimations[0].animation.framePerSecond;
+      const speed = (attack.to - attack.from) / fps / (attackDuration / 1000);
+      attack.enableBlending = true;
+      attack.blendingSpeed = 0.15;
+      play(attack, false, speed);
+      return true;
+    };
 
 
     const setRunning =
@@ -133,6 +159,7 @@ export const createKayKitAnimationController =
         if (
           mounted
         ) {
+          stopAttack();
           running =
             false;
 
@@ -159,6 +186,7 @@ export const createKayKitAnimationController =
         }
 
         if (airbornePhase && airbornePhase !== "grounded") {
+          stopAttack();
           airborneElapsed += deltaTime;
           if (airbornePhase === "rising" && currentAnimation !== jumpStart && currentAnimation !== jumpIdle) {
             play(jumpStart, false);
@@ -168,6 +196,7 @@ export const createKayKitAnimationController =
           return;
         }
         if (landingRemaining > 0 && jumpLand) {
+          stopAttack();
           landingRemaining = Math.max(0, landingRemaining - deltaTime);
           play(jumpLand, false);
           return;
@@ -177,6 +206,7 @@ export const createKayKitAnimationController =
         if (
           jumping
         ) {
+          stopAttack();
           play(
             jump,
             false
@@ -185,6 +215,12 @@ export const createKayKitAnimationController =
           return;
         }
 
+
+        if (attackRemaining > 0) {
+          attackRemaining = Math.max(0, attackRemaining - deltaTime);
+          if (attackRemaining > 0) return;
+          stopAttack();
+        }
 
         if (chatAnimation && !running) {
           play(chatAnimations[chatAnimation], chatAnimation !== "interact");
@@ -209,6 +245,7 @@ export const createKayKitAnimationController =
 
     const playHit =
       () => {
+        stopAttack();
         currentAnimation =
           null;
 
@@ -221,6 +258,7 @@ export const createKayKitAnimationController =
 
     const playDeath =
       () => {
+        stopAttack();
         currentAnimation =
           null;
 
@@ -233,6 +271,7 @@ export const createKayKitAnimationController =
 
     const destroy =
       () => {
+        stopAttack();
         animations.forEach(
           (animation) =>
             animation.stop()
@@ -252,6 +291,7 @@ export const createKayKitAnimationController =
         airbornePhase = phase;
       },
       resetAirborneState() {
+        stopAttack();
         airbornePhase = "grounded";
         airborneElapsed = 0;
         landingRemaining = 0;
@@ -260,6 +300,7 @@ export const createKayKitAnimationController =
       setChatAnimation(value) { chatAnimation = value; },
       setVisible(value) {
         visible = value;
+        if (!value) stopAttack();
         if (!value) currentAnimation?.pause();
         else if (currentAnimation?.isStarted) currentAnimation.restart();
       },
@@ -271,6 +312,8 @@ export const createKayKitAnimationController =
 
       playHit,
       playDeath,
+      playAttack,
+      stopAttack,
 
       destroy,
     };

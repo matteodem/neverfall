@@ -1,30 +1,13 @@
 import {
   create,
 } from "zustand";
+import { normalizeAmirAppearance } from "../../game/character/amir/appearance";
 
 
-const INITIAL_CREATOR = {
-  gender:
-    "female",
-
-  skinTone:
-    "medium",
-
-  bodyType:
-    "medium",
-
-  head:
-    "head1",
-
-  species:
-    "human",
-
-  gameClass:
-    "warrior",
-
-  name:
-    "",
-};
+const initialCreator = () => ({
+  ...normalizeAmirAppearance({ gender: "male" }),
+  species: "human", gameClass: "warrior", name: "",
+});
 
 
 export const useCharacterStore =
@@ -33,9 +16,7 @@ export const useCharacterStore =
       screen:
         "overview",
 
-      creator: {
-        ...INITIAL_CREATOR,
-      },
+      creator: initialCreator(),
 
       setScreen(
         screen
@@ -76,9 +57,7 @@ export const useCharacterStore =
 
       resetCreator() {
         set({
-          creator: {
-            ...INITIAL_CREATOR,
-          },
+          creator: initialCreator(),
         });
       },
     })

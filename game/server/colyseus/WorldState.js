@@ -95,25 +95,8 @@ export const PlayerState =
       talent15: t.string().default(""),
       talent20: t.string().default(""),
       
-      gender:
-        t.string().default(
-          "female"
-        ),
-
-      skinTone:
-        t.string().default(
-          "medium"
-        ),
-
-      bodyType:
-        t.string().default(
-          "medium"
-        ),
-
-      head:
-        t.string().default(
-          "head1"
-        ),
+      // Canonical cosmetic appearance JSON, sent once on join; never client-authored.
+      appearance: t.string().default(""),
 
       giantQuestKills: t.number().default(0),
       wolfQuestKills: t.number().default(0),

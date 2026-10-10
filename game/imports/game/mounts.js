@@ -296,7 +296,9 @@ export const createHorseMount =
 
         riderAnchor.dispose();
 
-        root.dispose();
+        // Each imported mount owns its rig/materials, just like its rider.
+        result.skeletons.forEach((skeleton) => skeleton.dispose());
+        root.dispose(false, true);
 
         horseVisualRoot.dispose();
 

@@ -66,8 +66,8 @@ export const createCombat = ({
       "swordTrail",
       swordTip,
       scene,
-      0.12,
-      25,
+      0.06,
+      12,
       true
     );
 
@@ -92,7 +92,7 @@ export const createCombat = ({
     );
 
   trailMaterial.alpha =
-    0.65;
+    0.3;
 
   trail.material =
     trailMaterial;

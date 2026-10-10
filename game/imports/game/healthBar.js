@@ -148,7 +148,7 @@ export const createHealthBar = ({
   const destroy = () => {
     unsubscribe();
     texture.dispose();
-    plane.dispose();
+    plane.dispose(false, true);
   };
 
   return {

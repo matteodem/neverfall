@@ -1,3 +1,4 @@
+import { normalizeAmirAppearance } from "../../imports/game/character/amir/appearance";
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION, NORTHERN_CAMP } from "../../imports/game/campProtection";
@@ -960,13 +961,14 @@ export class WorldRoom
       if (skill.buff) return;
 
       if (skill.projectile) {
-        this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack);
+        this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack, code);
         return;
       }
 
       if (skill.effect) {
         this.broadcast("attack", {
           sessionId: client.sessionId,
+          code,
           effect: { id: `nova-${client.sessionId}-${now}`, type: skill.effect, x: player.x, y: player.y + 0.05, z: player.z, dx: 0, dz: 0, speed: 0, lifetime: 500, radius: skill.range },
         });
         await this.attackEnemy(client.sessionId, skill, targetId, mobileAttack);
@@ -979,6 +981,7 @@ export class WorldRoom
         {
           sessionId:
             client.sessionId,
+          code,
         },
         {
           except:
@@ -1125,9 +1128,9 @@ export class WorldRoom
       await trackAchievements(character._id, "worldEvent");
     }
 
-    const appearance =
-      character.appearance ||
-      {};
+    // Reuse the persistent contract, including defaults for legacy characters.
+    // Gender is metadata only and does not affect this rig's rendering.
+    const { gender, ...appearance } = normalizeAmirAppearance(character.appearance);
 
 
     const currentLevel =
@@ -1207,21 +1210,7 @@ export class WorldRoom
         maxHealth:
           stats.maxHealth,
 
-        gender:
-          appearance.gender ||
-          "female",
-
-        skinTone:
-          appearance.skinTone ||
-          "medium",
-
-        bodyType:
-          appearance.bodyType ||
-          "medium",
-
-        head:
-          appearance.head ||
-          "head1",
+        appearance: JSON.stringify(appearance),
 
         ...Object.fromEntries(QUESTS.filter((quest) => quest.progressField).map((quest) =>
           [quest.progressField, character.questProgress?.[quest.id] || 0])),

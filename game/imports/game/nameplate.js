@@ -179,7 +179,7 @@ export const createNameplate = ({
   const destroy = () => {
     unsubscribe();
     texture.dispose();
-    plane.dispose();
+    plane.dispose(false, true);
   };
 
   return {
