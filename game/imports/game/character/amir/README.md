@@ -112,7 +112,7 @@ against a hair-free baseline:
 - No geometry was excluded and no new rig/animation incompatibility was found.
   Every possible mixed combination and animation angle has not been visually reviewed.
   Larger weapons, paired shields and wings still need combination-specific grip/overlap
-  polish; they use the existing attachment and combat behavior, with no new attack poses.
+  polish; those checks predate the class attack mapping described below.
 
 The existing free-pack clipping findings below still apply. Options remain independently
 selectable; the adapter does not silently rewrite appearances to hide clipping.
@@ -169,9 +169,61 @@ Focused checks used the real creator and an isolated Babylon/Chromium scene:
 
 No new attachment, scale or animation failures were found. Authored idle weapons carry
 across the front of the body, including the bow and staff. Existing projectile attacks
-and procedural swings are preserved; there is no added bow draw/release, staff casting,
-two-hand grip or weapon-specific trail calibration. Large weapons, off-hand shields and
+and procedural swings are preserved. Class attack poses are now mapped below; there
+is still no true bow draw/release, two-hand grip or weapon-specific trail calibration. Large weapons, off-hand shields and
 mixed outfits may still overlap in poses that were not visually reviewed.
+
+## Class basic attacks
+
+`classAnimations.js` is the configurable source-name table. The adapter clones the
+selected class clip as `Knight_Attack_A` onto the same actor's joints before disposing
+unused source groups. Classless NPCs retain the original ten-clip behavior.
+
+| Class | Basic attack source clip | Source length | Playback |
+| --- | --- | --- | --- |
+| Warrior | `OneHandSwordAttack` | ~1.63 s | One-shot sword attack |
+| Mage | `OneHandMagicAttack` | ~2.33 s | One-shot magic attack with the equipped staff/hammer |
+| Ranger | `GunShoot` | ~1.20 s | Temporary firearm pose with the equipped bow; not archery |
+
+Local input and remote attack messages call the same controller's `playAttack()`.
+The existing server-authorized attack broadcast now includes the validated action
+`code` for melee, projectiles and effects; only `Digit1` starts this pose. Remote
+ranged playback happens before forwarding the unchanged projectile/effect payload.
+Special skills, healing, damage, cooldowns and projectile physics are unchanged.
+
+The controller fits the source clip to `ATTACK.duration` (currently 500 ms), plays it
+once with start blending at 0.15, then resumes the existing idle/run/chat selection.
+Jump/landing, hit/death, mounting, visibility loss, respawn reset and disposal cancel
+attack playback. Repeated valid attacks restart one group rather than stacking groups.
+The existing procedural melee pivot and trail still run alongside the rig animation.
+
+Timing and pose limitations:
+
+- The source clips are compressed to 500 ms, so Mage's longer gesture looks faster.
+  Warrior's unchanged 250 ms cooldown permits restarting before the full pose finishes.
+- Ranged projectiles still launch immediately; there is no authored release-event
+  synchronization. `GunShoot` supplies no bow-string draw or release and uses a gun
+  grip, so Ranger remains a placeholder rather than a correct two-hand bow pose.
+- These are full-body clips, not upper-body layers. Moving attacks can slide feet,
+  and returning to locomotion uses the existing stop/start transition rather than
+  an exit crossfade. The retained procedural sword swing also adds to the hand motion.
+- Weapon anchors and authored attachment transforms are unchanged. Mage uses the
+  same right-hand attachment for staff/hammer variants; detailed finger grips,
+  two-hand contact and mixed-equipment clipping still need polish.
+
+Focused checks passed in an isolated Babylon/Chromium WebGL2 scene with the real
+GLB, actual local attack dispatcher and remote assembly/message handler, plus
+stubbed networking. All three local/remote pairs retained eleven groups and bound
+all 195 attack channels to their own rig. Checked non-looping playback, cooldown
+rejection, return to run/idle, jump/hit/death/mount/visibility interruption, remote
+death/respawn, special-skill exclusion, procedural pivot recovery and full removal
+(with zero actor meshes, rigs or groups remaining). Source clips fit the 500 ms
+window at speed ratios ~3.27 (Warrior), ~4.67 (Mage), and ~2.40 (Ranger).
+
+Server projectile diagnostics confirmed basic/special action codes and projectile
+payloads for Ranger/Mage. Changed JS/JSX syntax, standalone Rspack compilation
+and diff whitespace checks passed. This does not exercise a live two-client
+Meteor session. No Meteor builds or test suites were run.
 
 ## Assembly and compatibility
 
@@ -193,7 +245,7 @@ are selected independently without disabling joint nodes. It returns `root`, `me
 
 All animation and bone names are mapped inside the adapter. Ten clips satisfy the
 existing locomotion controller contract, including aliases for jump start/fall/landing,
-hit, death, and chat interaction. Source clips are cloned against the same actor's
+hit, death, and chat interaction. Players retain one additional class attack clip. Source clips are cloned against the same actor's
 joint targets; unused source groups are disposed. Horizontal hip animation is held
 in place in the source rig's coordinates. Existing movement, jump physics, collider,
 controls, attack cooldowns, damage, and procedural sword-swing code are retained.

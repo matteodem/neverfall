@@ -692,6 +692,7 @@ const createRemotePlayer =
           isAlive
         ) {
           alive = isAlive;
+          if (!alive) animations.stopAttack();
           if (!alive) mount.setMounted(false);
           swordPivot.setEnabled(
             alive && swordVisible
@@ -717,6 +718,7 @@ const createRemotePlayer =
         },
 
         setMounted(value) {
+          if (value) animations.stopAttack();
           mount.setMounted(alive && value);
         },
 
@@ -1424,9 +1426,15 @@ export const createMultiplayer =
       "attack",
       ({
         sessionId,
+        code,
         projectile,
         effect,
       }) => {
+        // Ranged attacks carry their own projectile but share the same actor playback.
+        const attacker = remotePlayers.get(sessionId);
+        if (code === "Digit1" && attacker?.playerState?.health > 0 && !attacker.playerState.mounted) {
+          attacker.animations.playAttack();
+        }
         if (effect) {
           projectiles.spawn(effect);
           return;

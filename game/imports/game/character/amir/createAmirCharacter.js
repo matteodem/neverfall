@@ -4,6 +4,8 @@ import { createKayKitAnimationController } from "../createKayKitAnimationControl
 import { normalizeAmirAppearance, isValidAmirAppearance, applyAmirClassWeapon, AMIR_CLASS_WEAPONS } from "./appearance";
 import { applyAmirSkinTone } from "./applyAmirSkinTone";
 import catalog from "./catalog.json";
+import { AMIR_CLASS_ANIMATIONS } from "./classAnimations";
+import { ATTACK } from "../../config";
 
 // Adapt the shared locomotion controller's clip contract without changing its timing/state logic.
 const ANIMATION_MAP = {
@@ -59,7 +61,9 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
         })));
       }
     }
-    const animations = Object.entries(ANIMATION_MAP).map(([alias, source]) => {
+    const basicAttack = AMIR_CLASS_ANIMATIONS[gameClass]?.basicAttack;
+    const animationMap = { ...ANIMATION_MAP, ...(basicAttack ? { Attack_A: basicAttack } : {}) };
+    const animations = Object.entries(animationMap).map(([alias, source]) => {
       const group = sourceAnimations.find(({ name }) => name === source);
       if (!group) throw new Error(`Missing Amir animation: ${source}`);
       return group.clone(`Knight_${alias}`, (target) => target);
@@ -85,7 +89,7 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
     return {
       root, meshes: container.meshes, skeleton: container.skeletons[0], animations, appearance, parts, attachments,
       weaponAnchor, weaponMesh,
-      createAnimationController: () => createKayKitAnimationController({ animations }),
+      createAnimationController: () => createKayKitAnimationController({ animations, attackDuration: ATTACK.duration }),
       dispose() { container.dispose(); root.dispose(); },
     };
   } catch (error) {

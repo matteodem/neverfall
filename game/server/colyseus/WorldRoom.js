@@ -961,13 +961,14 @@ export class WorldRoom
       if (skill.buff) return;
 
       if (skill.projectile) {
-        this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack);
+        this.projectiles.fire(client.sessionId, player, skill, targetId || preferredTargetId, mobileAttack, code);
         return;
       }
 
       if (skill.effect) {
         this.broadcast("attack", {
           sessionId: client.sessionId,
+          code,
           effect: { id: `nova-${client.sessionId}-${now}`, type: skill.effect, x: player.x, y: player.y + 0.05, z: player.z, dx: 0, dz: 0, speed: 0, lifetime: 500, radius: skill.range },
         });
         await this.attackEnemy(client.sessionId, skill, targetId, mobileAttack);
@@ -980,6 +981,7 @@ export class WorldRoom
         {
           sessionId:
             client.sessionId,
+          code,
         },
         {
           except:

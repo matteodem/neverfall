@@ -62,7 +62,7 @@ export const createProjectiles = (room) => {
 
   return {
     recordTargetMovement: lead.record,
-    fire(sessionId, player, skill, preferredTargetId = null, mobileLock = false) {
+    fire(sessionId, player, skill, preferredTargetId = null, mobileLock = false, code = "Digit1") {
       const { type, speed, lifetime, radius, scale = 1 } = skill.projectile;
       const hitEnemies = new Set();
       const count = skill.projectiles || 1;
@@ -95,7 +95,7 @@ export const createProjectiles = (room) => {
           homingTarget: target, homingTargetId: targetId,
           radius: radius * PROJECTILE_AIM.hitboxScale + (locked ? MOBILE_TARGETING.hitPadding : 0),
           remaining: lifetime, multiplier: skill.damageMultiplier, hitStatus: skill.hitStatus, hitEnemies });
-        room.broadcast("attack", { sessionId, projectile });
+        room.broadcast("attack", { sessionId, code, projectile });
       }
     },
     update(deltaTime) {
