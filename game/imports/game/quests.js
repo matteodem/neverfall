@@ -127,7 +127,7 @@ export const QUESTS = [
 
   {
     id: "goat-hunt",
-    title: "Goat Hunt",
+    title: "Problem with Goats",
     requiredLevel: 5,
     description: "Defeat 10 goats in the western Highlands.",
     objective: {
@@ -164,7 +164,7 @@ export const QUESTS = [
 
   {
     id: "rat-hunt",
-    title: "Rat Hunt",
+    title: "Threat from Rats",
     requiredLevel: 6,
     description: "Defeat 10 rats in the central Highlands.",
     objective: {
@@ -249,7 +249,7 @@ export const QUESTS = [
 
   {
     id: "bee-hunt",
-    title: "Bee Hunt",
+    title: "Trouble with Bees",
     requiredLevel: 8,
     description: "Defeat 10 bees in the eastern Highlands.",
     objective: {
@@ -309,7 +309,7 @@ export const QUESTS = [
 
   {
     id: "snow-wolf-hunt",
-    title: "Snow Wolf Hunt",
+    title: "Problem with Snow Wolves",
     requiredLevel: 10,
     description:
       "Defeat 10 snow wolves north of the Snowy Mountains waypoint.",
@@ -402,7 +402,7 @@ export const QUESTS = [
 
   {
     id: "mountain-goat-hunt",
-    title: "Mountain Goat Hunt",
+    title: "Threat from Mountain Goats",
     requiredLevel: 12,
     description:
       "Defeat 10 mountain goats south of the Snowy Mountains waypoint.",
@@ -420,7 +420,7 @@ export const QUESTS = [
 
   {
     id: "frost-ogre-hunt",
-    title: "Frost Ogre Hunt",
+    title: "Trouble with the Frost Ogre",
     requiredLevel: 13,
     description: "Defeat the Frost Ogre in the eastern Snowy Mountains.",
     objective: {
@@ -481,7 +481,7 @@ export const QUESTS = [
 
   {
     id: "seal-hunt",
-    title: "Seal Hunt",
+    title: "Problem with Seals",
     requiredLevel: 14,
     description: "Defeat 10 seals around Southwest Lake.",
     objective: {
@@ -498,7 +498,7 @@ export const QUESTS = [
 
   {
     id: "hammer-guardian-hunt",
-    title: "Hammer Guardian Hunt",
+    title: "Threat of the Hammer Guardian",
     requiredLevel: 15,
     description: "Defeat the Hammer Guardian southwest of Southwest Lake.",
     objective: {
