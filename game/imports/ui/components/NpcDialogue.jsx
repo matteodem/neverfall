@@ -44,7 +44,8 @@ export const NpcDialogue = () => {
         </button>
       </div>
     )}
-    {dialogue && <HudModal id={NPC_DIALOGUE_MODAL} title={dialogue.name} onClose={closeDialogue} backdrop>
+    {dialogue && <HudModal id={NPC_DIALOGUE_MODAL} title={dialogue.name} onClose={closeDialogue}
+      className={merchantAction ? "" : "quest-modal"} backdrop>
       {merchantAction === "shop" && canBuy ? <ShopModal key={dialogue.id} embedded merchant={merchant} /> :
         merchantAction === "sell" && canSell ? <>
           <p className="mb-3 text-sm">Click an inventory item to sell it.</p>

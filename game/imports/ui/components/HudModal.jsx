@@ -89,19 +89,19 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
       onPointerDown={() => openModal(id)}
     >
       <div
-        className={`flex shrink-0 ${blocking ? "" : "cursor-move"} select-none items-center justify-between border-b border-base-300 px-4 py-3`}
+        className={`hud-modal-header flex shrink-0 ${blocking ? "" : "cursor-move"} select-none items-center justify-between border-b border-base-300 px-4 py-3`}
         onPointerDown={blocking ? undefined : startDragging}
       >
         <h3 className="text-xl font-bold">{title}</h3>
         <button
           type="button"
-          className="btn btn-sm btn-circle btn-ghost cursor-pointer"
+          className="hud-modal-close btn btn-sm btn-circle btn-ghost cursor-pointer"
           onClick={dismiss}
         >
           ✕
         </button>
       </div>
-      <div className={`${scrollable ? "min-h-0 overflow-auto" : "overflow-visible"} p-4`}>{children}</div>
+      <div className={`hud-modal-body ${scrollable ? "min-h-0 overflow-auto" : "overflow-visible"} p-4`}>{children}</div>
     </div>
   );
 

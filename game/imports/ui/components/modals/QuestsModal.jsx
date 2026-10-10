@@ -28,7 +28,7 @@ export const QuestsModal = ({ embedded = false }) => {
     }
   };
   return (
-    <HudModal id="quests" title="Quests" embedded={embedded} maxHeight="calc(var(--game-height, 100vh) * 0.5)">
+    <HudModal id="quests" title="Quests" embedded={embedded} className="quest-modal" maxHeight="calc(var(--game-height, 100vh) * 0.5)">
       <section>
         <h4 className="mb-2 font-bold">Active Quests</h4>
         {trackError && <p role="alert" className="mb-2 text-sm text-error">{trackError}</p>}

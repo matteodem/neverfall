@@ -35,7 +35,8 @@ const GroupedHudModal = ({ id, title }) => {
 
   return (
     <>
-    <HudModal id={id} title={title} width={600} maxHeight={750} scrollable={mobile || (tab !== "inventory" && tab !== "gear")}>
+    <HudModal id={id} title={title} width={600} maxHeight={750} scrollable={mobile || (tab !== "inventory" && tab !== "gear")}
+      className={id === "hero" && tab === "quests" ? "quest-modal" : ""}>
       <div role="tablist" aria-label={`${title} sections`} className="tabs tabs-border mb-4 flex-nowrap overflow-x-auto">
         {Object.entries(sections).map(([key, section]) => (
           <button
