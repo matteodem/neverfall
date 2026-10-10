@@ -11,6 +11,7 @@ import { updateEnemyLeash } from "./enemyLeash";
 import { trackAchievements } from "../achievements";
 import { recordQuestEvent } from "../quests";
 import { handleNpcQuest } from "../npcQuests";
+import { clearMerchantInteraction } from "../merchantInteractions";
 import { NPC_QUEST_LOCATIONS } from "../../imports/game/npcs/npcQuests";
 import { createDungeonInstances } from "./dungeonInstances";
 import { createGroups } from "./groups";
@@ -1292,6 +1293,7 @@ export class WorldRoom
         client.sessionId
       );
     unregisterGuildPlayer(leavingPlayer);
+    clearMerchantInteraction(leavingPlayer?.characterId, client.sessionId);
 
 
     this.dungeons?.removePlayer(client.sessionId);

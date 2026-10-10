@@ -42,6 +42,7 @@ export const NPC_DEFINITIONS = [
     id: "camp-merchant-01",
     name: "Merchant",
     npcType: "merchant",
+    merchant: { shopId: "forest-general-store", canBuy: true, canSell: true },
     offeredQuestIds: ["seal-hunt", "hammer-guardian-hunt", "trouble-at-southwest-lake"],
     position: { x: 9, y: 0, z: -8 },
     rotationY: 0,
@@ -50,6 +51,6 @@ export const NPC_DEFINITIONS = [
       outfit: { torso: "torso-03", arms: "arms-03", hands: "hands-03", legs: "legs-03", feet: "feet-03" },
       equipment: { glasses: "glasses-52", back: "backpack-01.col" },
     },
-    dialogue: { text: "Welcome, traveler! I am still unpacking my wares. Stop by again soon." },
+    dialogue: { text: "Welcome, traveler! Looking for supplies, or have something to sell?" },
   },
 ];

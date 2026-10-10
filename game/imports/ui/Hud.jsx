@@ -108,7 +108,7 @@ const HUD_BUTTONS = [
       "Settings",
   },
 
-  { id: "items", icon: "backpack", label: "Items", shortcut: "I / B / C", defaultTab: "inventory" },
+  { id: "items", icon: "backpack", label: "Items", shortcut: "I / C", defaultTab: "inventory" },
 
   { id: "hero", icon: "sword", label: "Hero", shortcut: "G / Q / H / Z / T", defaultTab: "gear" },
 

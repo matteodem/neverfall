@@ -3,6 +3,7 @@ import { Characters } from "../imports/api/characters/characters";
 import { NPC_DEFINITIONS, NPC_INTERACTION_RANGE } from "../imports/game/npcs/npcDefinitions";
 import { NPC_QUESTS, getNpcQuestState, getQuestAcceptanceError } from "../imports/game/npcs/npcQuests";
 import { recordQuestEvent, withQuestUpdate } from "./quests";
+import { rememberMerchantInteraction } from "./merchantInteractions";
 
 const getNearbyNpc = (room, client, npcId) => {
   const player = room.state.players.get(client.sessionId);
@@ -23,6 +24,8 @@ export const handleNpcQuest = async (room, client, request) => {
     room.recordActivity(client.sessionId);
     if (action === "interact") {
       await recordQuestEvent(room, player.characterId, "InteractNpc", npcId);
+      getNearbyNpc(room, client, npcId);
+      rememberMerchantInteraction(room, client, npc);
     } else {
       const quest = NPC_QUESTS.find((entry) => entry.id === questId && npc.offeredQuestIds?.includes(entry.id));
       if (!quest) throw new Error("This NPC does not offer that quest.");

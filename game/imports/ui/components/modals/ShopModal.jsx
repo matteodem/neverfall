@@ -3,20 +3,22 @@ import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { EQUIPMENT_ITEMS, formatEquipmentStats } from "../../../game/equipment";
 import { CONSUMABLES } from "../../../game/consumables";
-import { SHOP_STOCK } from "../../../game/shop";
+import { getShop } from "../../../game/shop";
 import { HudModal } from "../HudModal";
 
-export const ShopModal = ({ embedded = false }) => {
+export const ShopModal = ({ embedded = false, merchant }) => {
   const [buyingId, setBuyingId] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const gold = useTracker(() => Math.floor((Meteor.user()?.profile?.inventory?.money || 0) / 10000));
+  const shop = getShop(merchant?.shopId);
+  if (!merchant || !shop) return null;
 
   const buy = async (itemId) => {
     if (buyingId) return;
     setBuyingId(itemId);
     setFeedback(null);
     try {
-      await Meteor.callAsync("shop.buy", itemId);
+      await Meteor.callAsync("shop.buy", itemId, merchant);
       setFeedback({ text: `${(EQUIPMENT_ITEMS[itemId] || CONSUMABLES[itemId]).name} added to your inventory.`, error: false });
     } catch (error) {
       setFeedback({ text: error.reason || "Could not buy this item.", error: true });
@@ -34,7 +36,7 @@ export const ShopModal = ({ embedded = false }) => {
         </p>
       )}
       <div className="space-y-2">
-        {SHOP_STOCK.map(({ id, priceGold }) => {
+        {shop.items.map(({ id, priceGold }) => {
           const item = EQUIPMENT_ITEMS[id] || CONSUMABLES[id];
           return (
             <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3">

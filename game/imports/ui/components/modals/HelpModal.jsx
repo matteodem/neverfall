@@ -13,7 +13,6 @@ const KEYBOARD_CONTROLS = [
   ["V", "Mount / Dismount"],
   ["F", "Loot"],
   ["I", "Toggle Inventory"],
-  ["B", "Toggle Shop"],
   ["C", "Toggle Crafting"],
   ["G", "Toggle Gear"],
   ["Q", "Toggle Quests"],

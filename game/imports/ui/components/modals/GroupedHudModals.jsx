@@ -3,7 +3,6 @@ import { useHudStore } from "../../stores/useHudStore";
 import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { InventoryModal } from "./InventoryModal";
-import { ShopModal } from "./ShopModal";
 import { CraftingModal } from "./CraftingModal";
 import { CraftingIngredientsModal } from "./CraftingIngredientsModal";
 import { GearModal } from "./GearModal";
@@ -16,7 +15,6 @@ import { TalentsModal } from "./TalentsModal";
 const SECTIONS = {
   items: {
     inventory: { label: "Inventory", Content: InventoryModal },
-    shop: { label: "Shop", Content: ShopModal },
     crafting: { label: "Crafting", Content: CraftingModal },
   },
   hero: {

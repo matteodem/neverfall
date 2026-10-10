@@ -46,7 +46,7 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, 
           close();
           onMove();
         }, mobile)}>Move</button>
-        {sellable && <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
+        {sellable && onSell && <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
           close();
           onSell(item);
         }, mobile)}>Sell</button>}

@@ -770,7 +770,7 @@ export const Game = ({
 
               if (
                 event.code ===
-                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyB" || event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE" || event.code === "KeyU"
+                "KeyI" || event.code === "KeyG" || event.code === "KeyZ" || event.code === "KeyM" || event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE" || event.code === "KeyU"
               ) {
                 if ((event.code === "KeyC" || event.code === "KeyQ" || event.code === "KeyH" || event.code === "KeyT" || event.code === "KeyO" || event.code === "KeyE") && (event.ctrlKey || event.metaKey || event.altKey)) return;
                 if (
@@ -791,7 +791,6 @@ export const Game = ({
 
                 const destination = {
                   KeyI: ["items", "inventory"],
-                  KeyB: ["items", "shop"],
                   KeyC: ["items", "crafting"],
                   KeyG: ["hero", "gear"],
                   KeyQ: ["hero", "quests"],

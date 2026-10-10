@@ -276,7 +276,7 @@ const InventorySlot = ({
               onClose();
               onMove();
             }, mobile)}>Move</button></li>
-            {sellable && <li>
+            {sellable && onSell && <li>
               <button type="button" {...actionButtonHandlers(() => {
                 onSell(item);
                 onClose();
@@ -363,12 +363,18 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade 
 );
 
 export const InventoryModal =
-  ({ embedded = false }) => {
+  ({ embedded = false, merchant = null }) => {
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
     const [sellingItem, setSellingItem] = useState(null);
     const [inspectedItemId, setInspectedItemId] = useState(null);
+    useEffect(() => () => {
+      if (!merchant) return;
+      useHudStore.getState().closeModal("sell-item");
+      useHudStore.getState().closeModal("equipment-inspection");
+    }, [merchant?.npcId]);
     const openSell = (item) => {
+      if (!merchant) return;
       setSellingItem(item);
       useHudStore.getState().openModal("sell-item");
     };
@@ -579,7 +585,7 @@ export const InventoryModal =
                   open={openItem === item?.id}
                   onToggle={() => setOpenItem((previous) => previous === item.id ? null : item.id)}
                   onClose={() => setOpenItem(null)}
-                  onSell={openSell}
+                  onSell={merchant ? openSell : undefined}
                   onMove={() => moveItem(item.id)}
                   key={
                     item
@@ -634,10 +640,10 @@ export const InventoryModal =
           </div>
         </div>
       </HudModal>
-      {sellingItem && <SellItemModal itemId={sellingItem.id} available={sellingItem.count}
+      {sellingItem && merchant && <SellItemModal itemId={sellingItem.id} available={sellingItem.count} merchant={merchant}
         itemDisplay={ITEM_DISPLAY[sellingItem.id]} onClose={() => setSellingItem(null)} />}
       {inspectedItem && <EquipmentInspection item={inspectedItem} equipment={equipment} mobile={mobile}
-        onClose={() => setInspectedItemId(null)} onSell={openSell} onMove={() => moveItem(inspectedItem.id)} />}
+        onClose={() => setInspectedItemId(null)} onSell={merchant ? openSell : undefined} onMove={() => moveItem(inspectedItem.id)} />}
       </>
     );
   };

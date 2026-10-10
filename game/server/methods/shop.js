@@ -2,11 +2,11 @@ import { Meteor } from "meteor/meteor";
 import { Characters } from "../../imports/api/characters/characters";
 import { EQUIPMENT_ITEMS } from "../../imports/game/equipment";
 import { CONSUMABLES } from "../../imports/game/consumables";
-import { SHOP_STOCK } from "../../imports/game/shop";
 import { ITEM_SELL_PRICES } from "../../imports/game/inventory";
+import { requireMerchantInteraction } from "../merchantInteractions";
 
 Meteor.methods({
-  async "shop.sell"(itemId, quantity) {
+  async "shop.sell"(itemId, quantity, merchant) {
     if (!this.userId) throw new Meteor.Error("not-authorized", "Sign in to sell items.");
     const price = typeof itemId === "string" && Object.prototype.hasOwnProperty.call(ITEM_SELL_PRICES, itemId)
       ? ITEM_SELL_PRICES[itemId] : null;
@@ -26,6 +26,8 @@ Meteor.methods({
     if (!characterId) throw new Meteor.Error("character-not-selected", "Select a character first.");
     const character = await Characters.findOneAsync({ _id: characterId, userId: this.userId });
     if (!character) throw new Meteor.Error("character-not-found", "Character not found.");
+
+    requireMerchantInteraction(this.userId, characterId, merchant, "sell");
 
     const items = character.inventory?.items || [];
     if (items.filter((item) => item.id === itemId).length < quantity) {
@@ -67,13 +69,8 @@ Meteor.methods({
     ]);
     return { items: updatedCharacter.inventory.items, money: updatedUser.profile.inventory.money };
   },
-  async "shop.buy"(itemId) {
+  async "shop.buy"(itemId, merchant) {
     if (!this.userId) throw new Meteor.Error("not-authorized", "Sign in to buy items.");
-
-    const stock = SHOP_STOCK.find((entry) => entry.id === itemId);
-    if (!stock || (!EQUIPMENT_ITEMS[itemId] && !CONSUMABLES[itemId])) {
-      throw new Meteor.Error("item-not-for-sale", "This item is not for sale.");
-    }
 
     const user = await Meteor.users.findOneAsync(this.userId);
     const characterId = user?.profile?.currentCharacterId;
@@ -81,6 +78,12 @@ Meteor.methods({
 
     const character = await Characters.findOneAsync({ _id: characterId, userId: this.userId });
     if (!character) throw new Meteor.Error("character-not-found", "Character not found.");
+
+    const shop = requireMerchantInteraction(this.userId, characterId, merchant, "buy");
+    const stock = shop.items.find((entry) => entry.id === itemId);
+    if (!stock || (!EQUIPMENT_ITEMS[itemId] && !CONSUMABLES[itemId])) {
+      throw new Meteor.Error("item-not-for-sale", "This item is not for sale.");
+    }
 
     const cost = stock.priceGold * 10000;
     const paid = await Meteor.users.updateAsync(

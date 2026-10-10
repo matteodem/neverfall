@@ -7,7 +7,6 @@ const BLOCKING_MODALS = new Set([
 ]);
 
 export const isBlockingModal = (state, id) => BLOCKING_MODALS.has(id) ||
-  (id === "items" && state.tabs.items === "shop") ||
   (id === "hero" && state.tabs.hero === "quests");
 
 export const hasBlockingModal = (state) => state.openModals.some((id) => isBlockingModal(state, id));

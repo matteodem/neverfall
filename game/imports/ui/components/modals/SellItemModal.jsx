@@ -5,10 +5,11 @@ import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 import { useHudStore } from "../../stores/useHudStore";
 
-export const SellItemModal = ({ itemId, available, itemDisplay, onClose }) => {
+export const SellItemModal = ({ itemId, available, itemDisplay, onClose, merchant }) => {
   const [quantity, setQuantity] = useState(String(available));
   const [selling, setSelling] = useState(false);
   const [error, setError] = useState("");
+  if (!merchant) return null;
   const price = ITEM_SELL_PRICES[itemId];
   const amount = Number(quantity);
   const valid = /^\d+$/.test(quantity) && Number.isSafeInteger(amount) && amount >= 1 && amount <= available;
@@ -22,7 +23,7 @@ export const SellItemModal = ({ itemId, available, itemDisplay, onClose }) => {
     setSelling(true);
     setError("");
     try {
-      await Meteor.callAsync("shop.sell", itemId, amount);
+      await Meteor.callAsync("shop.sell", itemId, amount, merchant);
       close();
     } catch (saleError) {
       setError(saleError.reason || "Could not sell this item.");
