@@ -1,5 +1,8 @@
 import React from "react";
-import { EQUIPMENT_ITEMS } from "../../../game/equipment";
+import { Meteor } from "meteor/meteor";
+import { useTracker } from "meteor/react-meteor-data";
+import { Characters } from "../../../api/characters/characters";
+import { EQUIPMENT_ITEMS, canEquipItem } from "../../../game/equipment";
 import { getEquipmentComparison } from "../../../game/equipmentComparison";
 import { ITEM_SELL_PRICES } from "../../../game/inventory";
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
@@ -9,6 +12,10 @@ import { actionButtonHandlers } from "../actionButtonHandlers";
 
 export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, onMove }) => {
   const definition = EQUIPMENT_ITEMS[item.id];
+  const gameClass = useTracker(() => {
+    const id = Meteor.user()?.profile?.currentCharacterId;
+    return id ? Characters.findOne(id)?.gameClass : null;
+  });
   const { current, stats, isUpgrade } = getEquipmentComparison(definition, equipment);
   const slot = definition.slot[0].toUpperCase() + definition.slot.slice(1);
   const sellPrice = ITEM_SELL_PRICES[item.id];
@@ -25,6 +32,7 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, 
         {isUpgrade && <span className="badge badge-success text-xs">Upgrade</span>}
       </div>
       <p className="mt-1 text-xs opacity-70">Equipment · {slot}</p>
+      {definition.gameClass && <p className="mt-1 text-xs opacity-70">Class: {definition.gameClass}</p>}
       <div className="mt-4 space-y-2 text-sm">
         {stats.map((stat) => (
           <div key={stat.id} className="flex flex-wrap justify-between gap-x-3">
@@ -38,9 +46,9 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, 
           </div>
         ))}
       </div>
-      <p className="mt-4 border-t border-base-300 pt-3 text-xs">
+      {!definition.amirMeshId && <p className="mt-4 border-t border-base-300 pt-3 text-xs">
         <span className="opacity-70">Compared to: </span>{current?.name || `Empty ${slot.toLowerCase()} slot`}
-      </p>
+      </p>}
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button type="button" className="btn btn-sm" onClick={(event) => {
           // Keep the dialog in place until the mobile tap has finished.
@@ -52,7 +60,7 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, 
           close();
           onSell(item);
         }, mobile)}>Sell</button>}
-        <button type="button" className="btn btn-sm btn-primary" {...actionButtonHandlers(() => {
+        <button type="button" className="btn btn-sm btn-primary" disabled={!canEquipItem(definition, gameClass)} {...actionButtonHandlers(() => {
           useEquipmentStore.getState().requestChange("equip", { itemId: item.id, slot: definition.slot });
           close();
         }, mobile)}>Equip item</button>

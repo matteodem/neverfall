@@ -1,6 +1,7 @@
 import React from "react";
 import { getNpcQuestState } from "../../game/npcs/npcQuests";
 import { getQuestObjectiveDisplay } from "../../game/questObjectiveDisplay";
+import { ITEM_NAMES } from "../../game/inventory";
 
 const STATE_LABELS = { available: "Available", active: "Active", completed: "Ready to turn in", rewarded: "Rewarded" };
 
@@ -18,7 +19,9 @@ export const NpcQuestCard = ({ quest, character, children }) => {
         {step.completed ? "✓ " : ""}{step.label}: {step.count} / {step.total}
       </li>)}
     </ul>
-    <p className="mt-2">Rewards: {quest.rewards.xp || 0} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}</p>
+    <p className="mt-2">Rewards: {quest.rewards.xp || 0} XP{quest.rewards.gold ? ` · ${quest.rewards.gold} Gold` : ""}
+      {(quest.rewards.items || []).map(({ itemId, quantity = 1 }) => ` · ${ITEM_NAMES[itemId] || itemId} ×${quantity}`).join("")}
+    </p>
     {state === "completed" && <p className="mt-2 text-success">Return to the quest giver to collect your rewards.</p>}
     {children}
   </div>;

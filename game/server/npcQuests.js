@@ -6,6 +6,7 @@ import { recordQuestEvent, withQuestUpdate } from "./quests";
 import { rememberMerchantInteraction } from "./merchantInteractions";
 import { trackAchievements } from "./achievements";
 import { rollRandomRingId } from "../imports/game/inventory";
+import { expandItemRewards } from "../imports/game/items";
 
 const getNearbyNpc = (room, client, npcId) => {
   const player = room.state.players.get(client.sessionId);
@@ -56,6 +57,8 @@ export const handleNpcQuest = async (room, client, request) => {
         // Money and its receipt change atomically. If XP persistence fails, retrying
         // turn-in cannot pay gold twice; the quest stays completed until XP commits.
         const rewardCount = character.questRewardCounts?.[quest.id] || 0;
+        const rewardItems = expandItemRewards(quest.rewards.items);
+        if (quest.rewards.randomRing) rewardItems.push({ id: rollRandomRingId() });
         if (quest.rewards.gold) {
           const receipt = `${character._id}:${quest.id}${quest.repeatable ? `:${rewardCount}` : ""}`;
           await Meteor.users.updateAsync({
@@ -66,12 +69,11 @@ export const handleNpcQuest = async (room, client, request) => {
           });
         }
         // Reward state, XP, and any item reward are committed together.
-        const ringId = quest.rewards.randomRing ? rollRandomRingId() : null;
         const awarded = await room.awardXp(character._id, quest.rewards.xp || 0, true, {
           selector: { [`questStates.${quest.id}`]: "completed" },
           fields: { [`questStates.${quest.id}`]: "rewarded", [`questRewardCounts.${quest.id}`]: rewardCount + 1,
             ...(character.trackedQuestId === quest.id ? { trackedQuestId: null } : {}) },
-          ...(ringId ? { items: [{ id: ringId }] } : {}),
+          ...(rewardItems.length ? { items: rewardItems } : {}),
         });
         if (awarded === false) throw new Error("Quest changed. Please reopen the dialogue and try again.");
         await trackAchievements(character._id, "quest");

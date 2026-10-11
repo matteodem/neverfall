@@ -4,15 +4,21 @@ export const INVENTORY_SLOTS = 20;
 
 // Slot order is presentation metadata; the existing item records remain untouched.
 export const getInventorySlots = (items = [], slotOrder = []) => {
-  const stacks = new Map(stackItems(items).map((item) => [item.id, item]));
-  const slots = Array(Math.max(INVENTORY_SLOTS, stacks.size)).fill(null);
+  const entries = stackItems(items);
+  const stacks = new Map();
+  for (const item of entries) {
+    if (!stacks.has(item.id)) stacks.set(item.id, []);
+    stacks.get(item.id).push(item);
+  }
+  const slots = Array(Math.max(INVENTORY_SLOTS, entries.length)).fill(null);
   for (let index = 0; index < slots.length; index++) {
-    const item = stacks.get(slotOrder[index]);
+    const item = stacks.get(slotOrder[index])?.shift();
     if (!item) continue;
     slots[index] = item;
-    stacks.delete(item.id);
   }
-  for (const item of stacks.values()) slots[slots.indexOf(null)] = item;
+  for (const copies of stacks.values()) {
+    for (const item of copies) slots[slots.indexOf(null)] = item;
+  }
   return slots;
 };
 

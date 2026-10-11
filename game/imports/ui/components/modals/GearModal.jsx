@@ -22,7 +22,7 @@ const EquipmentSlot = ({ slot, itemId }) => {
   const content = (
     <div className="min-h-[68px] rounded-md border border-gray-300 bg-gray-50 p-2">
       <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>
-      <div className="mt-1 text-xs font-semibold text-gray-800">{item?.name || "Empty"}</div>
+      <div className="mt-1 text-xs font-semibold text-gray-800">{item?.name || (["weapon", "armor"].includes(slot) ? "Class default" : "Empty")}</div>
       {formatEquipmentStats(item).map((stat) => (
         <div key={stat} className="mt-0.5 text-[10px] text-gray-600">{stat}</div>
       ))}

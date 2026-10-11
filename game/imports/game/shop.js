@@ -1,4 +1,8 @@
 export const SHOP_STOCK = [
+  { id: "iron-sword", priceGold: 6 },
+  { id: "hunting-bow", priceGold: 6 },
+  { id: "oak-staff", priceGold: 6 },
+  { id: "leather-armor", priceGold: 4 },
   { id: "health_potion", priceGold: 2 },
   { id: "speed_potion", priceGold: 3 },
   { id: "power_potion", priceGold: 5 },

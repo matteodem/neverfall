@@ -1,6 +1,8 @@
-export const EQUIPMENT_SLOTS = ["ring", "accessory"];
+export const EQUIPMENT_SLOTS = ["weapon", "armor", "ring", "accessory"];
 
 export const DEFAULT_EQUIPMENT = {
+  weapon: null,
+  armor: null,
   ring: null,
   accessory: null,
 };
@@ -9,6 +11,25 @@ export const EQUIPMENT_DROP_CHANCE = 0.20;
 export const ACCESSORY_DROP_CHANCE = 0.05;
 
 export const EQUIPMENT_ITEMS = {
+  "iron-sword": {
+    id: "iron-sword", name: "Iron Sword", type: "weapon", slot: "weapon",
+    equipmentSlot: "weapon", gameClass: "warrior", amirMeshId: "sword-02.col",
+    stackable: false, stats: {},
+  },
+  "hunting-bow": {
+    id: "hunting-bow", name: "Hunting Bow", type: "weapon", slot: "weapon",
+    equipmentSlot: "weapon", gameClass: "ranger", amirMeshId: "bow-02.col",
+    stackable: false, stats: {},
+  },
+  "oak-staff": {
+    id: "oak-staff", name: "Oak Staff", type: "weapon", slot: "weapon",
+    equipmentSlot: "weapon", gameClass: "mage", amirMeshId: "staff-03.col",
+    stackable: false, stats: {},
+  },
+  "leather-armor": {
+    id: "leather-armor", name: "Leather Armor", type: "armor", slot: "armor",
+    equipmentSlot: "armor", amirMeshId: "torso-04", stackable: false, stats: {},
+  },
   lucky_charm: {
     id: "lucky_charm",
     name: "Lucky Charm",
@@ -40,6 +61,9 @@ export const EQUIPMENT_ITEMS = {
     stats: { attackDamage: 5 },
   },
 };
+
+export const canEquipItem = (item, gameClass) => Boolean(item &&
+  (!item.gameClass || item.gameClass === gameClass));
 
 export const getEquipmentStats = (equipment = {}) => {
   const stats = { maxHealth: 0, attackDamage: 0, xpGain: 0, movementSpeed: 0 };

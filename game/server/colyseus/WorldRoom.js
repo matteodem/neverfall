@@ -1,4 +1,4 @@
-import { normalizeAmirAppearance } from "../../imports/game/character/amir/appearance";
+import { resolveAmirEquipment } from "../../imports/game/character/amir/equipmentAppearance";
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION } from "../../imports/game/campProtection";
@@ -75,6 +75,7 @@ import {
   DEFAULT_EQUIPMENT,
   EQUIPMENT_ITEMS,
   EQUIPMENT_SLOTS,
+  canEquipItem,
 } from "../../imports/game/equipment";
 
 const MAX_PLAYERS =
@@ -362,6 +363,8 @@ export class WorldRoom
     );
 
     if (!updated) return false;
+    const { gender, ...appearance } = resolveAmirEquipment(character.appearance, character.gameClass, equipment);
+    player.appearance = JSON.stringify(appearance);
     this.applyPlayerEquipment(player, equipment);
     return true;
   }
@@ -554,7 +557,7 @@ export class WorldRoom
       });
       const inventoryItems = [...(character?.inventory?.items || [])];
       const itemIndex = inventoryItems.findIndex((ownedItem) => ownedItem.id === itemId);
-      if (itemIndex < 0) return;
+      if (itemIndex < 0 || !canEquipItem(item, character.gameClass)) return;
 
       const equipment = {
         ...DEFAULT_EQUIPMENT,
@@ -1120,7 +1123,7 @@ export class WorldRoom
 
     // Reuse the persistent contract, including defaults for legacy characters.
     // Gender is metadata only and does not affect this rig's rendering.
-    const { gender, ...appearance } = normalizeAmirAppearance(character.appearance);
+    const { gender, ...appearance } = resolveAmirEquipment(character.appearance, character.gameClass, character.equipment);
 
 
     const currentLevel =

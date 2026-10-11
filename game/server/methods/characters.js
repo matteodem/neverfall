@@ -285,6 +285,8 @@ Meteor.methods({
       lootedCacheIds: [],
 
       equipment: {
+        weapon: null,
+        armor: null,
         ring: null,
         accessory: null,
       },

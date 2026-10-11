@@ -751,6 +751,7 @@ export const createMultiplayer =
     onLocalHealthChange,
     onLocalCombatChange,
     onLocalBuffChange,
+    onLocalAppearanceChange,
     onLocalRespawn,
     isGrounded,
     onHealCooldown,
@@ -935,6 +936,9 @@ export const createMultiplayer =
         ) {
           localPlayerState =
             playerState;
+          const syncLocalAppearance = () => onLocalAppearanceChange?.(JSON.parse(playerState.appearance || "{}"));
+          syncLocalAppearance();
+          callbacks.listen(playerState, "appearance", syncLocalAppearance);
           const syncLocalNameplate = () => nameplate?.setName(
             getPlayerNameplateText(playerState.name, playerState.guildTag)
           );
@@ -1107,6 +1111,9 @@ export const createMultiplayer =
 
 
         entity.playerState = playerState;
+        const syncRemoteAppearance = () => entity.character.updateAppearance(JSON.parse(playerState.appearance || "{}"));
+        syncRemoteAppearance();
+        callbacks.listen(playerState, "appearance", syncRemoteAppearance);
         const syncRemoteTitle = () => entity.nameplate.setTitle(
           getPlayerTitle(playerState.selectedTitle)?.label || ""
         );

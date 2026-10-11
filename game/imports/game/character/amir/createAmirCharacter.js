@@ -86,9 +86,33 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
     const weaponMesh = parts[weaponSlot] || null;
     weaponMesh?.setParent(weaponAnchor);
 
+    const updateAppearance = (input) => {
+      const next = applyAmirClassWeapon(normalizeAmirAppearance(input), gameClass);
+      if (!isValidAmirAppearance(next)) return;
+      const selection = { head: next.head, hair: next.hair, ...next.outfit, ...next.equipment };
+      const nextWeapon = container.meshes.find((mesh) => mesh.name === selection[weaponSlot]);
+      // Keep the original weapon as the stable combat/mount pivot; replace its visible geometry.
+      if (weaponMesh && nextWeapon && nextWeapon !== weaponMesh && nextWeapon.parent !== weaponMesh) {
+        nextWeapon.setParent(weaponMesh);
+      }
+      for (const mesh of container.meshes) {
+        if (!mesh.getTotalVertices()) continue;
+        if (mesh === weaponMesh) {
+          mesh.setEnabled(true);
+          mesh.isVisible = nextWeapon === weaponMesh;
+        } else {
+          mesh.setEnabled(Object.values(selection).includes(mesh.name));
+        }
+      }
+      for (const [slot, name] of Object.entries(selection)) {
+        parts[slot] = container.meshes.find((mesh) => mesh.name === name) || null;
+      }
+    };
+
     return {
       root, meshes: container.meshes, skeleton: container.skeletons[0], animations, appearance, parts, attachments,
       weaponAnchor, weaponMesh,
+      updateAppearance,
       createAnimationController: () => createKayKitAnimationController({ animations, attackDuration: ATTACK.duration }),
       dispose() { container.dispose(); root.dispose(); },
     };

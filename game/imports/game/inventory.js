@@ -5,13 +5,17 @@ import {
   ACCESSORY_DROP_CHANCE,
   EQUIPMENT_ITEMS,
 } from "./equipment";
-import { CONSUMABLES } from "./consumables";
 import { CRAFTING_MATERIALS } from "./crafting";
+import { ITEMS, expandItemRewards } from "./items";
 
 export const LOOT_RANGE = 2.5;
 
 // Prices are in Gold per item. Items absent from this list cannot be sold.
 export const ITEM_SELL_PRICES = {
+  "iron-sword": 2,
+  "hunting-bow": 2,
+  "oak-staff": 2,
+  "leather-armor": 1,
   boar_skin: 0.1,
   wolf_skin: 0.1,
   // A full recipe's ingredients sell for less than its crafted potion.
@@ -28,18 +32,13 @@ export const ITEM_SELL_PRICES = {
   ring_strength: 1,
 };
 
-export const ITEM_NAMES = {
-  boar_skin: "Boar Skin",
-  wolf_skin: "Wolf Skin",
-  ...Object.fromEntries(
-    Object.entries(CRAFTING_MATERIALS).map(([id, item]) => [id, item.name])
-  ),
-  ...Object.fromEntries(
-    Object.values(EQUIPMENT_ITEMS).map(({ id, name }) => [id, name])
-  ),
-  ...Object.fromEntries(
-    Object.entries(CONSUMABLES).map(([id, item]) => [id, item.name])
-  ),
+export const ITEM_NAMES = Object.fromEntries(Object.values(ITEMS).map(({ id, name }) => [id, name]));
+
+// Additional drops use the same authoritative roll for normal enemies and bosses.
+export const ENEMY_LOOT_TABLES = {
+  boar: [{ itemId: "health_potion", chance: 0.1 }, { itemId: "leather-armor", chance: 0.05 }],
+  wolf: [{ itemId: "iron-sword", chance: 0.04 }, { itemId: "hunting-bow", chance: 0.04 }, { itemId: "oak-staff", chance: 0.04 }],
+  frostboundSentinel: [{ itemId: "iron-sword", chance: 0.15 }, { itemId: "hunting-bow", chance: 0.15 }, { itemId: "oak-staff", chance: 0.15 }, { itemId: "leather-armor", chance: 0.25 }],
 };
 
 export const splitMoney = (money = 0) => ({
@@ -48,12 +47,17 @@ export const splitMoney = (money = 0) => ({
   bronze: money % 100,
 });
 
-export const stackItems = (items = []) => {
+export const stackItems = (items = [], groupCopies = false) => {
   const stacks = new Map();
+  const copies = [];
   for (const { id } of items) {
+    if (!groupCopies && ITEMS[id]?.stackable === false) {
+      copies.push({ id, count: 1 });
+      continue;
+    }
     stacks.set(id, (stacks.get(id) || 0) + 1);
   }
-  return Array.from(stacks, ([id, count]) => ({ id, count }));
+  return [...Array.from(stacks, ([id, count]) => ({ id, count })), ...copies];
 };
 
 export const canCollectLoot = (player, loot) => Boolean(
@@ -96,6 +100,12 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false,
   for (const [id, material] of Object.entries(CRAFTING_MATERIALS)) {
     const chance = material.drops[enemyType];
     if (chance && random() < chance) items.push({ id });
+  }
+
+  for (const entry of ENEMY_TYPES[enemyType]?.lootTable || ENEMY_LOOT_TABLES[enemyType] || []) {
+    if (random() < Math.min(1, entry.chance * lootMultiplier)) {
+      items.push(...expandItemRewards([entry]));
+    }
   }
 
   return {

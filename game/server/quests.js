@@ -5,6 +5,7 @@ import { getNpcQuestState, getTrackedQuest } from "../imports/game/npcs/npcQuest
 import { ITEM_NAMES, rollRandomRingId } from "../imports/game/inventory";
 import { trackAchievements } from "./achievements";
 import { spawnLoot } from "./inventory/loot";
+import { expandItemRewards } from "../imports/game/items";
 
 const pending = new Map();
 
@@ -70,9 +71,11 @@ export const recordQuestEvent = (room, characterId, type, target, { spawnId } = 
         ? quest.turnInRequired ? "completed" : "rewarded" : "active";
       if (completed && !quest.turnInRequired && character.trackedQuestId === quest.id) update.trackedQuestId = null;
       const ringId = completed && !quest.turnInRequired && quest.rewards?.randomRing ? rollRandomRingId() : null;
+      const rewardItems = completed && !quest.turnInRequired ? expandItemRewards(quest.rewards?.items) : [];
+      if (ringId) rewardItems.push({ id: ringId });
       await Characters.updateAsync(characterId, {
         $set: update,
-        ...(ringId ? { $push: { "inventory.items": { id: ringId } } } : {}),
+        ...(rewardItems.length ? { $push: { "inventory.items": { $each: rewardItems } } } : {}),
       });
       character.questProgress ||= {};
       character.questProgress[quest.id] = next;

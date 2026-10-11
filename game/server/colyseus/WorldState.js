@@ -95,7 +95,7 @@ export const PlayerState =
       talent15: t.string().default(""),
       talent20: t.string().default(""),
       
-      // Canonical cosmetic appearance JSON, sent once on join; never client-authored.
+      // Canonical appearance JSON, refreshed on gear changes; never client-authored.
       appearance: t.string().default(""),
 
     },

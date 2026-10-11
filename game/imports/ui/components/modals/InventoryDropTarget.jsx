@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../../../api/characters/characters";
-import { EQUIPMENT_ITEMS } from "../../../game/equipment";
+import { EQUIPMENT_ITEMS, canEquipItem } from "../../../game/equipment";
 import { useEquipmentStore } from "../../stores/useEquipmentStore";
 import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
 
@@ -19,7 +19,8 @@ export const InventoryDropTarget = ({ characterId, itemId, target, mobile, child
     : character?.equipment?.[source?.slot] === source?.itemId;
   const valid = Boolean(source && !busy && source.characterId === characterId && owned &&
     (target.type === "inventory" || (source.type === "inventory" &&
-      EQUIPMENT_ITEMS[source.itemId]?.slot === target.slot && character?.equipment?.[target.slot] !== source.itemId)));
+      EQUIPMENT_ITEMS[source.itemId]?.slot === target.slot && canEquipItem(EQUIPMENT_ITEMS[source.itemId], character?.gameClass) &&
+      character?.equipment?.[target.slot] !== source.itemId)));
   const isSource = source?.characterId === characterId && source?.type === target.type && source?.itemId === itemId;
 
   const drop = async () => {

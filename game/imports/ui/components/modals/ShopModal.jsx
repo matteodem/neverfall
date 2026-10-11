@@ -42,7 +42,7 @@ export const ShopModal = ({ embedded = false, merchant }) => {
             <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3">
               <div className="min-w-0">
                 <div className="font-semibold">{item.name}</div>
-                <div className="text-xs opacity-70">{item.description || formatEquipmentStats(item).join(" · ")}</div>
+                <div className="text-xs opacity-70">{item.description || (item.gameClass ? `Class: ${item.gameClass}` : formatEquipmentStats(item).join(" · "))}</div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <span className="text-sm font-semibold">{priceGold} Gold</span>

@@ -1,4 +1,5 @@
 import { useQualityStore } from "./stores/useQualityStore";
+import { resolveAmirEquipment } from "../game/character/amir/equipmentAppearance";
 import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession";
@@ -245,7 +246,7 @@ export const Game = ({
               scene,
               {
                 appearance:
-                  character.appearance,
+                  resolveAmirEquipment(character.appearance, character.gameClass, character.equipment),
 
                 name:
                   character.name,
@@ -357,6 +358,7 @@ export const Game = ({
 
               player,
               nameplate: world.nameplate,
+              onLocalAppearanceChange: (appearance) => playerCharacter.updateAppearance(appearance),
               forestProps: world.forestProps,
               dungeonVisuals: world.dungeonVisuals,
               worldChunks: world.worldChunks,

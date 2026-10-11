@@ -8,6 +8,8 @@ const STATS = {
 };
 
 export const getEquipmentComparison = (item, equipment = {}) => {
+  // MVP visual gear has no stats or upgrade comparisons.
+  if (item.amirMeshId) return { current: null, stats: [], isUpgrade: false };
   const equipped = EQUIPMENT_ITEMS[equipment?.[item.slot]];
   const current = equipped?.slot === item.slot ? equipped : null;
   const stats = Object.entries(STATS)

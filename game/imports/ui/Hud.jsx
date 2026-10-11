@@ -24,6 +24,7 @@ import { NpcDialogue } from "./components/NpcDialogue";
 import { GroupInvitationModal } from "./components/GroupInvitationModal";
 import { GroupPanel } from "./components/GroupPanel";
 import { LootPrompt } from "./components/LootPrompt";
+import { ItemReceivedToast } from "./components/ItemReceivedToast";
 import React, {
   useEffect,
   useState,
@@ -780,6 +781,7 @@ export const Hud = ({
       />
       <Chat />
       <LootPrompt />
+      <ItemReceivedToast />
       <DungeonPrompt />
       <NpcDialogue />
       <GroupPanel />

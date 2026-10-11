@@ -54,7 +54,7 @@ export const QUESTS = [
     requiredLevel: 5,
     description: "Travel to the Highlands and speak with the Highlands Scout.",
     objective: { type: "InteractNpc", target: "highlands-scout-01", amount: 1, label: "Speak with the Highlands Scout" },
-    rewards: { xp: 250, gold: 1 },
+    rewards: { xp: 250, gold: 1, items: [{ itemId: "health_potion", quantity: 2 }] },
   },
   {
     id: "discover-snowy-mountains",
