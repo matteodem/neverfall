@@ -31,6 +31,7 @@ export const DUNGEONS = [
     rewards: { xp: 250, money: 10000, lootType: "dungeonChest" },
     miniBoss: { type: "dungeonGuardian" },
     finalBoss: { id: "dungeon-final-boss", type: "dungeonWarden", level: 11,
+      lootTable: [{ itemId: "iron-sword", chance: 0.25 }, { itemId: "purple-armor", chance: 0.35 }],
       position: { x: 0, y: 0, z: 77 } },
     stages: [
       { name: "Enemy Pack 1", enemies: [
@@ -67,6 +68,7 @@ export const DUNGEONS = [
     rewards: { xp: 400, money: 20000, lootType: "northernRuinsChest" },
     miniBoss: { type: "alphaWolf" },
     finalBoss: { id: "ruins-warden", type: "dungeonWarden", level: 13,
+      lootTable: [{ itemId: "hunting-bow", chance: 0.3 }, { itemId: "oak-staff", chance: 0.3 }],
       position: { x: 0, y: 0, z: 77 } },
     stages: [
       { name: "Ruined Gate", enemies: [
@@ -111,9 +113,11 @@ export const DUNGEONS = [
         { x: -7, z: 69, width: 8, depth: 11 },
       ],
     },
-    rewards: { xp: 650, money: 25000, lootType: "sunkenRuinsChest" },
+    rewards: { xp: 650, money: 25000, lootType: "sunkenRuinsChest",
+      items: [{ itemId: "purple-armor", quantity: 1 }] },
     miniBoss: { id: "sunken-guard-a" },
     finalBoss: { id: "sunken-final-boss", type: "drownedWarden", level: 17,
+      lootTable: [{ itemId: "guardian_talisman", chance: 0.4 }, { itemId: "oak-staff", chance: 0.35 }],
       position: { x: 0, y: 0, z: 77 } },
     stages: [
       { name: "Flooded Gate", enemies: [

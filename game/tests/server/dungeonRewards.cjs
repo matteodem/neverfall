@@ -13,19 +13,62 @@ async function loadRewards() {
   random.random = () => { saved.rolls++; return 0; };
   const context = vm.createContext({ Math: random, console: { error() {} } });
   class LootState { constructor(values) { Object.assign(this, values); } }
+  const characters = new Map();
+  const users = new Map();
+  const get = (object, key) => key.split(".").reduce((value, part) => value?.[part], object);
+  const set = (object, key, value) => {
+    const parts = key.split(".");
+    for (const part of parts.slice(0, -1)) object = object[part] ||= {};
+    object[parts.at(-1)] = value;
+  };
+  const matches = (document, query) => document && Object.entries(typeof query === "string" ? { _id: query } : query)
+    .every(([key, expected]) => {
+      const actual = get(document, key);
+      if (expected && typeof expected === "object" && "$ne" in expected) return !actual?.includes(expected.$ne);
+      return Array.isArray(actual) ? actual.includes(expected) : actual === expected;
+    });
+  const collection = (documents, isUser = false) => ({
+    async findOneAsync(query) {
+      const document = documents.get(typeof query === "string" ? query : query._id);
+      return matches(document, query) ? structuredClone(document) : undefined;
+    },
+    async updateAsync(query, update) {
+      const document = documents.get(typeof query === "string" ? query : query._id);
+      if (!matches(document, query)) return 0;
+      if (isUser && saved.failMoney) { saved.failMoney = false; throw new Error("Temporary failure"); }
+      if (update.$set?.currentXp !== undefined) saved.xp += update.$set.currentXp - document.currentXp;
+      for (const [key, value] of Object.entries(update.$set || {})) set(document, key, value);
+      for (const [key, value] of Object.entries(update.$inc || {})) {
+        set(document, key, (get(document, key) || 0) + value);
+        if (isUser) saved.money += value;
+      }
+      for (const [key, value] of Object.entries(update.$push || {})) {
+        get(document, key).push(...value.$each);
+        saved.items.push(...value.$each);
+      }
+      for (const [key, value] of Object.entries(update.$addToSet || {})) {
+        const values = get(document, key) || [];
+        if (!values.includes(value)) values.push(value);
+        set(document, key, values);
+      }
+      if (isUser && saved.failAfterMoney) { saved.failAfterMoney = false; throw new Error("Lost acknowledgement"); }
+      if (!isUser && update.$set && saved.failAfterItems) { saved.failAfterItems = false; throw new Error("Lost acknowledgement"); }
+      return 1;
+    },
+  });
+  let nextId = 0;
   const stubs = {
-    "meteor/meteor": { Meteor: { users: { async updateAsync(id, update) {
-      if (saved.failMoney) { saved.failMoney = false; throw new Error("Temporary failure"); }
-      saved.money += update.$inc["profile.inventory.money"];
-      return 1;
-    } } } },
-    "node:crypto": { randomUUID: () => "drop" },
-    "server/colyseus/WorldRoom.js": { WorldRoom: class {} },
-    "server/colyseus/WorldState.js": { DungeonState: class {}, LootState },
-    "imports/api/characters/characters.js": { Characters: { async updateAsync(id, update) {
-      if (update.$push) saved.items.push(...update.$push["inventory.items"].$each);
-      return 1;
-    } } },
+    "meteor/meteor": { Meteor: { users: collection(users, true) } },
+    "node:crypto": { randomUUID: () => `drop-${++nextId}` },
+    "server/colyseus/WorldRoom.js": { WorldRoom: class {
+      async onJoin(client, options, auth) {
+        this.state.players.set(client.sessionId, { userId: auth.userId, characterId: auth.characterId,
+          health: 100, maxHealth: 100, statusEffects: new Map() });
+        this.playerRuntime.set(client.sessionId, {});
+      }
+    } },
+    "server/colyseus/WorldState.js": { DungeonState: class {}, LootState, StatusEffectState: LootState },
+    "imports/api/characters/characters.js": { Characters: collection(characters) },
     "server/achievements.js": { trackAchievements: async () => {} },
     "server/quests.js": { recordQuestEvent: async () => {} },
     "imports/game/quests.js": { QUESTS: [] },
@@ -55,16 +98,31 @@ async function loadRewards() {
   await loot.evaluate();
   const config = (await load("imports/game/dungeonConfig.js")).namespace;
   const inventory = (await load("imports/game/inventory.js")).namespace;
+  // Execute the production atomic XP/item commit without starting Meteor.
+  const source = await readFile(path.join(root, "server/colyseus/WorldRoom.js"), "utf8");
+  const start = source.indexOf("  async awardXp(");
+  const end = source.indexOf("\n  }", start) + "\n  }".length;
+  assert.ok(start >= 0 && end > start);
+  const awardXp = vm.runInContext(`(Characters, addXpToProgress, getPlayerStats, trackAchievements) => ({${source.slice(start, end)}}).awardXp`, context)(
+    stubs["imports/api/characters/characters.js"].Characters,
+    ({ currentLevel, currentXp, gainedXp }) => ({ currentLevel, currentXp: currentXp + gainedXp }),
+    () => ({ xpGainMultiplier: 1 }), async () => {},
+  );
   function createRoom(dungeonConfig, challengeModeEnabled) {
     const room = Object.create(dungeon.namespace.DungeonRoom.prototype);
     room.config = dungeonConfig;
+    room.roomId = `run-${++nextId}`;
+    for (const id of ["character", "second"]) {
+      if (!characters.has(id)) characters.set(id, { _id: id, userId: "user", currentLevel: 1, currentXp: 0, inventory: { items: [] } });
+    }
+    if (!users.has("user")) users.set("user", { _id: "user", profile: { inventory: { money: 0 } } });
     room.state = {
       stage: dungeonConfig.stages.length - 1, completed: false, challengeModeEnabled,
       players: new Map(), enemies: new Map(), loot: new Map(),
     };
     room.participants = new Map([["character", { userId: "user", claimed: false }]]);
     room.enemyRuntime = new Map();
-    room.awardXp = async (id, xp) => { saved.xp += xp; };
+    room.awardXp = awardXp;
     return room;
   }
   function complete(room) {
@@ -79,7 +137,7 @@ async function loadRewards() {
       x: room.config.chest.x, y: 0, z: room.config.chest.z,
     });
   }
-  return { saved, createRoom, complete, joinAtChest, ...loot.namespace, ...config, ...inventory };
+  return { saved, characters, users, createRoom, complete, joinAtChest, ...loot.namespace, ...config, ...inventory };
 }
 
 test("Normal and Challenge completion rewards for every dungeon", async () => {
@@ -97,7 +155,7 @@ test("Normal and Challenge completion rewards for every dungeon", async () => {
       const reward = room.getLootReward(chest);
       assert.equal(reward.money, config.rewards.money * (challenge ? 1.5 : 1));
       assert.deepEqual(Array.from(reward.items, item => item.id),
-        Array.from([...normal.items, ...(challenge ? boss.items : [])], item => item.id));
+        Array.from([...normal.items, ...(config.rewards.items || []).flatMap(({ itemId, quantity }) => Array(quantity || 1).fill({ id: itemId })), ...(challenge ? boss.items : [])], item => item.id));
       room.killEnemy(config.finalBoss.id);
       room.addChestLoot("character", room.participants.get("character"));
       assert.equal(room.state.loot.size, 1);
@@ -185,4 +243,104 @@ test("Persistence retries reuse bonus rolls and do not duplicate items or XP", a
   assert.equal(api.saved.xp, room.config.rewards.xp * 1.5);
   assert.equal(api.saved.money, room.config.rewards.money * 1.5);
   assert.equal(room.state.loot.size, 0);
+});
+
+test("Normal dungeon kills and bosses persist standard and custom drops through shared loot", async () => {
+  const api = await loadRewards();
+  for (const config of api.DUNGEONS) {
+    const room = api.createRoom(config, false);
+    api.joinAtChest(room);
+    const player = room.state.players.get("session");
+    for (const spawn of [{ id: "normal", type: "boar" }, config.finalBoss]) {
+      const enemy = { ...spawn, x: player.x, y: player.y, z: player.z };
+      // Keep another enemy alive so this check isolates drops from completion.
+      room.state.enemies.set("remaining", { type: "wolf" });
+      room.state.enemies.set(spawn.id, enemy);
+      room.enemyRuntime.set(spawn.id, { spawn, contributors: new Set(["character"]) });
+      room.killEnemy(spawn.id);
+      room.killEnemy(spawn.id);
+      assert.equal(room.state.loot.size, 1, "replayed deaths must not duplicate drops");
+      const [id, drop] = room.state.loot.entries().next().value;
+      assert.equal(drop.ownerCharacterId, "character");
+      const expected = api.rollLoot(() => 0, spawn.type, false, false, spawn.lootTable);
+      const before = api.characters.get("character").inventory.items.length;
+      await api.collectLoot(room, { sessionId: "session" }, id);
+      assert.deepEqual(Array.from(api.characters.get("character").inventory.items.slice(before), item => item.id),
+        Array.from(expected.items, item => item.id));
+      for (const entry of spawn.lootTable || []) {
+        assert.ok(expected.items.some(item => item.id === entry.itemId));
+      }
+      assert.equal(room.state.loot.size, 0);
+      assert.equal(api.saved.xp, 0, "enemy drops preserve completion-only XP");
+    }
+  }
+});
+
+test("Persisted receipts prevent restored/re-entered completion claims; a new run can reward again", async () => {
+  const api = await loadRewards();
+  const room = api.createRoom(api.DUNGEONS[2], false);
+  api.complete(room);
+  api.joinAtChest(room);
+  await api.collectLoot(room, { sessionId: "session" }, "chest-character");
+  const receipt = room.getLootReceipt({ enemyType: room.config.rewards.lootType, ownerCharacterId: "character" });
+  assert.equal(await api.hasClaimedLootReward("character", "user", receipt), true);
+  assert.ok(api.characters.get("character").inventory.items.some(item => item.id === "purple-armor"));
+  const before = { xp: api.saved.xp, money: api.saved.money, items: api.saved.items.length };
+  // Discard volatile participant state, as a reconnect/re-entry would restore it.
+  room.participants.set("character", { userId: "user", claimed: false });
+  room.addChestLoot("character", room.participants.get("character"));
+  await api.collectLoot(room, { sessionId: "session" }, "chest-character");
+  assert.deepEqual({ xp: api.saved.xp, money: api.saved.money, items: api.saved.items.length }, before);
+  assert.equal(room.participants.get("character").claimed, true);
+  const nextRun = api.createRoom(room.config, false);
+  api.complete(nextRun);
+  api.joinAtChest(nextRun);
+  await api.collectLoot(nextRun, { sessionId: "session" }, "chest-character");
+  assert.equal(api.saved.xp, before.xp * 2);
+  assert.equal(api.saved.money, before.money * 2);
+  assert.equal(api.saved.items.length, before.items * 2);
+});
+
+for (const failure of ["failAfterItems", "failAfterMoney"]) {
+  test(`Lost database acknowledgement (${failure}) does not duplicate completion rewards`, async () => {
+    const api = await loadRewards();
+    const room = api.createRoom(api.DUNGEONS[2], false);
+    api.complete(room);
+    api.joinAtChest(room);
+    api.saved[failure] = true;
+    await api.collectLoot(room, { sessionId: "session" }, "chest-character");
+    assert.equal(room.state.loot.size, 1);
+    const items = api.saved.items.length;
+    await api.collectLoot(room, { sessionId: "session" }, "chest-character");
+    assert.equal(api.saved.items.length, items);
+    assert.equal(api.saved.xp, room.config.rewards.xp);
+    assert.equal(api.saved.money, room.config.rewards.money);
+    assert.equal(room.state.loot.size, 0);
+  });
+}
+
+
+test("Actual dungeon re-entry restores the persisted claim flag without recreating a chest", async () => {
+  const api = await loadRewards();
+  const room = api.createRoom(api.DUNGEONS[0], false);
+  api.complete(room);
+  api.joinAtChest(room);
+  await api.collectLoot(room, { sessionId: "session" }, "chest-character");
+  room.state.players.clear();
+  room.participants.get("character").claimed = false;
+  room.playerRuntime = new Map();
+  room.recordActivity = () => {};
+  const source = { userId: "user", characterId: "character", health: 100,
+    ...room.config.entrance, statusEffects: new Map() };
+  room.access = { soloCharacterId: "character", world: {
+    state: { players: new Map([["world", source]]) }, playerRuntime: new Map([["world", {}]]),
+  } };
+  const before = { ...api.saved };
+  await room.onJoin({ sessionId: "rejoined" }, { worldSessionId: "world" }, { userId: "user", characterId: "character" });
+  assert.equal(room.state.players.get("rejoined").dungeonRewardClaimed, true);
+  assert.equal(room.state.loot.size, 0);
+  assert.equal(room.participants.get("character").claimed, true);
+  assert.equal(api.saved.xp, before.xp);
+  assert.equal(api.saved.money, before.money);
+  assert.equal(api.saved.items.length, before.items.length);
 });

@@ -72,7 +72,7 @@ export const rollRandomRingId = (random = Math.random) => {
   return ringIds[Math.floor(random() * ringIds.length)];
 };
 
-export const rollLoot = (random = Math.random, enemyType = "boar", rare = false, guaranteeItem = false) => {
+export const rollLoot = (random = Math.random, enemyType = "boar", rare = false, guaranteeItem = false, lootTable) => {
   const bossDrop = Boolean(ENEMY_TYPES[enemyType]?.bossMechanics);
   const chestDungeon = DUNGEONS.find((dungeon) => dungeon.rewards.lootType === enemyType);
   const accessoryDropChance = chestDungeon
@@ -102,7 +102,7 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false,
     if (chance && random() < chance) items.push({ id });
   }
 
-  for (const entry of ENEMY_TYPES[enemyType]?.lootTable || ENEMY_LOOT_TABLES[enemyType] || []) {
+  for (const entry of lootTable ?? ENEMY_TYPES[enemyType]?.lootTable ?? ENEMY_LOOT_TABLES[enemyType] ?? []) {
     if (random() < Math.min(1, entry.chance * lootMultiplier)) {
       items.push(...expandItemRewards([entry]));
     }

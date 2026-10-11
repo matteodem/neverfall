@@ -8,7 +8,8 @@ import { DungeonState, LootState } from "./WorldState";
 import { getDungeonAccess, removeDungeonAccess } from "./dungeonInstances";
 import { getDungeonConfig, DUNGEON_PLAYER_FIELDS, nearDungeonObject } from "../../imports/game/dungeonConfig";
 import { getWorldHeight } from "../../imports/game/worldConfig";
-import { collectLoot, spawnLoot } from "../inventory/loot";
+import { collectLoot, spawnLoot, hasClaimedLootReward } from "../inventory/loot";
+import { expandItemRewards } from "../../imports/game/items";
 import { recordQuestEvent } from "../quests";
 import { copyStatusEffects } from "./statusEffects";
 import { createDungeonExitTrace } from "../../imports/game/dungeonExitTrace";
@@ -114,6 +115,12 @@ export class DungeonRoom extends WorldRoom {
         this.participants.set(player.characterId, { userId: player.userId, claimed: false });
       }
       const participant = this.participants.get(player.characterId);
+      if (this.state.completed && !participant.claimed) {
+        participant.claimed = await hasClaimedLootReward(player.characterId, player.userId,
+          `dungeon:${this.roomId}:${player.characterId}`);
+        if (participant.claimed) this.state.loot.delete(`chest-${player.characterId}`);
+        else this.addChestLoot(player.characterId, participant);
+      }
       player.dungeonRewardClaimed = participant.claimed;
     } catch (error) {
       source.inDungeon = false;
@@ -146,8 +153,8 @@ export class DungeonRoom extends WorldRoom {
   spawnStage() {
     const stage = this.config.stages[this.state.stage];
     if (stage.boss) {
-      const { id, type, level, position } = this.config.finalBoss;
-      this.spawnEnemy({ id, type, level, ...position });
+      const { position, ...spawn } = this.config.finalBoss;
+      this.spawnEnemy({ ...spawn, ...position });
     } else {
       for (const spawn of stage.enemies) this.spawnEnemy(spawn);
     }
@@ -166,12 +173,10 @@ export class DungeonRoom extends WorldRoom {
   killEnemy(enemyId) {
     const runtime = this.enemyRuntime.get(enemyId);
     if (!runtime) return;
-    // The final boss's accessory roll belongs to the existing reward chest.
     const enemy = this.state.enemies.get(enemyId);
-    if (runtime.spawn.id === this.config.miniBoss?.id ||
-      runtime.spawn.type === this.config.miniBoss?.type || enemy?.rare) {
-      for (const [sessionId, player] of this.state.players) {
-        if (runtime.contributors.has(player.characterId)) spawnLoot(this, enemy, sessionId);
+    for (const [sessionId, player] of this.state.players) {
+      if (runtime.contributors.has(player.characterId)) {
+        spawnLoot(this, enemy, sessionId, false, runtime.spawn.lootTable);
       }
     }
     for (const characterId of runtime.contributors) {
@@ -218,17 +223,26 @@ export class DungeonRoom extends WorldRoom {
 
   getLootReward(loot) {
     const reward = rollLoot(Math.random, loot.enemyType, loot.rare);
-    if (loot.enemyType === this.config.rewards.lootType && this.state.challengeModeEnabled === true) {
-      reward.money *= 1.5;
-      // Only append items: the chest remains the single source of completion XP/Gold.
-      reward.items.push(...rollLoot(Math.random, this.config.finalBoss.type).items);
+    if (loot.enemyType === this.config.rewards.lootType) {
+      reward.items.push(...expandItemRewards(this.config.rewards.items));
+      if (this.state.challengeModeEnabled === true) {
+        reward.money *= 1.5;
+        // The chest remains the single source of completion XP/Gold.
+        reward.items.push(...rollLoot(Math.random, this.config.finalBoss.type).items);
+      }
     }
     return reward;
   }
 
+  getLootReceipt(loot) {
+    return loot.enemyType === this.config.rewards.lootType
+      ? `dungeon:${this.roomId}:${loot.ownerCharacterId}` : null;
+  }
+
   onLootCollected(player, loot) {
     if (loot.enemyType !== this.config.rewards.lootType) return;
-    this.participants.get(player.characterId).claimed = true;
+    const participant = this.participants.get(player.characterId);
+    if (participant) participant.claimed = true;
     player.dungeonRewardClaimed = true;
   }
 
