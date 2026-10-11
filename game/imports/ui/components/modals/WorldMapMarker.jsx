@@ -21,7 +21,8 @@ export const WorldMapMarkerIcon = ({ kind }) => {
   return <span className={`flex shrink-0 items-center justify-center rounded-full shadow ${className}`}>{glyph}</span>;
 };
 
-export const WorldMapMarker = ({ id, kind, label, position, mobile, selected, onSelect, offsetX = 0 }) => {
+export const WorldMapMarker = ({ id, kind, label, position, mobile, selected, onSelect, offsetX = 0, offsetY = 0 }) => {
+  const compact = ["waypoint", "undiscovered", "spawn"].includes(kind);
   const left = parseFloat(position.left);
   const top = parseFloat(position.top);
   const horizontal = left < 25 ? "left-0" : left > 75 ? "right-0" : "left-1/2 -translate-x-1/2";
@@ -29,8 +30,8 @@ export const WorldMapMarker = ({ id, kind, label, position, mobile, selected, on
 
   return (
     <button type="button" data-map-marker={id} aria-label={label}
-      className={`group absolute flex items-center justify-center border-0 bg-transparent p-0 ${mobile ? "h-12 w-12" : "h-8 w-8"} ${kind === "event" ? "z-10" : selected ? "z-30" : kind === "custom" ? "z-[25] hover:z-30 focus-visible:z-30" : "z-[15] hover:z-30 focus-visible:z-30"}`}
-      style={{ ...position, transform: `translate(calc(-50% + ${offsetX}px), -50%)` }}
+      className={`group absolute flex items-center justify-center border-0 bg-transparent p-0 ${compact ? mobile ? "h-10 w-10" : "h-6 w-6" : mobile ? "h-12 w-12" : "h-8 w-8"} ${kind === "event" ? "z-10" : selected ? "z-30" : kind === "custom" ? "z-[25] hover:z-30 focus-visible:z-30" : "z-[15] hover:z-30 focus-visible:z-30"}`}
+      style={{ ...position, transform: `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))` }}
       onPointerDown={(event) => event.stopPropagation()}
       onPointerUp={(event) => event.stopPropagation()}
       onClick={(event) => { event.stopPropagation(); onSelect(id, event); }}>

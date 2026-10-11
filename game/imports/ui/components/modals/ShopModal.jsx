@@ -36,7 +36,7 @@ export const ShopModal = ({ embedded = false, merchant }) => {
         </p>
       )}
       <div className="space-y-2">
-        {shop.items.map(({ id, priceGold }) => {
+        {[...shop.items].sort((a, b) => a.priceGold - b.priceGold).map(({ id, priceGold }) => {
           const item = EQUIPMENT_ITEMS[id] || CONSUMABLES[id];
           return (
             <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3">

@@ -30,7 +30,6 @@ const WORLD_LABELS = [
   { label: "Snowy Mountains (Level 10 - 15)", x: 208, z: -75 },
 ];
 
-const isStandaloneWaypoint = (point) => ["lake-waypoint", "snowy-mountains-waypoint"].includes(point.id);
 const LEGEND = [
   { kind: "waypoint", label: "Waypoint" },
   { kind: "undiscovered", label: "Undiscovered waypoint" },
@@ -191,18 +190,19 @@ const MapContent = () => {
         {!dungeon && getUnlockedSpawnPoints(character?.unlockedSpawnPoints).map((point) => (
           <WorldMapMarker key={`spawn-${point.id}`} id={`spawn-${point.id}`} kind="spawn"
             label={`${point.name} · Respawn Point · Unlocked`} position={worldToPercent(point.position)}
+            offsetY={20 / view.zoom}
             mobile={mobile} selected={activeMarkerId === `spawn-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && unlockedWaypoints.map((point) => (
           <WorldMapMarker key={`waypoint-${point.id}`} id={`waypoint-${point.id}`} kind="waypoint"
             label={`${point.name} · Waypoint`} position={worldToPercent(point.position)}
-            offsetX={isStandaloneWaypoint(point) ? 0 : mobile ? 50 : 34}
+            offsetX={20 / view.zoom}
             mobile={mobile} selected={activeMarkerId === `waypoint-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && undiscoveredWaypoints.map((point) => (
           <WorldMapMarker key={`undiscovered-${point.id}`} id={`undiscovered-${point.id}`} kind="undiscovered"
             label={`${point.name} · Undiscovered`} position={worldToPercent(point.position)}
-            offsetX={isStandaloneWaypoint(point) ? 0 : mobile ? 50 : 34}
+            offsetX={20 / view.zoom}
             mobile={mobile} selected={activeMarkerId === `undiscovered-${point.id}`} onSelect={selectMarker} />
         ))}
         {!dungeon && LANDMARKS.map((landmark) => (
