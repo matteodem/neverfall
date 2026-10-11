@@ -88,8 +88,11 @@ const MapContent = () => {
     else setActiveMarkerId(activeMarkerId === id ? null : id);
   };
   const clampView = React.useCallback((zoom, x, y) => {
-    const edge = (zoom - 1) * (viewportRef.current?.clientWidth || 0) / 2;
-    return { zoom, x: Math.max(-edge, Math.min(edge, x)), y: Math.max(-edge, Math.min(edge, y)) };
+    const viewport = viewportRef.current;
+    const size = viewport?.clientWidth || 0;
+    const edgeX = Math.max(0, (size * zoom - size) / 2);
+    const edgeY = Math.max(0, (size * zoom - (viewport?.clientHeight || 0)) / 2);
+    return { zoom, x: Math.max(-edgeX, Math.min(edgeX, x)), y: Math.max(-edgeY, Math.min(edgeY, y)) };
   }, []);
   const changeZoom = React.useCallback((amount) => setView((current) => {
     const zoom = Math.max(1, Math.min(3, current.zoom + amount));
@@ -135,10 +138,8 @@ const MapContent = () => {
     } else if (points.length === 1 && gesture.current?.point) {
       let dx = points[0].x - gesture.current.point.x;
       let dy = points[0].y - gesture.current.point.y;
-      const portrait = event.currentTarget.closest(".mobile-portrait");
-      if (portrait) [dx, dy] = [dy, -dx];
       const bounds = event.currentTarget.getBoundingClientRect();
-      const scale = (portrait ? bounds.height : bounds.width) / event.currentTarget.clientWidth;
+      const scale = bounds.width / event.currentTarget.clientWidth;
       dx /= scale;
       dy /= scale;
       setView(clampView(view.zoom, gesture.current.view.x + dx, gesture.current.view.y + dy));
@@ -170,11 +171,11 @@ const MapContent = () => {
         <span className="min-w-12 text-center text-sm">{Math.round(view.zoom * 100)}%</span>
         <button type="button" className="btn btn-sm" aria-label="Zoom in" disabled={view.zoom >= 3} onClick={() => changeZoom(0.25)}>+</button>
       </div>
-      <div ref={viewportRef} className="relative aspect-square cursor-grab touch-none overflow-hidden rounded-box border border-base-300 active:cursor-grabbing"
+      <div ref={viewportRef} className="world-map-viewport relative aspect-square cursor-grab touch-none overflow-hidden rounded-box border border-base-300 active:cursor-grabbing"
         onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}
         onClick={() => { setActiveMarkerId(null); setSelectedWaypointId(null); }}>
-        <div ref={mapContentRef} className="absolute inset-0 origin-center" style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
+        <div ref={mapContentRef} className="absolute left-0 top-1/2 aspect-square w-full origin-center" style={{ transform: `translateY(-50%) translate(${view.x}px, ${view.y}px) scale(${view.zoom})` }}>
         <img src={dungeon ? "/maps/dungeon.svg" : "/maps/forest.svg"}
           alt={dungeon ? "Top-down dungeon map" : "Top-down Neverfall world map"}
           className="block h-full w-full" draggable={false} />

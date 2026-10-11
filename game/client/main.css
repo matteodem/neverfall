@@ -136,45 +136,26 @@ body {
 
 .mobile-game .hud-world-panel { flex-direction: row; align-items: flex-start; }
 .mobile-game .hud-trackers { display: flex; flex-direction: column; gap: 10px; }
-.mobile-game .hud-modal { font-size: 24px; transform-origin: top center; }
-.mobile-game .hud-modal.world-map-modal { max-height: calc(var(--game-height) * 2 - 16px); }
-.mobile-game .hud-modal .btn { font-size: calc(var(--fontsize, 0.875rem) * 2); }
-.mobile-game .hud-modal .text-xs { font-size: 24px; line-height: 1.4; }
-.mobile-game .hud-modal .text-sm { font-size: 28px; line-height: 1.4; }
-.mobile-game .hud-modal .text-base { font-size: 32px; line-height: 1.4; }
-.mobile-game .hud-modal .text-lg { font-size: 36px; line-height: 1.4; }
-.mobile-game .hud-modal .text-xl { font-size: 32px; line-height: 1.4; }
-.mobile-game .hud-modal [class~="text-[9px]"] { font-size: 18px; line-height: 1.4; }
-.mobile-game .hud-modal [class~="text-[10px]"] { font-size: 20px; line-height: 1.4; }
-.mobile-game .hud-modal [class~="text-[11px]"] { font-size: 22px; line-height: 1.4; }
-.mobile-game .hud-modal .p-4 { padding: 10px; }
-.mobile-game .world-map-modal .world-map-point { width: 8px; height: 8px; border-width: 1px; }
-.mobile-game .world-map-modal .world-map-player-point { width: 12px; height: 12px; }
-.mobile-game .world-map-modal .world-map-marker-label { font-size: 14px; line-height: 1.1; }
-.mobile-game .hud-modal .help-controls thead { font-size: 28px; }
-.mobile-game .hud-modal .help-controls tbody tr { font-size: 24px; }
-.mobile-game .hud-modal .help-controls .kbd { font-size: 24px; --size: 40px; }
-
 .mobile-game .hud-minimap { position: relative; z-index: 1; order: 2; width: 170px; padding: 10px; flex-shrink: 0; --minimap-dot-size: 6px; }
 .mobile-game .hud-minimap .text-sm { font-size: 15px; }
 .mobile-game .hud-minimap [class~="text-[10px]"] { font-size: 11px; line-height: 1.25; }
 
-.mobile-game .hud-modal.relative { transform: scale(var(--hud-modal-scale)); transform-origin: center; }
-
-/* Quest panels use viewport space directly instead of the shared mobile modal scaling. */
-.mobile-game .hud-modal.quest-modal {
+/* Mobile dialogs share the quest panel's readable, unscaled layout. */
+.mobile-game .hud-modal {
     --hud-modal-scale: 1;
-    width: min(680px, calc(var(--game-width, 100vw) - 24px)) !important;
+    width: calc(var(--game-width, 100dvw) - 24px) !important;
+    height: calc(var(--game-height, 100dvh) - 24px);
     max-height: calc(var(--game-height, 100dvh) - 24px) !important;
     min-width: 0;
     font-size: 14px;
     line-height: 1.4;
     overflow-wrap: anywhere;
 }
-.mobile-game .hud-modal.quest-modal.absolute { top: 12px !important; left: 50% !important; }
-.mobile-game .quest-modal .hud-modal-header { gap: 8px; padding: 8px 12px; cursor: default; }
-.mobile-game .quest-modal .hud-modal-header h3 { min-width: 0; font-size: 18px; line-height: 1.25; }
-.mobile-game .quest-modal .hud-modal-body {
+.mobile-game .hud-modal .hud-modal-header { gap: 8px; padding: 8px 12px; cursor: default; }
+.mobile-game .hud-modal .hud-modal-header h3 { min-width: 0; font-size: 18px; line-height: 1.25; }
+.mobile-game .hud-modal .hud-modal-body {
+    flex: 1;
+    min-height: 0;
     min-width: 0;
     padding: 10px;
     overflow-y: auto;
@@ -183,11 +164,15 @@ body {
     touch-action: pan-y;
     -webkit-overflow-scrolling: touch;
 }
-.mobile-game .quest-modal .text-xs { font-size: 12px; line-height: 1.4; }
-.mobile-game .quest-modal .text-sm, .mobile-game .quest-modal .text-base { font-size: 14px; line-height: 1.4; }
-.mobile-game .quest-modal .text-lg { font-size: 16px; line-height: 1.4; }
-.mobile-game .quest-modal .text-xl { font-size: 18px; line-height: 1.4; }
-.mobile-game .quest-modal .btn {
+.mobile-game .hud-modal .text-xs { font-size: 12px; line-height: 1.4; }
+.mobile-game .hud-modal .text-sm, .mobile-game .hud-modal .text-base { font-size: 14px; line-height: 1.4; }
+.mobile-game .hud-modal .text-lg { font-size: 16px; line-height: 1.4; }
+.mobile-game .hud-modal .text-xl { font-size: 18px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[9px]"] { font-size: 9px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[10px]"] { font-size: 10px; line-height: 1.4; }
+.mobile-game .hud-modal [class~="text-[11px]"] { font-size: 11px; line-height: 1.4; }
+.mobile-game .hud-modal .p-4 { padding: 10px; }
+.mobile-game .hud-modal .btn {
     min-height: 44px;
     height: auto;
     max-width: 100%;
@@ -196,7 +181,7 @@ body {
     line-height: 1.25;
     white-space: normal;
 }
-.mobile-game .quest-modal .hud-modal-close {
+.mobile-game .hud-modal .hud-modal-close {
     width: 44px;
     height: 44px;
     min-width: 44px;
@@ -204,8 +189,20 @@ body {
     padding: 0;
     font-size: 24px;
 }
-.mobile-game .quest-modal .mt-4 { margin-top: 10px; }
-.mobile-game .quest-modal .mb-4 { margin-bottom: 10px; }
+.mobile-game .hud-modal .mt-4 { margin-top: 10px; }
+.mobile-game .hud-modal .mb-4 { margin-bottom: 10px; }
+.mobile-game .hud-modal .help-controls thead { font-size: 14px; }
+.mobile-game .hud-modal .help-controls tbody tr { font-size: 14px; }
+.mobile-game .hud-modal .help-controls .kbd { font-size: 12px; --size: 24px; }
+.mobile-game .world-map-modal .world-map-point { width: 8px; height: 8px; border-width: 1px; }
+.mobile-game .world-map-modal .world-map-player-point { width: 12px; height: 12px; }
+.mobile-game .world-map-modal .world-map-marker-label { font-size: 14px; line-height: 1.1; }
+.mobile-game .world-map-viewport {
+    aspect-ratio: auto;
+    height: min(calc(var(--game-width, 100dvw) - 46px), calc(var(--game-height, 100dvh) - 170px));
+    touch-action: none;
+    overscroll-behavior: contain;
+}
 .mobile-game .quest-modal .npc-quest-card { min-width: 0; padding: 10px; }
 .mobile-game .quest-modal .npc-quest-title { min-width: 0; flex: 1 1 160px; }
 .mobile-game .quest-modal .npc-quest-status {
@@ -218,20 +215,20 @@ body {
 }
 .mobile-game .quest-modal .npc-quest-card .mt-2 { margin-top: 6px; }
 .mobile-game .quest-modal .npc-quest-card .mt-3 { margin-top: 8px; }
-.mobile-game .quest-modal [role="tablist"] { flex-wrap: wrap; overflow: visible; }
-.mobile-game .quest-modal [role="tab"] { min-width: 44px; min-height: 44px; }
-.mobile-game .quest-modal label:has(.toggle) { min-height: 44px; }
+.mobile-game .hud-modal [role="tablist"] { flex-wrap: wrap; overflow: visible; }
+.mobile-game .hud-modal [role="tab"] { min-width: 44px; min-height: 44px; }
+.mobile-game .hud-modal label:has(.toggle) { min-height: 44px; }
 
-/* Keep quest dialogs upright so native touch scrolling works in the rotated game. */
-.mobile-game.mobile-portrait .hud-modal.quest-modal {
-    width: min(680px, calc(100dvw - 24px)) !important;
+/* Keep dialogs upright so native touch scrolling works in the rotated game. */
+.mobile-game.mobile-portrait .hud-modal {
+    width: calc(100dvw - 24px) !important;
+    height: calc(100dvh - 24px);
     max-height: calc(100dvh - 24px) !important;
     transform: rotate(-90deg);
     transform-origin: center;
 }
-.mobile-game.mobile-portrait .hud-modal.quest-modal.absolute {
-    top: 50% !important;
-    transform: translate(-50%, -50%) rotate(-90deg) !important;
+.mobile-game.mobile-portrait .world-map-viewport {
+    height: min(calc(100dvw - 46px), calc(100dvh - 170px));
 }
 
 .mobile-game .game-chat { width: 220px; font-size: 10px; }

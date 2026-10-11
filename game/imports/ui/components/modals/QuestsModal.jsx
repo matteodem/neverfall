@@ -34,7 +34,9 @@ export const QuestsModal = ({ embedded = false }) => {
         {trackError && <p role="alert" className="mb-2 text-sm text-error">{trackError}</p>}
         <div className="mb-2 space-y-2">{npcActive.map((quest) =>
           <NpcQuestCard key={quest.id} quest={quest} character={character}>
-            <button type="button" className="btn btn-sm mt-3"
+            <button type="button" className={
+                `btn btn-sm mt-3 ${character?.trackedQuestId === quest.id ? 'btn-primary' : ''}`
+              }
               aria-pressed={character?.trackedQuestId === quest.id}
               disabled={tracking}
               onClick={() => trackQuest(character?.trackedQuestId === quest.id ? null : quest.id)}>

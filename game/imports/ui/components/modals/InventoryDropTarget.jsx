@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Meteor } from "meteor/meteor";
 import { Characters } from "../../../api/characters/characters";
 import { EQUIPMENT_ITEMS } from "../../../game/equipment";
@@ -9,6 +9,7 @@ const ITEM_DRAG_TYPE = "application/x-neverfall-item";
 
 // Native desktop dragging is an optional layer over the existing item buttons.
 export const InventoryDropTarget = ({ characterId, itemId, target, mobile, children, onDragStart }) => {
+  const consumedPointer = useRef(false);
   const source = useInventoryDragStore((state) => state.source);
   const busy = useInventoryDragStore((state) => state.busy);
   const store = useInventoryDragStore.getState;
@@ -73,14 +74,22 @@ export const InventoryDropTarget = ({ characterId, itemId, target, mobile, child
         void drop();
       }}
       onClickCapture={(event) => {
+        if (mobile && consumedPointer.current && event.detail !== 0) {
+          consumedPointer.current = false;
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
         if (source?.mode !== "move") return;
         event.preventDefault();
         event.stopPropagation();
         void drop();
       }}
       onPointerDownCapture={(event) => {
+        consumedPointer.current = false;
         // Mobile action buttons act on pointerdown; consume it while choosing a slot.
         if (!mobile || source?.mode !== "move") return;
+        consumedPointer.current = true;
         event.preventDefault();
         event.stopPropagation();
         void drop();

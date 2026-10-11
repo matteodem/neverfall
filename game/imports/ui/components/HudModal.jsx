@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 
 import { isBlockingModal, useHudStore } from "../stores/useHudStore";
+import { useMobileDevice } from "../hooks/useMobileDevice";
 
 const MODAL_Z_INDEX = 20000;
 const BLOCKING_MODAL_Z_INDEX = 30000;
@@ -17,7 +18,8 @@ const getInitialPosition = () => {
 };
 
 export const HudModal = ({ id, title, children, embedded = false, backdrop = false, onClose, maxHeight, width, scrollable = true, className = "" }) => {
-  const blocking = useHudStore((state) => isBlockingModal(state, id)) || backdrop;
+  const { mobile } = useMobileDevice();
+  const blocking = useHudStore((state) => isBlockingModal(state, id)) || backdrop || mobile;
   const openModals = useHudStore((state) => state.openModals);
   const openModal = useHudStore((state) => state.openModal);
   const closeModal = useHudStore((state) => state.closeModal);

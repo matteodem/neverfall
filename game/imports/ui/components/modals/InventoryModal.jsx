@@ -278,10 +278,12 @@ const InventorySlot = ({
                 Use
               </button>
             </li>}
-            <li><button type="button" {...actionButtonHandlers(() => {
+            <li><button type="button" onClick={(event) => {
+              // Finish the tap before removing the menu and selecting a move source.
+              if (mobile) event.stopPropagation();
               onClose();
               onMove();
-            }, mobile)}>Move</button></li>
+            }}>Move</button></li>
             {sellable && onSell && <li>
               <button type="button" {...actionButtonHandlers(() => {
                 onSell(item);

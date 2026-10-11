@@ -42,10 +42,12 @@ export const EquipmentInspection = ({ item, equipment, mobile, onClose, onSell, 
         <span className="opacity-70">Compared to: </span>{current?.name || `Empty ${slot.toLowerCase()} slot`}
       </p>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
-        <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
+        <button type="button" className="btn btn-sm" onClick={(event) => {
+          // Keep the dialog in place until the mobile tap has finished.
+          if (mobile) event.stopPropagation();
           close();
           onMove();
-        }, mobile)}>Move</button>
+        }}>Move</button>
         {sellable && onSell && <button type="button" className="btn btn-sm" {...actionButtonHandlers(() => {
           close();
           onSell(item);
