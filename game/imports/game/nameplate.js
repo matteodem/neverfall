@@ -185,6 +185,10 @@ export const createNameplate = ({
   return {
     setName,
     setTitle,
+    setColor(value) {
+      text.color = value;
+      titleText.color = value;
+    },
     setVisible,
     destroy,
   };

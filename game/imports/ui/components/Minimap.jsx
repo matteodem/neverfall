@@ -127,14 +127,15 @@ const Legend = ({ location, activeEvent, showLabels }) => {
         "#d8f710",
     },
     ...(location === "world" ? [{
-      label: "Dungeon Entrance",
+      label: "Dungeon",
       color: "#a78bfa",
       outlined: false,
     }] : []),
     ...(activeEvent ? [{ label: "Event", color: "#fb923c", outlined: false }] : []),
     ...(location === "world" ? [
       { label: "Available quest", kind: "questAvailable" },
-      { label: "Active / turn-in quest", kind: "questActive" },
+      { label: "Quest in progress", kind: "questActive" },
+      { label: "Quest ready to turn in", kind: "questReady" },
     ] : []),
   ];
 
@@ -361,9 +362,9 @@ export const Minimap =
           {location === "world" && questMarkers.map((npc) => (
             <div key={npc.id} className="absolute z-30 -translate-x-1/2 -translate-y-1/2"
               style={worldToPercent(npc.position)}
-              title={showLabels ? `${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}` : undefined}
-              aria-label={`${npc.name}: ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}>
-              <WorldMapMarkerIcon kind={npc.marker === "!" ? "questAvailable" : "questActive"} />
+              title={showLabels ? `${npc.name} · ${npc.label}` : undefined}
+              aria-label={`${npc.name}: ${npc.label}`}>
+              <WorldMapMarkerIcon kind={npc.kind} />
             </div>
           ))}
           <LocalPlayerMarker

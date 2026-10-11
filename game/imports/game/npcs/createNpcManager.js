@@ -3,7 +3,7 @@ import { createNameplate } from "../nameplate";
 import { NPC_DEFINITIONS, NPC_INTERACTION_RANGE } from "./npcDefinitions";
 import { useNpcStore } from "../../ui/stores/useNpcStore";
 import { useHudStore } from "../../ui/stores/useHudStore";
-import { getNpcQuestMarker } from "./questMarkers";
+import { getNpcQuestMarkerState } from "./questMarkers";
 
 // Deterministic client-side entities; no player movement, combat or network state.
 export const createNpcManager = ({ scene, player, canInteract = () => true, getCharacter = () => null, definitions = NPC_DEFINITIONS }) => {
@@ -11,10 +11,12 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, getC
   let disposed = false;
   const store = () => useNpcStore.getState();
   const updateMarker = (npc) => {
-    const marker = getNpcQuestMarker(npc.definition.id, getCharacter());
-    if (marker === npc.marker) return;
-    npc.marker = marker;
-    npc.questMarker.setName(marker || "");
+    const marker = getNpcQuestMarkerState(npc.definition.id, getCharacter());
+    if (marker === npc.markerState) return;
+    npc.markerState = marker;
+    npc.questMarker.setName(marker?.marker || "");
+    npc.questMarker.setColor(marker?.color || "#facc15");
+    npc.nameplate.setColor(marker?.color || "#facc15");
     npc.questMarker.setVisible(Boolean(marker));
   };
   const distanceTo = (npc) => Math.hypot(

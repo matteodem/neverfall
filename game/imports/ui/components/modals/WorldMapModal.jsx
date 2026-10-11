@@ -38,7 +38,8 @@ const LEGEND = [
   { kind: "dungeon", label: "Dungeon" },
   { kind: "boss", label: "Boss" },
   { kind: "questAvailable", label: "Available quest" },
-  { kind: "questActive", label: "Active / turn-in quest" },
+  { kind: "questActive", label: "Quest in progress" },
+  { kind: "questReady", label: "Quest ready to turn in" },
   { kind: "puzzle", label: "Jumping puzzle" },
   { kind: "landmark", label: "Landmark" },
   { kind: "event", label: "Active world event" },
@@ -235,8 +236,8 @@ const MapContent = () => {
         ))}
         {!dungeon && questMarkers.map((npc) => (
           <WorldMapMarker key={`quest-${npc.id}`} id={`quest-${npc.id}`}
-            kind={npc.marker === "!" ? "questAvailable" : "questActive"}
-            label={`${npc.name} · ${npc.marker === "!" ? "Available quest" : "Active / turn-in quest"}`}
+            kind={npc.kind}
+            label={`${npc.name} · ${npc.label}`}
             position={worldToPercent(npc.position)} mobile={mobile}
             selected={activeMarkerId === `quest-${npc.id}`} onSelect={selectMarker} />
         ))}
