@@ -13,8 +13,12 @@ export const createDungeonInteractions = ({ room, player, visuals, cacheVisuals,
   const config = dungeon ? getDungeonConfig(useDungeonStore.getState().dungeonId) : null;
   const nearbyQuestSeal = (local) => {
     if (dungeon || !local?.characterId) return null;
-    const progress = Characters.findOne(local.characterId)?.questProgress?.["frozen-disturbance"] || 0;
-    const point = FROZEN_DISTURBANCE_POINTS[progress - 1];
+    const character = Characters.findOne(local.characterId);
+    const quest = NPC_QUESTS.find((entry) => entry.id === "frozen-disturbance");
+    if (!quest || getNpcQuestState(quest, character) !== "active") return null;
+    const progress = character?.questProgress?.[quest.id] || 0;
+    // Progress counts finished objectives, so it indexes the next seal directly.
+    const point = FROZEN_DISTURBANCE_POINTS[progress];
     return nearDungeonObject(player.position, point, 4) ? point : null;
   };
   let elapsed = 100;
