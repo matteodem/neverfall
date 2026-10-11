@@ -26,8 +26,8 @@ export const EQUIPMENT_ITEMS = {
     equipmentSlot: "weapon", gameClass: "mage", amirMeshId: "staff-03.col",
     stackable: false, stats: {},
   },
-  "leather-armor": {
-    id: "leather-armor", name: "Leather Armor", type: "armor", slot: "armor",
+  "purple-armor": {
+    id: "purple-armor", name: "Purple Armor", type: "armor", slot: "armor",
     equipmentSlot: "armor", amirMeshId: "torso-04", stackable: false, stats: {},
   },
   lucky_charm: {

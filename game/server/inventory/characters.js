@@ -44,4 +44,30 @@ export const initializeCharacterInventories = async () => {
     { fields: { _id: 1 } }
   ).fetchAsync();
   for (const user of users) await migrateUserItems(user._id);
+
+  // Preserve existing armor copies, equipped armor, and backpack positions after the ID rename.
+  const characters = await Characters.find({ $or: [
+    { "inventory.items.id": "leather-armor" },
+    { "inventory.slotOrder": "leather-armor" },
+    { "equipment.armor": "leather-armor" },
+  ] }).fetchAsync();
+  for (const character of characters) {
+    const fields = {};
+    const selector = { _id: character._id };
+    if (character.inventory?.items?.some((item) => item.id === "leather-armor")) {
+      selector["inventory.items"] = character.inventory.items;
+      fields["inventory.items"] = character.inventory.items.map((item) =>
+        item.id === "leather-armor" ? { ...item, id: "purple-armor" } : item);
+    }
+    if (character.inventory?.slotOrder?.includes("leather-armor")) {
+      selector["inventory.slotOrder"] = character.inventory.slotOrder;
+      fields["inventory.slotOrder"] = character.inventory.slotOrder.map((id) =>
+        id === "leather-armor" ? "purple-armor" : id);
+    }
+    if (character.equipment?.armor === "leather-armor") {
+      selector["equipment.armor"] = "leather-armor";
+      fields["equipment.armor"] = "purple-armor";
+    }
+    await Characters.updateAsync(selector, { $set: fields });
+  }
 };

@@ -15,7 +15,7 @@ export const ITEM_SELL_PRICES = {
   "iron-sword": 2,
   "hunting-bow": 2,
   "oak-staff": 2,
-  "leather-armor": 1,
+  "purple-armor": 1,
   boar_skin: 0.1,
   wolf_skin: 0.1,
   // A full recipe's ingredients sell for less than its crafted potion.
@@ -36,9 +36,9 @@ export const ITEM_NAMES = Object.fromEntries(Object.values(ITEMS).map(({ id, nam
 
 // Additional drops use the same authoritative roll for normal enemies and bosses.
 export const ENEMY_LOOT_TABLES = {
-  boar: [{ itemId: "health_potion", chance: 0.1 }, { itemId: "leather-armor", chance: 0.05 }],
+  boar: [{ itemId: "health_potion", chance: 0.1 }, { itemId: "purple-armor", chance: 0.05 }],
   wolf: [{ itemId: "iron-sword", chance: 0.04 }, { itemId: "hunting-bow", chance: 0.04 }, { itemId: "oak-staff", chance: 0.04 }],
-  frostboundSentinel: [{ itemId: "iron-sword", chance: 0.15 }, { itemId: "hunting-bow", chance: 0.15 }, { itemId: "oak-staff", chance: 0.15 }, { itemId: "leather-armor", chance: 0.25 }],
+  frostboundSentinel: [{ itemId: "iron-sword", chance: 0.15 }, { itemId: "hunting-bow", chance: 0.15 }, { itemId: "oak-staff", chance: 0.15 }, { itemId: "purple-armor", chance: 0.25 }],
 };
 
 export const splitMoney = (money = 0) => ({
