@@ -294,19 +294,12 @@ export const QUESTS = [
     recommendedLevel: 9,
     requiredLevel: 9,
     description:
-      "Investigate Highlands Lookout and the Northern Ruins entrance, then defeat the guardian nearby.",
+      "Investigate the Northern Ruins entrance, then defeat the guardian nearby.",
     objective: {
       type: "Sequence",
-      amount: 3,
+      amount: 2,
     },
     objectives: [
-      {
-        type: "ReachLocation",
-        target: highlandsLookout.id,
-        label: "Investigate Highlands Lookout",
-        ...highlandsLookout.position,
-        radius: highlandsLookout.discoveryRadius,
-      },
       {
         type: "ReachLocation",
         target: northernRuins.interactionTarget,
@@ -349,7 +342,7 @@ export const QUESTS = [
     },
   },
 
-  {
+  /*{
     id: "explore-snowy-mountains",
     title: "Explore Snowy Mountains",
     recommendedLevel: 10,
@@ -368,7 +361,7 @@ export const QUESTS = [
       xp: 600,
       gold: 1,
     },
-  },
+  },*/
 
   {
     id: "northern-ruins-quest",
@@ -393,20 +386,12 @@ export const QUESTS = [
     recommendedLevel: 11,
     requiredLevel: 11,
     description:
-      "Reach the Snowy Mountains waypoint, activate the frozen rift seals near the Frozen Stone Arch, and defeat the Frostbound Sentinel.",
+      "Activate the frozen rift seals near the Frozen Stone Arch, and defeat the Frostbound Sentinel.",
     objective: {
       type: "Sequence",
-      amount: 4,
+      amount: 3,
     },
     objectives: [
-      {
-        type: "ReachLocation",
-        target: snowyMountainsWaypoint.id,
-        label: "Reach the Snowy Mountains waypoint",
-        x: snowyMountainsWaypoint.position.x,
-        z: snowyMountainsWaypoint.position.z,
-        radius: snowyMountainsWaypoint.discoveryRadius || 16,
-      },
       ...FROZEN_DISTURBANCE_POINTS.map(({ id, label }) => ({
         type: "Interact",
         target: id,
