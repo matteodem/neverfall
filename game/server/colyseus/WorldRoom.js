@@ -1,4 +1,5 @@
 import { resolveAmirEquipment } from "../../imports/game/character/amir/equipmentAppearance";
+import { startGameSession, endGameSession } from "../analytics/gameSessions";
 import { PERFORMANCE } from "../../imports/game/performanceConfig";
 import { createWorldEvents } from "./worldEvents";
 import { CAMP_PROTECTION } from "../../imports/game/campProtection";
@@ -219,6 +220,10 @@ export class WorldRoom
    */
 
   onDispose() {
+    for (const [sessionId, player] of this.state.players) {
+      void endGameSession(player.userId, `${this.roomId}:${sessionId}`)
+        .catch((error) => console.error("[Analytics] Could not end disposed session", error));
+    }
     this.dungeons?.dispose();
   }
 
@@ -1264,6 +1269,16 @@ export class WorldRoom
         },
       }
     );
+    // DungeonRoom reuses onJoin, but its player's world connection remains open.
+    if (!this.access?.world) {
+      try {
+        const connectionId = `${this.roomId}:${client.sessionId}`;
+        await startGameSession(auth.userId, connectionId);
+        if (!this.state.players.has(client.sessionId)) await endGameSession(auth.userId, connectionId);
+      } catch (error) {
+        console.error("[Analytics] Could not start game session", error);
+      }
+    }
   }
 
 
@@ -1321,6 +1336,11 @@ export class WorldRoom
       !leavingPlayer
     ) {
       return;
+    }
+
+    if (!this.access?.world) {
+      await endGameSession(leavingPlayer.userId, `${this.roomId}:${client.sessionId}`)
+        .catch((error) => console.error("[Analytics] Could not end game session", error));
     }
 
 

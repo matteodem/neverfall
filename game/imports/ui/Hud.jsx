@@ -3,6 +3,7 @@ import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
 import { FeedbackModal } from "./components/modals/FeedbackModal";
+import { AdminAnalyticsModal } from "./components/modals/AdminAnalyticsModal";
 import { ItemsModal, HeroModal } from "./components/modals/GroupedHudModals";
 import { SocialModal } from "./components/modals/SocialModal";
 import { PotionBuffs } from "./components/PotionBuffs";
@@ -872,6 +873,7 @@ export const Hud = ({
 
       <HelpModal />
       <FeedbackModal />
+      <AdminAnalyticsModal />
 
 
       <SettingsModal />

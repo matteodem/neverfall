@@ -1,6 +1,7 @@
 import { initializeChat } from "./chat";
 import { initializeGuilds } from "./guilds";
 import { initializeInventories } from "./inventory/users";
+import { initializeGameSessions } from "./analytics/gameSessions";
 import {
   Meteor,
 } from "meteor/meteor";
@@ -14,6 +15,7 @@ import "./methods/crafting";
 import "./methods/onboarding";
 import "./methods/quests";
 import "./methods/feedback";
+import "./methods/analytics";
 
 import "./publications/characters";
 
@@ -26,6 +28,7 @@ Meteor.startup(
     await initializeInventories();
     await initializeChat();
     await initializeGuilds();
+    initializeGameSessions();
     await startColyseus();
   }
 );
