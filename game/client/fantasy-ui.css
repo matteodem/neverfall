@@ -1,0 +1,168 @@
+/* Opt-in foundation. Existing screens can adopt these classes incrementally. */
+:root {
+  --fantasy-panel: #191c1b;
+  --fantasy-surface: #242824;
+  --fantasy-border: #786345;
+  --fantasy-accent: #dbb776;
+  --fantasy-secondary: #b8c5bd;
+  --fantasy-text: #f3ecdd;
+  --fantasy-muted: #b9b4a7;
+  --fantasy-success: #a6c998;
+  --fantasy-warning: #edc47c;
+  --fantasy-danger: #efa5a0;
+  --fantasy-magic: #b8c4ed;
+  --fantasy-backdrop: rgb(5 8 9 / 72%);
+}
+
+.fantasy-ui {
+  color: var(--fantasy-text);
+  --color-base-100: var(--fantasy-panel);
+  --color-base-200: var(--fantasy-surface);
+  --color-base-300: #393d35;
+  --color-base-content: var(--fantasy-text);
+  --color-primary: var(--fantasy-accent);
+  --color-primary-content: #221b10;
+  --color-secondary: var(--fantasy-secondary);
+  --color-secondary-content: #18211d;
+  --color-success: var(--fantasy-success);
+  --color-success-content: #142414;
+  --color-warning: var(--fantasy-warning);
+  --color-warning-content: #281d0c;
+  --color-error: var(--fantasy-danger);
+  --color-error-content: #2b1212;
+  --color-info: var(--fantasy-magic);
+  --color-info-content: #182139;
+  --color-accent: var(--fantasy-magic);
+  --color-accent-content: #182139;
+}
+
+.fantasy-panel {
+  min-width: 0;
+  border: 1px solid var(--fantasy-border);
+  border-radius: 8px 3px;
+  background-color: var(--fantasy-panel);
+  background-image: linear-gradient(135deg, rgb(219 183 118 / 5%), transparent 50%);
+  box-shadow: inset 0 0 0 3px rgb(0 0 0 / 18%), 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.fantasy-hud-card { padding: 12px; background-color: rgb(25 28 27 / 94%); }
+.fantasy-section-header {
+  margin-block: 16px 8px;
+  color: var(--fantasy-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+}
+.fantasy-divider { margin-block: 12px; border: 0; border-top: 1px solid var(--fantasy-border); opacity: 0.65; }
+.fantasy-muted { color: var(--fantasy-muted); }
+
+/* DaisyUI buttons within an adopted surface share the primitive's treatment. */
+.fantasy-ui .btn, .fantasy-button {
+  --fantasy-button-bg: #30352e;
+  --fantasy-button-border: var(--fantasy-border);
+  --fantasy-button-text: var(--fantasy-text);
+  border: 1px solid var(--fantasy-button-border);
+  border-radius: 5px 2px;
+  background: var(--fantasy-button-bg);
+  color: var(--fantasy-button-text);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 2px 4px rgb(0 0 0 / 22%);
+  font-weight: 600;
+  text-shadow: none;
+  transition: filter 120ms ease, box-shadow 120ms ease;
+}
+.fantasy-ui .btn-primary, .fantasy-ui.fantasy-button-primary {
+  --fantasy-button-bg: #544127;
+  --fantasy-button-border: #ba965d;
+  --fantasy-button-text: #fff0cd;
+}
+.fantasy-ui .btn-secondary, .fantasy-ui.fantasy-button-secondary {
+  --fantasy-button-bg: #303c36;
+  --fantasy-button-border: #7f9486;
+}
+.fantasy-ui .btn-error, .fantasy-ui.fantasy-button-danger {
+  --fantasy-button-bg: #502e2c;
+  --fantasy-button-border: #b77a73;
+  --fantasy-button-text: #ffe4df;
+}
+.fantasy-ui .btn-ghost, .fantasy-ui.fantasy-button-ghost {
+  --fantasy-button-bg: transparent;
+  --fantasy-button-border: transparent;
+  box-shadow: none;
+}
+.fantasy-ui .btn-success { --fantasy-button-bg: #2c402d; --fantasy-button-border: #88a77c; }
+.fantasy-ui .btn-warning { --fantasy-button-bg: #514027; --fantasy-button-border: #b99b62; }
+.fantasy-ui .btn-info, .fantasy-ui .btn-accent { --fantasy-button-bg: #333b54; --fantasy-button-border: #8d9ac1; }
+@media (hover: hover) {
+  .fantasy-ui .btn:hover:not(:disabled), .fantasy-button:hover:not(:disabled) {
+    filter: brightness(1.16);
+    box-shadow: inset 0 0 0 1px rgb(219 183 118 / 22%), 0 0 8px rgb(219 183 118 / 9%);
+  }
+}
+.fantasy-ui .btn:active:not(:disabled), .fantasy-button:active:not(:disabled) {
+  filter: brightness(0.9);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 35%);
+}
+.fantasy-ui :is(button, a, input, textarea, select, [tabindex]):focus-visible,
+.fantasy-button:focus-visible {
+  outline: 2px solid var(--fantasy-magic);
+  outline-offset: 3px;
+}
+.fantasy-ui .btn:disabled, .fantasy-button:disabled, .fantasy-ui .btn-disabled {
+  opacity: 0.45;
+  filter: saturate(0.4);
+  box-shadow: none;
+}
+
+.fantasy-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 8px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 18%);
+  color: var(--fantasy-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.fantasy-badge-success { color: var(--fantasy-success); }
+.fantasy-badge-warning { color: var(--fantasy-warning); }
+.fantasy-badge-danger { color: var(--fantasy-danger); }
+.fantasy-badge-magic { color: var(--fantasy-magic); }
+
+.fantasy-modal-frame { display: flex; flex-direction: column; padding: 0; }
+.fantasy-modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--fantasy-border);
+  background: rgb(219 183 118 / 4%);
+}
+.fantasy-modal-header h3 { min-width: 0; overflow-wrap: anywhere; color: var(--fantasy-accent); }
+.fantasy-modal-body { min-width: 0; min-height: 0; padding: 16px; overflow-wrap: anywhere; }
+.fantasy-modal-close { flex-shrink: 0; }
+.fantasy-modal-backdrop, .fantasy-dialog .modal-backdrop { background: var(--fantasy-backdrop); }
+.fantasy-dialog::backdrop { background: transparent; }
+.fantasy-dialog .fantasy-modal-frame {
+  width: min(32rem, calc(100dvw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: hidden;
+}
+.fantasy-dialog .fantasy-modal-body { overflow-y: auto; overscroll-behavior: contain; }
+
+@media (pointer: coarse), (max-width: 767px) {
+  .fantasy-button, .fantasy-ui .btn { min-height: 44px; }
+  .fantasy-ui .btn { max-width: 100%; height: auto; white-space: normal; }
+  .fantasy-modal-close { width: 44px; height: 44px; min-width: 44px; }
+  .fantasy-modal-body { padding: 12px; }
+  .fantasy-modal-header { padding: 8px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fantasy-button, .fantasy-ui .btn { transition: none; }
+}
