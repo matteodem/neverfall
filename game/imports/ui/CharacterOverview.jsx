@@ -10,6 +10,7 @@ import startCase from "lodash.startcase";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MAX_CHARACTERS } from "../api/characters/characters";
 import { CharacterAuthButton } from "./CharacterAccountFlow";
+import { resolveAmirEquipment } from "../game/character/amir/equipmentAppearance";
 
 import {
   CharacterPreview,
@@ -238,7 +239,7 @@ export const CharacterOverview = ({
             <CharacterPreview
               gameClass={selected.gameClass}
               appearance={
-                selected.appearance
+                resolveAmirEquipment(selected.appearance, selected.gameClass, selected.equipment)
               }
             />
           )}
