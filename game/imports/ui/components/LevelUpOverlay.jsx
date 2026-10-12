@@ -1,3 +1,4 @@
+import { FantasyNotice, FantasySectionHeader } from "./fantasy/FantasyUI";
 import React from "react";
 
 import {
@@ -26,67 +27,12 @@ export const LevelUpOverlay =
 
 
     return (
-      <div
-        className={`
-          pointer-events-none
-          fixed
-          inset-0
-          z-[11000]
-
-          flex
-          items-center
-          justify-center
-
-          transition-opacity
-          duration-500
-
-          ${
-            visible
-              ? "opacity-100"
-              : "opacity-0"
-          }
-        `}
-      >
-        <div
-          className="
-            rounded-xl
-            border
-            border-yellow-300/60
-
-            bg-black/60
-
-            px-12
-            py-8
-
-            text-center
-
-            shadow-[0_0_60px_rgba(250,204,21,0.45)]
-
-            backdrop-blur-sm
-          "
-        >
-          <div
-            className="
-              text-5xl
-              font-bold
-              tracking-wide
-              text-yellow-300
-            "
-          >
-            LEVEL UP!
-          </div>
-
-          <div
-            className="
-              mt-3
-              text-2xl
-              font-semibold
-              text-white
-            "
-          >
-            Level {level}
-          </div>
-        </div>
+      <div className={`fantasy-toast-slot transition-opacity duration-500 ${visible ? "opacity-100" : "invisible absolute opacity-0"}`}
+        aria-hidden={!visible}>
+        <FantasyNotice tone="magic" className="w-full max-w-xs text-center">
+          <FantasySectionHeader className="fantasy-hud-heading">Level Up!</FantasySectionHeader>
+          <p className="mt-1 text-xl font-semibold">Level {level}</p>
+        </FantasyNotice>
       </div>
     );
   };

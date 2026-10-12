@@ -1,3 +1,4 @@
+import { FantasyPanel } from "./fantasy/FantasyUI";
 import React from "react";
 import { CONSUMABLES } from "../../game/consumables";
 import { STATUS_EFFECTS } from "../../game/statusEffects";
@@ -28,16 +29,16 @@ export const PotionBuffs = ({ buffs, isDead, mobile = false, className }) => {
       {active.map(({ key, name, description, icon, color }) => {
         const label = `${name}: ${description}`;
         return (
-          <span
+          <FantasyPanel as="span"
             key={key}
             tabIndex={0}
             role="img"
             aria-label={label}
-            className={`tooltip tooltip-top flex h-8 w-8 items-center justify-center rounded border border-white/20 bg-black/70 ${color}`}
+            className={`fantasy-effect fantasy-tooltip tooltip tooltip-top flex h-8 w-8 items-center justify-center ${color}`}
             data-tip={label}
           >
             <Icon icon={icon} className="h-4 w-4" />
-          </span>
+          </FantasyPanel>
         );
       })}
     </div>

@@ -1,3 +1,4 @@
+import { FantasyHudCard, FantasyMeter, FantasyNotice } from "./fantasy/FantasyUI";
 import React, { useEffect, useRef, useState } from "react";
 import { useTargetStore } from "../stores/useTargetStore";
 import { PotionBuffs } from "./PotionBuffs";
@@ -42,24 +43,22 @@ export const TargetFrame = ({ currentLevel }) => {
   const percentage = target?.maxHealth > 0 ? Math.max(0, Math.min(100, target.health / target.maxHealth * 100)) : 0;
   return (
     <>
-      {target && !target.isBoss && <div className="target-frame pointer-events-none absolute left-1/2 top-4 z-[10000] w-64 -translate-x-1/2 rounded-box border border-white/30 bg-black/80 p-2 text-white shadow-lg">
+      {target && !target.isBoss && <FantasyHudCard className="fantasy-resource target-frame pointer-events-none absolute left-1/2 top-4 z-[10000] w-64 -translate-x-1/2">
         <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-          <span className="font-bold">{target.name} <span className="font-normal text-white/70">Level {target.level}</span></span>
+          <span className="font-bold">{target.name} <span className="font-normal fantasy-muted">Level {target.level}</span></span>
           <span>{Math.ceil(target.health)} / {target.maxHealth} HP</span>
         </div>
-        <div role="progressbar" aria-label={`${target.name} health`} aria-valuenow={target.health} aria-valuemin={0} aria-valuemax={target.maxHealth}
-          className="h-3 overflow-hidden rounded bg-gray-800">
-          <div className="h-full bg-red-500 transition-[width] duration-150" style={{ width: `${percentage}%` }} />
-        </div>
-        {danger && <div className="mt-2 text-center text-sm font-bold text-red-400">⚠ {danger === "extreme" ? "Extremely Dangerous" : "Dangerous Enemy"}</div>}
+        <FantasyMeter value={target.health} max={target.maxHealth} percentage={percentage}
+          label={`${target.name} health`} tone="danger" className="h-3" />
+        {danger && <div className="mt-2 text-center text-sm font-bold fantasy-danger">⚠ {danger === "extreme" ? "Extremely Dangerous" : "Dangerous Enemy"}</div>}
         <PotionBuffs buffs={target} className="pointer-events-auto mt-2 flex flex-wrap items-center gap-1" />
-      </div>}
+      </FantasyHudCard>}
       {popup && (
-        <div className="pointer-events-none fixed left-1/2 top-[58%] z-[11000] w-full max-w-md -translate-x-1/2 px-4 text-center text-red-400 drop-shadow-[0_2px_3px_black]" role="status" aria-live="polite">
-          <div>
-            <div className="text-2xl font-bold">{popup === "extreme" ? "Extremely Dangerous Enemy" : "Dangerous Enemy"}</div>
+        <div className="pointer-events-none fixed left-1/2 top-[58%] z-[11000] w-full max-w-md -translate-x-1/2 px-4 text-center fantasy-danger" role="status" aria-live="polite">
+          <FantasyNotice tone="danger">
+            <div className="text-sm font-bold">{popup === "extreme" ? "Extremely Dangerous Enemy" : "Dangerous Enemy"}</div>
             <div className="mt-2 text-sm font-semibold">{popup === "extreme" ? "This enemy is far above your level." : "This enemy is 3+ levels above you."}</div>
-          </div>
+          </FantasyNotice>
         </div>
       )}
     </>

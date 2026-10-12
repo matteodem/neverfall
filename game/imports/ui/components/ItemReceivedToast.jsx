@@ -1,3 +1,4 @@
+import { FantasyNotice } from "./fantasy/FantasyUI";
 import React, { useEffect, useRef, useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
@@ -34,9 +35,9 @@ export const ItemReceivedToast = () => {
     return () => clearTimeout(timeout);
   }, [notice]);
   if (!notice || notice.characterId !== character?._id) return null;
-  return <div className="pointer-events-none fixed inset-x-0 bottom-[20dvh] z-[30050] flex justify-center px-4" role="status" aria-live="polite">
-    <div className="max-w-sm rounded-box bg-black/80 px-4 py-2 text-center text-sm text-yellow-200">
+  return <div className="fantasy-toast-slot" role="status" aria-live="polite">
+    <FantasyNotice tone="reward" className="max-w-sm text-center text-sm">
       Received: {notice.text}
-    </div>
+    </FantasyNotice>
   </div>;
 };

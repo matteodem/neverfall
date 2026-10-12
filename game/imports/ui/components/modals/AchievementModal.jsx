@@ -1,3 +1,4 @@
+import { FantasyNotice, FantasySectionHeader } from "../fantasy/FantasyUI";
 import React, { useEffect, useRef, useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
@@ -99,11 +100,11 @@ export const AchievementToast = () => {
 
   if (!current) return null;
   return (
-    <div className="pointer-events-none fixed bottom-[210px] left-1/2 z-[10001] -translate-x-1/2" role="status">
-      <div className="rounded-box border border-success bg-base-100 px-5 py-3 text-base-content shadow-lg">
-        <p className="text-sm font-bold text-success">Achievement Unlocked</p>
+    <div className="fantasy-toast-slot" role="status">
+      <FantasyNotice tone="success">
+        <FantasySectionHeader className="fantasy-hud-heading">Achievement Unlocked</FantasySectionHeader>
         <p>{current.name}</p>
-      </div>
+      </FantasyNotice>
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import { FantasyNotice, FantasySectionHeader } from "./fantasy/FantasyUI";
 import React, { useEffect } from "react";
 import { useQuestCompletionStore } from "../stores/useQuestCompletionStore";
 
@@ -20,12 +21,12 @@ export const QuestCompletionOverlay = () => {
   ].filter(Boolean).join(" · ");
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-[20dvh] z-[11001] flex justify-center px-4" role="status" aria-live="polite">
-      <div className="w-full max-w-sm rounded-lg border border-yellow-300/60 bg-black/80 px-4 py-3 text-center text-white shadow-lg">
-        <div className="text-xs font-semibold uppercase text-yellow-300">Quest Complete</div>
+    <div className="fantasy-toast-slot" role="status" aria-live="polite">
+      <FantasyNotice tone="reward" className="w-full max-w-sm text-center">
+        <FantasySectionHeader className="fantasy-hud-heading">Quest Complete</FantasySectionHeader>
         <div className="mt-1 text-base font-bold">{current.title}</div>
-        {rewards && <div className="mt-1 text-xs text-yellow-200">{rewards}</div>}
-      </div>
+        {rewards && <div className="mt-1 text-xs fantasy-muted">{rewards}</div>}
+      </FantasyNotice>
     </div>
   );
 };

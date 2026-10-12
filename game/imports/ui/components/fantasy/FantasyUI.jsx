@@ -24,6 +24,25 @@ export const FantasyDivider = ({ className = "", ...props }) => (
   <hr className={`fantasy-ui fantasy-divider ${className}`} {...props} />
 );
 
+export const FantasyKey = ({ className = "", ...props }) => (
+  <kbd className={`fantasy-key ${className}`} {...props} />
+);
+
+export const FantasyMeter = ({ value, max, percentage, label, tone = "health", className = "" }) => (
+  <div role="progressbar" aria-label={label} aria-valuenow={value} aria-valuemin={0} aria-valuemax={max}
+    className={`fantasy-meter fantasy-meter-${tone} ${className}`}>
+    <div className="fantasy-meter-fill" style={{ width: `${percentage}%` }} />
+  </div>
+);
+
+export const FantasyNotice = ({ tone = "neutral", className = "", ...props }) => (
+  <FantasyHudCard className={`fantasy-notice fantasy-notice-${tone} ${className}`} {...props} />
+);
+
+export const FantasyNotificationStack = ({ children }) => (
+  <div className="fantasy-notification-stack pointer-events-none">{children}</div>
+);
+
 // Presentation only: callers keep their own open state, focus, dismissal and dragging.
 export const FantasyModalFrame = ({ title, children, onClose, closeDisabled = false,
   className = "", headerClassName = "", bodyClassName = "", closeClassName = "",

@@ -12,6 +12,11 @@
   --fantasy-danger: #efa5a0;
   --fantasy-magic: #b8c4ed;
   --fantasy-backdrop: rgb(5 8 9 / 72%);
+  --fantasy-health-fill: #688e5c;
+  --fantasy-danger-fill: #a7524d;
+  --fantasy-magic-fill: #6f80b6;
+  --fantasy-cooldown-cover: rgb(5 8 9 / 84%);
+  --fantasy-cooldown-track: rgb(5 8 9 / 20%);
 }
 
 .fantasy-ui {
@@ -56,6 +61,8 @@
 }
 .fantasy-divider { margin-block: 12px; border: 0; border-top: 1px solid var(--fantasy-border); opacity: 0.65; }
 .fantasy-muted { color: var(--fantasy-muted); }
+.fantasy-accent { color: var(--fantasy-accent); }
+.fantasy-danger { color: var(--fantasy-danger); }
 
 /* DaisyUI buttons within an adopted surface share the primitive's treatment. */
 .fantasy-ui .btn, .fantasy-button {
@@ -166,3 +173,50 @@
 @media (prefers-reduced-motion: reduce) {
   .fantasy-button, .fantasy-ui .btn { transition: none; }
 }
+
+/* Compact gameplay primitives; placement remains with the existing HUD. */
+.fantasy-hud-heading { margin: 0 0 4px; font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.fantasy-tracker { max-width: calc(100vw - 24px); font-size: 0.875rem; overflow-wrap: anywhere; }
+.fantasy-resource { padding: 8px; }
+.fantasy-meter { overflow: hidden; border: 1px solid var(--fantasy-border); border-radius: 3px; background: var(--fantasy-surface); }
+.fantasy-meter-fill { height: 100%; background: var(--fantasy-health-fill); box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%); transition: width 150ms ease-out; }
+.fantasy-meter-magic .fantasy-meter-fill { background: var(--fantasy-magic-fill); transition-duration: 300ms; }
+.fantasy-meter-danger .fantasy-meter-fill { background: var(--fantasy-danger-fill); }
+.fantasy-key { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; padding: 1px 4px; border: 1px solid var(--fantasy-border); border-radius: 3px; background: var(--fantasy-panel); color: var(--fantasy-accent); font-size: 11px; font-weight: 600; line-height: 1.3; font-family: inherit; }
+.fantasy-skill { padding: 0; min-height: 0; isolation: isolate; }
+.fantasy-skill .fantasy-key { z-index: 2; pointer-events: none; }
+.fantasy-skill:has(.fantasy-cooldown) { border-color: var(--fantasy-magic); }
+.fantasy-cooldown { border-radius: 3px; }
+.fantasy-cooldown-count { padding: 2px 5px; border-radius: 3px; background: var(--fantasy-panel); color: var(--fantasy-magic); font-size: 0.875rem; font-weight: 700; }
+.fantasy-tooltip::before { border: 1px solid var(--fantasy-border); background: var(--fantasy-panel); color: var(--fantasy-text); font-size: 0.75rem; }
+.fantasy-tooltip::after { color: var(--fantasy-panel); }
+.fantasy-effect { color: var(--fantasy-magic); }
+.fantasy-effect.text-red-400 { color: var(--fantasy-danger); }
+.fantasy-effect.text-green-400, .fantasy-effect.text-lime-400 { color: var(--fantasy-success); }
+.fantasy-effect.text-orange-400 { color: var(--fantasy-warning); }
+.fantasy-notice { --fantasy-notice-tone: var(--fantasy-border); max-width: min(24rem, calc(100vw - 24px)); padding: 10px 14px; border-left: 3px solid var(--fantasy-notice-tone); overflow-wrap: anywhere; }
+.fantasy-notice-reward { --fantasy-notice-tone: var(--fantasy-accent); }
+.fantasy-notice-success { --fantasy-notice-tone: var(--fantasy-success); }
+.fantasy-notice-warning { --fantasy-notice-tone: var(--fantasy-warning); }
+.fantasy-notice-danger { --fantasy-notice-tone: var(--fantasy-danger); }
+.fantasy-notice-magic { --fantasy-notice-tone: var(--fantasy-magic); }
+.fantasy-notice .fantasy-hud-heading { color: var(--fantasy-notice-tone); }
+.fantasy-prompt { max-width: min(28rem, calc(var(--game-width, 100vw) - 24px)); padding: 8px 12px; text-align: center; overflow-wrap: anywhere; }
+.fantasy-prompt .fantasy-button { height: auto; white-space: normal; }
+.hud-menu .fantasy-button[aria-pressed="true"] { border-color: var(--fantasy-accent); box-shadow: inset 0 0 8px rgb(219 183 118 / 18%); }
+.mobile-game .hud-action-bar .fantasy-tooltip { --tt-trans: 0; }
+.mobile-game .hud-action-bar .fantasy-tooltip::before { inset-inline: auto 0; max-width: min(240px, calc(var(--game-width) - 24px)); }
+.mobile-game .hud-action-bar .fantasy-tooltip::after { inset-inline: auto 12px; }
+.mobile-game #hud-objectives { max-height: max(96px, calc(var(--game-height) - 210px)); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+@media (pointer: coarse), (max-width: 767px) {
+  .fantasy-skill { min-height: 44px; }
+  .fantasy-notice { padding: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fantasy-meter-fill { transition: none; }
+}
+.fantasy-notification-stack { position: fixed; top: 96px; left: 50%; z-index: 30050; display: flex; flex-direction: column; align-items: center; gap: 6px; width: min(24rem, calc(var(--game-width, 100vw) - 32px)); transform: translateX(-50%); }
+.fantasy-toast-slot { width: 100%; min-width: 0; }
+.fantasy-toast-slot .fantasy-notice { width: 100%; max-width: 100%; margin-inline: 0; }
+.mobile-game .fantasy-notification-stack { top: 64px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; width: min(28rem, calc(var(--game-width) - 24px)); }
+.mobile-game .fantasy-toast-slot .fantasy-notice { font-size: 12px; }
