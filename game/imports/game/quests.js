@@ -94,7 +94,7 @@ export const QUESTS = [
     },
   },
 
-  {
+  /*{
     id: "speak-with-mage",
     title: "Speak With the Mage",
     requiredLevel: 1,
@@ -108,7 +108,7 @@ export const QUESTS = [
     rewards: {
       xp: 75,
     },
-  },
+  },*/
 
   {
     id: "wolf-problem",
@@ -123,7 +123,7 @@ export const QUESTS = [
       label: "Defeat Wolves",
     },
     rewards: {
-      xp: 250,
+      xp: 300,
       gold: 1,
     },
   },
