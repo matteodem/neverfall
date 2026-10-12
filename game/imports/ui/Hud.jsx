@@ -2,6 +2,7 @@ import { TargetFrame } from "./components/TargetFrame";
 import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
 import { WorldMapModal } from "./components/modals/WorldMapModal";
+import { FeedbackModal } from "./components/modals/FeedbackModal";
 import { ItemsModal, HeroModal } from "./components/modals/GroupedHudModals";
 import { SocialModal } from "./components/modals/SocialModal";
 import { PotionBuffs } from "./components/PotionBuffs";
@@ -870,6 +871,7 @@ export const Hud = ({
       <QuestProgressToast />
 
       <HelpModal />
+      <FeedbackModal />
 
 
       <SettingsModal />

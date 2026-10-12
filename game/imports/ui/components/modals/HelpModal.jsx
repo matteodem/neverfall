@@ -28,6 +28,7 @@ const KEYBOARD_CONTROLS = [
 export const HelpModal = () => {
   const { startNextStep } = useNextStep();
   const closeModal = useHudStore((state) => state.closeModal);
+  const openModal = useHudStore((state) => state.openModal);
 
   return (
     <HudModal
@@ -91,6 +92,13 @@ export const HelpModal = () => {
       </p>
 
       <div className="mt-2">
+        <button type="button" className="btn btn-primary mb-3" onClick={() => {
+          closeModal("help");
+          openModal("feedback");
+        }}>
+          Give Feedback
+        </button>
+        <br />
         Check out the github repository: <br />
 
         <div className="flex gap-4">
