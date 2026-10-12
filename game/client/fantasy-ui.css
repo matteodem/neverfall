@@ -195,6 +195,33 @@
 .fantasy-input { border: 1px solid var(--fantasy-border); background-color: var(--fantasy-surface); color: var(--fantasy-text); }
 .fantasy-confirm-danger { border-color: var(--fantasy-danger); }
 
+/* Player inventory adopts the palette; shared merchant slots keep their default skin. */
+.fantasy-inventory { background: var(--fantasy-panel); color: var(--fantasy-text); border-color: var(--fantasy-border); }
+.fantasy-inventory .inventory-grid { background: var(--fantasy-surface); border-color: var(--fantasy-border); }
+.fantasy-inventory .inventory-slot-empty { background: var(--fantasy-panel); border-color: var(--fantasy-border); }
+.fantasy-inventory .inventory-slot-empty:hover { background: var(--fantasy-surface); border-color: var(--fantasy-accent); }
+.fantasy-inventory .inventory-slot-content { background: var(--fantasy-panel); border-color: var(--fantasy-border); }
+.fantasy-inventory .inventory-slot-face { background: var(--fantasy-surface); border-color: var(--fantasy-border); }
+.fantasy-inventory .inventory-slot-icon { color: var(--fantasy-accent); }
+.fantasy-inventory .inventory-slot-name { color: var(--fantasy-text); }
+.fantasy-inventory .inventory-slot-upgrade { background: var(--fantasy-success); color: var(--fantasy-panel); }
+.fantasy-inventory .inventory-slot-count { background: var(--fantasy-panel); color: var(--fantasy-text); }
+.fantasy-inventory .fantasy-money { background: var(--fantasy-surface); border-color: var(--fantasy-border); }
+.fantasy-inventory .fantasy-muted { color: var(--fantasy-muted); }
+
+.fantasy-character-overview { background: linear-gradient(135deg, var(--fantasy-panel), var(--fantasy-surface) 65%, color-mix(in srgb, var(--fantasy-panel) 60%, var(--fantasy-secondary))); color: var(--fantasy-text); }
+.fantasy-character-overview .character-sidebar { border-right: 1px solid var(--fantasy-border); border-radius: 0; background: rgb(25 28 27 / 94%); }
+.fantasy-character-overview .character-sidebar h1 { font-size: 1.25rem; }
+.fantasy-character-overview .character-list { min-height: 0; overflow-y: auto; }
+.fantasy-character-overview .character-details { width: max-content; max-width: min(24rem, calc(100% - 24px)); }
+.fantasy-character-overview .character-join { max-width: calc(100% - 24px); }
+.fantasy-character-overview .character-sidebar .fantasy-badge { font-size: 0.6875rem; padding: 1px 5px; }
+.mobile-game.mobile-portrait .fantasy-modal-placement { grid-template-rows: minmax(0, 1fr); }
+@media (max-width: 767px), (max-height: 500px) {
+  .fantasy-character-overview .character-details { width: min(22rem, calc(100% - 24px)); }
+  .fantasy-character-overview .character-join { width: min(220px, calc(100% - 24px)); }
+}
+
 /* Compact gameplay primitives; placement remains with the existing HUD. */
 .fantasy-hud-heading { margin: 0 0 4px; font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .fantasy-tracker { max-width: calc(100vw - 24px); font-size: 0.875rem; overflow-wrap: anywhere; }

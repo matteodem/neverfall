@@ -108,7 +108,7 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
   return (
     <div className="pointer-events-auto fixed inset-0" style={{ zIndex: BLOCKING_MODAL_Z_INDEX + index }}>
       <div className="fantasy-modal-backdrop absolute inset-0" onClick={dismiss} />
-      <div className="pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
+      <div className="fantasy-modal-placement pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
     </div>
   );
 };

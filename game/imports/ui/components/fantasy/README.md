@@ -62,10 +62,16 @@ Hero retains its existing tab store, equipment dragging and action handlers.
 drop outlines and moving-item status; inventory and merchant callers retain their
 existing appearance.
 
-Inventory/Crafting remain in Items and Character Overview remains in character
-selection. Their content styling is still pending; any shared inventory migration
-must opt in only for the player view so merchant content stays unchanged.
-Later passes still need to migrate Items/Character Overview content, NPC/quest/merchant content,
+Inventory and Crafting remain in Items; Character Overview remains in character
+selection. They now use the same fantasy surfaces, actions, headers, badges and
+spacing as Hero. Player Inventory opts into `fantasy-inventory` and passes the
+`fantasy` option to its slots, drop targets, feedback, money display and item
+inspection. Merchant Inventory omits it and keeps its existing appearance and
+actions. The character screen keeps its existing selection, creator, deletion,
+Join World and equipment preview behavior. Portrait HUD modals use a constrained
+placement grid row so tall Inventory content stays centered and scrollable.
+
+Task 3 is complete. Later passes still need to migrate NPC/quest/merchant content,
 minimap/world-map details, and standalone feedback and analytics dialogs. Only the
 NPC interaction prompt was changed in its file; NPC modal contents are unchanged.
 The achievement modal and toast both use the shared system. Chat, group panels, the death screen,

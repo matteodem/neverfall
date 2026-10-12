@@ -39,6 +39,7 @@ import { EquipmentInspection } from "./EquipmentInspection";
 import { getInventorySlots } from "../../../game/inventoryLayout";
 import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
 import { InventoryDropTarget, InventoryMoveFeedback } from "./InventoryDropTarget";
+import { FantasyButton, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 
 const ITEM_DISPLAY = {
@@ -67,6 +68,7 @@ const ITEM_DISPLAY = {
 
 const MoneyDisplay = ({
   money,
+  fantasy = false,
 }) => {
   const currencies = [
     {
@@ -113,9 +115,10 @@ const MoneyDisplay = ({
   ];
 
 
+  const Panel = fantasy ? FantasyPanel : "div";
   return (
-    <div
-      className="
+    <Panel
+      className={`${fantasy ? "fantasy-section fantasy-money" : ""}
         flex
         min-w-0
         flex-wrap
@@ -133,7 +136,7 @@ const MoneyDisplay = ({
 
         px-3
         py-2
-      "
+      `}
     >
       {currencies.map(
         (
@@ -148,7 +151,7 @@ const MoneyDisplay = ({
             }
             className={[
               "flex items-center gap-1 text-sm font-bold",
-              currency.text,
+              fantasy ? "fantasy-muted" : currency.text,
             ].join(
               " "
             )}
@@ -170,7 +173,7 @@ const MoneyDisplay = ({
           </div>
         )
       )}
-    </div>
+    </Panel>
   );
 };
 
@@ -185,13 +188,16 @@ const InventorySlot = ({
   onInspect,
   onMove,
   equipment,
+  fantasy = false,
 }) => {
+  const Menu = fantasy ? FantasyPanel : "ul";
+  const Action = fantasy ? FantasyButton : "button";
   if (
     !item
   ) {
     return (
       <button type="button" aria-label="Empty backpack slot"
-        className="
+        className={`${fantasy ? "inventory-slot-empty" : ""}
           block w-full
           aspect-square
           min-w-0
@@ -209,7 +215,7 @@ const InventorySlot = ({
 
           hover:border-gray-400
           hover:bg-gray-50
-        "
+        `}
       />
     );
   }
@@ -233,7 +239,7 @@ const InventorySlot = ({
 
   return (
     <div
-      className="tooltip tooltip-top block aspect-square min-w-0"
+      className={`${fantasy ? "fantasy-tooltip" : ""} tooltip tooltip-top block aspect-square min-w-0`}
       data-tip={name}
     >
       {onSell ? (
@@ -258,39 +264,40 @@ const InventorySlot = ({
               rarityClass={rarityClass}
             />
           </button>
-          {open && <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+          {open && <Menu className={`dropdown-content menu z-[100] w-44 p-2 ${fantasy ? "fantasy-section" : "rounded-box border border-gray-200 bg-white text-gray-900 shadow-xl"}`}>
             <li>
               <div className="pointer-events-none block">
-                <strong className={`block text-xs ${item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>
-                <span className="mt-1 block text-xs text-gray-600">{consumable ? "Consumable" : "Material"}</span>
-                {consumable && <span className="mt-1 block text-xs text-gray-600">{consumable.description}</span>}
-                {material && <span className="mt-1 block text-xs text-gray-600">{material.description}</span>}
+                <strong className={`block text-xs ${fantasy ? "fantasy-accent" : item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>
+                <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{consumable ? "Consumable" : "Material"}</span>
+                {consumable && <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{consumable.description}</span>}
+                {material && <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{material.description}</span>}
               </div>
             </li>
             {consumable && <li>
-              <button
+              <Action
                 type="button"
+                {...(fantasy ? { variant: "primary", className: "btn-sm" } : {})}
                 {...actionButtonHandlers(() => {
                   useConsumableStore.getState().requestUse(item.id);
                   onClose();
                 }, mobile)}
               >
                 Use
-              </button>
+              </Action>
             </li>}
-            <li><button type="button" onClick={(event) => {
+            <li><Action type="button" {...(fantasy ? { variant: "secondary", className: "btn-sm" } : {})} onClick={(event) => {
               // Finish the tap before removing the menu and selecting a move source.
               if (mobile) event.stopPropagation();
               onClose();
               onMove();
-            }}>Move</button></li>
+            }}>Move</Action></li>
             {sellable && onSell && <li>
-              <button type="button" {...actionButtonHandlers(() => {
+              <Action type="button" {...(fantasy ? { variant: "secondary", className: "btn-sm" } : {})} {...actionButtonHandlers(() => {
                 onSell(item);
                 onClose();
-              }, mobile)}>Sell</button>
+              }, mobile)}>Sell</Action>
             </li>}
-          </ul>}
+          </Menu>}
         </div>
       ) : (
         <InventorySlotContent
@@ -307,13 +314,13 @@ const InventorySlot = ({
 const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade = false }) => (
   <div
         className={[
-          "group relative aspect-square min-w-0 cursor-default overflow-hidden rounded-md border bg-gradient-to-br from-amber-50 to-gray-100 shadow-sm transition hover:brightness-105",
+          "inventory-slot-content group relative aspect-square min-w-0 cursor-default overflow-hidden rounded-md border bg-gradient-to-br from-amber-50 to-gray-100 shadow-sm transition hover:brightness-105",
           rarityClass,
         ].join(" ")}
       >
         <div
           className="
-            absolute
+            inventory-slot-face absolute
             inset-1
 
             flex
@@ -334,19 +341,19 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade 
         >
           <Icon
             icon={itemDisplay?.icon}
-            className={itemDisplay?.iconClass}
+            className={`inventory-slot-icon ${itemDisplay?.iconClass || ""}`}
             aria-label={name}
           />
-          {!itemDisplay && <span className="text-center text-[9px] font-semibold text-gray-800">{name}</span>}
+          {!itemDisplay && <span className="inventory-slot-name text-center text-[9px] font-semibold text-gray-800">{name}</span>}
         </div>
 
 
-        {isUpgrade && <span className="absolute bottom-1 left-1 rounded bg-green-700 px-1 text-[10px] font-semibold text-white">↑<span className="sr-only"> Upgrade</span></span>}
+        {isUpgrade && <span className="inventory-slot-upgrade absolute bottom-1 left-1 rounded bg-green-700 px-1 text-[10px] font-semibold text-white">↑<span className="sr-only"> Upgrade</span></span>}
         {item.count >
           1 && (
           <span
             className="
-              absolute
+              inventory-slot-count absolute
               bottom-1
               right-1
 
@@ -372,6 +379,8 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade 
 
 export const InventoryModal =
   ({ embedded = false, merchant = null }) => {
+    const fantasy = !merchant;
+    const Panel = fantasy ? FantasyPanel : "div";
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
     const [sellingItem, setSellingItem] = useState(null);
@@ -472,8 +481,8 @@ export const InventoryModal =
         id="inventory"
         title="Inventory"
       >
-        <div
-          className="
+        <Panel
+          className={`${fantasy ? "fantasy-inventory fantasy-section" : ""}
             w-full
             min-w-0
             max-w-full
@@ -490,7 +499,7 @@ export const InventoryModal =
             text-gray-900
 
             shadow-2xl
-          "
+          `}
         >
           {/*
            * =====================================================
@@ -510,7 +519,7 @@ export const InventoryModal =
             "
           >
             <div className="min-w-0">
-              <h3
+              {fantasy ? <FantasySectionHeader as="h3" className="fantasy-heading-inline">Backpack</FantasySectionHeader> : <h3
                 className="
                   truncate
 
@@ -524,16 +533,16 @@ export const InventoryModal =
                 "
               >
                 Backpack
-              </h3>
+              </h3>}
 
               <p
-                className="
+                className={`${fantasy ? "fantasy-muted" : ""}
                   mt-1
 
                   text-xs
 
                   text-gray-500
-                "
+                `}
               >
                 {
                   items.length
@@ -556,9 +565,9 @@ export const InventoryModal =
            * =====================================================
            */}
 
-          <InventoryMoveFeedback />
+          <InventoryMoveFeedback fantasy={fantasy} />
           <div
-            className="
+            className={`${fantasy ? "inventory-grid" : ""}
               grid
               w-full
               min-w-0
@@ -573,7 +582,7 @@ export const InventoryModal =
               bg-gray-50
 
               p-3
-            "
+            `}
           >
             {slots.map(
               (
@@ -581,9 +590,10 @@ export const InventoryModal =
                 index
               ) => (
                 <InventoryDropTarget key={index} characterId={characterId} itemId={item?.id}
-                  target={{ type: "inventory", index }} mobile={mobile} onDragStart={() => setOpenItem(null)}>
+                  target={{ type: "inventory", index }} mobile={mobile} fantasy={fantasy} onDragStart={() => setOpenItem(null)}>
                 <InventorySlot
                   equipment={equipment}
+                  fantasy={fantasy}
                   onInspect={() => {
                     setOpenItem(null);
                     setInspectedItemId(item.id);
@@ -618,7 +628,7 @@ export const InventoryModal =
 
           {!items.length && (
             <div
-              className="
+              className={`${fantasy ? "fantasy-muted" : ""}
                 py-3
 
                 text-center
@@ -626,7 +636,7 @@ export const InventoryModal =
                 text-xs
 
                 text-gray-500
-              "
+              `}
             >
               Your inventory is empty.
             </div>
@@ -641,16 +651,17 @@ export const InventoryModal =
 
           <div className="mt-3">
             <MoneyDisplay
+              fantasy={fantasy}
               money={
                 money
               }
             />
           </div>
-        </div>
+        </Panel>
       </HudModal>
       {sellingItem && merchant && <SellItemModal itemId={sellingItem.id} available={sellingItem.count} merchant={merchant}
         itemDisplay={ITEM_DISPLAY[sellingItem.id]} onClose={() => setSellingItem(null)} />}
-      {inspectedItem && <EquipmentInspection item={inspectedItem} equipment={equipment} mobile={mobile}
+      {inspectedItem && <EquipmentInspection item={inspectedItem} equipment={equipment} mobile={mobile} fantasy={fantasy}
         onClose={() => setInspectedItemId(null)} onSell={merchant ? openSell : undefined} onMove={() => moveItem(inspectedItem.id)} />}
       </>
     );

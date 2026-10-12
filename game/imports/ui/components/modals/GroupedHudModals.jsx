@@ -33,22 +33,21 @@ const GroupedHudModal = ({ id, title }) => {
   const setTab = useHudStore((state) => state.setTab);
   const sections = SECTIONS[id];
   const Content = sections[tab].Content;
-  const hero = id === "hero";
-  const TabButton = hero ? FantasyButton : "button";
+  const TabButton = FantasyButton;
 
   return (
     <>
     <HudModal id={id} title={title} width={600} maxHeight={750} scrollable={mobile || (tab !== "inventory" && tab !== "gear")}
       className={id === "hero" && tab === "quests" ? "quest-modal" : ""}>
-      <div role="tablist" aria-label={`${title} sections`} className={hero ? "fantasy-tabs" : "tabs tabs-border mb-4 flex-nowrap overflow-x-auto"}>
+      <div role="tablist" aria-label={`${title} sections`} className="fantasy-tabs">
         {Object.entries(sections).map(([key, section]) => (
           <TabButton
             key={key}
             type="button"
             role="tab"
             aria-selected={tab === key}
-            {...(hero ? { variant: "ghost" } : {})}
-            className={hero ? "fantasy-tab" : `tab whitespace-nowrap ${mobile ? "text-sm" : ""} ${tab === key ? "tab-active font-semibold" : ""}`}
+            variant="ghost"
+            className="fantasy-tab"
             onClick={() => setTab(id, key)}
           >
             {section.label}
