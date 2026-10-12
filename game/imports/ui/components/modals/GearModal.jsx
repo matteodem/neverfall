@@ -15,16 +15,17 @@ import { HudModal } from "../HudModal";
 import { formatClassBonus, getUnlockedClassBonuses } from "../../../game/classProgression";
 import { InventoryDropTarget, InventoryMoveFeedback } from "./InventoryDropTarget";
 import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
+import { FantasyButton, FantasyDivider, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 const EquipmentSlot = ({ slot, itemId }) => {
   const item = EQUIPMENT_ITEMS[itemId];
   const label = slot[0].toUpperCase() + slot.slice(1);
   const content = (
-    <div className="min-h-[68px] rounded-md border border-gray-300 bg-gray-50 p-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">{label}</div>
-      <div className="mt-1 text-xs font-semibold text-gray-800">{item?.name || (["weapon", "armor"].includes(slot) ? "Class default" : "Empty")}</div>
+    <div className="fantasy-slot min-h-[68px]">
+      <div className="text-[10px] font-semibold uppercase tracking-wide fantasy-muted">{label}</div>
+      <div className="mt-1 text-xs font-semibold">{item?.name || (["weapon", "armor"].includes(slot) ? "Class default" : "Empty")}</div>
       {formatEquipmentStats(item).map((stat) => (
-        <div key={stat} className="mt-0.5 text-[10px] text-gray-600">{stat}</div>
+        <div key={stat} className="mt-0.5 text-[10px] fantasy-muted">{stat}</div>
       ))}
     </div>
   );
@@ -33,22 +34,22 @@ const EquipmentSlot = ({ slot, itemId }) => {
 
   return (
     <div className="dropdown dropdown-top focus-within:z-[100] w-full">
-      <button type="button" className="block w-full text-left">{content}</button>
-      <ul className="dropdown-content menu z-[100] w-44 rounded-box border border-gray-200 bg-white p-2 text-gray-900 shadow-xl">
+      <button type="button" className="block w-full text-left" aria-label={`${label}: ${item.name}. Equipment actions`}>{content}</button>
+      <FantasyPanel as="ul" className="dropdown-content menu fantasy-section z-[100] w-48">
         <li>
           <div className="pointer-events-none block">
             <strong className="block text-xs">{item.name}</strong>
             {formatEquipmentStats(item).map((stat) => (
-              <span key={stat} className="mt-1 block text-[11px] text-gray-600">{stat}</span>
+              <span key={stat} className="mt-1 block text-[11px] fantasy-muted">{stat}</span>
             ))}
           </div>
         </li>
         <li>
-          <button type="button" onClick={() => useEquipmentStore.getState().requestChange("unequip", slot)}>
+          <FantasyButton variant="secondary" className="btn-sm" onClick={() => useEquipmentStore.getState().requestChange("unequip", slot)}>
             Unequip item
-          </button>
+          </FantasyButton>
         </li>
-      </ul>
+      </FantasyPanel>
     </div>
   );
 };
@@ -72,26 +73,27 @@ export const GearModal = ({ embedded = false }) => {
 
   return (
     <HudModal id="gear" title="Gear" embedded={embedded} scrollable={mobile}>
-      <section className="rounded-xl border border-gray-200 bg-white p-4 text-gray-900 shadow-2xl">
-        <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Equipped</h4>
-        <InventoryMoveFeedback />
+      <FantasyPanel as="section" className="fantasy-section">
+        <FantasySectionHeader>Equipped</FantasySectionHeader>
+        <InventoryMoveFeedback fantasy />
         <div className="grid grid-cols-2 gap-2">
           {EQUIPMENT_SLOTS.map((slot) => (
             <InventoryDropTarget key={slot} characterId={characterId} itemId={equipment[slot]}
-              target={{ type: "equipment", slot }} mobile={mobile}>
+              target={{ type: "equipment", slot }} mobile={mobile} fantasy>
               <EquipmentSlot slot={slot} itemId={equipment[slot]} />
             </InventoryDropTarget>
           ))}
         </div>
-        <div className="mt-3 border-t border-gray-200 pt-3">
-          <h4 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600">Class Bonuses</h4>
+        <FantasyDivider />
+        <div>
+          <FantasySectionHeader>Class Bonuses</FantasySectionHeader>
           {bonuses.length ? bonuses.map((bonus) => (
-            <div key={bonus.level} className="text-xs text-gray-600">
+            <div key={bonus.level} className="text-xs fantasy-muted">
               Level {bonus.level}: {formatClassBonus(bonus)}
             </div>
-          )) : <p className="text-xs text-gray-500">First bonus unlocks at level 5.</p>}
+          )) : <p className="text-xs fantasy-muted">First bonus unlocks at level 5.</p>}
         </div>
-      </section>
+      </FantasyPanel>
     </HudModal>
   );
 };

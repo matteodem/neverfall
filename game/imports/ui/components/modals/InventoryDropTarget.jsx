@@ -8,7 +8,7 @@ import { useInventoryDragStore } from "../../stores/useInventoryDragStore";
 const ITEM_DRAG_TYPE = "application/x-neverfall-item";
 
 // Native desktop dragging is an optional layer over the existing item buttons.
-export const InventoryDropTarget = ({ characterId, itemId, target, mobile, children, onDragStart }) => {
+export const InventoryDropTarget = ({ characterId, itemId, target, mobile, children, onDragStart, fantasy = false }) => {
   const consumedPointer = useRef(false);
   const source = useInventoryDragStore((state) => state.source);
   const busy = useInventoryDragStore((state) => state.busy);
@@ -51,7 +51,7 @@ export const InventoryDropTarget = ({ characterId, itemId, target, mobile, child
 
   return (
     <div
-      className={`min-w-0 rounded-md ${source ? valid ? "ring-2 ring-green-500" : "ring-2 ring-red-400" : ""} ${isSource ? "opacity-50" : ""}`}
+      className={`min-w-0 rounded-md ${fantasy ? "fantasy-drop-target" : ""} ${source ? valid ? "ring-2 ring-green-500" : "ring-2 ring-red-400" : ""} ${isSource ? "opacity-50" : ""}`}
       draggable={!mobile && !busy && Boolean(itemId)}
       onDragStart={(event) => {
         if (!itemId || event.target.closest("ul")) { event.preventDefault(); return; }
@@ -99,7 +99,7 @@ export const InventoryDropTarget = ({ characterId, itemId, target, mobile, child
   );
 };
 
-export const InventoryMoveFeedback = () => {
+export const InventoryMoveFeedback = ({ fantasy = false }) => {
   const source = useInventoryDragStore((state) => state.source);
   const busy = useInventoryDragStore((state) => state.busy);
   const error = useInventoryDragStore((state) => state.error);
@@ -108,7 +108,7 @@ export const InventoryMoveFeedback = () => {
       {source.mode === "move" ? "Choose a backpack or valid equipment slot." : "Green slots accept this item; red slots do not."}
       <button type="button" className="btn btn-ghost btn-xs ml-2" onClick={() => useInventoryDragStore.getState().clear()}>Cancel</button>
     </p>*/}
-    {busy && <p className="mb-3 text-xs text-gray-600" role="status">Moving item…</p>}
+    {busy && <p className={`mb-3 text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`} role="status">Moving item…</p>}
     {error && <p className="mb-3 text-xs text-error" role="alert">{error}</p>}
   </>;
 };

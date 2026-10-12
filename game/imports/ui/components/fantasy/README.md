@@ -1,4 +1,4 @@
-# Fantasy UI foundation and gameplay HUD (spec 99, Tasks 1–2)
+# Fantasy UI foundation, gameplay HUD and Hero (spec 99, Tasks 1–3)
 
 `game/client/fantasy-ui.css` defines the shared material, color, focus, button,
 badge, and modal styles. It loads after the existing stylesheet and only styles
@@ -52,9 +52,22 @@ Their existing stores and independent dismissal timers remain with each componen
 Mobile arranges simultaneous notices into two columns and limits the expanded
 objective list's height so it can scroll above the action controls.
 
-Later passes still need to migrate Hero/Items content, NPC/quest/merchant content,
+The existing Hero tabs (Gear, Quests, Achievements, Skills and Talents) adopt the
+shared panels, headings, buttons and badges. `fantasy-tabs`, `fantasy-stack`,
+`fantasy-section`, `fantasy-slot`, `fantasy-choice` and `fantasy-input` provide
+compact navigation, spacing and selected/disabled states using the shared tokens.
+Hero retains its existing tab store, equipment dragging and action handlers.
+`NpcQuestCard` accepts `fantasy` (default `false`); only Hero quest cards opt in.
+`InventoryDropTarget` and `InventoryMoveFeedback` also accept `fantasy` for Gear's
+drop outlines and moving-item status; inventory and merchant callers retain their
+existing appearance.
+
+Inventory/Crafting remain in Items and Character Overview remains in character
+selection. Their content styling is still pending; any shared inventory migration
+must opt in only for the player view so merchant content stays unchanged.
+Later passes still need to migrate Items/Character Overview content, NPC/quest/merchant content,
 minimap/world-map details, and standalone feedback and analytics dialogs. Only the
-NPC interaction prompt and achievement toast were changed in their respective
-files; their modal contents are unchanged. Chat, group panels, the death screen,
+NPC interaction prompt was changed in its file; NPC modal contents are unchanged.
+The achievement modal and toast both use the shared system. Chat, group panels, the death screen,
 and the joystick also retain their existing presentation. Full visual review
 belongs after the remaining migrations.

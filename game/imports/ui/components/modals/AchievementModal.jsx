@@ -1,4 +1,4 @@
-import { FantasyNotice, FantasySectionHeader } from "../fantasy/FantasyUI";
+import { FantasyBadge, FantasyNotice, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 import React, { useEffect, useRef, useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
@@ -37,30 +37,32 @@ export const AchievementModal = ({ embedded = false }) => {
   );
   return (
     <HudModal id="achievements" title="Achievements" embedded={embedded} maxHeight={750}>
-      <div className="space-y-3">
-        <label className="block">
-          <span className="mb-1 block font-semibold">Player Title</span>
-          <select className="select select-bordered w-full" value={selectedTitle}
-            disabled={!character || savingTitle} onChange={selectTitle}>
-            <option value="">None</option>
-            {unlockedTitles.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
-          </select>
-        </label>
-        {titleError && <p role="alert" className="text-sm text-error">{titleError}</p>}
+      <div className="fantasy-stack">
+        <FantasyPanel as="section" className="fantasy-section">
+          <label className="block">
+            <FantasySectionHeader as="span" className="block">Player Title</FantasySectionHeader>
+            <select className="select select-bordered fantasy-input w-full" value={selectedTitle}
+              disabled={!character || savingTitle} onChange={selectTitle}>
+              <option value="">None</option>
+              {unlockedTitles.map(({ id, label }) => <option key={id} value={id}>{label}</option>)}
+            </select>
+          </label>
+          {titleError && <p role="alert" className="text-sm text-error">{titleError}</p>}
+        </FantasyPanel>
         {sortedAchievements.map(({ id, name, description, target }) => {
           const achievement = character?.achievements?.[id];
           const progress = achievement?.progress || 0;
           return (
-            <section key={id} className="rounded-box border border-base-300 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="font-bold">{name}</h4>
-                <span className={`badge badge-sm ${achievement?.unlocked ? "badge-success" : "badge-ghost"}`}>
+            <FantasyPanel as="section" key={id} className="fantasy-section">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <FantasySectionHeader className="fantasy-heading-inline">{name}</FantasySectionHeader>
+                <FantasyBadge tone={achievement?.unlocked ? "success" : "neutral"}>
                   {achievement?.unlocked ? "Unlocked" : "Locked"}
-                </span>
+                </FantasyBadge>
               </div>
-              <p className="mt-1 text-sm">{description}</p>
-              <p className="mt-1 text-sm font-semibold">{progress} / {target}</p>
-            </section>
+              <p className="mt-1 text-sm fantasy-muted">{description}</p>
+              <p className="mt-1 text-sm font-semibold fantasy-accent">{progress} / {target}</p>
+            </FantasyPanel>
           );
         })}
       </div>

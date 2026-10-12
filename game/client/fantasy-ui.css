@@ -17,6 +17,9 @@
   --fantasy-magic-fill: #6f80b6;
   --fantasy-cooldown-cover: rgb(5 8 9 / 84%);
   --fantasy-cooldown-track: rgb(5 8 9 / 20%);
+  --fantasy-space-xs: 4px;
+  --fantasy-space-sm: 8px;
+  --fantasy-space-md: 12px;
 }
 
 .fantasy-ui {
@@ -173,6 +176,24 @@
 @media (prefers-reduced-motion: reduce) {
   .fantasy-button, .fantasy-ui .btn { transition: none; }
 }
+
+/* Shared compact content, navigation and choices for adopted character views. */
+.fantasy-stack { display: flex; flex-direction: column; gap: var(--fantasy-space-md); min-width: 0; }
+.fantasy-section { padding: var(--fantasy-space-md); }
+.fantasy-section > .fantasy-section-header:first-child,
+.fantasy-section > label > .fantasy-section-header:first-child { margin-top: 0; }
+.fantasy-heading-inline { margin: 0; }
+.fantasy-slot { padding: var(--fantasy-space-sm); border: 1px solid var(--fantasy-border); border-radius: 5px 2px; background: var(--fantasy-surface); }
+.fantasy-drop-target.ring-green-500 { --tw-ring-color: var(--fantasy-success); }
+.fantasy-drop-target.ring-red-400 { --tw-ring-color: var(--fantasy-danger); }
+.fantasy-tabs { display: flex; flex-wrap: wrap; gap: var(--fantasy-space-xs); margin-bottom: var(--fantasy-space-md); padding-bottom: var(--fantasy-space-sm); border-bottom: 1px solid var(--fantasy-border); }
+.fantasy-tabs .fantasy-tab { height: auto; min-height: 36px; padding: var(--fantasy-space-sm); font-size: 0.8125rem; }
+.fantasy-tabs .fantasy-tab[aria-selected="true"] { border-color: var(--fantasy-border); background: var(--fantasy-surface); color: var(--fantasy-accent); }
+.fantasy-ui.fantasy-choice { height: auto; justify-content: flex-start; gap: var(--fantasy-space-sm); padding: var(--fantasy-space-md); text-align: left; white-space: normal; font-weight: 400; }
+.fantasy-ui.fantasy-choice[aria-pressed="true"] { border-color: var(--fantasy-accent); background: var(--fantasy-surface); box-shadow: inset 3px 0 var(--fantasy-accent); }
+.fantasy-ui.fantasy-choice[aria-pressed="true"]:disabled { opacity: 1; filter: none; }
+.fantasy-input { border: 1px solid var(--fantasy-border); background-color: var(--fantasy-surface); color: var(--fantasy-text); }
+.fantasy-confirm-danger { border-color: var(--fantasy-danger); }
 
 /* Compact gameplay primitives; placement remains with the existing HUD. */
 .fantasy-hud-heading { margin: 0 0 4px; font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
