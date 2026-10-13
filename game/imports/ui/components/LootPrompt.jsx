@@ -14,7 +14,7 @@ export const LootPrompt = () => {
   if (!nearbyId || hasOpenModal || dungeonPrompt) return null;
 
   return (
-    <FantasyHudCard className="fantasy-prompt pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 -translate-y-1/2">
+    <FantasyHudCard className={`fantasy-prompt pointer-events-none absolute left-1/2 -translate-x-1/2 ${mobile ? "top-3/5 z-50" : "top-1/4 -translate-y-1/2"}`}>
       {mobile ? <FantasyButton className="pointer-events-auto btn-sm" onClick={() => useActionBarStore.getState().triggerSkill("KeyF")}>Loot</FantasyButton> : <>Press <FantasyKey>F</FantasyKey> to loot</>}
     </FantasyHudCard>
   );
