@@ -11,6 +11,7 @@ import { Characters } from "../../api/characters/characters";
 import { getNpcQuestMarkers } from "../../game/npcs/questMarkers";
 import { WorldMapMarkerIcon } from "./modals/WorldMapMarker";
 import { Icon } from "./Icon";
+import { FantasyBadge, FantasyPanel, FantasySectionHeader } from "./fantasy/FantasyUI";
 
 import { DUNGEON_MAP_RADIUS, WORLD_RADIUS, worldToPercent } from "../../game/worldMap";
 
@@ -24,10 +25,10 @@ const getEnemyColor = (
   if (
     ENEMY_TYPES[type]?.bossMechanics
   ) {
-    return "#d8f710";
+    return "var(--fantasy-warning)";
   }
 
-  return "#ef4444";
+  return "var(--fantasy-danger)";
 };
 
 const DotMarker = ({
@@ -106,32 +107,32 @@ const Legend = ({ location, activeEvent, showLabels }) => {
       label:
         "You",
       color:
-        "#ffffff",
+        "var(--fantasy-text)",
     },
     {
       label:
         "Players",
       color:
-        "#22c55e",
+        "var(--fantasy-success)",
     },
     {
       label:
         "Enemy",
       color:
-        "#ef4444",
+        "var(--fantasy-danger)",
     },
     {
       label:
         "Boss",
       color:
-        "#d8f710",
+        "var(--fantasy-warning)",
     },
     ...(location === "world" ? [{
       label: "Dungeon",
-      color: "#a78bfa",
+      color: "var(--fantasy-magic)",
       outlined: false,
     }] : []),
-    ...(activeEvent ? [{ label: "Event", color: "#fb923c", outlined: false }] : []),
+    ...(activeEvent ? [{ label: "Event", color: "var(--fantasy-warning)", outlined: false }] : []),
     ...(location === "world" ? [
       { label: "Available quest", kind: "questAvailable" },
       { label: "Quest in progress", kind: "questActive" },
@@ -140,7 +141,7 @@ const Legend = ({ location, activeEvent, showLabels }) => {
   ];
 
   return (
-    <div className="mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px] text-white/80">
+    <div className="fantasy-minimap-legend mt-3 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[10px]">
       {ITEMS.map(
         (item) => (
           <div
@@ -212,7 +213,7 @@ export const Minimap =
       );
 
     return (
-      <div
+      <FantasyPanel
         id="onboarding-map"
         role={mobile ? "button" : undefined}
         tabIndex={mobile ? 0 : undefined}
@@ -230,40 +231,15 @@ export const Minimap =
             setMobileLabels((visible) => !visible);
           }
         } : undefined}
-        className="
-          hud-minimap
-          rounded-3xl
-          border
-          border-white/15
-          bg-black/50
-          p-3
-          text-white
-          backdrop-blur-sm
-          shadow-2xl
-          max-w-[256px]
-        "
+        className="hud-minimap fantasy-minimap max-w-[256px] p-3 backdrop-blur-sm"
       >
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-semibold">
-            Minimap
-          </span>
-
-          <span className="text-[10px] uppercase tracking-[0.2em] text-white/60">
-            N
-          </span>
+          <FantasySectionHeader as="h3" className="fantasy-heading-inline text-sm">Minimap</FantasySectionHeader>
+          <FantasyBadge className="fantasy-minimap-north" tone="neutral">N</FantasyBadge>
         </div>
 
         <div
-          className="
-            relative
-            overflow-hidden
-            rounded-full
-            border-4
-            border-white/15
-            bg-slate-900/80
-            shadow-inner
-            mx-auto
-          "
+          className="fantasy-minimap-lens relative mx-auto overflow-hidden rounded-full border-4 shadow-inner"
           style={{
             width:
               "var(--minimap-size, 220px)",
@@ -274,7 +250,7 @@ export const Minimap =
           {/*
            * Background rings / grid
            */}
-          <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_center,rgba(34,197,94,0.18),rgba(15,23,42,0.95)_70%)]" />
+          <div className="fantasy-minimap-ground absolute inset-0 rounded-full" />
 
           <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-white/10" />
           <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-white/10" />
@@ -284,21 +260,21 @@ export const Minimap =
 
           {activeEvent && (
             <div
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-orange-400 bg-orange-400/25"
+              className="fantasy-minimap-event absolute -translate-x-1/2 -translate-y-1/2 rounded-full border"
               title={showLabels ? activeEvent.name : undefined}
               aria-label={`Active event: ${activeEvent.name}`}
               style={{ ...eventPosition, width: eventDiameter, height: eventDiameter }}
             />
           )}
           {activeEvent && <DotMarker x={event.objectiveX} z={event.objectiveZ}
-            color="#fb923c" size="var(--minimap-dot-size, 10px)" className="z-[15]" outlined />}
+            color="var(--fantasy-warning)" size="var(--minimap-dot-size, 10px)" className="z-[15]" outlined />}
 
           {location === "dungeon" && dungeonConfig &&
-            <DotMarker {...dungeonConfig.exit} color="#a78bfa" size="var(--minimap-dot-size, 10px)" className="z-10" outlined />}
+            <DotMarker {...dungeonConfig.exit} color="var(--fantasy-magic)" size="var(--minimap-dot-size, 10px)" className="z-10" outlined />}
           {location === "world" && DUNGEONS.map((entry) =>
-            <DotMarker key={entry.id} {...entry.entrance} color="#a78bfa" size="var(--minimap-dot-size, 10px)" className="z-10" />)}
+            <DotMarker key={entry.id} {...entry.entrance} color="var(--fantasy-magic)" size="var(--minimap-dot-size, 10px)" className="z-10" />)}
           {location === "world" && customMarker && (
-            <div className="absolute z-[15] -translate-x-1/2 -translate-y-1/2 text-rose-400"
+            <div className="fantasy-minimap-custom absolute z-[15] -translate-x-1/2 -translate-y-1/2"
               style={worldToPercent(customMarker)} title={showLabels ? "Custom Marker" : undefined} aria-label="Custom Marker">
               <Icon icon="mapPin" className="h-4 w-4 drop-shadow-[0_1px_2px_black]" />
             </div>
@@ -322,7 +298,7 @@ export const Minimap =
                   remote.z
                 }
                 outlined={false}
-                color="#22c55e"
+                color="var(--fantasy-success)"
                 size={7}
                 className="z-10"
               />
@@ -381,7 +357,7 @@ export const Minimap =
         </div>
 
         {showLabels && <Legend location={location} activeEvent={activeEvent} showLabels={showLabels} />}
-        {mobile && <p className="mt-1 text-center text-[10px] text-white/60">Hide / Show labels</p>}
-      </div>
+        {mobile && <p className="mt-1 text-center"><FantasyBadge tone="magic" className="fantasy-minimap-hint">Tap to {showLabels ? "hide" : "show"} labels</FantasyBadge></p>}
+      </FantasyPanel>
     );
   };

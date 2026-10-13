@@ -20,6 +20,7 @@ import { useMobileDevice } from "../../hooks/useMobileDevice";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 import { WorldMapMarker, WorldMapMarkerIcon } from "./WorldMapMarker";
+import { FantasyBadge, FantasyButton, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 const WORLD_LABELS = [
   { label: "Highlands (Level 5 - 10)", x: 0, z: 160 },
@@ -167,11 +168,11 @@ const MapContent = () => {
   return (
     <>
       <div className="mb-2 flex items-center justify-end gap-2">
-        <button type="button" className="btn btn-sm" aria-label="Zoom out" disabled={view.zoom <= 1} onClick={() => changeZoom(-0.25)}>−</button>
-        <span className="min-w-12 text-center text-sm">{Math.round(view.zoom * 100)}%</span>
-        <button type="button" className="btn btn-sm" aria-label="Zoom in" disabled={view.zoom >= 3} onClick={() => changeZoom(0.25)}>+</button>
+        <FantasyButton variant="secondary" className="btn-sm" aria-label="Zoom out" disabled={view.zoom <= 1} onClick={() => changeZoom(-0.25)}>−</FantasyButton>
+        <FantasyBadge tone="magic" className="min-w-12 justify-center" aria-label="Map zoom">{Math.round(view.zoom * 100)}%</FantasyBadge>
+        <FantasyButton variant="secondary" className="btn-sm" aria-label="Zoom in" disabled={view.zoom >= 3} onClick={() => changeZoom(0.25)}>+</FantasyButton>
       </div>
-      <div ref={viewportRef} className="world-map-viewport relative aspect-square cursor-grab touch-none overflow-hidden rounded-box border border-base-300 active:cursor-grabbing"
+      <div ref={viewportRef} className="world-map-viewport fantasy-map-viewport relative aspect-square cursor-grab touch-none overflow-hidden rounded-box border active:cursor-grabbing"
         onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp}
         onClick={() => { setActiveMarkerId(null); setSelectedWaypointId(null); }}>
@@ -184,7 +185,7 @@ const MapContent = () => {
             className="pointer-events-none absolute inset-0 h-full w-full" draggable={false} />
         ))}
         {!dungeon && WORLD_LABELS.map((position, index) => (
-          <span key={index} className="absolute -translate-x-1/2 -translate-y-1/2 text-xs text-[#f1eed7] text-shadow-lg"
+          <span key={index} className="fantasy-map-region-label absolute -translate-x-1/2 -translate-y-1/2 text-xs"
             style={worldToPercent(position)}>{position.label}</span>
         ))}
         {!dungeon && getUnlockedSpawnPoints(character?.unlockedSpawnPoints).map((point) => (
@@ -218,7 +219,7 @@ const MapContent = () => {
         {!dungeon && (
           <div className="absolute z-10" style={worldToPercent(SOUTHWEST_LAKE.center)} title="Southwest Lake">
             <span className="world-map-point absolute -translate-x-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full border border-white bg-sky-500" />
-            <span className="world-map-marker-label absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs text-[#f1eed7] drop-shadow-[0_1px_2px_black]">
+            <span className="world-map-marker-label fantasy-map-place-label absolute bottom-2 left-0 -translate-x-1/2 whitespace-nowrap text-xs">
               Southwest Lake (Level 15)
             </span>
           </div>
@@ -274,33 +275,34 @@ const MapContent = () => {
           onPointerUp={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}>
           {legendOpen && (
-            <div id="world-map-legend" className="mb-1 rounded-box bg-black/85 p-2 text-xs text-white shadow-lg">
+            <FantasyPanel id="world-map-legend" className="fantasy-map-legend mb-1 p-2 text-xs">
+              <FantasySectionHeader as="h4" className="fantasy-heading-inline mb-1">Map symbols</FantasySectionHeader>
               {LEGEND.map(({ kind, label }) => (
                 <div key={kind} className="flex items-center gap-2 py-0.5">
                   <span className="flex h-5 w-5 items-center justify-center"><WorldMapMarkerIcon kind={kind} /></span>
                   <span>{label}</span>
                 </div>
               ))}
-            </div>
+            </FantasyPanel>
           )}
-          <button type="button" className="btn btn-sm bg-black/85 text-white" aria-expanded={legendOpen}
+          <FantasyButton variant="secondary" className="btn-sm" aria-expanded={legendOpen}
             aria-controls="world-map-legend" onClick={() => setLegendOpen((open) => !open)}>
             Legend {legendOpen ? "▴" : "▾"}
-          </button>
+          </FantasyButton>
         </div>
       </div>
-      {!mobile && !dungeon && <p className="mt-1 text-xs text-base-content/60">Ctrl + Click to place marker · Ctrl + Click the marker to remove</p>}
+      {!mobile && !dungeon && <p className="mt-1 text-xs fantasy-muted">Ctrl + Click to place marker · Ctrl + Click the marker to remove</p>}
       {selectedWaypoint && !dungeon && (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-box bg-base-200 p-3">
+        <FantasyPanel className="fantasy-section mt-3 flex flex-wrap items-center justify-between gap-2">
           <span>Travel to {selectedWaypoint.name}?</span>
           <div className="flex gap-2">
-            <button type="button" className="btn btn-sm" onClick={() => setSelectedWaypointId(null)}>Cancel</button>
-            <button type="button" className="btn btn-sm btn-primary" disabled={waypointTraveling} onClick={() => {
+            <FantasyButton variant="secondary" className="btn-sm" onClick={() => setSelectedWaypointId(null)}>Cancel</FantasyButton>
+            <FantasyButton className="btn-sm" disabled={waypointTraveling} onClick={() => {
               travelToWaypoint(selectedWaypoint.id);
               closeModal("map");
-            }}>Travel</button>
+            }}>Travel</FantasyButton>
           </div>
-        </div>
+        </FantasyPanel>
       )}
     </>
   );

@@ -1,4 +1,4 @@
-# Fantasy UI foundation, gameplay HUD, Hero and NPC screens (spec 99, Tasks 1–4)
+# Fantasy UI foundation, gameplay HUD, Hero, NPC and maps (spec 99, Tasks 1–5)
 
 `game/client/fantasy-ui.css` defines the shared material, color, focus, button,
 badge, and modal styles. It loads after the existing stylesheet and only styles
@@ -58,9 +58,8 @@ shared panels, headings, buttons and badges. `fantasy-tabs`, `fantasy-stack`,
 compact navigation, spacing and selected/disabled states using the shared tokens.
 Hero retains its existing tab store, equipment dragging and action handlers.
 `NpcQuestCard` accepts `fantasy` (default `false`); Hero and NPC quest cards opt in.
-`InventoryDropTarget` and `InventoryMoveFeedback` also accept `fantasy` for Gear's
-drop outlines and moving-item status; inventory and merchant callers retain their
-existing appearance.
+`InventoryDropTarget` and `InventoryMoveFeedback` also accept `fantasy` for Gear
+and opted-in inventory views; callers keep their existing actions.
 
 Inventory and Crafting remain in Items; Character Overview remains in character
 selection. They now use the same fantasy surfaces, actions, headers, badges and
@@ -68,16 +67,24 @@ spacing as Hero. Player Inventory opts into `fantasy-inventory` and passes the
 `fantasy` option to its slots, drop targets, feedback, money display and item
 inspection. Merchant Inventory opts in only when embedded in the NPC Sell screen
 and keeps its existing actions. The character screen keeps its existing selection,
-creator, deletion,
-Join World and equipment preview behavior. Portrait HUD modals use a constrained
-placement grid row so tall Inventory content stays centered and scrollable.
+creator, deletion, Join World and equipment preview behavior. Portrait HUD modals
+use a constrained placement grid row so tall Inventory content stays centered and
+scrollable.
 
 Task 4 migrates NPC dialogue, quest offers and turn-ins, Shop, Sell, and sale
 confirmation to the same frame, panels, headings, badges, buttons, and spacing.
 `NpcQuestPanel` and `InventoryModal` keep their default styling boundaries and
 opt in inside NPC screens. Quest request handlers, merchant calls, and modal
-back/close behavior remain with their existing owners. Later passes still need
-minimap/world-map details and standalone feedback and analytics dialogs.
-The achievement modal and toast both use the shared system. Chat, group panels, the death screen,
-and the joystick also retain their existing presentation. Full visual review
-belongs after the remaining migrations.
+back/close behavior remain with their existing owners.
+
+Task 5 applies the shared palette and components to the minimap frame, legend,
+mobile label hint, world map controls, markers, labels, and travel confirmation.
+`fantasy-minimap` and `fantasy-map-*` CSS classes scope the presentation. Marker
+positions and collision offsets, quest state, zoom/pan, custom marker placement,
+waypoint travel, and desktop hover versus mobile tap behavior remain in their
+existing components. The mobile hint reflects the current label state.
+
+Later passes still need standalone feedback and analytics dialogs. The achievement
+modal and toast both use the shared system. Chat, group panels, the death screen,
+and the joystick retain their existing presentation. Full visual review belongs
+after the remaining migrations.
