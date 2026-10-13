@@ -106,7 +106,7 @@ export const CharacterOverview = ({
   return (
     <div className={`fantasy-ui fantasy-character-overview relative flex h-screen overflow-hidden ${mobile ? "character-overview-mobile" : ""}`}>
       <FantasyPanel as="aside" className="character-sidebar z-10 flex w-80 flex-col p-5">
-        <FantasySectionHeader as="h1" className="fantasy-heading-inline mb-5 text-2xl">
+        <FantasySectionHeader as="h1" className="fantasy-heading-inline !mb-5 text-2xl">
           Characters
         </FantasySectionHeader>
 

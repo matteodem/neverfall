@@ -93,6 +93,9 @@ scrolling and 44px Chat controls. On short screens, the minimap lens and player
 bars fit between the action controls and Chat. The existing input and interaction
 handlers stay in their owning components.
 
-The pre-game Character Creator and Auth form controls still use their earlier
-styling. Shared Quest/Inventory components also keep their non-fantasy defaults
-for callers outside the opted-in HUD screens.
+The pre-game Character Creator and Auth form controls use the shared panels,
+headings, badges, buttons, inputs, and modal frame. The creator keeps its wizard,
+appearance preview, and character data flow; the preview takes the larger desktop
+column while the mobile controls scroll beneath it. Auth retains its login,
+registration, validation, and account transfer flows. Shared Quest/Inventory
+components keep their non-fantasy defaults for callers outside opted-in screens.

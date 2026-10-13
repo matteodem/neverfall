@@ -6,6 +6,7 @@ import { logoutToGuest } from "../auth/guest";
 import { useCharacterStore } from "./stores/useCharacterStore";
 import { AccountModal } from "./components/AccountModal";
 import { AuthModal } from "./components/AuthModal";
+import { FantasyButton } from "./components/fantasy/FantasyUI";
 
 const AccountContext = createContext(null);
 export const useCharacterAccountFlow = () => useContext(AccountContext);
@@ -125,23 +126,23 @@ export const CharacterAccountFlow = ({ children }) => {
       {modal === "auth" && <AuthModal busy={busy} error={error} onSubmit={authenticate} onClose={close} clearError={() => setError("")} />}
       {modal === "transfer" && <AccountModal title="Guest characters" busy={busy} onClose={() => resolveTransfer(true)}>
         <p className="py-4">Do you want to transfer your guest characters to this account?</p>
-        {error && <p role="alert" className="text-sm text-error">{error}</p>}
-        <div className="modal-action">
-          <button type="button" className="btn" disabled={busy} onClick={() => resolveTransfer(true)}>Keep Separate</button>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => resolveTransfer(false)}>Transfer Characters</button>
+        {error && <p role="alert" className="fantasy-danger text-sm">{error}</p>}
+        <div className="modal-action flex-wrap gap-2">
+          <FantasyButton variant="secondary" disabled={busy} onClick={() => resolveTransfer(true)}>Keep Separate</FantasyButton>
+          <FantasyButton disabled={busy} onClick={() => resolveTransfer(false)}>Transfer Characters</FantasyButton>
         </div>
       </AccountModal>}
       {modal === "logout" && <AccountModal title="Logout" busy={busy} onClose={close}>
         <p className="py-4">Do you really want to logout?</p>
-        {error && <p role="alert" className="text-sm text-error">{error}</p>}
-        <div className="modal-action">
-          <button type="button" className="btn" disabled={busy} onClick={close}>Cancel</button>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={logout}>Logout</button>
+        {error && <p role="alert" className="fantasy-danger text-sm">{error}</p>}
+        <div className="modal-action flex-wrap gap-2">
+          <FantasyButton variant="secondary" disabled={busy} onClick={close}>Cancel</FantasyButton>
+          <FantasyButton disabled={busy} onClick={logout}>Logout</FantasyButton>
         </div>
       </AccountModal>}
       {modal === "accountError" && <AccountModal title="Account" busy={busy} onClose={close}>
-        <p role="alert" className="py-4 text-sm text-error">{error}</p>
-        <div className="modal-action"><button type="button" className="btn" disabled={busy} onClick={returnToCharacters}>Try again</button></div>
+        <p role="alert" className="fantasy-danger py-4 text-sm">{error}</p>
+        <div className="modal-action"><FantasyButton disabled={busy} onClick={returnToCharacters}>Try again</FantasyButton></div>
       </AccountModal>}
     </AccountContext.Provider>
   );
@@ -152,7 +153,7 @@ export const CharacterAuthButton = () => {
   const { open } = useCharacterAccountFlow();
   if (!user) return null;
   const guest = user.profile?.guest === true;
-  return <button type="button" className="btn btn-outline text-white hover:text-black" onClick={() => open(guest ? "auth" : "logout")}>
+  return <FantasyButton variant="secondary" onClick={() => open(guest ? "auth" : "logout")}>
     {guest ? "Login" : "Logout"}
-  </button>;
+  </FantasyButton>;
 };

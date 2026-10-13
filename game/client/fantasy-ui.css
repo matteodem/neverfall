@@ -216,6 +216,40 @@
 .fantasy-character-overview .character-details { width: max-content; max-width: min(24rem, calc(100% - 24px)); }
 .fantasy-character-overview .character-join { max-width: calc(100% - 24px); }
 .fantasy-character-overview .character-sidebar .fantasy-badge { font-size: 0.6875rem; padding: 1px 5px; }
+
+/* The creator shares the Hero palette while giving the live preview the larger column. */
+.fantasy-character-creator { background: linear-gradient(135deg, var(--fantasy-panel), var(--fantasy-surface)); overflow: hidden; }
+.fantasy-character-creator .character-creator-step { min-width: 0; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+.fantasy-character-creator .character-creator-nav { border-top: 1px solid var(--fantasy-border); }
+.fantasy-character-creator .character-creator-appearance-grid { align-items: start; }
+.fantasy-character-creator .character-creator-preview { height: clamp(240px, 55dvh, 600px); background: var(--fantasy-surface); }
+.fantasy-character-creator .character-creator-settings { align-self: start; overflow-wrap: anywhere; }
+.fantasy-character-creator .fantasy-choice { justify-content: center; }
+.fantasy-character-creator .fantasy-choice .fantasy-badge { margin-top: var(--fantasy-space-xs); }
+.fantasy-creator-skin-tone { border-color: var(--fantasy-border); box-shadow: 0 0 0 1px var(--fantasy-panel); }
+.fantasy-creator-skin-tone[aria-pressed="true"] { border-color: var(--fantasy-accent); box-shadow: 0 0 0 2px var(--fantasy-accent); }
+.fantasy-creator-success { color: var(--fantasy-success); }
+.fantasy-creator-toggle { color: var(--fantasy-accent); }
+@media (max-width: 767px), (max-height: 500px) {
+  .fantasy-character-creator .character-creator-card { min-width: 0; }
+  .fantasy-character-creator .character-creator-preview { height: clamp(160px, 43dvh, 240px); }
+  .fantasy-character-creator .character-creator-settings select,
+  .fantasy-character-creator .character-creator-settings .fantasy-creator-skin-tone,
+  .fantasy-character-creator .character-creator-nav .fantasy-button,
+  .fantasy-character-creator .character-creator-create,
+  .fantasy-character-creator .input,
+  .fantasy-dialog .fantasy-input { min-height: 44px; }
+  .fantasy-character-creator .character-creator-settings .fantasy-creator-skin-tone { width: 44px; height: 44px; }
+}
+@media (max-width: 767px) and (min-height: 501px) {
+  .fantasy-character-creator .character-creator-preview { height: clamp(220px, 38dvh, 340px); }
+}
+@media (max-width: 767px) and (orientation: landscape) {
+  .fantasy-character-creator .character-creator-appearance-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 768px) and (max-height: 500px) {
+  .fantasy-character-creator .character-creator-appearance-grid { grid-template-columns: minmax(0, 1fr) minmax(240px, 300px); }
+}
 .mobile-game.mobile-portrait .fantasy-modal-placement { grid-template-rows: minmax(0, 1fr); }
 @media (max-width: 767px), (max-height: 500px) {
   .fantasy-character-overview .character-details { width: min(22rem, calc(100% - 24px)); }
