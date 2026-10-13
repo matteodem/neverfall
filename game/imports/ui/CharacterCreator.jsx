@@ -5,6 +5,7 @@ import React, {
 } from "react";
 import { CLASS_CONFIG } from "../game/classConfig";
 import { SPECIES } from "../game/species";
+import { CLASS_DESCRIPTIONS, SPECIES_DESCRIPTIONS } from "../game/characterCreatorConfig";
 import { createAmirStartingAppearance, normalizeAmirAppearance } from "../game/character/amir/appearance";
 import { AmirAppearanceControls } from "./components/AmirAppearanceControls";
 import { FantasyBadge, FantasyButton, FantasyPanel, FantasySectionHeader } from "./components/fantasy/FantasyUI";
@@ -158,6 +159,9 @@ const SpeciesStep =
             </FantasyButton>
           ))}
         </div>
+        <p role="status" className="fantasy-muted mt-4 w-full max-w-prose text-center text-sm leading-relaxed">
+          {SPECIES_DESCRIPTIONS[species]}
+        </p>
       </Screen>
     );
   };
@@ -167,6 +171,7 @@ const ClassStep =
   () => {
     const gameClass = useCharacterStore((state) => state.creator.gameClass);
     const setCreatorField = useCharacterStore((state) => state.setCreatorField);
+    const selectedClass = CLASS_DESCRIPTIONS[gameClass];
     return (
       <Screen
         title="Class"
@@ -185,6 +190,25 @@ const ClassStep =
             </FantasyButton>
           ))}
         </div>
+        {selectedClass && (
+          <FantasyPanel role="status" className="mt-4 w-full max-w-2xl p-4">
+            <p className="fantasy-muted text-sm leading-relaxed">{selectedClass.description}</p>
+            <dl className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="fantasy-muted">Combat</dt>
+                <dd>{selectedClass.combat}</dd>
+              </div>
+              <div>
+                <dt className="fantasy-muted">Role</dt>
+                <dd>{selectedClass.role}</dd>
+              </div>
+              <div>
+                <dt className="fantasy-muted">Difficulty</dt>
+                <dd>{selectedClass.difficulty}</dd>
+              </div>
+            </dl>
+          </FantasyPanel>
+        )}
       </Screen>
     );
   };
