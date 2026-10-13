@@ -302,3 +302,17 @@
 .fantasy-toast-slot .fantasy-notice { width: 100%; max-width: 100%; margin-inline: 0; }
 .mobile-game .fantasy-notification-stack { top: 64px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; width: min(28rem, calc(var(--game-width) - 24px)); }
 .mobile-game .fantasy-toast-slot .fantasy-notice { font-size: 12px; }
+
+/* Social and moment-to-moment gameplay surfaces use the shared materials. */
+.game-chat { max-width: calc(var(--game-width, 100vw) - 16px); background-color: color-mix(in srgb, var(--fantasy-panel) 92%, transparent); overflow-wrap: anywhere; }
+.game-chat [role="log"] { min-height: 0; overscroll-behavior: contain; touch-action: pan-y; }
+.game-chat [role="log"] p { overflow-wrap: anywhere; }
+.fantasy-chat-party { color: var(--fantasy-success); }
+.fantasy-chat-guild { color: var(--fantasy-magic); }
+.fantasy-chat-error { color: var(--fantasy-warning); }
+.game-group-panel { max-width: calc(var(--game-width, 100vw) - 16px); overflow-wrap: anywhere; }
+.game-group-panel .fantasy-hud-card { max-height: min(18rem, calc(var(--game-height, 100vh) - 120px)); overflow-y: auto; overscroll-behavior: contain; }
+.fantasy-death-backdrop { background: var(--fantasy-backdrop); }
+.fantasy-death-panel { width: min(20rem, calc(var(--game-width, 100vw) - 24px)); }
+.fantasy-joystick { opacity: .8; filter: drop-shadow(0 2px 5px rgb(0 0 0 / 60%)); }
+.fantasy-joystick > div { border: 1px solid var(--fantasy-border); }

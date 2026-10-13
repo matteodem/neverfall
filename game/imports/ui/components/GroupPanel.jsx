@@ -1,5 +1,6 @@
 import React from "react";
 import { useGroupStore } from "../stores/useGroupStore";
+import { FantasyBadge, FantasyButton, FantasyHudCard, FantasyMeter, FantasySectionHeader } from "./fantasy/FantasyUI";
 
 export const GroupPanel = () => {
   const groupId = useGroupStore((state) => state.groupId);
@@ -10,37 +11,34 @@ export const GroupPanel = () => {
   if (!groupId && !error) return null;
 
   return (
-    <section className="absolute left-4 top-24 z-40 w-56 space-y-2" aria-label="Group">
+    <section className="game-group-panel absolute left-4 top-24 z-40 w-56 space-y-2" aria-label="Group">
       {error && (
-        <div className="alert alert-error text-sm" role="alert">
+        <FantasyHudCard className="flex items-center gap-2 text-sm fantasy-danger" role="alert">
           <span>{error}</span>
-          <button type="button" className="btn btn-ghost btn-xs" onClick={clearError} aria-label="Dismiss group message">×</button>
-        </div>
+          <FantasyButton variant="ghost" className="btn-xs ml-auto" onClick={clearError} aria-label="Dismiss group message">×</FantasyButton>
+        </FantasyHudCard>
       )}
       {groupId && (
-        <div className="rounded-box bg-base-100/90 p-3 shadow-lg">
+        <FantasyHudCard>
           <div className="mb-2 flex items-center justify-between">
-            <span className="font-semibold">Group</span>
-            <button type="button" className="btn btn-ghost btn-xs" onClick={() => requestAction("leave")}>Leave</button>
+            <FantasySectionHeader as="h3" className="my-0">Group</FantasySectionHeader>
+            <FantasyButton variant="ghost" className="btn-xs" onClick={() => requestAction("leave")}>Leave</FantasyButton>
           </div>
           <ul className="space-y-3">
             {members.map((member) => (
               <li key={member.sessionId}>
                 <div className="flex items-center justify-between gap-2 text-sm">
-                  <span className="truncate">{member.name}</span>
-                  <span className="shrink-0 text-xs">Level {member.level}</span>
+                  <span className="min-w-0 break-words">{member.name}</span>
+                  <FantasyBadge className="shrink-0">Lv {member.level}</FantasyBadge>
                 </div>
-                <progress
-                  className="progress progress-success block w-full"
-                  value={Math.max(0, member.health)}
-                  max={Math.max(1, member.maxHealth)}
-                  aria-label={`${member.name} health`}
-                />
-                <div className="text-right text-xs opacity-70">{parseInt(member.health, 10)} / {member.maxHealth}</div>
+                <FantasyMeter value={Math.max(0, Math.min(member.health, Math.max(1, member.maxHealth)))} max={Math.max(1, member.maxHealth)}
+                  percentage={Math.min(100, Math.max(0, member.health / Math.max(1, member.maxHealth) * 100))}
+                  label={`${member.name} health`} className="mt-1 h-2 w-full" />
+                <div className="fantasy-muted text-right text-xs">{parseInt(member.health, 10)} / {member.maxHealth}</div>
               </li>
             ))}
           </ul>
-        </div>
+        </FantasyHudCard>
       )}
     </section>
   );

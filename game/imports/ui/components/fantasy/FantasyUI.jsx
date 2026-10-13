@@ -8,9 +8,9 @@ export const FantasyHudCard = ({ className = "", ...props }) => (
   <FantasyPanel className={`fantasy-hud-card ${className}`} {...props} />
 );
 
-export const FantasyButton = ({ variant = "primary", className = "", type = "button", ...props }) => (
-  <button type={type} className={`fantasy-ui btn fantasy-button fantasy-button-${variant} ${className}`} {...props} />
-);
+export const FantasyButton = React.forwardRef(({ variant = "primary", className = "", type = "button", ...props }, ref) => (
+  <button ref={ref} type={type} className={`fantasy-ui btn fantasy-button fantasy-button-${variant} ${className}`} {...props} />
+));
 
 export const FantasySectionHeader = ({ as: Element = "h4", className = "", ...props }) => (
   <Element className={`fantasy-ui fantasy-section-header ${className}`} {...props} />

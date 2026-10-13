@@ -1,4 +1,4 @@
-# Fantasy UI foundation, gameplay HUD, Hero, NPC and maps (spec 99, Tasks 1–5)
+# Fantasy UI foundation and gameplay surfaces (spec 99, Tasks 1–6)
 
 `game/client/fantasy-ui.css` defines the shared material, color, focus, button,
 badge, and modal styles. It loads after the existing stylesheet and only styles
@@ -84,7 +84,15 @@ positions and collision offsets, quest state, zoom/pan, custom marker placement,
 waypoint travel, and desktop hover versus mobile tap behavior remain in their
 existing components. The mobile hint reflects the current label state.
 
-Later passes still need standalone feedback and analytics dialogs. The achievement
-modal and toast both use the shared system. Chat, group panels, the death screen,
-and the joystick retain their existing presentation. Full visual review belongs
-after the remaining migrations.
+Task 6 brings Chat, group and guild panels, player actions, invitations, the death
+screen, and the mobile joystick into the same palette. The standalone feedback
+and analytics dialogs use the shared modal frame, and guild disband uses a shared
+confirmation panel. Mobile gameplay panels constrain their widths and scroll areas;
+compact landscape screens shorten the Chat log and Group list while retaining
+scrolling and 44px Chat controls. On short screens, the minimap lens and player
+bars fit between the action controls and Chat. The existing input and interaction
+handlers stay in their owning components.
+
+The pre-game Character Creator and Auth form controls still use their earlier
+styling. Shared Quest/Inventory components also keep their non-fantasy defaults
+for callers outside the opted-in HUD screens.
