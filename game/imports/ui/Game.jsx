@@ -170,6 +170,7 @@ export const Game = ({
 
       let disposed =
         false;
+      let loadingFrame = null;
 
 
       const init =
@@ -426,7 +427,7 @@ export const Game = ({
           await world.worldChunks?.loadAt(player.position);
           exitTrace?.("return chunk loading completed");
           exitTrace?.("nearby enemy loading started");
-          await multiplayer.preloadEnemiesAt(player.position);
+          await multiplayer.preloadEnemiesAt(player.position, QUALITY_PRESETS[quality].enemyDistance);
           exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
@@ -437,6 +438,8 @@ export const Game = ({
             getCharacter: () => characterRef.current,
             canInteract: () => playerAlive && !useWaypointStore.getState().traveling && useDungeonStore.getState().location === "world",
           });
+          await npcManager?.ready;
+          if (disposed) return;
 
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
             if (action === "equip") {
@@ -886,29 +889,39 @@ export const Game = ({
            * =====================================================
            */
 
-          useLoadingStore
-            .getState()
-            .setProgress(
-              100
-            );
-
-
-          useLoadingStore
-            .getState()
-            .hide();
-
-
+          // GUI nameplates need a render pass before their dynamic textures report ready.
+          // Keep the loading overlay up while Babylon prepares those materials.
+          await multiplayer.whenInitialPlayersReady();
+          if (disposed) return;
+          const loadingFrameReady = new Promise((resolve, reject) => {
+            loadingFrame = () => {
+              try {
+                scene.render();
+                if (multiplayer.areInitialPlayersReady() && scene.isReady()) resolve();
+              } catch (error) {
+                engine.stopRenderLoop(loadingFrame);
+                reject(error);
+              }
+            };
+          });
+          engine.runRenderLoop(loadingFrame);
+          await Promise.race([
+            loadingFrameReady,
+            new Promise((resolve) => scene.onDisposeObservable.addOnce(resolve)),
+          ]);
+          if (disposed) return;
+          engine.stopRenderLoop(loadingFrame);
+          loadingFrame = null;
+          useLoadingStore.getState().setProgress(100);
           engine.hideLoadingUI();
           exitTrace?.("loading cleared");
-          if (exitTrace) scene.onAfterRenderObservable.addOnce(() => {
+          if (exitTrace) {
             exitTrace("first world frame rendered; controls active");
             clearDungeonExitTrace(exitTrace);
-          });
+          }
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
-          if (world.worldChunks) scene.onAfterRenderObservable.addOnce(() => {
-            if (!disposed) world.worldChunks.start();
-          });
+          world.worldChunks?.start();
 
 
           /*
@@ -1103,6 +1116,8 @@ export const Game = ({
         (
           error
         ) => {
+          if (disposed) return;
+          if (loadingFrame) engine?.stopRenderLoop(loadingFrame);
           exitTrace?.("world scene loading failed", { message: error?.message });
           console.error(
             "[Game] Failed to initialize:",
@@ -1123,12 +1138,8 @@ export const Game = ({
             .setError(
               worldIsFull
                 ? "The world is full right now. Please try again soon."
-                : "We couldn’t connect to the world. Check your connection and try again."
+                : "We couldn’t finish loading the world. Check your connection and try again."
             );
-
-
-          engine
-            ?.hideLoadingUI();
         }
       );
 

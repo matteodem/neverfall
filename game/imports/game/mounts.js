@@ -109,6 +109,7 @@ export const createHorseMount =
           group.name ===
           "Idle"
       );
+    if (!idle?.targetedAnimations.length) throw new Error("Missing horse idle animation targets");
 
 
     const run =
@@ -156,6 +157,7 @@ export const createHorseMount =
         animation.start(
           true
         );
+        animation.goToFrame(animation.from);
       };
 
 
@@ -193,6 +195,7 @@ export const createHorseMount =
           play(
             idle
           );
+          if (visible && !idle.isPlaying) throw new Error("Horse idle animation did not start");
 
           return;
         }

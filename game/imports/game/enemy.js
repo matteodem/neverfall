@@ -69,6 +69,7 @@ export const createEnemy = async ({
       scene
     );
 
+  root.setEnabled(false);
   root.metadata = { enemyId: id };
 
   const selectionWidth = mobile ? 3 : 2.25;
@@ -237,6 +238,7 @@ export const createEnemy = async ({
    * =====================================================
    */
 
+  root.setEnabled(true);
   return {
     root,
 

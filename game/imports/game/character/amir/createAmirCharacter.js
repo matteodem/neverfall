@@ -27,6 +27,7 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
     "/models/characters/amir/", catalog.modelFile, scene
   );
   const root = new TransformNode("amir-character", scene);
+  root.setEnabled(false);
   try {
     if (scene.isDisposed) throw new Error("Scene was disposed while loading Amir character");
     container.addAllToScene();
@@ -70,6 +71,8 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
     });
     sourceAnimations.forEach((group) => group.dispose());
     container.animationGroups = animations;
+    const idle = animations.find(({ name }) => name === "Knight_Idle_A");
+    if (!idle?.targetedAnimations.length) throw new Error("Missing Amir idle animation targets");
 
     const attachments = {};
     for (const [boneName, slot] of Object.entries(ATTACHMENT_MAP)) {
@@ -113,7 +116,15 @@ export const createAmirCharacter = async ({ scene, appearance: input = {}, gameC
       root, meshes: container.meshes, skeleton: container.skeletons[0], animations, appearance, parts, attachments,
       weaponAnchor, weaponMesh,
       updateAppearance,
-      createAnimationController: () => createKayKitAnimationController({ animations, attackDuration: ATTACK.duration }),
+      createAnimationController: () => {
+        const controller = createKayKitAnimationController({ animations, attackDuration: ATTACK.duration });
+        controller.update(0);
+        if (!idle.isPlaying) throw new Error("Amir idle animation did not start");
+        // Playback schedules evaluation; sample the pose before enabling geometry.
+        idle.goToFrame(idle.from);
+        root.setEnabled(true);
+        return controller;
+      },
       dispose() { container.dispose(); root.dispose(); },
     };
   } catch (error) {

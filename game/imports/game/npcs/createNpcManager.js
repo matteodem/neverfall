@@ -59,6 +59,7 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, getC
   };
   store().setActionHandler(interact);
   const disposeObserver = scene.onDisposeObservable.addOnce(destroy);
+  const pendingSpawns = [];
 
   for (const definition of definitions) {
     // Failed or late loads never leave a partially initialized NPC in the world.
@@ -85,13 +86,14 @@ export const createNpcManager = ({ scene, player, canInteract = () => true, getC
         nameplate?.destroy();
         animations?.destroy();
         actor?.dispose();
-        if (!disposed) console.error(`[NPC] Could not load ${definition.id}`, error);
+        if (!disposed) throw new Error(`Could not load NPC ${definition.id}`, { cause: error });
       }
     };
-    void spawn();
+    pendingSpawns.push(spawn());
   }
 
   return {
+    ready: Promise.all(pendingSpawns),
     interact,
     update(deltaTime) {
       if (disposed) return;

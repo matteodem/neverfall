@@ -34,6 +34,9 @@ export const createEnemyAnimations = (groups, clips) => {
   };
 
   idle();
+  if (!groups.some((group) => group.isPlaying && group.targetedAnimations.length)) {
+    throw new Error("Enemy idle animation did not start");
+  }
   return {
     setVisible(value) {
       visible = value;

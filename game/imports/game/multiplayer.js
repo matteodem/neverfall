@@ -912,6 +912,55 @@ export const createMultiplayer =
 
 
     const pendingPlayers = new Map();
+    const failedPlayers = new Map();
+    let initialPlayersRequested = false;
+    let initialPlayersSettled = false;
+    let initialPlayersError = null;
+    let resolveInitialPlayers;
+    let rejectInitialPlayers;
+    const initialPlayersReady = new Promise((resolve, reject) => {
+      resolveInitialPlayers = resolve;
+      rejectInitialPlayers = reject;
+    });
+    // The callback can reject before Game reaches the readiness await.
+    void initialPlayersReady.catch(() => {});
+    const finishInitialPlayers = (error) => {
+      if (initialPlayersSettled) return;
+      initialPlayersSettled = true;
+      room.onStateChange.remove(checkInitialPlayers);
+      if (error) rejectInitialPlayers(error);
+      else resolveInitialPlayers();
+    };
+    const areInitialPlayersReady = () => {
+      if (initialPlayersError) throw initialPlayersError;
+      if (!localPlayerState) return false;
+      // Match the first visibility update's hysteresis distance at the authoritative spawn.
+      // Live state includes arrivals and releases actors that leave or become hidden.
+      const visiblePlayers = [...room.state.players].filter(([id, state]) =>
+        id !== room.sessionId && state.health > 0 && !state.inDungeon &&
+        Math.hypot(state.x - player.position.x, state.z - player.position.z) <= playerVisibility.disableDistance);
+      const failure = visiblePlayers.map(([id]) => failedPlayers.get(id)).find(Boolean);
+      if (failure) throw failure;
+      return visiblePlayers.every(([id]) => remotePlayers.has(id));
+    };
+    const checkInitialPlayers = () => {
+      if (!initialPlayersRequested || initialPlayersSettled) return;
+      try {
+        if (areInitialPlayersReady()) finishInitialPlayers();
+      } catch (error) {
+        finishInitialPlayers(error);
+      }
+    };
+    const initialPlayersLeft = () => {
+      initialPlayersError = new Error("Connection closed while loading players.");
+      finishInitialPlayers(initialPlayersError);
+    };
+    room.onStateChange(checkInitialPlayers);
+    room.onLeave(initialPlayersLeft);
+    disposers.push(() => {
+      room.onLeave.remove(initialPlayersLeft);
+      finishInitialPlayers();
+    });
 
 
     /*
@@ -926,6 +975,7 @@ export const createMultiplayer =
         playerState,
         sessionId
       ) => {
+        try {
         /*
          * LOCAL PLAYER
          */
@@ -1052,6 +1102,7 @@ export const createMultiplayer =
           callbacks.listen(playerState, "inCombat", syncCombat);
 
 
+          checkInitialPlayers();
           return;
         }
 
@@ -1296,6 +1347,15 @@ export const createMultiplayer =
 
           }
         );
+        checkInitialPlayers();
+        } catch (error) {
+          if (!destroyed && room.state.players.get(sessionId) === playerState) {
+            failedPlayers.set(sessionId, error);
+            if (sessionId === room.sessionId) finishInitialPlayers(error);
+            else checkInitialPlayers();
+          }
+          throw error;
+        }
       }
     );
 
@@ -1313,6 +1373,8 @@ export const createMultiplayer =
         sessionId
       ) => {
         pendingPlayers.delete(sessionId);
+        failedPlayers.delete(sessionId);
+        checkInitialPlayers();
 
 
         const entity =
@@ -1668,8 +1730,8 @@ export const createMultiplayer =
       return promise;
     };
 
-    const preloadEnemiesAt = (position) => Promise.all([...room.state.enemies]
-      .filter(([, state]) => nearEnemy(state, position, WAYPOINT_ENEMY_PRELOAD_DISTANCE))
+    const preloadEnemiesAt = (position, distance = WAYPOINT_ENEMY_PRELOAD_DISTANCE) => Promise.all([...room.state.enemies]
+      .filter(([, state]) => nearEnemy(state, position, distance))
       .map(([id, state]) => {
         if (!enemies.has(id) && !pendingEnemies.has(id)) pendingEnemies.set(id, state);
         failedEnemies.delete(id);
@@ -2087,6 +2149,7 @@ export const createMultiplayer =
     const destroy =
       async ({ keepConnection = false } = {}) => {
         destroyed = true;
+        finishInitialPlayers();
         resetCameraImpulse(scene.activeCamera);
         finishWaypoint();
         for (const stop of disposers) stop();
@@ -2200,6 +2263,12 @@ export const createMultiplayer =
         room.send("prepareWaypoint", waypointId);
       },
       preloadEnemiesAt,
+      areInitialPlayersReady,
+      whenInitialPlayersReady() {
+        initialPlayersRequested = true;
+        checkInitialPlayers();
+        return initialPlayersReady;
+      },
       useConsumable,
       collectLoot: loot.collect,
       interactDungeon: dungeonInteractions.interact,
