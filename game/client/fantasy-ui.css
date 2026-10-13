@@ -195,7 +195,7 @@
 .fantasy-input { border: 1px solid var(--fantasy-border); background-color: var(--fantasy-surface); color: var(--fantasy-text); }
 .fantasy-confirm-danger { border-color: var(--fantasy-danger); }
 
-/* Player inventory adopts the palette; shared merchant slots keep their default skin. */
+/* Inventory palette is opt-in for Player Inventory and the NPC merchant Sell view. */
 .fantasy-inventory { background: var(--fantasy-panel); color: var(--fantasy-text); border-color: var(--fantasy-border); }
 .fantasy-inventory .inventory-grid { background: var(--fantasy-surface); border-color: var(--fantasy-border); }
 .fantasy-inventory .inventory-slot-empty { background: var(--fantasy-panel); border-color: var(--fantasy-border); }

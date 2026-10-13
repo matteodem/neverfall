@@ -5,6 +5,7 @@ import { EQUIPMENT_ITEMS, formatEquipmentStats } from "../../../game/equipment";
 import { CONSUMABLES } from "../../../game/consumables";
 import { getShop } from "../../../game/shop";
 import { HudModal } from "../HudModal";
+import { FantasyBadge, FantasyButton, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 export const ShopModal = ({ embedded = false, merchant }) => {
   const [buyingId, setBuyingId] = useState(null);
@@ -29,30 +30,35 @@ export const ShopModal = ({ embedded = false, merchant }) => {
 
   return (
     <HudModal id="shop" title="Shop" embedded={embedded} onClose={() => setFeedback(null)}>
-      <div className="mb-3 text-sm font-semibold">Your Gold: {gold}</div>
-      {feedback && (
-        <p className={`mb-3 text-sm ${feedback.error ? "text-error" : "text-success"}`} role={feedback.error ? "alert" : "status"}>
-          {feedback.text}
-        </p>
-      )}
-      <div className="space-y-2">
-        {[...shop.items].sort((a, b) => a.priceGold - b.priceGold).map(({ id, priceGold }) => {
-          const item = EQUIPMENT_ITEMS[id] || CONSUMABLES[id];
-          return (
-            <div key={id} className="flex items-center justify-between gap-3 rounded-lg border border-base-300 p-3">
-              <div className="min-w-0">
-                <div className="font-semibold">{item.name}</div>
-                <div className="text-xs opacity-70">{item.description || (item.gameClass ? `Class: ${item.gameClass}` : formatEquipmentStats(item).join(" · "))}</div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <span className="text-sm font-semibold">{priceGold} Gold</span>
-                <button type="button" className="btn btn-primary btn-sm" disabled={Boolean(buyingId)} onClick={() => buy(id)}>
-                  {buyingId === id ? "Buying..." : "Buy"}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+      <div className="fantasy-stack">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <FantasySectionHeader as="h4" className="fantasy-heading-inline">Goods for sale</FantasySectionHeader>
+          <FantasyBadge tone="warning">Your Gold: {gold}</FantasyBadge>
+        </div>
+        {feedback && (
+          <p className={`text-sm ${feedback.error ? "fantasy-danger" : "text-success"}`} role={feedback.error ? "alert" : "status"}>
+            {feedback.text}
+          </p>
+        )}
+        <div className="fantasy-stack">
+          {[...shop.items].sort((a, b) => a.priceGold - b.priceGold).map(({ id, priceGold }) => {
+            const item = EQUIPMENT_ITEMS[id] || CONSUMABLES[id];
+            return (
+              <FantasyPanel key={id} className="fantasy-section flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <FantasySectionHeader as="h5" className="fantasy-heading-inline">{item.name}</FantasySectionHeader>
+                  <div className="mt-1 text-xs fantasy-muted">{item.description || (item.gameClass ? `Class: ${item.gameClass}` : formatEquipmentStats(item).join(" · "))}</div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <FantasyBadge tone="warning">{priceGold} Gold</FantasyBadge>
+                  <FantasyButton className="btn-sm" disabled={Boolean(buyingId)} onClick={() => buy(id)}>
+                    {buyingId === id ? "Buying..." : "Buy"}
+                  </FantasyButton>
+                </div>
+              </FantasyPanel>
+            );
+          })}
+        </div>
       </div>
     </HudModal>
   );

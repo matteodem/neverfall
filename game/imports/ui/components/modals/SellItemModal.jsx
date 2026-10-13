@@ -4,6 +4,7 @@ import { ITEM_NAMES, ITEM_SELL_PRICES } from "../../../game/inventory";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 import { useHudStore } from "../../stores/useHudStore";
+import { FantasyBadge, FantasyButton, FantasyDivider, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 export const SellItemModal = ({ itemId, available, itemDisplay, onClose, merchant }) => {
   const [quantity, setQuantity] = useState(String(available));
@@ -34,27 +35,30 @@ export const SellItemModal = ({ itemId, available, itemDisplay, onClose, merchan
 
   return (
     <HudModal id="sell-item" title="Sell item" backdrop onClose={onClose}>
-      <div className="flex items-center gap-3">
-        {itemDisplay?.icon && <Icon icon={itemDisplay.icon} className={itemDisplay.iconClass} />}
-        <div>
-          <div className="font-semibold">{ITEM_NAMES[itemId] || itemId}</div>
-          <div className="text-sm opacity-70">Available: {available}</div>
+      <FantasyPanel className="fantasy-section">
+        <div className="flex flex-wrap items-center gap-3">
+          {itemDisplay?.icon && <Icon icon={itemDisplay.icon} className={itemDisplay.iconClass} />}
+          <div className="min-w-0">
+            <FantasySectionHeader className="fantasy-heading-inline">{ITEM_NAMES[itemId] || itemId}</FantasySectionHeader>
+            <p className="mt-1 text-sm fantasy-muted">Available: {available}</p>
+          </div>
         </div>
-      </div>
-      <div className="mt-4 text-sm">Price each: {price} Gold</div>
-      <label className="form-control mt-3 block">
-        <span className="label-text">Quantity</span>
-        <input type="number" min="1" max={available} step="1" inputMode="numeric"
-          className="input input-bordered mt-1 w-full" value={quantity} disabled={selling}
-          onChange={(event) => setQuantity(event.target.value)} />
-      </label>
-      <div className="mt-3 font-semibold">Total: {totalGold} Gold</div>
-      {error && <p className="mt-3 text-sm text-error" role="alert">{error}</p>}
-      <div className="mt-5 flex justify-end gap-2">
-        <button type="button" className="btn btn-ghost" disabled={selling} onClick={close}>Cancel</button>
-        <button type="button" className="btn btn-primary" disabled={!valid || selling} onClick={sell}>
+        <FantasyDivider />
+        <p className="text-sm">Price each: {price} Gold</p>
+        <label className="form-control mt-3 block">
+          <span className="label-text">Quantity</span>
+          <input type="number" min="1" max={available} step="1" inputMode="numeric"
+            className="input input-bordered fantasy-input mt-1 w-full" value={quantity} disabled={selling}
+            onChange={(event) => setQuantity(event.target.value)} />
+        </label>
+        <div className="mt-3"><FantasyBadge tone="warning">Total: {totalGold} Gold</FantasyBadge></div>
+        {error && <p className="mt-3 text-sm fantasy-danger" role="alert">{error}</p>}
+      </FantasyPanel>
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <FantasyButton variant="ghost" disabled={selling} onClick={close}>Cancel</FantasyButton>
+        <FantasyButton disabled={!valid || selling} onClick={sell}>
           {selling ? "Selling..." : "Sell"}
-        </button>
+        </FantasyButton>
       </div>
     </HudModal>
   );

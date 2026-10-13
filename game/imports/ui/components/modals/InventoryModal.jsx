@@ -378,8 +378,7 @@ const InventorySlotContent = ({ item, name, itemDisplay, rarityClass, isUpgrade 
 );
 
 export const InventoryModal =
-  ({ embedded = false, merchant = null }) => {
-    const fantasy = !merchant;
+  ({ embedded = false, merchant = null, fantasy = !merchant }) => {
     const Panel = fantasy ? FantasyPanel : "div";
     const { mobile } = useMobileDevice();
     const [openItem, setOpenItem] = useState(null);
