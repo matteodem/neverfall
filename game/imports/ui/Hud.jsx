@@ -372,7 +372,7 @@ const PlayerHealthBar = ({
   return (
     <FantasyHudCard id="onboarding-health" className="fantasy-resource w-72">
       <div className="mb-1 flex justify-between gap-2 text-sm">
-        <span className="fantasy-muted">Health</span>
+        <span>Health</span>
         <span>{parseInt(health, 10)} / {maxHealth}</span>
       </div>
       <FantasyMeter value={health} max={maxHealth} percentage={percentage} label="Player health" className="h-4" />
