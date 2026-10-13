@@ -97,5 +97,8 @@ The pre-game Character Creator and Auth form controls use the shared panels,
 headings, badges, buttons, inputs, and modal frame. The creator keeps its wizard,
 appearance preview, and character data flow; the preview takes the larger desktop
 column while the mobile controls scroll beneath it. Auth retains its login,
-registration, validation, and account transfer flows. Shared Quest/Inventory
-components keep their non-fantasy defaults for callers outside opted-in screens.
+registration, validation, and account transfer flows. The Loading Screen, onboarding
+tour card, and portrait rotation prompt also use the shared palette and controls;
+their loading state, tour progression, and visibility behavior remain unchanged.
+Shared Quest/Inventory components keep their non-fantasy defaults for callers
+outside opted-in screens.

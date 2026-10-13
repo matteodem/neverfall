@@ -256,6 +256,17 @@
   .fantasy-character-overview .character-join { width: min(220px, calc(100% - 24px)); }
 }
 
+/* Transitional screens use the same compact surfaces without changing their display rules. */
+.fantasy-loading-screen { background: radial-gradient(circle at center, var(--fantasy-surface), var(--fantasy-panel)); }
+.fantasy-loading-card { width: min(20rem, calc(100dvw - 32px)); overflow-wrap: anywhere; }
+.fantasy-loading-meter { height: 10px; }
+.fantasy-loading-meter .fantasy-meter-fill { transition-duration: 700ms; }
+.fantasy-onboarding-card { width: min(20rem, calc(100dvw - 32px)); max-height: calc(100dvh - 24px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; overflow-wrap: anywhere; }
+.fantasy-onboarding-card .fantasy-section-header { font-size: 1.125rem; }
+.fantasy-onboarding-actions { flex-wrap: wrap; }
+.portrait-overlay.fantasy-ui { background: var(--fantasy-panel); color: var(--fantasy-text); }
+.fantasy-portrait-message { width: min(20rem, 100%); padding: var(--fantasy-space-md); }
+
 /* Maps keep their existing marker geometry and gestures; only the chrome opts in. */
 .fantasy-minimap { background-color: color-mix(in srgb, var(--fantasy-panel) 86%, transparent); border-color: var(--fantasy-border); box-shadow: 0 6px 18px rgb(0 0 0 / 28%); }
 .fantasy-minimap-north { padding: 1px 6px; font-size: 0.625rem; letter-spacing: 0.08em; }
