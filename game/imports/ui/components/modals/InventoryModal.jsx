@@ -43,14 +43,14 @@ import { FantasyButton, FantasyPanel, FantasySectionHeader } from "../fantasy/Fa
 
 
 const ITEM_DISPLAY = {
-  boar_skin: {
-    icon: "boarSkin",
-    iconClass: "h-7 w-7 text-amber-800",
-  },
-  wolf_skin: {
-    icon: "wolfSkin",
-    iconClass: "h-7 w-7 text-blue-600",
-  },
+  // boar_skin: {
+  //   icon: "boarSkin",
+  //   iconClass: "h-7 w-7 text-amber-800",
+  // },
+  // wolf_skin: {
+  //   icon: "wolfSkin",
+  //   iconClass: "h-7 w-7 text-blue-600",
+  // },
   health_potion: {
     icon: "healthCapsule",
     iconClass: "h-7 w-7 text-red-600",
@@ -227,7 +227,8 @@ const InventorySlot = ({
     ] ||
     item.id;
 
-  const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
+  // const rarityClass = item.id === "wolf_skin" ? "border-blue-400 hover:border-blue-500" : "border-slate-300 hover:border-slate-400";
+  const rarityClass = "border-slate-300 hover:border-slate-400";
   const itemDisplay = ITEM_DISPLAY[item.id];
   const itemDefinition = EQUIPMENT_ITEMS[item.id];
   const consumable = CONSUMABLES[item.id];
@@ -267,7 +268,8 @@ const InventorySlot = ({
           {open && <Menu className={`dropdown-content menu z-[100] w-44 p-2 !gap-2 ${fantasy ? "fantasy-section" : "rounded-box border border-gray-200 bg-white text-gray-900 shadow-xl"}`}>
             <li>
               <div className="pointer-events-none block">
-                <strong className={`block text-xs ${fantasy ? "fantasy-accent" : item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>
+                {/* <strong className={`block text-xs ${fantasy ? "fantasy-accent" : item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong> */}
+                <strong className={`block text-xs ${fantasy ? "fantasy-accent" : "text-gray-800"}`}>{name}</strong>
                 <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{consumable ? "Consumable" : "Material"}</span>
                 {consumable && <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{consumable.description}</span>}
                 {material && <span className={`mt-1 block text-xs ${fantasy ? "fantasy-muted" : "text-gray-600"}`}>{material.description}</span>}
@@ -432,7 +434,8 @@ export const InventoryModal =
 
           return {
             characterId: currentCharacterId,
-            rawItems: character?.inventory?.items || [],
+            // Keep saved skins in character data, but omit them from the visible backpack.
+            rawItems: (character?.inventory?.items || []).filter(({ id }) => id !== "boar_skin" && id !== "wolf_skin"),
             slotOrder: character?.inventory?.slotOrder || [],
             equipment: character?.equipment || {},
             money:
@@ -445,9 +448,7 @@ export const InventoryModal =
 
             items:
               stackItems(
-                character
-                  ?.inventory
-                  ?.items
+                (character?.inventory?.items || []).filter(({ id }) => id !== "boar_skin" && id !== "wolf_skin")
               ),
 
           };

@@ -25,7 +25,9 @@ export const ItemReceivedToast = () => {
       ...Object.values(value.equipment || {}).filter(Boolean).map((id) => ({ id })),
     ], true).map(({ id, count }) => [id, count]));
     const old = counts(before);
-    const received = [...counts(character)].filter(([id, count]) => count > (old.get(id) || 0))
+    const received = [...counts(character)].filter(([id, count]) =>
+      // Saved skins stay in the inventory data but are currently hidden from the game UI.
+      id !== "boar_skin" && id !== "wolf_skin" && count > (old.get(id) || 0))
       .map(([id, count]) => `${ITEM_NAMES[id] || id} ×${count - (old.get(id) || 0)}`);
     if (received.length) setNotice({ characterId: character._id, text: received.join(" · ") });
   }, [character]);
