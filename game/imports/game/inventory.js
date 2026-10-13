@@ -16,8 +16,8 @@ export const ITEM_SELL_PRICES = {
   "hunting-bow": 2,
   "oak-staff": 2,
   "purple-armor": 1,
-  boar_skin: 0.1,
-  wolf_skin: 0.1,
+  // boar_skin: 0.1,
+  // wolf_skin: 0.1,
   // A full recipe's ingredients sell for less than its crafted potion.
   healing_herb: 0.05,
   beast_fang: 0.05,
@@ -81,21 +81,22 @@ export const rollLoot = (random = Math.random, enemyType = "boar", rare = false,
   const lootMultiplier = rare && !bossDrop && !chestDungeon ? RARE_ENEMY.lootChanceMultiplier : 1;
   const equipmentDropChance = ENEMY_TYPES[enemyType]?.equipmentDropChance ?? (bossDrop ? 0 : EQUIPMENT_DROP_CHANCE);
   const dropsEquipment = equipmentDropChance > 0 && random() < Math.min(1, equipmentDropChance * lootMultiplier);
-  const items = dropsEquipment
-    ? [{ id: rollRandomRingId(random) }]
-    : !bossDrop && !chestDungeon && random() < 0.7
-      ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
-      : [];
+  // const items = dropsEquipment
+  //   ? [{ id: rollRandomRingId(random) }]
+  //   : !bossDrop && !chestDungeon && random() < 0.7
+  //     ? [{ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" }]
+  //     : [];
+  const items = dropsEquipment ? [{ id: rollRandomRingId(random) }] : [];
 
   if (random() < Math.min(1, accessoryDropChance * lootMultiplier)) {
     const accessoryIds = Object.values(EQUIPMENT_ITEMS).filter(({ slot }) => slot === "accessory").map(({ id }) => id);
     items.push({ id: accessoryIds[Math.floor(random() * accessoryIds.length)] });
   }
 
-  // First-kill onboarding uses the normal table, with a skin only if every roll missed.
-  if (guaranteeItem && !items.length) {
-    items.push({ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" });
-  }
+  // First-kill onboarding used a skin only if every roll missed.
+  // if (guaranteeItem && !items.length) {
+  //   items.push({ id: enemyType === "wolf" ? "wolf_skin" : "boar_skin" });
+  // }
 
   for (const [id, material] of Object.entries(CRAFTING_MATERIALS)) {
     const chance = material.drops[enemyType];

@@ -11,6 +11,7 @@ import { useMobileDevice } from "./hooks/useMobileDevice";
 import { MAX_CHARACTERS } from "../api/characters/characters";
 import { CharacterAuthButton } from "./CharacterAccountFlow";
 import { resolveAmirEquipment } from "../game/character/amir/equipmentAppearance";
+import { FantasyBadge, FantasyButton, FantasyModalFrame, FantasyPanel, FantasySectionHeader } from "./components/fantasy/FantasyUI";
 
 import {
   CharacterPreview,
@@ -103,11 +104,11 @@ export const CharacterOverview = ({
 
 
   return (
-    <div className={`relative flex h-screen overflow-hidden bg-gradient-to-br from-zinc-800 via-slate-700 to-slate-500 text-white ${mobile ? "character-overview-mobile" : ""}`}>
-      <aside className="character-sidebar z-10 flex w-80 flex-col border-r border-white/10 bg-black/20 p-5 backdrop-blur-md">
-        <h1 className="mb-5 text-2xl font-bold">
+    <div className={`fantasy-ui fantasy-character-overview relative flex h-screen overflow-hidden ${mobile ? "character-overview-mobile" : ""}`}>
+      <FantasyPanel as="aside" className="character-sidebar z-10 flex w-80 flex-col p-5">
+        <FantasySectionHeader as="h1" className="fantasy-heading-inline !mb-5 text-2xl">
           Characters
-        </h1>
+        </FantasySectionHeader>
 
         <div className="character-list space-y-3">
           {characters.map(
@@ -119,7 +120,9 @@ export const CharacterOverview = ({
                 currentCharacterId;
 
               return (
-                <button
+                <FantasyButton
+                  variant={active ? "primary" : "secondary"}
+                  aria-pressed={active}
                   key={
                     character._id
                   }
@@ -130,15 +133,7 @@ export const CharacterOverview = ({
                         character._id
                       )
                   }
-                  className={[
-                    "btn h-auto min-h-0 w-full cursor-pointer justify-start px-4 py-3 text-left normal-case",
-
-                    active
-                      ? "btn-primary"
-                      : "btn-outline text-white hover:text-black",
-                  ].join(
-                    " "
-                  )}
+                  className="fantasy-choice h-auto min-h-0 w-full cursor-pointer justify-start px-4 py-3 normal-case"
                 >
                   <div className="w-full">
                     <div className="text-base font-bold">
@@ -147,7 +142,7 @@ export const CharacterOverview = ({
                       }
                     </div>
 
-                    <div className="mt-1 text-xs font-normal opacity-70">
+                    <div className="mt-1 flex flex-wrap items-center gap-1 text-xs font-normal fantasy-muted">
                       {
                         startCase(
                           character.species
@@ -162,14 +157,10 @@ export const CharacterOverview = ({
                         )
                       }
 
-                      {" · Level "}
-
-                      {
-                        character.currentLevel
-                      }
+                      <FantasyBadge>Level {character.currentLevel}</FantasyBadge>
                     </div>
                   </div>
-                </button>
+                </FantasyButton>
               );
             }
           )}
@@ -183,14 +174,15 @@ export const CharacterOverview = ({
                 : "cursor-not-allowed"
             }
           >
-            <div className="mb-2 text-center text-xs text-white/50">
+            <div className="mb-2 text-center text-xs fantasy-muted">
               {characters.length}
               {" / "}
               {MAX_CHARACTERS}
               {" characters"}
             </div>
 
-            <button
+            <FantasyButton
+              variant="secondary"
               type="button"
               disabled={
                 !canCreateCharacter
@@ -201,36 +193,29 @@ export const CharacterOverview = ({
                     "creator"
                   )
               }
-              className={[
-                "btn btn-secondary w-full",
-
-                canCreateCharacter
-                  ? "cursor-pointer"
-                  : "pointer-events-none opacity-50 btn-outline text-white hover:text-black",
-              ].join(
-                " "
-              )}
+              className="w-full"
             >
               Create Character
-            </button>
+            </FantasyButton>
           </div>
 
           {selected && (
-            <button
+            <FantasyButton
+              variant="danger"
               type="button"
               onClick={
                 openDeleteModal
               }
-              className="btn btn-error btn-outline w-full cursor-pointer"
+              className="w-full"
             >
               Delete
-            </button>
+            </FantasyButton>
           )}
         </div>
         <div className="mt-auto pt-4">
           <CharacterAuthButton />
         </div>
-      </aside>
+      </FantasyPanel>
 
 
       <main className="relative flex min-w-0 flex-1 flex-col">
@@ -247,14 +232,14 @@ export const CharacterOverview = ({
 
 
         {selected && (
-          <div className="character-details pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
+          <FantasyPanel className="character-details fantasy-section pointer-events-none absolute bottom-28 left-1/2 -translate-x-1/2 text-center">
             <div className="text-2xl font-bold drop-shadow-lg">
               {
                 selected.name
               }
             </div>
 
-            <div className="mt-1 text-sm text-blue-100/70">
+            <div className="mt-1 text-sm fantasy-muted">
               {
                 startCase(
                   selected.species
@@ -275,21 +260,21 @@ export const CharacterOverview = ({
                 selected.currentLevel
               }
             </div>
-          </div>
+          </FantasyPanel>
         )}
 
 
         {selected && (
           <div className="character-join absolute bottom-8 left-1/2 -translate-x-1/2">
-            <button
+            <FantasyButton
               type="button"
               onClick={
                 joinWorld
               }
-              className="btn btn-primary btn-lg min-w-64 cursor-pointer text-lg shadow-xl"
+              className="btn-lg min-w-64 cursor-pointer text-lg"
             >
               Join World
-            </button>
+            </FantasyButton>
           </div>
         )}
       </main>
@@ -303,12 +288,9 @@ export const CharacterOverview = ({
         ref={
           deleteModalRef
         }
-        className="modal"
+        className="modal fantasy-dialog"
       >
-        <div className="modal-box text-black">
-          <h3 className="text-lg font-bold">
-            Delete character?
-          </h3>
+        <FantasyModalFrame title="Delete character?" onClose={closeDeleteModal} className="modal-box">
 
           <p className="py-4">
             Are you sure you want to delete{" "}
@@ -322,32 +304,34 @@ export const CharacterOverview = ({
             ?
           </p>
 
-          <p className="text-sm opacity-60">
+          <p className="text-sm fantasy-muted">
             This action cannot be undone.
           </p>
 
           <div className="modal-action">
-            <button
+            <FantasyButton
+              variant="secondary"
               type="button"
               onClick={
                 closeDeleteModal
               }
-              className="btn cursor-pointer"
+              className="cursor-pointer"
             >
               Cancel
-            </button>
+            </FantasyButton>
 
-            <button
+            <FantasyButton
+              variant="danger"
               type="button"
               onClick={
                 deleteCharacter
               }
-              className="btn btn-error cursor-pointer"
+              className="cursor-pointer"
             >
               Delete
-            </button>
+            </FantasyButton>
           </div>
-        </div>
+        </FantasyModalFrame>
 
         <form
           method="dialog"

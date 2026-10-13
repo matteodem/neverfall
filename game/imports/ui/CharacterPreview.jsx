@@ -33,7 +33,7 @@ export const CharacterPreview = ({ appearance, gameClass = "warrior", previewAll
       <canvas ref={canvasRef} aria-label="Character appearance preview"
         className="block h-full w-full touch-none cursor-grab outline-none active:cursor-grabbing" />
       {(loading || error) && <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-3 text-center">
-        <span className="text-sm font-medium text-white/70" role={error ? "alert" : "status"}>
+        <span className="fantasy-muted text-sm font-medium" role={error ? "alert" : "status"}>
           {error || "Loading character..."}
         </span>
       </div>}

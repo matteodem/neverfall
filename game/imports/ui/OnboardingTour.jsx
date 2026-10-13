@@ -5,6 +5,7 @@ import { useDungeonStore } from "./stores/useDungeonStore";
 import { useLoadingStore } from "./stores/useLoadingStore";
 import { useMobileDevice } from "./hooks/useMobileDevice";
 import { useHudStore } from "./stores/useHudStore";
+import { FantasyBadge, FantasyButton, FantasyPanel, FantasySectionHeader } from "./components/fantasy/FantasyUI";
 
 export const ONBOARDING_TOUR = "neverfall-onboarding";
 
@@ -25,18 +26,18 @@ const getSteps = (mobile) => [{
 }];
 
 const OnboardingCard = ({ step, currentStep, totalSteps, nextStep, prevStep, skipTour }) => (
-  <div className={`w-[min(20rem,calc(100vw-2rem))] rounded-xl border border-white/20 bg-neutral-900 p-4 text-white shadow-2xl ${step.selector === "#onboarding-inventory" ? "max-w-[calc(100vw-6rem)]" : ""}`}>
-    <div className="mb-1 text-xs text-white/60">{currentStep + 1} / {totalSteps}</div>
-    <h2 className="text-lg font-bold">{step.title}</h2>
+  <FantasyPanel className={`fantasy-onboarding-card fantasy-section ${step.selector === "#onboarding-inventory" ? "max-w-[calc(100vw-6rem)]" : ""}`}>
+    <FantasyBadge>{currentStep + 1} / {totalSteps}</FantasyBadge>
+    <FantasySectionHeader as="h2" className="fantasy-heading-inline mt-2">{step.title}</FantasySectionHeader>
     <p className="mt-2 text-sm">{step.content}</p>
-    <div className="mt-4 flex items-center justify-between gap-2">
-      <button type="button" className="btn btn-sm" onClick={skipTour}>Skip</button>
+    <div className="fantasy-onboarding-actions mt-4 flex items-center justify-between gap-2">
+      <FantasyButton variant="ghost" className="btn-sm" onClick={skipTour}>Skip</FantasyButton>
       <div className="flex gap-2">
-        <button type="button" className="btn btn-sm btn-outline text-white hover:text-black disabled:text-black" onClick={prevStep} disabled={currentStep === 0}>Back</button>
-        <button type="button" className="btn btn-sm btn-primary" onClick={nextStep}>{currentStep === totalSteps - 1 ? "Done" : "Next"}</button>
+        <FantasyButton variant="secondary" className="btn-sm" onClick={prevStep} disabled={currentStep === 0}>Back</FantasyButton>
+        <FantasyButton className="btn-sm" onClick={nextStep}>{currentStep === totalSteps - 1 ? "Done" : "Next"}</FantasyButton>
       </div>
     </div>
-  </div>
+  </FantasyPanel>
 );
 
 const saveCompletion = () => {

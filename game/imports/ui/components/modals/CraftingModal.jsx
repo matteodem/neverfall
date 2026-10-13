@@ -8,6 +8,7 @@ import { stackItems } from "../../../game/inventory";
 import { HudModal } from "../HudModal";
 import { Icon } from "../Icon";
 import { useHudStore } from "../../stores/useHudStore";
+import { FantasyButton, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 export const CraftingModal = ({ embedded = false }) => {
   const [craftingId, setCraftingId] = useState(null);
@@ -38,23 +39,23 @@ export const CraftingModal = ({ embedded = false }) => {
   return (
     <HudModal id="crafting" title="Crafting" embedded={embedded}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-sm opacity-70">Brew potions with materials looted from enemies.</p>
-        <button type="button" className="btn btn-sm btn-circle btn-ghost shrink-0"
+        <p className="text-sm fantasy-muted">Brew potions with materials looted from enemies.</p>
+        <FantasyButton variant="ghost" className="btn-sm btn-circle shrink-0"
           aria-label="Where to find crafting ingredients" title="Where to find crafting ingredients"
           onClick={() => useHudStore.getState().openModal("crafting-ingredients")}>
           <Icon icon="question" className="h-4 w-4" />
-        </button>
+        </FantasyButton>
       </div>
       {feedback && <p className={`mb-3 text-sm ${feedback.error ? "text-error" : "text-success"}`}
         role={feedback.error ? "alert" : "status"}>{feedback.text}</p>}
-      <div className="space-y-2">
+      <div className="fantasy-stack">
         {CRAFTING_RECIPES.map((recipe) => {
           const item = CONSUMABLES[recipe.resultItemId];
           const missing = recipe.ingredients.some(({ itemId, amount }) => (counts.get(itemId) || 0) < amount);
           return (
-            <div key={recipe.id} className="rounded-lg border border-base-300 p-3">
-              <div className="font-semibold">{item.name} ×{recipe.resultAmount}</div>
-              <div className="text-xs opacity-70">{item.description}</div>
+            <FantasyPanel key={recipe.id} className="fantasy-section">
+              <FantasySectionHeader>{item.name} ×{recipe.resultAmount}</FantasySectionHeader>
+              <div className="text-xs fantasy-muted">{item.description}</div>
               <ul className="my-3 space-y-1 text-sm">
                 {recipe.ingredients.map(({ itemId, amount }) => (
                   <li key={itemId} className={(counts.get(itemId) || 0) < amount ? "text-error" : ""}>
@@ -64,10 +65,10 @@ export const CraftingModal = ({ embedded = false }) => {
               </ul>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 {missing && <span className="text-xs text-error">Not enough materials.</span>}
-                <button type="button" className="btn btn-primary btn-sm ml-auto" disabled={!characterId || Boolean(craftingId) || missing}
-                  onClick={() => craft(recipe)}>{craftingId === recipe.id ? "Crafting..." : "Craft"}</button>
+                <FantasyButton className="btn-sm ml-auto" disabled={!characterId || Boolean(craftingId) || missing}
+                  onClick={() => craft(recipe)}>{craftingId === recipe.id ? "Crafting..." : "Craft"}</FantasyButton>
               </div>
-            </div>
+            </FantasyPanel>
           );
         })}
       </div>

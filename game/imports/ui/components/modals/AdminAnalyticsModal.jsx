@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
 import { useHudStore } from "../../stores/useHudStore";
+import { FantasyModalFrame, FantasyPanel } from "../fantasy/FantasyUI";
 
 const MODAL_ID = "admin-analytics";
 
@@ -36,30 +37,26 @@ const AnalyticsDialog = () => {
   ];
 
   return (
-    <dialog ref={dialogRef} className="modal" aria-labelledby="admin-analytics-title"
+    <dialog ref={dialogRef} className="modal fantasy-dialog" aria-label="Admin Analytics"
       onCancel={(event) => { event.preventDefault(); dismiss(); }}
       onKeyDown={(event) => event.stopPropagation()} onKeyUp={(event) => event.stopPropagation()}>
-      <div className="modal-box max-h-[calc(100dvh-2rem)] overflow-y-auto text-base-content">
-        <div className="flex items-center justify-between gap-3">
-          <h3 id="admin-analytics-title" className="text-xl font-bold">Admin Analytics</h3>
-          <button type="button" className="btn btn-sm btn-circle btn-ghost" aria-label="Close analytics" onClick={dismiss}>✕</button>
-        </div>
+      <FantasyModalFrame title="Admin Analytics" onClose={dismiss} className="modal-box" bodyClassName="overflow-y-auto">
         {!summary && !error && <p role="status" className="mt-4">Loading analytics…</p>}
-        {error && <p role="alert" className="mt-4 text-error">{error}</p>}
+        {error && <p role="alert" className="mt-4 fantasy-danger">{error}</p>}
         {summary && <>
           {!summary.totalSessions && <p role="status" className="mt-4">No game sessions recorded yet.</p>}
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {metrics.map(([label, value, window]) => (
-              <div key={label} className="min-w-0 rounded-box bg-base-200 p-3">
+              <FantasyPanel key={label} className="min-w-0 p-3">
                 <p className="text-sm font-medium">{label}</p>
                 <p className="my-2 break-words text-2xl font-bold">{value}</p>
-                <p className="text-xs opacity-70">{window}</p>
-              </div>
+                <p className="fantasy-muted text-xs">{window}</p>
+              </FantasyPanel>
             ))}
           </div>
-          <p className="mt-4 text-xs opacity-70">Recorded since tracking was enabled. Active sessions are excluded from average duration; timed-out sessions end at their last recorded activity.</p>
+          <p className="fantasy-muted mt-4 text-xs">Recorded since tracking was enabled. Active sessions are excluded from average duration; timed-out sessions end at their last recorded activity.</p>
         </>}
-      </div>
+      </FantasyModalFrame>
       <div className="modal-backdrop">
         <button type="button" aria-label="Dismiss analytics" onClick={dismiss}>close</button>
       </div>

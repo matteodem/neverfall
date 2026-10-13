@@ -2,7 +2,8 @@ import React from "react";
 import { FaGear } from "react-icons/fa6";
 import { FaQuestion, FaHorse, FaLocationArrow, FaMapPin, FaTrophy, FaMap, FaStore, FaScroll, FaStar, FaUsers } from "react-icons/fa";
 import { BsBackpack4Fill } from "react-icons/bs";
-import { GiBoarTusks, GiBroadsword, GiHealthCapsule, GiWolfHead, GiSwordWound, GiSpinningBlades, GiArrowhead, GiFireball, GiHeavyArrow, GiArrowCluster, GiFireBomb, GiFireRing } from "react-icons/gi";
+import { GiBroadsword, GiHealthCapsule, GiSwordWound, GiSpinningBlades, GiArrowhead, GiFireball, GiHeavyArrow, GiArrowCluster, GiFireBomb, GiFireRing } from "react-icons/gi";
+// import { GiBoarTusks, GiWolfHead } from "react-icons/gi";
 
 const ICON_MAP = {
   map: FaMap,
@@ -28,8 +29,8 @@ const ICON_MAP = {
   cleave: GiSpinningBlades,
   healthCapsule: GiHealthCapsule,
   horse: FaHorse,
-  boarSkin: GiBoarTusks,
-  wolfSkin: GiWolfHead,
+  // boarSkin: GiBoarTusks,
+  // wolfSkin: GiWolfHead,
 };
 
 export const Icon = ({ icon, ...props }) => {

@@ -1,4 +1,5 @@
 import React from "react";
+import { FantasyButton, FantasyMeter, FantasyPanel, FantasySectionHeader } from "./components/fantasy/FantasyUI";
 
 import {
   useLoadingStore,
@@ -29,44 +30,32 @@ export const LoadingScreen =
     }
 
     return (
-      <div className="absolute inset-0 z-[30000] flex items-center justify-center bg-black">
-        <div className="w-80">
-          <div className="mb-3 text-center text-sm text-white">
+      <div className="fantasy-ui fantasy-loading-screen absolute inset-0 z-[30000] flex items-center justify-center p-4">
+        <FantasyPanel className="fantasy-loading-card fantasy-section fantasy-stack">
+          <FantasySectionHeader as="p" className={`fantasy-heading-inline text-center ${error ? "fantasy-danger" : ""}`}>
             {error || (mode === "destination" ? "Loading destination..." : "Loading Game...")}
-          </div>
+          </FantasySectionHeader>
 
           {error ? (
-            <button
-              type="button"
-              className="btn btn-sm btn-outline mt-4 w-full text-white"
+            <FantasyButton
+              variant="secondary"
+              className="w-full"
               onClick={() => window.location.reload()}
             >
               Try again
-            </button>
+            </FantasyButton>
           ) : mode === "destination" ? (
-            <div className="flex justify-center"><span className="loading loading-spinner text-white" /></div>
+            <div className="flex justify-center"><span className="loading loading-spinner fantasy-accent" /></div>
           ) : (
             <>
-
-          <div className="h-3 overflow-hidden rounded-full bg-white/20">
-            <div
-              className="h-full bg-white transition-[width] duration-700 ease-out"
-              style={{
-                width:
-                  `${progress}%`,
-              }}
-            />
-          </div>
-
-          <div className="mt-2 text-center text-xs text-white/60">
-            {Math.round(
-              progress
-            )}
-            %
-          </div>
+              <FantasyMeter className="fantasy-loading-meter" value={progress} max={100}
+                percentage={progress} label="Game loading progress" tone="magic" />
+              <div className="fantasy-muted text-center text-xs">
+                {Math.round(progress)}%
+              </div>
             </>
           )}
-        </div>
+        </FantasyPanel>
       </div>
     );
   };

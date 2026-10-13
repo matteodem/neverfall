@@ -1,3 +1,4 @@
+import { FantasyButton, FantasyHudCard, FantasyKey, FantasyMeter, FantasyNotificationStack } from "./components/fantasy/FantasyUI";
 import { TargetFrame } from "./components/TargetFrame";
 import { BossHealthBar } from "./components/BossHealthBar";
 import { Chat } from "./components/Chat";
@@ -245,35 +246,18 @@ const CooldownOverlay = ({
         items-center
         justify-center
 
-        rounded
+        fantasy-cooldown
       "
       style={{
         backgroundImage:
           `conic-gradient(
-            rgba(0, 0, 0, 0.8)
+            var(--fantasy-cooldown-cover)
             ${progress * 360}deg,
-            rgba(0, 0, 0, 0.25) 0deg
+            var(--fantasy-cooldown-track) 0deg
           )`,
       }}
     >
-      <span
-        className="
-          rounded
-
-          bg-black/70
-
-          px-1.5
-          py-0.5
-
-          text-sm
-          font-bold
-          text-cyan-300
-
-          shadow
-        "
-      >
-        {seconds}
-      </span>
+      <span className="fantasy-cooldown-count">{seconds}</span>
     </div>
   );
 };
@@ -301,21 +285,16 @@ const MenuButtons =
     const openSection = useHudStore((state) => state.openSection);
 
     return (
-      <div
+      <FantasyHudCard
         className="
           hud-menu
           absolute
           left-4
           top-4
 
-          rounded-lg
-
-          bg-black/70
-
           px-4
           py-3
 
-          text-white
         "
       >
         <div
@@ -332,11 +311,13 @@ const MenuButtons =
               shortcut,
               defaultTab,
             }) => (
-              <button
+              <FantasyButton
                 key={
                   id
                 }
                 id={id === "items" ? "onboarding-inventory" : id === "hero" ? "onboarding-quests" : undefined}
+                variant="secondary"
+                aria-pressed={openModals.includes(id)}
                 type="button"
                 title={
                   shortcut ? `${label} (Press ${shortcut})` : label
@@ -346,7 +327,6 @@ const MenuButtons =
                   () => openModals.includes(id) ? closeModal(id) : defaultTab ? openSection(id, defaultTab) : openModal(id)
                 }
                 className="
-                  btn
                   btn-circle
                   cursor-pointer
                 "
@@ -356,11 +336,11 @@ const MenuButtons =
                     icon
                   }
                 />
-              </button>
+              </FantasyButton>
             )
           )}
         </div>
-      </div>
+      </FantasyHudCard>
     );
   };
 
@@ -390,72 +370,13 @@ const PlayerHealthBar = ({
 
 
   return (
-    <div
-      id="onboarding-health"
-      className="
-        w-72
-
-        rounded
-
-        bg-black/70
-
-        p-2
-
-        text-white
-      "
-    >
-      <div
-        className="
-          mb-1
-
-          flex
-          justify-between
-
-          text-sm
-        "
-      >
-        <span>
-          Health
-        </span>
-
-
-        <span>
-          {parseInt(
-            health,
-            10
-          )}{" "}
-          /{" "}
-          {maxHealth}
-        </span>
+    <FantasyHudCard id="onboarding-health" className="fantasy-resource w-72">
+      <div className="mb-1 flex justify-between gap-2 text-sm">
+        <span>Health</span>
+        <span>{parseInt(health, 10)} / {maxHealth}</span>
       </div>
-
-
-      <div
-        className="
-          h-4
-
-          overflow-hidden
-
-          rounded
-
-          bg-gray-700
-        "
-      >
-        <div
-          className="
-            h-full
-
-            bg-green-500
-
-            transition-all
-          "
-          style={{
-            width:
-              `${percentage}%`,
-          }}
-        />
-      </div>
-    </div>
+      <FantasyMeter value={health} max={maxHealth} percentage={percentage} label="Player health" className="h-4" />
+    </FantasyHudCard>
   );
 };
 
@@ -480,85 +401,14 @@ const ActionSlot = ({
 
 
   return (
-    <div
-      className="
-        tooltip
-        tooltip-top
-      "
-      data-tip={
-        slot.tooltip
-      }
-    >
-      <button
-        type="button"
+    <div className="fantasy-tooltip tooltip tooltip-top" data-tip={slot.tooltip}>
+      <FantasyButton variant="secondary" aria-label={`${slot.tooltip} (Press ${slot.key})`}
         {...actionButtonHandlers(() => onTrigger(slot.code), mobile)}
-        className="
-          relative
-
-          flex
-          h-14
-          w-14
-
-          cursor-pointer
-
-          flex-col
-          items-center
-          justify-center
-
-          rounded
-
-          border
-          border-white/20
-
-          bg-black/70
-
-          text-white
-
-          transition
-
-          hover:bg-black/90
-
-          active:scale-95
-        "
-      >
-        <span
-          className="
-            absolute
-            right-[5px]
-            top-[2px]
-
-            text-sm
-            font-bold
-          "
-        >
-          {slot.key}
-        </span>
-
-
-        {slot.icon && (
-          <Icon
-            icon={
-              slot.icon
-            }
-            className="
-              h-5
-              w-5
-            "
-          />
-        )}
-
-
-        {slot.cooldown && (
-          <CooldownOverlay
-            until={
-              cooldownUntil
-            }
-            duration={
-              slot.cooldown
-            }
-          />
-        )}
-      </button>
+        className="fantasy-skill relative flex h-14 w-14 flex-col items-center justify-center">
+        <FantasyKey className="absolute right-1 top-1">{slot.key}</FantasyKey>
+        {slot.icon && <Icon icon={slot.icon} className="h-5 w-5" />}
+        {slot.cooldown && <CooldownOverlay until={cooldownUntil} duration={slot.cooldown} />}
+      </FantasyButton>
     </div>
   );
 };
@@ -662,10 +512,10 @@ const BottomHud = ({
     <>
       <div className="absolute bottom-3 right-3 z-[10000]">
         <div className="mb-3 flex gap-2">
-          <button type="button" className="btn btn-sm" disabled={isDead} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("Space"), true)}>Jump</button>
-          <button type="button" className="btn btn-sm" disabled={isDead || inDungeon || (inCombat && !mounted)} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
+          <FantasyButton variant="secondary" className="btn-sm" disabled={isDead} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("Space"), true)}>Jump</FantasyButton>
+          <FantasyButton variant="secondary" className="btn-sm" disabled={isDead || inDungeon || (inCombat && !mounted)} {...actionButtonHandlers(() => useActionBarStore.getState().triggerSkill("KeyV"), true)}>
             {mounted ? "Dismount" : "Mount"}
-          </button>
+          </FantasyButton>
         </div>
         <ActionBar mobile gameClass={gameClass} species={species} talents={talents} currentLevel={currentLevel} equipment={equipment} healCooldownUntil={healCooldownUntil} />
       </div>
@@ -709,26 +559,20 @@ const BottomHud = ({
 
       <div className="relative">
         <div
-          className="tooltip tooltip-top absolute left-[-60px] h-[45px] top-0"
+          className="fantasy-tooltip tooltip tooltip-top absolute left-[-60px] h-[45px] top-0"
           data-tip={mounted ? "Dismount" : inCombat ? "Cannot mount in combat" : "Mount"}
         >
-          <button
+          <FantasyButton
+            variant="secondary"
+            aria-label={mounted ? "Dismount (V)" : "Mount (V)"}
             type="button"
             disabled={isDead || inDungeon || (inCombat && !mounted)}
             onClick={() => useActionBarStore.getState().triggerSkill("KeyV")}
-            className={`btn btn-sm relative h-[45px] w-[55px] border-white/20 bg-black/70 text-white hover:bg-black/90 disabled:opacity-40 disabled:pointer-events-auto ${isDead || inDungeon || (inCombat && !mounted) ? "cursor-not-allowed" : ""}`}
+            className={`btn-sm relative h-[45px] w-[55px] disabled:pointer-events-auto ${isDead || inDungeon || (inCombat && !mounted) ? "cursor-not-allowed" : ""}`}
           >
             <Icon icon="horse" />
-            <span className="
-              absolute 
-              right-[5px]
-              top-[2px]
-
-              text-xs
-              font-bold">
-              V
-            </span>
-          </button>
+            <FantasyKey className="absolute right-1 top-1">V</FantasyKey>
+          </FantasyButton>
         </div>
         <PlayerHealthBar
           health={playerHealth.health}
@@ -782,8 +626,15 @@ export const Hud = ({
         className={`pointer-events-none fixed inset-0 bg-red-900/30 transition-opacity duration-300 ${lowHealth ? "opacity-100" : "opacity-0"}`}
       />
       <Chat />
+      <FantasyNotificationStack>
+        <BossNotice />
+        <QuestProgressToast />
+        <QuestCompletionOverlay />
+        <ItemReceivedToast />
+        <LevelUpOverlay />
+        <AchievementToast />
+      </FantasyNotificationStack>
       <LootPrompt />
-      <ItemReceivedToast />
       <DungeonPrompt />
       <NpcDialogue />
       <GroupPanel />
@@ -792,9 +643,6 @@ export const Hud = ({
       <CombatBorder />
 
 
-      <LevelUpOverlay />
-      <QuestCompletionOverlay />
-      <BossNotice />
       <BossHealthBar />
       <TargetFrame currentLevel={currentLevel} />
 
@@ -820,14 +668,14 @@ export const Hud = ({
         <Minimap />
         <div className="hud-trackers flex flex-col items-end gap-2">
           {inDungeon && (
-            <button type="button" className="btn btn-sm btn-error" disabled={dungeonBusy} onClick={leaveDungeon}>
+            <FantasyButton variant="danger" className="btn-sm" disabled={dungeonBusy} onClick={leaveDungeon}>
               Leave Dungeon
-            </button>
+            </FantasyButton>
           )}
-          {mobile && <button type="button" className="btn btn-xs" aria-expanded={showObjectives} aria-controls="hud-objectives"
+          {mobile && <FantasyButton variant="secondary" className="btn-xs" aria-expanded={showObjectives} aria-controls="hud-objectives"
             onClick={(event) => { setShowObjectives((visible) => !visible); event.currentTarget.blur(); }}>
             {showObjectives ? "Hide Objectives" : "Show Objectives"}
-          </button>}
+          </FantasyButton>}
           <div id="hud-objectives" className="flex flex-col items-end gap-2" style={{ display: !mobile || showObjectives ? "flex" : "none" }}>
             {!inDungeon && <WorldEventTracker />}
             <TrackedQuestHud />
@@ -868,8 +716,6 @@ export const Hud = ({
       <ItemsModal />
       <HeroModal />
       <SocialModal />
-      <AchievementToast />
-      <QuestProgressToast />
 
       <HelpModal />
       <FeedbackModal />

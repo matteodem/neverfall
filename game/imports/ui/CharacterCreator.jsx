@@ -7,6 +7,7 @@ import { CLASS_CONFIG } from "../game/classConfig";
 import { SPECIES } from "../game/species";
 import { createAmirStartingAppearance, normalizeAmirAppearance } from "../game/character/amir/appearance";
 import { AmirAppearanceControls } from "./components/AmirAppearanceControls";
+import { FantasyBadge, FantasyButton, FantasyPanel, FantasySectionHeader } from "./components/fantasy/FantasyUI";
 
 import {
   Meteor,
@@ -32,9 +33,9 @@ const Screen = ({
 }) => {
   return (
     <div className="character-creator-screen flex min-h-[400px] flex-col items-center justify-center">
-      <h2 className="mb-8 text-center text-3xl font-bold">
+      <FantasySectionHeader as="h2" className="mb-8 text-center text-3xl">
         {title}
-      </h2>
+      </FantasySectionHeader>
 
       {children}
     </div>
@@ -76,26 +77,25 @@ const Navigation = () => {
 
   return (
     <div className="character-creator-nav flex shrink-0 justify-between pt-4">
-      <button
-        type="button"
+      <FantasyButton
+        variant="secondary"
         onClick={
           handleBack
         }
-        className="btn btn-secondary cursor-pointer"
+        className="cursor-pointer"
       >
         Back
-      </button>
+      </FantasyButton>
 
       {!isLastStep && (
-        <button
-          type="button"
+        <FantasyButton
           onClick={
             nextStep
           }
-          className="btn btn-primary cursor-pointer"
+          className="cursor-pointer"
         >
           Next
-        </button>
+        </FantasyButton>
       )}
     </div>
   );
@@ -121,12 +121,12 @@ const AppearanceStep = () => {
   };
   return (
     <div className="character-creator-appearance mb-4">
-      <h2 className="mb-4 text-center text-3xl font-bold">Character Appearance</h2>
-      <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="order-first h-[260px] overflow-hidden rounded-xl border border-white/10 bg-black/20 md:order-last md:sticky md:top-0 md:h-[440px]">
+      <FantasySectionHeader as="h2" className="mb-4 text-center text-3xl">Character Appearance</FantasySectionHeader>
+      <div className="character-creator-appearance-grid grid min-w-0 grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+        <FantasyPanel className="character-creator-preview overflow-hidden">
           <CharacterPreview appearance={developmentPreview ? normalizeAmirAppearance(creator) : createAmirStartingAppearance(creator, creator.gameClass)}
             gameClass={creator.gameClass} previewAllEquipment={developmentPreview} />
-        </div>
+        </FantasyPanel>
         <AmirAppearanceControls showAllCustomizations={developmentPreview} onShowAllCustomizationsChange={toggleCustomizations} />
       </div>
     </div>
@@ -145,16 +145,17 @@ const SpeciesStep =
       >
         <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
           {Object.entries(SPECIES).map(([id, config]) => (
-            <button
+            <FantasyButton
               key={id}
-              type="button"
+              variant="secondary"
               onClick={() => setCreatorSpecies(id, config)}
               aria-pressed={species === id}
-              className={`flex min-h-16 cursor-pointer flex-col items-center justify-center rounded-lg border px-4 py-2 text-center sm:min-h-20 ${species === id ? "border-primary bg-primary text-primary-content" : "border-white/20 hover:border-primary"}`}
+              className="fantasy-choice min-h-16 w-full cursor-pointer flex-col items-center justify-center text-center sm:min-h-20"
             >
               <span className="font-bold">{config.name}</span>
-              <span className="text-sm">{config.passive}</span>
-            </button>
+              <span className="fantasy-muted text-sm">{config.passive}</span>
+              {species === id && <FantasyBadge tone="success">Selected</FantasyBadge>}
+            </FantasyButton>
           ))}
         </div>
       </Screen>
@@ -172,14 +173,16 @@ const ClassStep =
       >
         <div className="character-creator-classes grid w-full grid-cols-1 gap-4 sm:grid-cols-3">
           {Object.entries(CLASS_CONFIG).map(([id, config]) => (
-            <button
+            <FantasyButton
               key={id}
-              type="button"
+              variant="secondary"
               onClick={() => setCreatorField("gameClass", id)}
-              className={`btn w-full cursor-pointer px-4 py-5 sm:px-8 ${gameClass === id ? "btn-primary" : "btn-outline text-white hover:text-black"}`}
+              aria-pressed={gameClass === id}
+              className="fantasy-choice w-full cursor-pointer justify-center px-4 py-5 sm:px-8"
             >
               {config.name}
-            </button>
+              {gameClass === id && <FantasyBadge tone="success">Selected</FantasyBadge>}
+            </FantasyButton>
           ))}
         </div>
       </Screen>
@@ -348,12 +351,13 @@ const NameStep = ({
                 )
             }
             placeholder="Character name"
-            className="input input-bordered w-full pr-12 text-black placeholder:text-gray-500"
+            aria-label="Character name"
+            className="input fantasy-input w-full pr-12"
           />
 
           <div className="absolute right-4 top-1/2 -translate-y-1/2">
             {checking && (
-              <span className="text-white/50">
+              <span className="fantasy-muted">
                 …
               </span>
             )}
@@ -361,7 +365,7 @@ const NameStep = ({
             {!checking &&
               available ===
                 true && (
-                <span className="font-bold text-green-400">
+                <span className="font-bold fantasy-creator-success">
                   ✓
                 </span>
               )}
@@ -369,31 +373,31 @@ const NameStep = ({
             {!checking &&
               available ===
                 false && (
-                <span className="font-bold text-red-400">
+                <span className="font-bold fantasy-danger">
                   ✕
                 </span>
               )}
           </div>
         </div>
 
-        <div className="mt-2 h-5 text-sm">
+        <div className="mt-2 min-h-5 text-sm" role="status">
           {available ===
             true && (
-            <span className="text-green-400">
+            <span className="fantasy-creator-success">
               Name available
             </span>
           )}
 
           {available ===
             false && (
-            <span className="text-red-400">
+            <span className="fantasy-danger">
               Name already taken
             </span>
           )}
         </div>
 
-        <button
-          type="button"
+        <FantasyButton
+          variant="primary"
           disabled={
             !available ||
             creating
@@ -401,12 +405,12 @@ const NameStep = ({
           onClick={
             create
           }
-          className="character-creator-create btn btn-success mt-8 w-full cursor-pointer text-lg disabled:cursor-not-allowed"
+          className="character-creator-create mt-8 w-full cursor-pointer text-lg disabled:cursor-not-allowed"
         >
           {creating
             ? "Creating..."
             : "Create"}
-        </button>
+        </FantasyButton>
       </div>
     </Screen>
   );
@@ -439,8 +443,8 @@ export const CharacterCreator =
 
 
     return (
-      <div className="character-creator flex h-screen h-dvh items-center justify-center bg-zinc-950 p-4 text-white">
-        <div className="character-creator-card flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-white/10 bg-white/15 p-4 sm:p-8">
+      <div className="fantasy-ui fantasy-character-creator character-creator flex h-screen h-dvh items-center justify-center p-4">
+        <FantasyPanel className="character-creator-card flex max-h-full w-full max-w-6xl flex-col overflow-hidden p-4 sm:p-6">
           <Wizard
             wrapper={<div className="character-creator-step min-h-0 flex-1 overflow-y-auto" />}
             footer={
@@ -459,7 +463,7 @@ export const CharacterCreator =
               }
             />
           </Wizard>
-        </div>
+        </FantasyPanel>
       </div>
     );
   };

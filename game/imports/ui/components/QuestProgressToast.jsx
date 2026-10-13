@@ -1,3 +1,4 @@
+import { FantasyNotice } from "./fantasy/FantasyUI";
 import React, { useEffect, useRef, useState } from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
@@ -52,27 +53,27 @@ export const QuestProgressToast = () => {
 
   if (!notice || notice.characterId !== character?._id) return null;
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-[12dvh] z-[10001] flex justify-center px-4"
+    <div className="fantasy-toast-slot"
       role="status" aria-live="polite" aria-atomic="true">
-      <div className="w-full max-w-sm rounded-xl border border-yellow-300/60 bg-black/60 px-4 py-3 text-center text-sm text-white shadow-[0_0_60px_rgba(250,204,21,0.45)] backdrop-blur-sm">
+      <FantasyNotice tone="reward" className="w-full max-w-sm text-center text-sm">
         {notice.entries.slice(0, 3).map(({ questId, stepIndex, finished }) => {
           const quest = QUESTS.find((entry) => entry.id === questId);
           if (finished) {
             const giver = NPC_DEFINITIONS.find((npc) => npc.offeredQuestIds?.includes(questId));
             return <div key={questId}>
-              <p><span className="font-bold tracking-wide text-yellow-300">{quest.title}:</span> Finished</p>
-              {quest.turnInRequired && <p className="mt-1 text-xs text-yellow-200">
+              <p><span className="font-bold fantasy-accent">{quest.title}:</span> Finished</p>
+              {quest.turnInRequired && <p className="mt-1 text-xs fantasy-muted">
                 Return to {giver?.name || "Quest-Giver"} to Earn Rewards
               </p>}
             </div>;
           }
           const step = getQuestObjectiveDisplay(quest, character.questProgress?.[questId] || 0).steps[stepIndex];
           return <p key={`${questId}:${stepIndex}`}>
-            <span className="font-bold tracking-wide text-yellow-300">{quest.title}:</span> Killed {step.count} / {step.total}
+            <span className="font-bold fantasy-accent">{quest.title}:</span> Killed {step.count} / {step.total}
           </p>;
         })}
         {notice.entries.length > 3 && <p className="text-xs opacity-70">+{notice.entries.length - 3} other quests updated</p>}
-      </div>
+      </FantasyNotice>
     </div>
   );
 };

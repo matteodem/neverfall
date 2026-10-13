@@ -18,7 +18,7 @@ const ICONS = {
 
 export const WorldMapMarkerIcon = ({ kind }) => {
   const { className, glyph } = ICONS[kind];
-  return <span className={`flex shrink-0 items-center justify-center rounded-full shadow ${className}`}>{glyph}</span>;
+  return <span className={`fantasy-map-marker-icon fantasy-map-marker-${kind} flex shrink-0 items-center justify-center rounded-full shadow ${className}`}>{glyph}</span>;
 };
 
 export const WorldMapMarker = ({ id, kind, label, position, mobile, selected, onSelect, offsetX = 0, offsetY = 0 }) => {
@@ -30,13 +30,14 @@ export const WorldMapMarker = ({ id, kind, label, position, mobile, selected, on
 
   return (
     <button type="button" data-map-marker={id} aria-label={label}
-      className={`group absolute flex items-center justify-center border-0 bg-transparent p-0 ${compact ? mobile ? "h-10 w-10" : "h-6 w-6" : mobile ? "h-12 w-12" : "h-8 w-8"} ${kind === "event" ? "z-10" : selected ? "z-30" : kind === "custom" ? "z-[25] hover:z-30 focus-visible:z-30" : "z-[15] hover:z-30 focus-visible:z-30"}`}
+      data-selected={selected || undefined}
+      className={`fantasy-map-marker group absolute flex items-center justify-center border-0 bg-transparent p-0 ${compact ? mobile ? "h-10 w-10" : "h-6 w-6" : mobile ? "h-12 w-12" : "h-8 w-8"} ${kind === "event" ? "z-10" : selected ? "z-30" : kind === "custom" ? "z-[25] hover:z-30 focus-visible:z-30" : "z-[15] hover:z-30 focus-visible:z-30"}`}
       style={{ ...position, transform: `translate(calc(-50% + ${offsetX}px), calc(-50% + ${offsetY}px))` }}
       onPointerDown={(event) => event.stopPropagation()}
       onPointerUp={(event) => event.stopPropagation()}
       onClick={(event) => { event.stopPropagation(); onSelect(id, event); }}>
       <WorldMapMarkerIcon kind={kind} />
-      <span className={`world-map-marker-label pointer-events-none absolute whitespace-nowrap rounded bg-black/85 px-1.5 py-1 text-xs font-semibold text-white shadow-lg ${horizontal} ${vertical} ${mobile ? selected ? "block" : "hidden" : "hidden group-hover:block group-focus-visible:block"}`}>
+      <span className={`world-map-marker-label pointer-events-none absolute rounded px-1.5 py-1 text-xs font-semibold ${horizontal} ${vertical} ${mobile ? selected ? "block" : "hidden" : "hidden group-hover:block group-focus-visible:block"}`}>
         {label}
       </span>
     </button>

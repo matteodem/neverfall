@@ -2,6 +2,7 @@ import React from "react";
 import { useNextStep } from "nextstepjs";
 import { ONBOARDING_TOUR } from "../../OnboardingTour";
 import { useHudStore } from "../../stores/useHudStore";
+import { FantasyBadge, FantasyButton, FantasyHudCard, FantasyPanel, FantasySectionHeader } from "../fantasy/FantasyUI";
 
 import {
   HudModal,
@@ -35,22 +36,22 @@ export const HelpModal = () => {
       id="help"
       title="Help"
     >
-      <button
+      <FantasyButton
         type="button"
-        className="btn btn-primary btn-sm"
+        className="btn-sm"
         onClick={() => {
           closeModal("help");
           startNextStep(ONBOARDING_TOUR);
         }}
       >
         Replay Onboarding
-      </button>
+      </FantasyButton>
 
-      <p className="mt-2 text-lg font-bold">
+      <FantasySectionHeader>
         Keyboard Controls
-      </p>
+      </FantasySectionHeader>
 
-      <div className="mt-2 overflow-x-auto max-h-[300px] overflow-y-scroll">
+      <FantasyPanel className="mt-2 overflow-x-auto max-h-[300px] overflow-y-auto">
         <table className="help-controls table table-zebra table-sm">
           <thead>
             <tr><th scope="col">Key</th><th scope="col">Action</th></tr>
@@ -64,19 +65,19 @@ export const HelpModal = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </FantasyPanel>
 
-      <p className="mt-2 text-lg font-bold">
+      <FantasySectionHeader>
         Current Version
-      </p>
+      </FantasySectionHeader>
 
-      <div className="mt-2">
-        v0.15.0-alpha
-      </div>
+      <FantasyHudCard className="mt-2">
+        <FantasyBadge tone="magic">v0.15.0-alpha</FantasyBadge>
+      </FantasyHudCard>
 
-      <p className="mt-5 text-lg font-bold">
+      <FantasySectionHeader>
         How To Support This Project
-      </p>
+      </FantasySectionHeader>
 
       <div className="mt-2">
         Like Neverfall? Feel free to support me: <br />
@@ -87,17 +88,17 @@ export const HelpModal = () => {
         </div>
       </div>
 
-      <p className="mt-5 text-lg font-bold">
+      <FantasySectionHeader>
         Recommend features or report a bug
-      </p>
+      </FantasySectionHeader>
 
       <div className="mt-2">
-        <button type="button" className="btn btn-primary mb-3" onClick={() => {
+        <FantasyButton className="mb-3" onClick={() => {
           closeModal("help");
           openModal("feedback");
         }}>
           Give Feedback
-        </button>
+        </FantasyButton>
         <br />
         Check out the github repository: <br />
 

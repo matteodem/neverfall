@@ -1,6 +1,7 @@
 import { useChatStore } from "../stores/useChatStore";
 import { useGroupStore } from "../stores/useGroupStore";
 import React, { useEffect, useLayoutEffect, useRef } from "react";
+import { FantasyButton, FantasyPanel } from "./fantasy/FantasyUI";
 
 export const PlayerDropdown = ({ selection, onClose }) => {
   const invite = () => {
@@ -40,10 +41,10 @@ export const PlayerDropdown = ({ selection, onClose }) => {
       className="dropdown dropdown-open fixed z-50"
       style={{ left: selection.x, top: selection.y }}
     >
-      <ul className="dropdown-content menu bg-base-100 rounded-box w-40 p-2 shadow-lg" aria-label="Player actions">
-        <li><button type="button" onClick={invite}>Invite</button></li>
-        <li><button type="button" onClick={() => { onClose(); useChatStore.getState().show(`/whisper "${selection.name}" `); }}>Whisper</button></li>
-      </ul>
+      <FantasyPanel as="ul" className="dropdown-content menu w-40 p-2" aria-label="Player actions">
+        <li><FantasyButton variant="ghost" onClick={invite}>Invite</FantasyButton></li>
+        <li><FantasyButton variant="ghost" onClick={() => { onClose(); useChatStore.getState().show(`/whisper "${selection.name}" `); }}>Whisper</FantasyButton></li>
+      </FantasyPanel>
     </div>
   );
 };

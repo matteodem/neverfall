@@ -1,3 +1,4 @@
+import { FantasyHudCard, FantasyMeter } from "./fantasy/FantasyUI";
 import React from "react";
 
 import {
@@ -47,8 +48,8 @@ export const XpBar = () => {
         );
 
   return (
-    <div className="w-72 rounded bg-black/70 p-2 text-white">
-      <div className="mb-1 flex justify-between text-xs">
+    <FantasyHudCard className="fantasy-resource w-72">
+      <div className="mb-1 flex justify-between gap-2 text-xs">
         <span>
           Level{" "}
           {currentLevel}
@@ -61,15 +62,8 @@ export const XpBar = () => {
         </span>
       </div>
 
-      <div className="h-3 overflow-hidden rounded bg-gray-700">
-        <div
-          className="h-full bg-blue-500 transition-[width] duration-300 ease-out"
-          style={{
-            width:
-              `${percentage}%`,
-          }}
-        />
-      </div>
-    </div>
+      <FantasyMeter value={isMaxLevel ? 1 : currentXp} max={isMaxLevel ? 1 : maxXp} percentage={percentage}
+        label="Experience" tone="magic" className="h-3" />
+    </FantasyHudCard>
   );
 };

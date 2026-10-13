@@ -1,3 +1,4 @@
+import { FantasyBadge, FantasyHudCard, FantasySectionHeader } from "./fantasy/FantasyUI";
 import React from "react";
 import { Meteor } from "meteor/meteor";
 import { useTracker } from "meteor/react-meteor-data";
@@ -18,18 +19,18 @@ export const TrackedQuestHud = () => {
   const display = getQuestObjectiveDisplay(quest, character.questProgress?.[quest.id] || 0);
   const current = display.current;
   return (
-    <div className="pointer-events-none w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-white/10 bg-black/60 p-3 text-white shadow-lg">
-      <div className="text-xs font-semibold uppercase text-yellow-300">Quest</div>
+    <FantasyHudCard className="fantasy-tracker pointer-events-none w-64 max-w-[calc(100vw-2rem)]">
+      <FantasySectionHeader className="fantasy-hud-heading">Quest</FantasySectionHeader>
       <div className="mt-1 text-sm font-bold">{quest.title}</div>
       {finished ? <>
-        <p className="mt-1 text-sm text-green-300">✓ Finished</p>
-        <p className="text-xs text-white/80">Return to {giver?.name || "Quest-Giver"}</p>
+        <FantasyBadge tone="success" className="mt-1">✓ Finished</FantasyBadge>
+        <p className="text-xs fantasy-muted">Return to {giver?.name || "Quest-Giver"}</p>
       </> : current && <>
-        <p className="mt-1 text-xs text-white/80">
+        <p className="mt-1 text-xs fantasy-muted">
           {current.label}{current.total > 1 ? `: ${current.count} / ${current.total}` : ""}
         </p>
-        {display.steps.length > 1 && <p className="text-xs text-white/60">Step {current.number} / {display.steps.length}</p>}
+        {display.steps.length > 1 && <p className="text-xs fantasy-muted">Step {current.number} / {display.steps.length}</p>}
       </>}
-    </div>
+    </FantasyHudCard>
   );
 };

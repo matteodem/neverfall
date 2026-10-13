@@ -9,6 +9,7 @@ import {
 import {
   HudModal,
 } from "../HudModal";
+import { FantasyButton } from "../fantasy/FantasyUI";
 
 import {
   useHudStore,
@@ -91,23 +92,22 @@ export const SettingsModal = () => {
           (
             setting
           ) => (
-            <button
+            <FantasyButton
               key={
                 setting.id
               }
-              type="button"
               onClick={
                 setting.onClick
               }
               disabled={
                 setting.disabled
               }
-              className="btn btn-outline btn-primary w-full cursor-pointer disabled:cursor-not-allowed"
+              className="w-full cursor-pointer disabled:cursor-not-allowed"
             >
               {setting.disabled
                 ? setting.loadingLabel
                 : setting.label}
-            </button>
+            </FantasyButton>
           )
         )}
       </div>

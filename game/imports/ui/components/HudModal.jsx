@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import { isBlockingModal, useHudStore } from "../stores/useHudStore";
 import { useMobileDevice } from "../hooks/useMobileDevice";
+import { FantasyModalFrame } from "./fantasy/FantasyUI";
 
 const MODAL_Z_INDEX = 20000;
 const BLOCKING_MODAL_Z_INDEX = 30000;
@@ -77,11 +78,17 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
   };
 
   const modal = (
-    <div
+    <FantasyModalFrame
+      title={title}
+      onClose={dismiss}
+      headerClassName={`hud-modal-header ${blocking ? "" : "cursor-move"} select-none`}
+      headerProps={{ onPointerDown: blocking ? undefined : startDragging }}
+      closeClassName="hud-modal-close"
+      bodyClassName={`hud-modal-body ${scrollable ? "overflow-auto" : "overflow-visible"} p-4`}
       role="dialog"
       aria-modal={blocking || undefined}
       aria-label={title}
-      className={`pointer-events-auto ${blocking ? "relative" : "absolute"} hud-modal ${className} flex max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] flex-col ${scrollable ? "overflow-hidden" : "overflow-visible"} rounded-box bg-base-100 text-base-content shadow-2xl`}
+      className={`pointer-events-auto ${blocking ? "relative" : "absolute"} hud-modal ${className} max-h-[calc(var(--game-height,100vh)-16px)] w-[min(32rem,calc(var(--game-width,100vw)-16px))] ${scrollable ? "overflow-hidden" : "overflow-visible"}`}
       style={{
         ...(blocking ? {} : { left: position.x, top: position.y,
           transform: "translateX(-50%) scale(var(--hud-modal-scale, 1))" }),
@@ -90,21 +97,8 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
       }}
       onPointerDown={() => openModal(id)}
     >
-      <div
-        className={`hud-modal-header flex shrink-0 ${blocking ? "" : "cursor-move"} select-none items-center justify-between border-b border-base-300 px-4 py-3`}
-        onPointerDown={blocking ? undefined : startDragging}
-      >
-        <h3 className="text-xl font-bold">{title}</h3>
-        <button
-          type="button"
-          className="hud-modal-close btn btn-sm btn-circle btn-ghost cursor-pointer"
-          onClick={dismiss}
-        >
-          ✕
-        </button>
-      </div>
-      <div className={`hud-modal-body ${scrollable ? "min-h-0 overflow-auto" : "overflow-visible"} p-4`}>{children}</div>
-    </div>
+      {children}
+    </FantasyModalFrame>
   );
 
   if (!blocking) {
@@ -113,8 +107,8 @@ export const HudModal = ({ id, title, children, embedded = false, backdrop = fal
 
   return (
     <div className="pointer-events-auto fixed inset-0" style={{ zIndex: BLOCKING_MODAL_Z_INDEX + index }}>
-      <div className="absolute inset-0 bg-black/30" onClick={dismiss} />
-      <div className="pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
+      <div className="fantasy-modal-backdrop absolute inset-0" onClick={dismiss} />
+      <div className="fantasy-modal-placement pointer-events-none absolute inset-0 grid place-items-center">{modal}</div>
     </div>
   );
 };

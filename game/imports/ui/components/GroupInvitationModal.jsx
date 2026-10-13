@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { HudModal } from "./HudModal";
 import { useGroupStore } from "../stores/useGroupStore";
 import { useHudStore } from "../stores/useHudStore";
+import { FantasyButton, FantasySectionHeader } from "./fantasy/FantasyUI";
 
 const MODAL_ID = "groupInvitation";
 
@@ -21,10 +22,11 @@ export const GroupInvitationModal = () => {
 
   return (
     <HudModal id={MODAL_ID} title="Group invitation" onClose={ignore}>
-      <p><span className="font-semibold">{invitation.inviterName}</span> invited you to join a group.</p>
-      <div className="mt-4 flex justify-end gap-2">
-        <button type="button" className="btn btn-ghost" onClick={ignore}>Ignore</button>
-        <button type="button" className="btn btn-primary" onClick={() => requestAction("accept", invitation.id)}>Join group</button>
+      <FantasySectionHeader as="p" className="mt-0">Invitation</FantasySectionHeader>
+      <p><span className="font-semibold break-all">{invitation.inviterName}</span> invited you to join a group.</p>
+      <div className="mt-4 flex flex-wrap justify-end gap-2">
+        <FantasyButton variant="ghost" onClick={ignore}>Ignore</FantasyButton>
+        <FantasyButton onClick={() => requestAction("accept", invitation.id)}>Join group</FantasyButton>
       </div>
     </HudModal>
   );

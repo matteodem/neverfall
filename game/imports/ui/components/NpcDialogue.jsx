@@ -1,3 +1,4 @@
+import { FantasyButton, FantasyHudCard, FantasyKey, FantasyPanel, FantasySectionHeader } from "./fantasy/FantasyUI";
 import React, { useEffect, useState } from "react";
 import { HudModal } from "./HudModal";
 import { NpcQuestPanel } from "./NpcQuestPanel";
@@ -38,30 +39,33 @@ export const NpcDialogue = () => {
 
   return <>
     {nearby && !modalOpen && !dungeonPrompt && !eventInteraction && (
-      <div className="absolute bottom-[210px] left-1/2 z-40 -translate-x-1/2 rounded-box bg-black/75 p-3 text-white">
-        <button type="button" className="btn btn-primary btn-sm" onClick={interact}>
-          Press <kbd className="kbd kbd-sm">F</kbd> to talk to {nearby.name}
-        </button>
-      </div>
+      <FantasyHudCard className="fantasy-prompt absolute bottom-[210px] left-1/2 z-40 -translate-x-1/2">
+        <FantasyButton className="btn-sm" onClick={interact}>
+          Press <FantasyKey>F</FantasyKey> to talk to {nearby.name}
+        </FantasyButton>
+      </FantasyHudCard>
     )}
     {dialogue && <HudModal id={NPC_DIALOGUE_MODAL} title={dialogue.name} onClose={closeDialogue}
-      className={merchantAction ? "" : "quest-modal"} backdrop>
+      className="quest-modal" backdrop>
       {merchantAction === "shop" && canBuy ? <ShopModal key={dialogue.id} embedded merchant={merchant} /> :
-        merchantAction === "sell" && canSell ? <>
-          <p className="mb-3 text-sm">Click an inventory item to sell it.</p>
-          <InventoryModal key={dialogue.id} embedded merchant={merchant} />
-        </> : <>
-          <p className="whitespace-pre-line">{dialogue.dialogue?.text || "Hello, traveler."}</p>
-          <NpcQuestPanel key={dialogue.id} npc={dialogue} />
-        </>}
+        merchantAction === "sell" && canSell ? <div className="fantasy-stack">
+          <p className="text-sm fantasy-muted">Choose an inventory item to sell.</p>
+          <InventoryModal key={dialogue.id} embedded merchant={merchant} fantasy />
+        </div> : <div className="fantasy-stack">
+          <FantasyPanel as="section" className="fantasy-section">
+            <FantasySectionHeader className="fantasy-heading-inline">Dialogue</FantasySectionHeader>
+            <p className="mt-2 whitespace-pre-line text-sm">{dialogue.dialogue?.text || "Hello, traveler."}</p>
+          </FantasyPanel>
+          <NpcQuestPanel key={dialogue.id} npc={dialogue} fantasy />
+        </div>}
       <div className="mt-4 flex flex-wrap justify-end gap-2">
-        {merchantAction ? <button type="button" className="btn" onClick={() => setMerchantAction(null)}>Back</button> : <>
-          {canBuy && <button type="button" className="btn" disabled={questPending || Boolean(questError)}
-            onClick={() => setMerchantAction("shop")}>Shop</button>}
-          {canSell && <button type="button" className="btn" disabled={questPending || Boolean(questError)}
-            onClick={() => setMerchantAction("sell")}>Sell</button>}
+        {merchantAction ? <FantasyButton variant="secondary" onClick={() => setMerchantAction(null)}>Back</FantasyButton> : <>
+          {canBuy && <FantasyButton variant="secondary" disabled={questPending || Boolean(questError)}
+            onClick={() => setMerchantAction("shop")}>Shop</FantasyButton>}
+          {canSell && <FantasyButton variant="secondary" disabled={questPending || Boolean(questError)}
+            onClick={() => setMerchantAction("sell")}>Sell</FantasyButton>}
         </>}
-        <button type="button" className="btn btn-primary" onClick={closeDialogue}>Close</button>
+        <FantasyButton onClick={closeDialogue}>Close</FantasyButton>
       </div>
     </HudModal>}
   </>;
