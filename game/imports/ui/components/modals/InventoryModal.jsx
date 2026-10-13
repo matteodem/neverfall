@@ -264,7 +264,7 @@ const InventorySlot = ({
               rarityClass={rarityClass}
             />
           </button>
-          {open && <Menu className={`dropdown-content menu z-[100] w-44 p-2 ${fantasy ? "fantasy-section" : "rounded-box border border-gray-200 bg-white text-gray-900 shadow-xl"}`}>
+          {open && <Menu className={`dropdown-content menu z-[100] w-44 p-2 !gap-2 ${fantasy ? "fantasy-section" : "rounded-box border border-gray-200 bg-white text-gray-900 shadow-xl"}`}>
             <li>
               <div className="pointer-events-none block">
                 <strong className={`block text-xs ${fantasy ? "fantasy-accent" : item.id === "wolf_skin" ? "text-blue-600" : "text-gray-800"}`}>{name}</strong>

@@ -11,6 +11,7 @@
   --fantasy-warning: #edc47c;
   --fantasy-danger: #efa5a0;
   --fantasy-magic: #b8c4ed;
+  --fantasy-potion-power: color-mix(in srgb, var(--fantasy-magic) 70%, var(--fantasy-danger));
   --fantasy-backdrop: rgb(5 8 9 / 72%);
   --fantasy-health-fill: #46b85b;
   --fantasy-danger-fill: #d94a43;
@@ -202,7 +203,9 @@
 .fantasy-inventory .inventory-slot-empty:hover { background: var(--fantasy-surface); border-color: var(--fantasy-accent); }
 .fantasy-inventory .inventory-slot-content { background: var(--fantasy-panel); border-color: var(--fantasy-border); }
 .fantasy-inventory .inventory-slot-face { background: var(--fantasy-surface); border-color: var(--fantasy-border); }
-.fantasy-inventory .inventory-slot-icon { color: var(--fantasy-accent); }
+.fantasy-inventory .inventory-slot-icon.text-red-600 { color: var(--fantasy-danger); }
+.fantasy-inventory .inventory-slot-icon.text-green-600 { color: var(--fantasy-success); }
+.fantasy-inventory .inventory-slot-icon.text-purple-600 { color: var(--fantasy-potion-power); }
 .fantasy-inventory .inventory-slot-name { color: var(--fantasy-text); }
 .fantasy-inventory .inventory-slot-upgrade { background: var(--fantasy-success); color: var(--fantasy-panel); }
 .fantasy-inventory .inventory-slot-count { background: var(--fantasy-panel); color: var(--fantasy-text); }
@@ -318,9 +321,8 @@
 .fantasy-tooltip::before { border: 1px solid var(--fantasy-border); background: var(--fantasy-panel); color: var(--fantasy-text); font-size: 0.75rem; }
 .fantasy-tooltip::after { color: var(--fantasy-panel); }
 .fantasy-effect { color: var(--fantasy-magic); }
-.fantasy-effect.text-red-400 { color: var(--fantasy-danger); }
-.fantasy-effect.text-green-400, .fantasy-effect.text-lime-400 { color: var(--fantasy-success); }
-.fantasy-effect.text-orange-400 { color: var(--fantasy-warning); }
+.fantasy-effect svg.text-green-400 { color: var(--fantasy-success); }
+.fantasy-effect svg.text-purple-400 { color: var(--fantasy-potion-power); }
 .fantasy-notice { --fantasy-notice-tone: var(--fantasy-border); max-width: min(24rem, calc(100vw - 24px)); padding: 10px 14px; border-left: 3px solid var(--fantasy-notice-tone); overflow-wrap: anywhere; }
 .fantasy-notice-reward { --fantasy-notice-tone: var(--fantasy-accent); }
 .fantasy-notice-success { --fantasy-notice-tone: var(--fantasy-success); }

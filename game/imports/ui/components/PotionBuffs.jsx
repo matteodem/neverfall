@@ -34,10 +34,10 @@ export const PotionBuffs = ({ buffs, isDead, mobile = false, className }) => {
             tabIndex={0}
             role="img"
             aria-label={label}
-            className={`fantasy-effect fantasy-tooltip tooltip tooltip-top flex h-8 w-8 items-center justify-center ${color}`}
+            className="fantasy-effect fantasy-tooltip tooltip tooltip-top flex h-8 w-8 items-center justify-center"
             data-tip={label}
           >
-            <Icon icon={icon} className="h-4 w-4" />
+            <Icon icon={icon} className={`h-4 w-4 ${color || ""}`} />
           </FantasyPanel>
         );
       })}
