@@ -54,7 +54,7 @@ export const Chat = () => {
         {visible ? "Hide Chat" : "Show Chat"}
       </FantasyButton>
       {visible && <>
-      <FantasySectionHeader as="h3" className="my-1">{roomLabel} chat</FantasySectionHeader>
+      <FantasySectionHeader as="h3" className="my-1 hidden">{roomLabel} chat</FantasySectionHeader>
       <div ref={log} className="h-32 overflow-y-auto break-words" role="log" aria-live="polite">
         <div ref={content}>
         {messages.map((message) => <p key={message._id} className={message.channel === "whisper" ? "fantasy-accent" : message.channel === "party" ? "fantasy-chat-party" : message.channel === "guild" ? "fantasy-chat-guild" : ""}>

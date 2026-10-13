@@ -231,15 +231,15 @@ body {
     height: min(calc(100dvw - 46px), calc(100dvh - 170px));
 }
 
-.mobile-game .game-chat { width: min(220px, calc(var(--game-width) - 16px)); font-size: 11px; }
+.mobile-game .game-chat { width: min(220px, calc(var(--game-width) - 16px)); font-size: 11px; padding: 8px; }
 .mobile-game .game-chat [role="log"] { height: 56px; }
 .mobile-game .game-chat { pointer-events: none; }
 .mobile-game .game-chat input, .mobile-game .game-chat button { pointer-events: auto; }
 .mobile-game .game-group-panel { top: 58px; left: 8px; width: min(190px, calc(var(--game-width) - 200px)); max-height: min(96px, calc(var(--game-height) - 130px)); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 .mobile-game .game-group-panel .fantasy-hud-card { max-height: min(96px, calc(var(--game-height) - 130px)); padding: 8px; }
 .mobile-game .game-chat .fantasy-section-header { font-size: 11px; }
-.mobile-game .game-chat .fantasy-button { min-height: 44px; padding: 6px 8px; }
-.mobile-game .game-chat input { min-height: 44px; }
+.mobile-game .game-chat .fantasy-button { min-height: 0; padding: 6px 8px; }
+.mobile-game .game-chat input { min-height: 0; }
 @media (max-height: 360px), (max-width: 360px) {
     .mobile-game { --minimap-size: 96px; }
     .mobile-game .game-chat [role="log"] { height: 32px; }
