@@ -47,8 +47,10 @@ retaining protection against self-shadow acne. A 3x3 PCF footprint preserves thi
 lower-body details better than the former desktop 5x5 footprint, with fewer
 texture samples and unchanged map resolution. Darkness is 0.07: full shadow keeps
 7% of the direct sunlight, lifting excessive darkness while leaving silhouettes
-clearly visible. Warm ambient illumination stays at intensity 0.55, and sun
-intensity stays at 1.05. Direction is normalized from
+clearly visible. Ambient illumination is 0.8 with a near-neutral warm sky fill
+(`#FFF9EE`) and lighter ground bounce (`#A6AD98`). Sun intensity is 0.9 with
+warm daylight (`#FFF0D0`). This lifts shaded faces and blue/cool materials without
+editing character textures or adding another light or exposure pass. Direction is normalized from
 (-1, -1.5, 1), lowering elevation from about 55 to 47 degrees so a standing body's
 projection is less compressed. The modest projection margin remains fixed during
 gameplay; map resolution, culling ranges and contact bias are unchanged.

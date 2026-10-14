@@ -2,6 +2,7 @@ import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { createFrameBudget } from "./createFrameBudget";
 import { randomForChunk } from "./createForestProps";
 import { HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
+import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 
 const loadLookout = async (scene, root, chunk, { x, z }) => {
   let container;
@@ -14,6 +15,7 @@ const loadLookout = async (scene, root, chunk, { x, z }) => {
     container = await SceneLoader.LoadAssetContainerAsync(
       "/models/environment/", "highlands-lookout.glb", scene);
     if (disposed) { container.dispose(); return; }
+    harmonizeEnvironmentMaterials(container.materials, "highlands-lookout");
     const model = new TransformNode("highlands-lookout", scene);
     const entries = container.instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
     for (const node of entries.rootNodes) node.parent = model;

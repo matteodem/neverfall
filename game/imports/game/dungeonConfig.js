@@ -1,3 +1,5 @@
+import { WORLD_PALETTE } from "./environment/worldPalette";
+
 const corridorMap = {
   walls: [
     { name: "WallWest", size: { width: 1, height: 5, depth: 118 }, position: [-13, 2.5, 48] },
@@ -26,7 +28,7 @@ export const DUNGEONS = [
     enemyHealthMultiplier: 1.5,
     enemyDamageMultiplier: 1.5,
     enemySpeedMultiplier: 2.3,
-    environment: { sky: "#1b202b", ground: "#333946", stone: "#404654" },
+    environment: WORLD_PALETTE.dungeons.forest,
     map: corridorMap,
     rewards: { xp: 250, money: 10000, lootType: "dungeonChest" },
     miniBoss: { type: "dungeonGuardian" },
@@ -63,7 +65,7 @@ export const DUNGEONS = [
     enemyHealthMultiplier: 1.6,
     enemyDamageMultiplier: 1.6,
     enemySpeedMultiplier: 2.3,
-    environment: { sky: "#17212b", ground: "#293b46", stone: "#465d68" },
+    environment: WORLD_PALETTE.dungeons.northern,
     map: corridorMap,
     rewards: { xp: 400, money: 20000, lootType: "northernRuinsChest" },
     miniBoss: { type: "alphaWolf" },
@@ -100,7 +102,7 @@ export const DUNGEONS = [
     enemyHealthMultiplier: 1.5,
     enemyDamageMultiplier: 1.5,
     enemySpeedMultiplier: 2.3,
-    environment: { sky: "#172b34", ground: "#34484b", stone: "#556d68" },
+    environment: WORLD_PALETTE.dungeons.sunken,
     map: {
       walls: corridorMap.walls,
       pillars: [12, 32, 52, 72, 92].flatMap((z, index) => [-10, 10].map((x) => ({

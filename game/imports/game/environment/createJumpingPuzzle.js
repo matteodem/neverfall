@@ -4,6 +4,7 @@ import {
   StandardMaterial,
   Vector3,
 } from "@babylonjs/core";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 
 const BLOCK_SIZE = {
@@ -89,7 +90,7 @@ export const createJumpingPuzzle =
 
     material.diffuseColor =
       Color3.FromHexString(
-        "#70757D"
+        PALETTE.stone
       );
 
 

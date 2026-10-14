@@ -10,16 +10,17 @@ const isSolidMaterial = (material, mesh) => material && !material.disableLightin
 
 export const createWorldLighting = (scene, { player, ground, quality }) => {
   const ambient = new HemisphericLight("ambient", Vector3.Up(), scene);
-  ambient.intensity = 0.55;
-  ambient.diffuse = Color3.FromHexString("#FFF4DE");
-  ambient.groundColor = Color3.FromHexString("#8D9473");
+  // Lift shaded faces while balancing direct sunlight to protect bright colors.
+  ambient.intensity = 0.8;
+  ambient.diffuse = Color3.FromHexString("#FFF9EE");
+  ambient.groundColor = Color3.FromHexString("#A6AD98");
   ambient.specular = Color3.Black();
 
   // A moderate elevation preserves the body's projected length and pose.
   const direction = new Vector3(-1, -1.5, 1).normalize();
   const sun = new DirectionalLight("sun", direction, scene);
-  sun.intensity = 1.05;
-  sun.diffuse = Color3.FromHexString("#FFE6B5");
+  sun.intensity = 0.9;
+  sun.diffuse = Color3.FromHexString("#FFF0D0");
   sun.specular = Color3.FromHexString("#FFEED0");
 
   const touch = scene.getEngine().getRenderingCanvas()?.ownerDocument.defaultView

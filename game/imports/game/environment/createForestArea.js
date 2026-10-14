@@ -6,6 +6,7 @@ import {
   Vector3,
 } from "@babylonjs/core";
 import { getSnowMix, getWorldHeight } from "../worldConfig";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 
 const randomBetween = (
@@ -796,7 +797,7 @@ export const createForestArea =
 
     extraClearings = [],
 
-    floorColor = "#4B6B3C",
+    floorColor = PALETTE.terrain.forestFloor,
     includeFloor = true,
     path =
       null,
@@ -813,28 +814,28 @@ export const createForestArea =
         createMaterial(
           scene,
           "forestTrunkMaterial",
-          "#7A5230"
+          PALETTE.bark
         ),
 
       leaves:
         createMaterial(
           scene,
           "forestLeavesMaterial",
-          "#4E8B4A"
+          PALETTE.foliage.evergreen
         ),
 
       rock:
         createMaterial(
           scene,
           "forestRockMaterial",
-          "#8B919A"
+          PALETTE.rock
         ),
 
       bush:
         createMaterial(
           scene,
           "forestBushMaterial",
-          "#5E9E53"
+          PALETTE.foliage.bush
         ),
 
       forestFloor:

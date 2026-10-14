@@ -1,5 +1,6 @@
 import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs/core";
 import { SOUTHWEST_LAKE } from "../worldConfig";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 const material = (scene, name, color) => {
   const result = new StandardMaterial(name, scene);
@@ -17,15 +18,16 @@ export const createSouthwestLake = (scene) => {
   }, scene);
   shore.parent = root;
   shore.position.y = 0.04;
-  shore.material = material(scene, "lake-shore-earth", "#8C7954");
+  shore.material = material(scene, "lake-shore-earth", PALETTE.path);
 
   const water = MeshBuilder.CreateCylinder("lake-water", {
     diameter: SOUTHWEST_LAKE.radius * 2, height: 0.04, tessellation: 32,
   }, scene);
   water.parent = root;
   water.position.y = 0.07;
-  water.material = material(scene, "lake-water-blue", "#4D8EA1");
-  water.material.specularColor = Color3.FromHexString("#8FC5D1");
+  water.material = material(scene, "lake-water-blue", PALETTE.water);
+  water.material.specularColor = Color3.FromHexString(PALETTE.waterHighlight);
+  water.material.specularPower = 32;
 
   for (const mesh of root.getChildMeshes()) {
     mesh.isPickable = false;

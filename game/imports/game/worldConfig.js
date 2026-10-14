@@ -1,3 +1,5 @@
+import { WORLD_PALETTE } from "./environment/worldPalette";
+
 export const WORLD_SIZE = 600;
 export const WORLD_BOUNDARY = WORLD_SIZE / 2 + 20;
 export const WORLD_EAST_BOUNDARY = 295;
@@ -85,10 +87,10 @@ export const getWorldHeight = (x, z) => {
 };
 
 export const WORLD_REGIONS = {
-  starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: "#4B6B3C" },
-  forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: "#4B6B3C" },
-  highlands: { treeCount: 70, bushCount: 55, rockCount: 80, logCount: 8, floorColor: "#4B6B3C" },
-  snowyMountains: { treeCount: 0, bushCount: 0, rockCount: 18, logCount: 0, floorColor: "#D7E2E6" },
+  starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: WORLD_PALETTE.terrain.forestFloor },
+  forest: { treeCount: 35, bushCount: 20, rockCount: 8, logCount: 4, floorColor: WORLD_PALETTE.terrain.forestFloor },
+  highlands: { treeCount: 70, bushCount: 55, rockCount: 80, logCount: 8, floorColor: WORLD_PALETTE.terrain.highlands },
+  snowyMountains: { treeCount: 0, bushCount: 0, rockCount: 18, logCount: 0, floorColor: WORLD_PALETTE.terrain.snow },
 };
 
 // Positions are relative to the center of each highlands chunk.

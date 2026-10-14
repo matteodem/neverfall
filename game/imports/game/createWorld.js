@@ -13,6 +13,7 @@ import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerC
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
 import { getTerrainColorVariation } from "./environment/terrainColor";
+import { WORLD_PALETTE as PALETTE } from "./environment/worldPalette";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
 import { ENEMY_SPAWNS, ENEMY_TYPES } from "./enemyConfig";
@@ -80,7 +81,7 @@ export const createWorld =
     scene.metadata = { ...scene.metadata, quality };
     scene.clearColor =
       Color3.FromHexString(
-        "#FFF4D6"
+        PALETTE.sky
       ).toColor4();
 
     scene.fogMode =
@@ -88,14 +89,14 @@ export const createWorld =
 
     scene.fogColor =
       Color3.FromHexString(
-        "#FFF4D6"
+        PALETTE.sky
       );
 
     scene.fogStart =
-      80;
+      dungeon ? 80 : PALETTE.fog.start;
 
     scene.fogEnd =
-      220;
+      dungeon ? 220 : PALETTE.fog.end;
 
     scene.collisionsEnabled =
       true;
@@ -126,12 +127,12 @@ export const createWorld =
       const positions = ground.getVerticesData(VertexBuffer.PositionKind);
       const normals = ground.getVerticesData(VertexBuffer.NormalKind);
       const colors = new Float32Array(positions.length / 3 * 4);
-      const forestColor = Color3.FromHexString("#809B54");
-      const highlandColor = Color3.FromHexString("#A0AC79");
-      const oliveColor = Color3.FromHexString("#93A264");
-      const brownColor = Color3.FromHexString("#917F61");
-      const snowColor = Color3.FromHexString("#DCE8EB");
-      const coldStoneColor = Color3.FromHexString("#8997A2");
+      const forestColor = Color3.FromHexString(PALETTE.terrain.forest);
+      const highlandColor = Color3.FromHexString(PALETTE.terrain.highlands);
+      const oliveColor = Color3.FromHexString(PALETTE.terrain.olive);
+      const brownColor = Color3.FromHexString(PALETTE.terrain.earth);
+      const snowColor = Color3.FromHexString(PALETTE.terrain.snow);
+      const coldStoneColor = Color3.FromHexString(PALETTE.rock);
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];

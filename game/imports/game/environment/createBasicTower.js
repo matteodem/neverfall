@@ -3,9 +3,11 @@ import { createTreasureChest } from "./createTreasureChest";
 import { createNameplate } from "../nameplate";
 import { BASIC_TOWER_PLATFORM_POINT, BASIC_TOWER_POSITION, BASIC_TOWER_ROTATION_Y, BASIC_TOWER_SCALE } from "../basicTowerConfig";
 import { getWorldHeight } from "../worldConfig";
+import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 
 export const createBasicTower = async (scene) => {
   const { meshes } = await SceneLoader.ImportMeshAsync("", "/models/jumping-puzzle/", "basic-tower.glb", scene);
+  harmonizeEnvironmentMaterials(meshes.map((mesh) => mesh.material), "basic-tower");
   const root = new TransformNode("basicJumpingTower", scene);
   const model = new TransformNode("basicJumpingTowerModel", scene);
   model.parent = root;

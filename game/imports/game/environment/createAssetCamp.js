@@ -1,5 +1,6 @@
 import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
+import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 
 const ASSETS = ["tent", "campfire", "logBench", "campingPot"];
 const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
@@ -55,8 +56,10 @@ export const loadCampAssets = async (scene) => {
     SceneLoader.LoadAssetContainerAsync(...assetFile(name), scene)));
   const containers = new Map();
   loaded.forEach((result, index) => {
-    if (result.status === "fulfilled") containers.set(ASSETS[index], result.value);
-    else console.warn(`[Camp] Could not load ${ASSETS[index]}.glb`, result.reason);
+    if (result.status === "fulfilled") {
+      harmonizeEnvironmentMaterials(result.value.materials, ENVIRONMENT_ASSETS[ASSETS[index]]);
+      containers.set(ASSETS[index], result.value);
+    } else console.warn(`[Camp] Could not load ${ASSETS[index]}.glb`, result.reason);
   });
   scene.onDisposeObservable.addOnce(() => {
     for (const container of containers.values()) container.dispose();

@@ -6,6 +6,7 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 const createMaterial = (
   scene,
@@ -480,7 +481,7 @@ export const createClearingCamp =
           "campWoodMaterial",
           {
             diffuse:
-              "#7A5230",
+              PALETTE.wood,
           }
         ),
 
@@ -490,7 +491,7 @@ export const createClearingCamp =
           "campTentMaterial",
           {
             diffuse:
-              "#C9A46A",
+              PALETTE.canvas,
           }
         ),
 
@@ -500,7 +501,7 @@ export const createClearingCamp =
           "campStoneMaterial",
           {
             diffuse:
-              "#8B919A",
+              PALETTE.rock,
           }
         ),
 
@@ -510,7 +511,7 @@ export const createClearingCamp =
           "campCrateMaterial",
           {
             diffuse:
-              "#8A633E",
+              PALETTE.wood,
           }
         ),
 
