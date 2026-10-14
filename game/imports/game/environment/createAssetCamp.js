@@ -117,12 +117,10 @@ export const loadCampAssets = async (scene) => {
     light.parent = root;
     light.diffuse = Color3.FromHexString("#FFB347");
     light.range = 14;
-    let elapsed = 0;
+    // Keep world illumination steady so nearby shadow contrast does not pulse.
+    light.intensity = 0.8;
     const observer = scene.onBeforeRenderObservable.add(() => {
       light.setEnabled(root.isEnabled());
-      if (!root.isEnabled()) return;
-      elapsed += scene.getEngine().getDeltaTime();
-      light.intensity = 0.8 + Math.sin(elapsed * 0.008) * 0.12 + Math.sin(elapsed * 0.021) * 0.06;
     });
     scene.onDisposeObservable.addOnce(() => scene.onBeforeRenderObservable.remove(observer));
     for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();

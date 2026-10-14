@@ -9,6 +9,8 @@ including imported GLBs, structures, landmarks, towers, platforms, stairs, bridg
 vegetation, props, NPCs and enemies. No asset-specific registration is required.
 The scene's mesh list is refreshed before rendering when meshes are added/removed,
 every 250 ms for visibility/material changes, and immediately after large moves.
+The render list is replaced only when its contents change. Existing casters have
+an eight-unit retention margin at the distance cutoff to avoid boundary toggling.
 Shadow maps still render every frame so moving/skinned characters cast dynamic shadows.
 Instances receive shadows through their source mesh. Distinct instance placements
 are registered once each, letting Babylon batch their shadow draws.
@@ -26,11 +28,23 @@ Intentional exceptions:
   gives every region the same local coverage, with a softened boundary rather than
   spending shadow resolution on the entire map at once.
 
-Standard quality uses a 2048 map with an 80-unit half-width. Low quality and touch
-devices use a 1024 map with a 60-unit half-width and cheaper filtering. Casters up
+Standard quality uses a 2048 map with a 48-unit half-width and high PCF filtering.
+Low quality and touch devices use a 1024 map with a 36-unit half-width and medium
+PCF filtering. This concentrates resolution on the player and nearby props without
+increasing texture sizes, adding shadow passes or using expensive PCSS. Casters up
 to 1.5 times that distance (plus their bounds) are considered to include nearby
-offscreen blockers. The depth interval is 1–360 units. Light-space texel snapping,
-depth/normal bias and edge falloff reduce shimmering, acne and abrupt map edges.
+offscreen blockers. The depth interval is 1–240 units, centered 120 units upstream
+of the player. Depth bias is 0.0001 and normal bias is 0.02 world units to balance
+contact against self-shadow acne. A darkness value of 0.12 retains some sunlight
+in full shadow, reducing dark blotches alongside the ambient illumination.
+All three light-space position axes are snapped to shadow texels; the sun position
+is updated only when that snapped position changes. Projection size, depth bounds,
+bias and sunlight intensity stay fixed and do not depend on camera orbit or the
+current caster list. Edge falloff softens the map boundary. Camp lights keep a
+constant intensity so shadow contrast does not pulse; procedural flames still animate
+but explicitly neither cast nor receive shadows.
+The smaller coverage also reduces the number of nearby casters; distant geometry
+still receives the shared lighting but has no dynamic shadows beyond this range.
 
 For a future exception, set `mesh.metadata.worldShadows = { cast: false,
 receive: false }` (either field can be omitted). For instances, reception is shared

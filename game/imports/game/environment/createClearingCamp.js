@@ -374,6 +374,9 @@ const createCampfire = ({
   flame.material =
     materials.fire;
 
+  // The emissive flame is an effect, not a solid animated shadow caster.
+  flame.metadata = { worldShadows: { cast: false, receive: false } };
+
   applyLowPolyLook(
     flame
   );
@@ -426,18 +429,7 @@ const createCampfire = ({
           ) *
           0.12;
 
-        const fastFlicker =
-          Math.sin(
-            flickerTime *
-              0.021
-          ) *
-          0.06;
-
-        fireLight.intensity =
-          0.8 +
-          slowFlicker +
-          fastFlicker;
-
+        // Animate the flame only; pulsing illumination changes shadow contrast.
         flame.scaling.y =
           1.25 +
           slowFlicker *
