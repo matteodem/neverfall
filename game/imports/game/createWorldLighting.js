@@ -23,7 +23,8 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
 
   const touch = scene.getEngine().getRenderingCanvas()?.ownerDocument.defaultView
     ?.matchMedia("(pointer: coarse)").matches;
-  const mapSize = Math.min(quality.shadowMapSize, touch ? 1024 : 2048);
+  const mapSize = Math.min(quality.shadowMapSize, touch ? 1024 : 2048,
+    scene.getEngine().getCaps().maxTextureSize);
   const distance = Math.min(quality.shadowDistance, touch ? 36 : 48);
   sun.shadowFrustumSize = distance * 2;
   sun.shadowMinZ = 1;
@@ -32,9 +33,9 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
   sun.autoCalcShadowZBounds = false;
 
   const shadows = new ShadowGenerator(mapSize, sun);
+  // PCSS's sparse blocker search missed narrow character parts, leaving lit
+  // holes in their shadows. PCF filters the depth comparison directly instead.
   shadows.usePercentageCloserFiltering = true;
-  // Spend existing map resolution on nearby contact detail; PCF softens the
-  // edges without adding a blur pass or another shadow map.
   shadows.filteringQuality = touch || mapSize <= 1024
     ? ShadowGenerator.QUALITY_MEDIUM : ShadowGenerator.QUALITY_HIGH;
   // Depth bias is normalized over the light's depth interval. A large value
@@ -42,7 +43,7 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
   // to suppress self-shadow acne on sloped and double-sided imported geometry.
   shadows.bias = 0.0001;
   shadows.normalBias = 0.02;
-  shadows.setDarkness(0.12);
+  shadows.setDarkness(0);
   shadows.frustumEdgeFalloff = 0.15;
   shadows.customAllowRendering = (subMesh) => isSolidMaterial(subMesh.getMaterial(), subMesh.getMesh());
 
