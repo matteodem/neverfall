@@ -1,5 +1,7 @@
 import { QUALITY_PRESETS } from "./performanceConfig";
 import { createWorldLighting } from "./createWorldLighting";
+import { createWorldAtmosphere } from "./environment/createWorldAtmosphere";
+import { GroundSkyFog } from "./environment/groundSkyFog";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
@@ -79,24 +81,7 @@ export const createWorld =
      */
 
     scene.metadata = { ...scene.metadata, quality };
-    scene.clearColor =
-      Color3.FromHexString(
-        PALETTE.sky
-      ).toColor4();
-
-    scene.fogMode =
-      3;
-
-    scene.fogColor =
-      Color3.FromHexString(
-        PALETTE.sky
-      );
-
-    scene.fogStart =
-      dungeon ? 80 : PALETTE.fog.start;
-
-    scene.fogEnd =
-      dungeon ? 220 : PALETTE.fog.end;
+    const skyGradient = createWorldAtmosphere(scene, { dungeonEnvironment: dungeonConfig?.environment });
 
     scene.collisionsEnabled =
       true;
@@ -164,8 +149,6 @@ export const createWorld =
 
     if (dungeon) {
       ground.position.z = 48;
-      scene.clearColor = Color3.FromHexString(dungeonConfig.environment.sky).toColor4();
-      scene.fogColor = Color3.FromHexString(dungeonConfig.environment.sky);
     }
 
     ground.checkCollisions =
@@ -184,6 +167,8 @@ export const createWorld =
 
     groundMaterial.specularColor =
       Color3.Black();
+
+    if (skyGradient) new GroundSkyFog(groundMaterial, skyGradient);
 
     ground.material =
       groundMaterial;

@@ -1,7 +1,10 @@
+import { WORLD_ATMOSPHERE } from "./atmosphereConfig";
+
 // Reference-inspired environmental colors; shared configs remain safe to import on the server.
 export const WORLD_PALETTE = {
-  sky: "#BCD7EA",
-  fog: { start: 120, end: 280 },
+  // Compatibility aliases; sky/fog are configured centrally with the atmosphere.
+  sky: WORLD_ATMOSPHERE.sky.horizon,
+  fog: WORLD_ATMOSPHERE.fog,
   terrain: {
     forest: "#78A44D", highlands: "#8DA65C", olive: "#8C9D50",
     earth: "#A08B5C", snow: "#E5EDF2", forestFloor: "#668D45",
