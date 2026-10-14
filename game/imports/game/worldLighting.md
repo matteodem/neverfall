@@ -29,21 +29,29 @@ Intentional exceptions:
   gives every region the same local coverage, with a softened boundary rather than
   spending shadow resolution on the entire map at once.
 
-Standard desktop quality uses a 2048 map with a 48-unit half-width and high PCF
+Standard desktop quality uses a 2048 map with a 50.4-unit projection half-width and medium PCF
 filtering for moderately soft edges without a blocker-search step. PCSS was
 reverted: its sparse 16-sample search over a broad area missed narrow modular
 character silhouettes, returning fully lit pixels inside their shadows.
-Low quality and touch devices use a 1024 map with a 36-unit half-width and medium
+Low quality and touch devices use a 1024 map with a 37.8-unit projection half-width and medium
 PCF filtering. Texture size is capped by the
 engine's hardware limit. This retains one shadow map/pass and bounded nearby
-coverage rather than increasing map resolution or adding cascades. Casters up
-to 1.5 times that distance (plus their bounds) are considered to include nearby
+coverage rather than increasing map resolution or adding cascades. The projection
+has a fixed 5% margin over the original 48/36-unit coverage to gently soften the
+3x3 PCF footprint without switching to a wider filter. Caster culling keeps its
+original range: 1.5 times 48/36 units (plus their bounds), to include nearby
 offscreen blockers. The depth interval is 1–240 units, centered 120 units upstream
-of the player. Depth bias stays at 0.0001 and normal bias is restored to 0.02 world
-units. Darkness is 0 (Babylon's strongest shadow); the warm ambient illumination
-at intensity 0.55 keeps shaded geometry readable without leaking direct sunlight
-into full shadow. Sun intensity is restored to 1.05. Direction, fixed projection,
-map resolution and distance coverage are unchanged by the PCSS rollback.
+of the player. Depth bias is 0.00005 and normal bias is 0.01 world units. The
+smaller offsets limit inward silhouette shrinkage and gaps at the feet while
+retaining protection against self-shadow acne. A 3x3 PCF footprint preserves thin
+lower-body details better than the former desktop 5x5 footprint, with fewer
+texture samples and unchanged map resolution. Darkness is 0.07: full shadow keeps
+7% of the direct sunlight, lifting excessive darkness while leaving silhouettes
+clearly visible. Warm ambient illumination stays at intensity 0.55, and sun
+intensity stays at 1.05. Direction is normalized from
+(-1, -1.5, 1), lowering elevation from about 55 to 47 degrees so a standing body's
+projection is less compressed. The modest projection margin remains fixed during
+gameplay; map resolution, culling ranges and contact bias are unchanged.
 All three light-space position axes are snapped to shadow texels; the sun position
 is updated only when that snapped position changes. Projection size, depth bounds,
 bias and sunlight intensity stay fixed and do not depend on camera orbit or the
@@ -68,5 +76,17 @@ actual Amir character, horse mount, camp GLBs and Basic Tower asset. A same-pose
 PCSS/PCF comparison reproduced the missing character-shadow pixels with PCSS and
 showed a continuous silhouette with PCF. All eight visible character parts were
 casters and receivers; unchanged rendered frames were pixel-identical, and the
-preview reported no browser errors. This does not measure production-world FPS
-or replace a hardware/mobile gameplay review.
+preview reported no browser errors.
+
+The subsequent silhouette tuning was compared on frozen player/Forest Guard poses,
+a running pose, the horse and imported camp/tower meshes. All eight visible player
+parts and nine visible guard parts cast and received shadows. The lower sun angle
+and smaller filter/offsets preserved more of the lower-body silhouette; unchanged
+scene frames remained pixel-identical, with no browser errors.
+
+The final 5% projection margin and 0.07 darkness adjustment were compared on the
+same frozen poses, then reviewed with mounted/running characters, camp props,
+the tower and camera/character movement. Static frames stayed pixel-identical;
+camera orbit left sunlight position/direction unchanged, and the browser reported
+no errors. These isolated reviews do not measure production-world FPS or replace
+hardware/mobile gameplay review.

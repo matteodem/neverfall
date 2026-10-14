@@ -15,7 +15,8 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
   ambient.groundColor = Color3.FromHexString("#8D9473");
   ambient.specular = Color3.Black();
 
-  const direction = new Vector3(-1, -2, 1).normalize();
+  // A moderate elevation preserves the body's projected length and pose.
+  const direction = new Vector3(-1, -1.5, 1).normalize();
   const sun = new DirectionalLight("sun", direction, scene);
   sun.intensity = 1.05;
   sun.diffuse = Color3.FromHexString("#FFE6B5");
@@ -26,7 +27,9 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
   const mapSize = Math.min(quality.shadowMapSize, touch ? 1024 : 2048,
     scene.getEngine().getCaps().maxTextureSize);
   const distance = Math.min(quality.shadowDistance, touch ? 36 : 48);
-  sun.shadowFrustumSize = distance * 2;
+  // A 5% projection margin gently softens the existing PCF footprint without
+  // widening the filter enough to lose narrow character/hoof silhouettes.
+  sun.shadowFrustumSize = distance * 2.1;
   sun.shadowMinZ = 1;
   sun.shadowMaxZ = LIGHT_DISTANCE * 2;
   sun.autoUpdateExtends = false;
@@ -36,14 +39,15 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
   // PCSS's sparse blocker search missed narrow character parts, leaving lit
   // holes in their shadows. PCF filters the depth comparison directly instead.
   shadows.usePercentageCloserFiltering = true;
-  shadows.filteringQuality = touch || mapSize <= 1024
-    ? ShadowGenerator.QUALITY_MEDIUM : ShadowGenerator.QUALITY_HIGH;
+  // Keep narrow feet/legs defined with a 3x3 PCF footprint rather than 5x5.
+  shadows.filteringQuality = ShadowGenerator.QUALITY_MEDIUM;
   // Depth bias is normalized over the light's depth interval. A large value
   // separates feet/bench legs from their shadows; retain a small normal offset
   // to suppress self-shadow acne on sloped and double-sided imported geometry.
-  shadows.bias = 0.0001;
-  shadows.normalBias = 0.02;
-  shadows.setDarkness(0);
+  shadows.bias = 0.00005;
+  shadows.normalBias = 0.01;
+  // A little direct-light fill lifts deep shadows while ambient preserves color.
+  shadows.setDarkness(0.07);
   shadows.frustumEdgeFalloff = 0.15;
   shadows.customAllowRendering = (subMesh) => isSolidMaterial(subMesh.getMaterial(), subMesh.getMesh());
 

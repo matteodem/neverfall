@@ -1,7 +1,7 @@
 # Task 2 — Colors & Materials
 
 ## Goal
-Match the **color palette and material feel** of the image with fantasy landscape (docs/instructions/101-environment-for-colors.png) while preserving Neverfall's stylized low-poly look.
+Match the **color palette and material feel** of the image with fantasy landscape (docs/instructions/102-environment-for-colors.png) while preserving Neverfall's stylized low-poly look.
 
 ## Requirements
 - Inspect `AGENTS.md` and the existing Babylon.js scene, materials, and asset-loading code first.
