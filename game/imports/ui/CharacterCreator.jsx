@@ -468,9 +468,9 @@ export const CharacterCreator =
 
     return (
       <div className="fantasy-ui fantasy-character-creator character-creator flex h-screen h-dvh items-center justify-center p-4">
-        <FantasyPanel className="character-creator-card flex max-h-full w-full max-w-6xl flex-col overflow-hidden p-4 sm:p-6">
+        <FantasyPanel className="character-creator-card grid h-full min-h-0 max-h-full w-full max-w-6xl grid-rows-[minmax(0,1fr)_auto] overflow-hidden p-4 sm:p-6">
           <Wizard
-            wrapper={<div className="character-creator-step min-h-0 flex-1 overflow-y-auto" />}
+            wrapper={<div className="character-creator-step min-h-0 overflow-y-auto" />}
             footer={
               <Navigation />
             }
