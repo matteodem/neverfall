@@ -1,4 +1,5 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
+import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
@@ -128,6 +129,7 @@ export const loadForestProps = async (scene) => {
       loading.set(name, SceneLoader.LoadAssetContainerAsync("/models/environment/", `${name}.glb`, scene)
         .then((container) => {
           if (disposed) { container.dispose(); throw new Error("Scene disposed"); }
+          harmonizeEnvironmentMaterials(container.materials, name);
           models.set(name, container);
           return container;
         }));

@@ -2,6 +2,7 @@ import { Color3, MeshBuilder, StandardMaterial, TransformNode } from "@babylonjs
 import { createNameplate } from "../nameplate";
 import { createDungeonPortal } from "./createDungeonPortal";
 import { createChallengeMote } from "./createChallengeMote";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 export const createDungeonEnvironment = (scene, dungeon) => {
   const stone = new StandardMaterial("dungeonStone", scene);
@@ -19,8 +20,8 @@ export const createDungeonEnvironment = (scene, dungeon) => {
   for (const pillar of dungeon.map.pillars) box("dungeonPillar", pillar.size, pillar.position);
   if (dungeon.map.water?.length) {
     const water = new StandardMaterial("dungeonWater", scene);
-    water.diffuseColor = Color3.FromHexString("#477988");
-    water.emissiveColor = Color3.FromHexString("#17333e");
+    water.diffuseColor = Color3.FromHexString(PALETTE.dungeonWater);
+    water.emissiveColor = Color3.FromHexString(PALETTE.dungeonWaterGlow);
     water.alpha = 0.65;
     for (const pool of dungeon.map.water) {
       const surface = MeshBuilder.CreateGround("dungeonShallowWater", {

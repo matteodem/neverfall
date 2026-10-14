@@ -1,4 +1,7 @@
 import { QUALITY_PRESETS } from "./performanceConfig";
+import { createWorldLighting } from "./createWorldLighting";
+import { createWorldAtmosphere } from "./environment/createWorldAtmosphere";
+import { GroundSkyFog } from "./environment/groundSkyFog";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
@@ -12,6 +15,7 @@ import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerC
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
 import { getTerrainColorVariation } from "./environment/terrainColor";
+import { WORLD_PALETTE as PALETTE } from "./environment/worldPalette";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
 import { ENEMY_SPAWNS, ENEMY_TYPES } from "./enemyConfig";
@@ -20,8 +24,6 @@ import "@babylonjs/loaders/glTF";
 import { getClassConfig } from "./classConfig";
 import {
   Color3,
-  DirectionalLight,
-  HemisphericLight,
   MeshBuilder,
   SceneLoader,
   StandardMaterial,
@@ -79,78 +81,10 @@ export const createWorld =
      */
 
     scene.metadata = { ...scene.metadata, quality };
-    scene.clearColor =
-      Color3.FromHexString(
-        "#FFF4D6"
-      ).toColor4();
-
-    scene.fogMode =
-      3;
-
-    scene.fogColor =
-      Color3.FromHexString(
-        "#FFF4D6"
-      );
-
-    scene.fogStart =
-      80;
-
-    scene.fogEnd =
-      220;
+    const skyGradient = createWorldAtmosphere(scene, { dungeonEnvironment: dungeonConfig?.environment });
 
     scene.collisionsEnabled =
       true;
-
-    /*
-     * =====================================================
-     * LIGHTS
-     * =====================================================
-     */
-
-    const ambient =
-      new HemisphericLight(
-        "ambient",
-        new Vector3(
-          0,
-          1,
-          0
-        ),
-        scene
-      );
-
-    ambient.intensity =
-      0.9;
-
-    ambient.diffuse =
-      Color3.FromHexString(
-        "#FFF4D6"
-      );
-
-    ambient.groundColor =
-      Color3.FromHexString(
-        "#B9A86E"
-      );
-
-
-    const sun =
-      new DirectionalLight(
-        "sun",
-        new Vector3(
-          -1,
-          -2,
-          1
-        ),
-        scene
-      );
-
-    sun.intensity =
-      0.85;
-
-    sun.diffuse =
-      Color3.FromHexString(
-        "#FFE6A3"
-      );
-
 
     /*
      * =====================================================
@@ -178,12 +112,12 @@ export const createWorld =
       const positions = ground.getVerticesData(VertexBuffer.PositionKind);
       const normals = ground.getVerticesData(VertexBuffer.NormalKind);
       const colors = new Float32Array(positions.length / 3 * 4);
-      const forestColor = Color3.FromHexString("#809B54");
-      const highlandColor = Color3.FromHexString("#A0AC79");
-      const oliveColor = Color3.FromHexString("#93A264");
-      const brownColor = Color3.FromHexString("#917F61");
-      const snowColor = Color3.FromHexString("#DCE8EB");
-      const coldStoneColor = Color3.FromHexString("#8997A2");
+      const forestColor = Color3.FromHexString(PALETTE.terrain.forest);
+      const highlandColor = Color3.FromHexString(PALETTE.terrain.highlands);
+      const oliveColor = Color3.FromHexString(PALETTE.terrain.olive);
+      const brownColor = Color3.FromHexString(PALETTE.terrain.earth);
+      const snowColor = Color3.FromHexString(PALETTE.terrain.snow);
+      const coldStoneColor = Color3.FromHexString(PALETTE.rock);
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];
@@ -215,8 +149,6 @@ export const createWorld =
 
     if (dungeon) {
       ground.position.z = 48;
-      scene.clearColor = Color3.FromHexString(dungeonConfig.environment.sky).toColor4();
-      scene.fogColor = Color3.FromHexString(dungeonConfig.environment.sky);
     }
 
     ground.checkCollisions =
@@ -235,6 +167,8 @@ export const createWorld =
 
     groundMaterial.specularColor =
       Color3.Black();
+
+    if (skyGradient) new GroundSkyFog(groundMaterial, skyGradient);
 
     ground.material =
       groundMaterial;
@@ -701,6 +635,8 @@ export const createWorld =
         player,
         ground
       );
+
+    createWorldLighting(scene, { player, ground, quality });
 
 
     /*

@@ -1,6 +1,7 @@
 import { Color3, MeshBuilder, SceneLoader, StandardMaterial, TransformNode } from "@babylonjs/core";
 import { createNameplate } from "../nameplate";
 import { getWorldHeight } from "../worldConfig";
+import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 
 const ENTRANCE_SCALE = 3;
 
@@ -14,6 +15,7 @@ export const loadDungeonEntranceAsset = async (scene) => {
   try {
     container = await SceneLoader.LoadAssetContainerAsync("/models/dungeons/", "entrance.glb", scene);
     if (disposed) { container.dispose(); return null; }
+    harmonizeEnvironmentMaterials(container.materials, "dungeon-entrance");
     return container;
   } catch (error) {
     console.warn("[Dungeon] Could not load entrance.glb", error);

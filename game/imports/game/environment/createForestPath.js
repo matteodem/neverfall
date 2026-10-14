@@ -6,6 +6,8 @@ import {
   Vector3,
 } from "@babylonjs/core";
 
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
+
 const createPathMaterial = (
   scene
 ) => {
@@ -17,7 +19,7 @@ const createPathMaterial = (
 
   material.diffuseColor =
     Color3.FromHexString(
-      "#8A744F"
+      PALETTE.path
     );
 
   material.specularColor =

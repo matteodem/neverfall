@@ -6,6 +6,7 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 
 const createMaterial = (
   scene,
@@ -374,6 +375,9 @@ const createCampfire = ({
   flame.material =
     materials.fire;
 
+  // The emissive flame is an effect, not a solid animated shadow caster.
+  flame.metadata = { worldShadows: { cast: false, receive: false } };
+
   applyLowPolyLook(
     flame
   );
@@ -426,18 +430,7 @@ const createCampfire = ({
           ) *
           0.12;
 
-        const fastFlicker =
-          Math.sin(
-            flickerTime *
-              0.021
-          ) *
-          0.06;
-
-        fireLight.intensity =
-          0.8 +
-          slowFlicker +
-          fastFlicker;
-
+        // Animate the flame only; pulsing illumination changes shadow contrast.
         flame.scaling.y =
           1.25 +
           slowFlicker *
@@ -488,7 +481,7 @@ export const createClearingCamp =
           "campWoodMaterial",
           {
             diffuse:
-              "#7A5230",
+              PALETTE.wood,
           }
         ),
 
@@ -498,7 +491,7 @@ export const createClearingCamp =
           "campTentMaterial",
           {
             diffuse:
-              "#C9A46A",
+              PALETTE.canvas,
           }
         ),
 
@@ -508,7 +501,7 @@ export const createClearingCamp =
           "campStoneMaterial",
           {
             diffuse:
-              "#8B919A",
+              PALETTE.rock,
           }
         ),
 
@@ -518,7 +511,7 @@ export const createClearingCamp =
           "campCrateMaterial",
           {
             diffuse:
-              "#8A633E",
+              PALETTE.wood,
           }
         ),
 
