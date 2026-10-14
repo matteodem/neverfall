@@ -1,4 +1,5 @@
 import { QUALITY_PRESETS } from "./performanceConfig";
+import { createWorldLighting } from "./createWorldLighting";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
@@ -20,8 +21,6 @@ import "@babylonjs/loaders/glTF";
 import { getClassConfig } from "./classConfig";
 import {
   Color3,
-  DirectionalLight,
-  HemisphericLight,
   MeshBuilder,
   SceneLoader,
   StandardMaterial,
@@ -100,57 +99,6 @@ export const createWorld =
 
     scene.collisionsEnabled =
       true;
-
-    /*
-     * =====================================================
-     * LIGHTS
-     * =====================================================
-     */
-
-    const ambient =
-      new HemisphericLight(
-        "ambient",
-        new Vector3(
-          0,
-          1,
-          0
-        ),
-        scene
-      );
-
-    ambient.intensity =
-      0.9;
-
-    ambient.diffuse =
-      Color3.FromHexString(
-        "#FFF4D6"
-      );
-
-    ambient.groundColor =
-      Color3.FromHexString(
-        "#B9A86E"
-      );
-
-
-    const sun =
-      new DirectionalLight(
-        "sun",
-        new Vector3(
-          -1,
-          -2,
-          1
-        ),
-        scene
-      );
-
-    sun.intensity =
-      0.85;
-
-    sun.diffuse =
-      Color3.FromHexString(
-        "#FFE6A3"
-      );
-
 
     /*
      * =====================================================
@@ -701,6 +649,8 @@ export const createWorld =
         player,
         ground
       );
+
+    createWorldLighting(scene, { player, ground, quality });
 
 
     /*
