@@ -302,11 +302,15 @@ export const createJumpController = (
 
 
       /*
-       * A grounding check must not move the player, including sideways
-       * collision sliding on slopes.
+       * Keep Babylon's upward collision clearance when standing. Spawn and
+       * teleport positions can sit exactly on the floor; restoring that height
+       * makes the first upward move collide with the floor instead of jumping.
+       * Discard downward probe movement and sideways sliding on slopes.
        */
 
+      const standingY = standing ? Math.max(before.y, player.position.y) : before.y;
       player.position.copyFrom(before);
+      player.position.y = standingY;
 
 
       return standing;
