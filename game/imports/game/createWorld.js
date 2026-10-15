@@ -16,6 +16,7 @@ import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
+import { createCampBridge } from "./environment/createCampBridge";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
@@ -480,7 +481,7 @@ export const createWorld =
       let disposed = false;
       scene.onDisposeObservable.addOnce(() => { disposed = true; });
       const [loadedForestProps, campAssets, tower] = await Promise.all([
-        loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene),
+        loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene), createCampBridge(scene, ground),
       ]);
       forestProps = loadedForestProps;
       jumpingPuzzle = tower;
