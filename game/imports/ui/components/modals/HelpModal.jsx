@@ -72,7 +72,7 @@ export const HelpModal = () => {
       </FantasySectionHeader>
 
       <FantasyHudCard className="mt-2">
-        <FantasyBadge tone="magic">v0.16.0-alpha</FantasyBadge>
+        <FantasyBadge tone="magic">v0.17.0-alpha</FantasyBadge>
       </FantasyHudCard>
 
       <FantasySectionHeader>
