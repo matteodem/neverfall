@@ -4,11 +4,13 @@ import { createWorldAtmosphere } from "./environment/createWorldAtmosphere";
 import { GroundSkyFog } from "./environment/groundSkyFog";
 // River temporarily disabled.
 // import { createSouthernRiver } from "./environment/createSouthernRiver";
+import { createStarterRiver } from "./environment/createStarterRiver";
+import { isInStarterRiver } from "./environment/starterRiverHeight";
 // import { getRiverBankMix, isInRiver } from "./environment/terrainHeight";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldHeight, getSoutheastMountainHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldBaseHeight, getSoutheastMountainHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -124,7 +126,7 @@ export const createWorld =
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];
-        positions[index + 1] = getWorldHeight(x, z);
+        positions[index + 1] = getWorldBaseHeight(x, z);
         const mix = getHighlandMix(z);
         const variation = getTerrainColorVariation(x, z);
         const baseWeight = 1 - variation.olive - variation.brown;
@@ -180,6 +182,7 @@ export const createWorld =
       groundMaterial;
     ground.freezeWorldMatrix();
     // if (!dungeon) createSouthernRiver(scene);
+    if (!dungeon) createStarterRiver(scene, ground, quality);
 
 
     /*
@@ -507,6 +510,7 @@ export const createWorld =
           center: new Vector3(chunk.x, 0, chunk.z),
           includeFloor: false,
           // exclude: (position) => isInRiver(position, 5),
+          exclude: (position) => isInStarterRiver(position, 2),
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             // Keep fallback scenery off the mountain's approach and summit too.

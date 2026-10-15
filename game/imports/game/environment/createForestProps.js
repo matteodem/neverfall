@@ -1,6 +1,7 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
+import { isInStarterRiver } from "./starterRiverHeight";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
 // import { isInRiver } from "./terrainHeight";
@@ -119,6 +120,7 @@ const distanceToPath = (position, { from, to }) => {
 };
 
 const isOpen = (position, clearance, areas) =>
+  !isInStarterRiver(position, clearance) &&
   // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
