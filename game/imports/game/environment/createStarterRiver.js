@@ -1,6 +1,6 @@
 import { Color3, DirectionalLight, MeshBuilder, RawTexture, Texture, Vector2, Vector3, VertexBuffer } from "@babylonjs/core";
 import { WaterMaterial } from "@babylonjs/materials/water/waterMaterial";
-import { STARTER_RIVER as RIVER } from "./starterRiverConfig";
+import { STARTER_RIVER as RIVER, riverToWorld } from "./starterRiverConfig";
 import { getStarterRiverSection } from "./starterRiverHeight";
 import { createStarterRiverGround } from "./createStarterRiverGround";
 
@@ -13,8 +13,10 @@ export const createStarterRiver = (scene, ground, quality) => {
     const section = getStarterRiverSection(z);
     // Reuse the old ribbon approach: hidden edges extend beneath the carved banks.
     const extent = section.halfWidth + RIVER.bankWidth;
-    edges[0].push(new Vector3(section.x - extent, 0, z));
-    edges[1].push(new Vector3(section.x + extent, 0, z));
+    for (const [side, sign] of [[0, -1], [1, 1]]) {
+      const point = riverToWorld(section.x + sign * extent, z);
+      edges[side].push(new Vector3(point.x, 0, point.z));
+    }
   }
   const water = MeshBuilder.CreateRibbon("starter-river", { pathArray: edges }, scene);
   // WaterMaterial's reflection clip plane follows mesh.position.y.

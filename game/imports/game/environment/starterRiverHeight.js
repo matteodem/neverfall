@@ -1,4 +1,4 @@
-import { STARTER_RIVER as RIVER } from "./starterRiverConfig";
+import { STARTER_RIVER as RIVER, worldToRiver } from "./starterRiverConfig";
 
 const smooth = (value) => { const t = Math.max(0, Math.min(1, value)); return t * t * (3 - 2 * t); };
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -28,10 +28,16 @@ export const getStarterRiverSection = (z) => {
     const from = RIVER.path[index - 1], to = RIVER.path[index];
     if (z > to.z) continue;
     const t = (z - from.z) / (to.z - from.z);
-    const fade = smooth((z - start) / RIVER.endFade) * smooth((end - z) / RIVER.endFade);
+    const fade = RIVER.endFade > 0
+      ? smooth((z - start) / RIVER.endFade) * smooth((end - z) / RIVER.endFade) : 1;
+    // Correct cross-sections for the bend angle so authored widths remain
+    // 3–5 m perpendicular to the flow, including the steeper eastern turn.
+    const span = to.z - from.z, t2 = t * t;
+    const slope = (6 * t2 - 6 * t) * from.x / span + (3 * t2 - 4 * t + 1) * tangents[index - 1].x +
+      (-6 * t2 + 6 * t) * to.x / span + (3 * t2 - 2 * t) * tangents[index].x;
     return {
       x: interpolate(index, "x", t),
-      halfWidth: interpolate(index, "width", t) / 2,
+      halfWidth: interpolate(index, "width", t) / 2 * Math.hypot(1, slope),
       fade,
     };
   }
@@ -39,6 +45,7 @@ export const getStarterRiverSection = (z) => {
 };
 
 export const getStarterRiverBankMix = (x, z) => {
+  ({ x, z } = worldToRiver(x, z));
   const section = getStarterRiverSection(z);
   if (!section) return 0;
   const distance = Math.abs(x - section.x);
@@ -46,6 +53,7 @@ export const getStarterRiverBankMix = (x, z) => {
 };
 
 export const isInStarterRiver = ({ x, z }, clearance = 0) => {
+  ({ x, z } = worldToRiver(x, z));
   const section = getStarterRiverSection(Math.max(RIVER.path[0].z,
     Math.min(RIVER.path[RIVER.path.length - 1].z, z)));
   return z >= RIVER.path[0].z - clearance && z <= RIVER.path[RIVER.path.length - 1].z + clearance &&
@@ -53,6 +61,7 @@ export const isInStarterRiver = ({ x, z }, clearance = 0) => {
 };
 
 export const applyStarterRiverBed = (x, z, height) => {
+  ({ x, z } = worldToRiver(x, z));
   const section = getStarterRiverSection(z);
   if (!section) return height;
   const distance = Math.abs(x - section.x);

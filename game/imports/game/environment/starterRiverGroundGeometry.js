@@ -1,6 +1,6 @@
 import { MeshBuilder, Vector3, VertexBuffer } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
-import { STARTER_RIVER as RIVER } from "./starterRiverConfig";
+import { STARTER_RIVER as RIVER, riverToWorld } from "./starterRiverConfig";
 import { getStarterRiverSection } from "./starterRiverHeight";
 
 const bisect = (from, to, sample) => {
@@ -14,19 +14,23 @@ const bisect = (from, to, sample) => {
 };
 
 export const createRiverGroundGrid = (scene, bounds) => {
+  const worldHeight = (x, z) => { const point = riverToWorld(x, z); return getWorldHeight(point.x, point.z); };
   const width = bounds.maxX - bounds.minX, height = bounds.maxZ - bounds.minZ;
-  const outerColumns = 6, bankColumns = Math.ceil(RIVER.bankWidth / RIVER.groundSpacing);
-  const bedColumns = Math.ceil(Math.max(...RIVER.path.map((point) => point.width)) / RIVER.groundSpacing);
+  const outerColumns = 2, bankColumns = Math.ceil(RIVER.bankWidth / RIVER.groundSpacing);
+  // Even counts retain a centerline vertex, including narrow sections.
+  const bedColumns = 2 * Math.ceil((bounds.maxWidth || Math.max(...RIVER.path.map((point) => point.width))) / (2 * RIVER.groundSpacing));
   const counts = [outerColumns, bankColumns, bedColumns, bankColumns, outerColumns];
   const columns = counts.reduce((sum, count) => sum + count, 0);
   const start = RIVER.path[0].z, end = RIVER.path[RIVER.path.length - 1].z;
-  const centerHeight = (z) => getWorldHeight(getStarterRiverSection(z).x, z) - RIVER.waterLevel;
-  const tips = [bisect(start, start + RIVER.endFade, centerHeight),
-    bisect(end - RIVER.endFade, end, centerHeight)];
+  const centerHeight = (z) => worldHeight(getStarterRiverSection(z).x, z) - RIVER.waterLevel;
+  const tips = RIVER.endFade > 0 ? [bisect(start, start + RIVER.endFade, centerHeight),
+    bisect(end - RIVER.endFade, end, centerHeight)] : [start, end];
   const regularRows = Math.ceil(height / RIVER.sampleSpacing);
   const samples = Array.from({ length: regularRows + 1 }, (_, row) => bounds.maxZ - row / regularRows * height);
   // The rounded tips need closer samples than the long banks.
-  for (const offset of [0, 0.005, 0.02, 0.05, 0.1, 0.18]) samples.push(tips[0] + offset, tips[1] - offset);
+  if (RIVER.endFade > 0) for (const offset of [0, 0.005, 0.02, 0.05, 0.1, 0.18]) {
+    for (const z of [tips[0] + offset, tips[1] - offset]) if (z >= bounds.minZ && z <= bounds.maxZ) samples.push(z);
+  }
   samples.sort((a, b) => b - a);
   const rowZs = samples.filter((z, index) => index === 0 || samples[index - 1] - z > 1e-6);
   const rows = rowZs.length - 1;
@@ -39,8 +43,13 @@ export const createRiverGroundGrid = (scene, bounds) => {
     const section = getStarterRiverSection(Math.max(start, Math.min(end, z)));
     let left = section.x, right = section.x;
     const wet = z >= tips[0] && z <= tips[1];
-    if (wet && !tips.includes(z)) {
-      const edgeHeight = (x) => getWorldHeight(x, z) - RIVER.waterLevel;
+    if (wet && section.fade === 1) {
+      // Fully carved sections have exact analytic shores; avoid height searches
+      // along the world-length channel during scene creation.
+      left = section.x - section.halfWidth;
+      right = section.x + section.halfWidth;
+    } else if (wet && !tips.includes(z)) {
+      const edgeHeight = (x) => worldHeight(x, z) - RIVER.waterLevel;
       left = bisect(section.x - section.halfWidth - RIVER.bankWidth, section.x, edgeHeight);
       right = bisect(section.x, section.x + section.halfWidth + RIVER.bankWidth, edgeHeight);
     }
