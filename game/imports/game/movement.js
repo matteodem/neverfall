@@ -238,7 +238,8 @@ export const updateCameraFacing = ({
 
 
 export const createJumpController = (
-  player
+  player,
+  terrain = null
 ) => {
   let velocityY =
     0;
@@ -427,12 +428,14 @@ export const createJumpController = (
        * =====================================================
        */
 
+      const terrainY = terrain?.getHeightAtCoordinates(player.position.x, player.position.z);
+      const floorY = Math.min(JUMP.groundY, terrainY ?? JUMP.groundY);
       if (
         player.position.y <=
-        JUMP.groundY
+        floorY
       ) {
         player.position.y =
-          JUMP.groundY;
+          floorY;
 
         velocityY =
           0;

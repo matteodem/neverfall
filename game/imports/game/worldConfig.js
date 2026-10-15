@@ -1,4 +1,5 @@
 import { WORLD_PALETTE } from "./environment/worldPalette";
+import { applyTerrainDetail } from "./environment/terrainHeight";
 
 export const WORLD_SIZE = 600;
 export const WORLD_BOUNDARY = WORLD_SIZE / 2 + 20;
@@ -83,7 +84,8 @@ export const getWorldHeight = (x, z) => {
   const easternCliff = 180 * smooth(clamp01((x - WORLD_EAST_BOUNDARY) / 35));
   const bossRise = 5 * (1 - smooth(clamp01(
     (Math.hypot(x - SNOWY_MOUNTAINS.boss.x, z - SNOWY_MOUNTAINS.boss.z) - 15) / 25)));
-  return existingHeight + snowSlope + easternCliff + bossRise + getSoutheastMountainHeight(x, z);
+  return applyTerrainDetail(x, z,
+    existingHeight + snowSlope + easternCliff + bossRise + getSoutheastMountainHeight(x, z));
 };
 
 export const WORLD_REGIONS = {

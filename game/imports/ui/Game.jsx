@@ -469,7 +469,8 @@ export const Game = ({
 
           jump =
             createJumpController(
-              player
+              player,
+              world.terrain
             );
 
 

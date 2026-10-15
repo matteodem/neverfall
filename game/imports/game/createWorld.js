@@ -2,6 +2,9 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { createWorldLighting } from "./createWorldLighting";
 import { createWorldAtmosphere } from "./environment/createWorldAtmosphere";
 import { GroundSkyFog } from "./environment/groundSkyFog";
+// River temporarily disabled.
+// import { createSouthernRiver } from "./environment/createSouthernRiver";
+// import { getRiverBankMix, isInRiver } from "./environment/terrainHeight";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
@@ -102,7 +105,7 @@ export const createWorld =
           height:
             dungeon ? 118 : WORLD_SIZE + 60,
 
-          subdivisions: dungeon ? 1 : 96,
+          subdivisions: dungeon ? 1 : 128,
           updatable: !dungeon,
         },
         scene
@@ -130,12 +133,15 @@ export const createWorld =
         const stoneMix = Math.max(0, Math.min(1, (x - 275) / 45));
         const mountainStone = Math.min(1, getSoutheastMountainHeight(x, z) / 8);
         const colorIndex = index / 3 * 4;
+        // const riverBankMix = getRiverBankMix(x, z) * 0.65;
         for (const [offset, channel] of ["r", "g", "b"].entries()) {
           const warm = (forestColor[channel] + (highlandColor[channel] - forestColor[channel]) * mix) *
             shade * baseWeight + oliveColor[channel] * variation.olive + brownColor[channel] * variation.brown;
           const cold = snowColor[channel] + (coldStoneColor[channel] - snowColor[channel]) * stoneMix;
           const terrain = warm * (1 - snow) + cold * snow * shade;
-          colors[colorIndex + offset] = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
+          const groundColor = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
+          // colors[colorIndex + offset] = groundColor + (brownColor[channel] - groundColor) * riverBankMix;
+          colors[colorIndex + offset] = groundColor;
         }
         colors[colorIndex + 3] = 1;
       }
@@ -173,6 +179,7 @@ export const createWorld =
     ground.material =
       groundMaterial;
     ground.freezeWorldMatrix();
+    // if (!dungeon) createSouthernRiver(scene);
 
 
     /*
@@ -456,6 +463,10 @@ export const createWorld =
     swordPivot.setEnabled(Boolean(character.weaponMesh) || getClassConfig(gameClass).swordVisible);
 
 
+    // Container source meshes must see world lights when loaded, including
+    // models first instantiated in later chunks. Instances share source lights.
+    createWorldLighting(scene, { player, ground, quality });
+
     let forest, forestProps, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
     let chunks = null;
@@ -495,6 +506,7 @@ export const createWorld =
           size: CHUNK_SIZE,
           center: new Vector3(chunk.x, 0, chunk.z),
           includeFloor: false,
+          // exclude: (position) => isInRiver(position, 5),
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             // Keep fallback scenery off the mountain's approach and summit too.
@@ -635,9 +647,6 @@ export const createWorld =
         player,
         ground
       );
-
-    createWorldLighting(scene, { player, ground, quality });
-
 
     /*
      * =====================================================

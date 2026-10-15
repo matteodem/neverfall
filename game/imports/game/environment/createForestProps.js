@@ -1,5 +1,6 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
+// import { isInRiver } from "./terrainHeight";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
@@ -104,6 +105,7 @@ const distanceToPath = (position, { from, to }) => {
 };
 
 const isOpen = (position, clearance, areas) =>
+  // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
     Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
