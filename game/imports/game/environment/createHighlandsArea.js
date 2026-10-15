@@ -1,7 +1,7 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { createFrameBudget } from "./createFrameBudget";
 import { randomForChunk } from "./createForestProps";
-import { HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
+import { CHUNK_SIZE, HIGHLANDS_SCENERY, getWorldHeight } from "../worldConfig";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 
 const loadLookout = async (scene, root, chunk, { x, z }) => {
@@ -46,7 +46,7 @@ const loadLookout = async (scene, root, chunk, { x, z }) => {
   }
 };
 
-export const createHighlandsArea = async ({ scene, chunk, props }) => {
+export const createHighlandsArea = async ({ scene, chunk, props, density = 1 }) => {
   const root = new TransformNode(`highlands-scenery-${chunk.x}`, scene);
   root.position.set(chunk.x, 0, chunk.z);
   root.setEnabled(false);
@@ -110,6 +110,8 @@ export const createHighlandsArea = async ({ scene, chunk, props }) => {
         landmark.z + Math.sin(angle) * 9, 1.5);
     }
   }
+
+  props?.placeVegetation(root, { center: chunk, size: CHUNK_SIZE, density });
 
   const meshes = root.getChildMeshes();
   for (let index = 0; index < meshes.length; index++) {

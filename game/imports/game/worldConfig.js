@@ -1,4 +1,6 @@
 import { WORLD_PALETTE } from "./environment/worldPalette";
+import { applyTerrainDetail } from "./environment/terrainHeight";
+import { applyStarterRiverBed } from "./environment/starterRiverHeight";
 
 export const WORLD_SIZE = 600;
 export const WORLD_BOUNDARY = WORLD_SIZE / 2 + 20;
@@ -68,7 +70,7 @@ export const getForestGiantHillHeight = (x, z) => {
   return FOREST_GIANT_HILL.height * (1 - smooth(slope));
 };
 
-export const getWorldHeight = (x, z) => {
+export const getWorldBaseHeight = (x, z) => {
   const lakeDistance = Math.hypot(x - SOUTHWEST_LAKE.center.x, z - SOUTHWEST_LAKE.center.z);
   const lakeRise = 1.8 * smooth(clamp01((lakeDistance - 22) / 34)) *
     (1 - smooth(clamp01((lakeDistance - 80) / 40)));
@@ -83,8 +85,11 @@ export const getWorldHeight = (x, z) => {
   const easternCliff = 180 * smooth(clamp01((x - WORLD_EAST_BOUNDARY) / 35));
   const bossRise = 5 * (1 - smooth(clamp01(
     (Math.hypot(x - SNOWY_MOUNTAINS.boss.x, z - SNOWY_MOUNTAINS.boss.z) - 15) / 25)));
-  return existingHeight + snowSlope + easternCliff + bossRise + getSoutheastMountainHeight(x, z);
+  return applyTerrainDetail(x, z,
+    existingHeight + snowSlope + easternCliff + bossRise + getSoutheastMountainHeight(x, z));
 };
+
+export const getWorldHeight = (x, z) => applyStarterRiverBed(x, z, getWorldBaseHeight(x, z));
 
 export const WORLD_REGIONS = {
   starterForest: { treeCount: 300, bushCount: 150, rockCount: 45, logCount: 24, floorColor: WORLD_PALETTE.terrain.forestFloor },

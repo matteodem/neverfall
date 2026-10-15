@@ -796,6 +796,7 @@ export const createForestArea =
     },
 
     extraClearings = [],
+    exclude = null,
 
     floorColor = PALETTE.terrain.forestFloor,
     includeFloor = true,
@@ -886,7 +887,7 @@ export const createForestArea =
         clearing,
         extraClearings,
         path,
-        exclude: (point) => getSnowMix(point.x, point.z) > 0,
+        exclude: (point) => getSnowMix(point.x, point.z) > 0 || exclude?.(point),
       });
       if (!position) continue;
       createPineTree({
@@ -914,6 +915,8 @@ export const createForestArea =
       i +=
         1
     ) {
+      const position = createForestPosition({ center, halfSize, clearing, extraClearings, path, exclude });
+      if (!position) continue;
       createRock({
         scene,
         sources,
@@ -921,14 +924,7 @@ export const createForestArea =
         parent:
           root,
 
-        position:
-          createForestPosition({
-            center,
-            halfSize,
-            clearing,
-            extraClearings,
-            path,
-          }),
+        position,
 
         materials,
       });
@@ -946,6 +942,8 @@ export const createForestArea =
       i +=
         1
     ) {
+      const position = createForestPosition({ center, halfSize, clearing, extraClearings, path, exclude });
+      if (!position) continue;
       createBush({
         scene,
         sources,
@@ -953,14 +951,7 @@ export const createForestArea =
         parent:
           root,
 
-        position:
-          createForestPosition({
-            center,
-            halfSize,
-            clearing,
-            extraClearings,
-            path,
-          }),
+        position,
 
         materials,
       });
@@ -978,6 +969,8 @@ export const createForestArea =
       i +=
         1
     ) {
+      const position = createForestPosition({ center, halfSize, clearing, extraClearings, path, exclude });
+      if (!position) continue;
       createLog({
         scene,
         sources,
@@ -985,14 +978,7 @@ export const createForestArea =
         parent:
           root,
 
-        position:
-          createForestPosition({
-            center,
-            halfSize,
-            clearing,
-            extraClearings,
-            path,
-          }),
+        position,
 
         materials,
       });

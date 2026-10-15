@@ -2,15 +2,21 @@ import { QUALITY_PRESETS } from "./performanceConfig";
 import { createWorldLighting } from "./createWorldLighting";
 import { createWorldAtmosphere } from "./environment/createWorldAtmosphere";
 import { GroundSkyFog } from "./environment/groundSkyFog";
+// River temporarily disabled.
+// import { createSouthernRiver } from "./environment/createSouthernRiver";
+import { createStarterRiver } from "./environment/createStarterRiver";
+import { isInStarterRiver } from "./environment/starterRiverHeight";
+// import { getRiverBankMix, isInRiver } from "./environment/terrainHeight";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldHeight, getSoutheastMountainHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldBaseHeight, getSoutheastMountainHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
 import { loadForestProps } from "./environment/createForestProps";
 import { loadCampAssets } from "./environment/createAssetCamp";
+import { createCampBridge } from "./environment/createCampBridge";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
@@ -102,7 +108,7 @@ export const createWorld =
           height:
             dungeon ? 118 : WORLD_SIZE + 60,
 
-          subdivisions: dungeon ? 1 : 96,
+          subdivisions: dungeon ? 1 : 128,
           updatable: !dungeon,
         },
         scene
@@ -121,7 +127,7 @@ export const createWorld =
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];
-        positions[index + 1] = getWorldHeight(x, z);
+        positions[index + 1] = getWorldBaseHeight(x, z);
         const mix = getHighlandMix(z);
         const variation = getTerrainColorVariation(x, z);
         const baseWeight = 1 - variation.olive - variation.brown;
@@ -130,12 +136,15 @@ export const createWorld =
         const stoneMix = Math.max(0, Math.min(1, (x - 275) / 45));
         const mountainStone = Math.min(1, getSoutheastMountainHeight(x, z) / 8);
         const colorIndex = index / 3 * 4;
+        // const riverBankMix = getRiverBankMix(x, z) * 0.65;
         for (const [offset, channel] of ["r", "g", "b"].entries()) {
           const warm = (forestColor[channel] + (highlandColor[channel] - forestColor[channel]) * mix) *
             shade * baseWeight + oliveColor[channel] * variation.olive + brownColor[channel] * variation.brown;
           const cold = snowColor[channel] + (coldStoneColor[channel] - snowColor[channel]) * stoneMix;
           const terrain = warm * (1 - snow) + cold * snow * shade;
-          colors[colorIndex + offset] = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
+          const groundColor = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
+          // colors[colorIndex + offset] = groundColor + (brownColor[channel] - groundColor) * riverBankMix;
+          colors[colorIndex + offset] = groundColor;
         }
         colors[colorIndex + 3] = 1;
       }
@@ -173,6 +182,8 @@ export const createWorld =
     ground.material =
       groundMaterial;
     ground.freezeWorldMatrix();
+    // if (!dungeon) createSouthernRiver(scene);
+    if (!dungeon) createStarterRiver(scene, ground, quality);
 
 
     /*
@@ -456,6 +467,10 @@ export const createWorld =
     swordPivot.setEnabled(Boolean(character.weaponMesh) || getClassConfig(gameClass).swordVisible);
 
 
+    // Container source meshes must see world lights when loaded, including
+    // models first instantiated in later chunks. Instances share source lights.
+    createWorldLighting(scene, { player, ground, quality });
+
     let forest, forestProps, jumpingPuzzle, clearingCamp;
     let dungeonVisuals = null;
     let chunks = null;
@@ -466,7 +481,7 @@ export const createWorld =
       let disposed = false;
       scene.onDisposeObservable.addOnce(() => { disposed = true; });
       const [loadedForestProps, campAssets, tower] = await Promise.all([
-        loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene),
+        loadForestProps(scene), loadCampAssets(scene), createBasicTower(scene), createCampBridge(scene, ground),
       ]);
       forestProps = loadedForestProps;
       jumpingPuzzle = tower;
@@ -495,6 +510,8 @@ export const createWorld =
           size: CHUNK_SIZE,
           center: new Vector3(chunk.x, 0, chunk.z),
           includeFloor: false,
+          // exclude: (position) => isInRiver(position, 5),
+          exclude: (position) => isInStarterRiver(position, 2),
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             // Keep fallback scenery off the mountain's approach and summit too.
@@ -535,7 +552,7 @@ export const createWorld =
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") {
           if (assetForest) await forestProps.preloadHighlands();
-          chunks.add(await createHighlandsArea({ scene, chunk, props: assetForest ? forestProps : null }), chunk);
+          chunks.add(await createHighlandsArea({ scene, chunk, props: assetForest ? forestProps : null, density: quality.density }), chunk);
         }
         if (northernCampChunk) {
           const camp = createCamp({
@@ -635,9 +652,6 @@ export const createWorld =
         player,
         ground
       );
-
-    createWorldLighting(scene, { player, ground, quality });
-
 
     /*
      * =====================================================

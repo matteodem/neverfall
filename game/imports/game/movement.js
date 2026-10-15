@@ -238,13 +238,15 @@ export const updateCameraFacing = ({
 
 
 export const createJumpController = (
-  player
+  player,
+  terrain = null
 ) => {
   let velocityY =
     0;
 
   let jumping =
     false;
+  const lastPosition = player.position.clone();
 
 
   const moveVertical =
@@ -255,6 +257,9 @@ export const createJumpController = (
         player.position.y;
 
 
+      // Horizontal movement and ground probes run in the same render frame.
+      // Refresh Babylon's cached absolute position before the next sweep.
+      player.computeWorldMatrix(true);
       player.moveWithCollisions(
         new Vector3(
           0,
@@ -271,51 +276,41 @@ export const createJumpController = (
     };
 
 
-  const isStandingOnSurface =
-    () => {
-      const before = player.position.clone();
-      const probeDistance =
-        -0.08;
-
-
-      const movedY =
-        moveVertical(
-          probeDistance
-        );
-
-
-      /*
-       * If Babylon prevented most
-       * of the downward probe,
-       * there is a solid surface
-       * directly below the player.
-       */
-
-      const standing =
-        Math.abs(
-          movedY
-        ) <
-        Math.abs(
-          probeDistance
-        ) *
-          0.5;
-
-
-      /*
-       * Keep Babylon's upward collision clearance when standing. Spawn and
-       * teleport positions can sit exactly on the floor; restoring that height
-       * makes the first upward move collide with the floor instead of jumping.
-       * Discard downward probe movement and sideways sliding on slopes.
-       */
-
-      const standingY = standing ? Math.max(before.y, player.position.y) : before.y;
-      player.position.copyFrom(before);
-      player.position.y = standingY;
-
-
-      return standing;
-    };
-
+  const isStandingOnSurface = (probeDistance = 0.08, settle = false) => {
+    const before = player.position.clone();
+    let surface = null;
+    const observer = player.onCollideObservable.add((mesh) => { surface = mesh; });
+    let movedY;
+    try {
+      movedY = moveVertical(-probeDistance);
+    } finally {
+      player.onCollideObservable.remove(observer);
+    }
+    let standing = !!surface && movedY > -probeDistance + 0.002;
+    if (standing) {
+      // Invisible platform colliders are valid support too. Reject walls and
+      // steep faces, rather than treating every nearby collision as ground.
+      let normal = surface.getNormalAtCoordinates
+        ? surface.getNormalAtCoordinates(before.x, before.z)
+        : surface.intersects(Ray.Transform(new Ray(
+          new Vector3(before.x, before.y + 0.1, before.z), Vector3.Down(), probeDistance + 0.2,
+        ), surface.getWorldMatrix().clone().invert()), false).getNormal(true, false);
+      // At a platform end the ellipsoid can still touch its rim while its
+      // center is over the terrain. Accept that nearby terrain as support.
+      if (!normal && terrain) {
+        const groundDrop = before.y - terrain.getHeightAtCoordinates(before.x, before.z);
+        if (groundDrop >= -0.02 && groundDrop <= probeDistance)
+          normal = terrain.getNormalAtCoordinates(before.x, before.z);
+      }
+      standing = !!normal && normal.y >= Math.cos(SOUTHEAST_MOUNTAIN.maxWalkSlopeDegrees * Math.PI / 180);
+    }
+    // Keep collision clearance and follow a supported downhill step. Restore X/Z
+    // so the support probe itself cannot slide the player sideways.
+    const standingY = standing ? (settle ? player.position.y : Math.max(before.y, player.position.y)) : before.y;
+    player.position.copyFrom(before);
+    player.position.y = standingY;
+    return standing;
+  };
 
   const jump =
     () => {
@@ -343,6 +338,10 @@ export const createJumpController = (
       const deltaSeconds =
         deltaTime /
         1000;
+      const horizontalStep = Math.hypot(player.position.x - lastPosition.x, player.position.z - lastPosition.z);
+      lastPosition.copyFrom(player.position);
+      const supportDistance = 0.08 + Math.min(horizontalStep, 0.5) *
+        Math.tan(SOUTHEAST_MOUNTAIN.maxWalkSlopeDegrees * Math.PI / 180);
 
 
       /*
@@ -357,7 +356,7 @@ export const createJumpController = (
 
       if (
         !jumping &&
-        !isStandingOnSurface()
+        !isStandingOnSurface(supportDistance, true)
       ) {
         jumping =
           true;
@@ -427,12 +426,14 @@ export const createJumpController = (
        * =====================================================
        */
 
+      const terrainY = terrain?.getHeightAtCoordinates(player.position.x, player.position.z);
+      const floorY = Math.min(JUMP.groundY, terrainY ?? JUMP.groundY);
       if (
         player.position.y <=
-        JUMP.groundY
+        floorY
       ) {
         player.position.y =
-          JUMP.groundY;
+          floorY;
 
         velocityY =
           0;
@@ -451,6 +452,7 @@ export const createJumpController = (
       jumping =
         false;
 
+      lastPosition.copyFrom(player.position);
       // Position is supplied by the server on respawn / waypoint arrival.
     };
 

@@ -1,5 +1,10 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
+import { createVegetationPatches } from "./createVegetationPatches";
+import { isInStarterRiver } from "./starterRiverHeight";
+import { HIDDEN_CACHES } from "../hiddenCaches";
+import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
+// import { isInRiver } from "./terrainHeight";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "../basicTowerConfig";
 import { createFrameBudget } from "./createFrameBudget";
 import { DUNGEONS } from "../dungeonConfig";
@@ -11,7 +16,8 @@ import { WORLD_EVENTS } from "../worldEvents";
 import { ANCIENT_FOREST_SHRINE, FOREST_GIANT_HILL, FROZEN_STONE_ARCH, HIGHLANDS_SCENERY, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, WORLD_CHUNKS, getHighlandMix, getSnowMix, getWorldHeight, isInSoutheastMountain } from "../worldConfig";
 
 const MODELS = {
-  broadleaf: ["birch_1", "oak_2"],
+  // Retain the birch share while varying the remaining oak silhouettes.
+  broadleaf: ["birch_1", "oak_2", "birch_1", "oak_3"],
   conifers: ["pine_1", "pine_2"],
   highlandConifers: ["pine_1", "pine_2", "fir_1", "fir_2", "fir_3"],
   highlandBirch: ["birch_1", "birch_2", "birch_3"],
@@ -24,6 +30,10 @@ const MODELS = {
   wolfsDen: ["wolfs-den"],
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
+  grassTufts: ["grass_1", "grass_2"],
+  flowers: ["flowers_1"],
+  bushes: ["bush_1", "bush_2", "bush_3"],
+  stones: ["rock_1"],
   rocks: ["rock_1", "rock_2"],
   boulders: ["rock_3", "rock_4"],
   deadTrees: ["dry_tree_1", "dry_tree_2"],
@@ -84,6 +94,12 @@ const PATHS = [
   { from: { x: 140, z: 0 }, to: SNOWY_MOUNTAINS.boss, width: 8 },
 ];
 
+const DETAIL_CLEARINGS = [
+  ...CIRCLES,
+  ...NPC_DEFINITIONS.map((npc) => ({ ...npc.position, radius: 5 })),
+  ...HIDDEN_CACHES.map((cache) => ({ ...cache.position, radius: 4 })),
+];
+
 export const randomForChunk = ({ x, z }) => {
   let seed = ((x + 400) * 73856093 ^ (z + 400) * 19349663) >>> 0;
   return () => {
@@ -104,6 +120,8 @@ const distanceToPath = (position, { from, to }) => {
 };
 
 const isOpen = (position, clearance, areas) =>
+  !isInStarterRiver(position, clearance) &&
+  // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
     Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
@@ -142,7 +160,7 @@ export const loadForestProps = async (scene) => {
       if (result.status === "rejected") console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
     });
   };
-  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents"];
+  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents", "flowers"];
   const initialNames = [...new Set(initialKinds.flatMap((kind) => MODELS[kind]))];
   const snowyNames = [...new Set(Object.entries(MODELS)
     .filter(([kind]) => kind.startsWith("snowy"))
@@ -204,6 +222,22 @@ export const loadForestProps = async (scene) => {
         ? 0.55 + random() * 0.3 : 0.75 + random() * 0.45;
       place(root, kind, spot, random, scale);
     }
+  };
+
+  const placeVegetation = (root, { center, size, density }) => {
+    const occupied = root.getChildren().map((node) => ({
+      x: root.position.x + node.position.x,
+      z: root.position.z + node.position.z,
+    }));
+    createVegetationPatches({
+      center, size, density,
+      random: randomForChunk({ x: center.x + 106, z: center.z - 106 }),
+      canPlace: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS) &&
+        occupied.every((point) => Math.hypot(point.x - position.x, point.z - position.z) > 1.5),
+      place: (kind, position, random, scale) => place(root, kind, {
+        x: position.x - root.position.x, z: position.z - root.position.z,
+      }, random, scale),
+    });
   };
 
   const placeChunk = async ({ center, size, density, gradual = true }) => {
@@ -277,6 +311,8 @@ export const loadForestProps = async (scene) => {
       if (yieldIfNeeded) await yieldIfNeeded();
     }
 
+    if (center.region !== "snowyMountains") placeVegetation(root, { center, size, density });
+
     const meshes = root.getChildMeshes();
     for (let index = 0; index < meshes.length; index++) {
       meshes[index].freezeWorldMatrix();
@@ -286,7 +322,7 @@ export const loadForestProps = async (scene) => {
   };
 
   return {
-    available, placeChunk,
+    available, placeChunk, placeVegetation,
     placeAsset: place,
     canPlace: (position, clearance) => isOpen(position, clearance, CIRCLES),
     preloadShrine: () => preload(MODELS.ancientShrine),

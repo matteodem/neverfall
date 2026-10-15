@@ -4,13 +4,14 @@ import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 // Apply once to environment-owned materials at load time, before instancing.
 // Never touch actor materials, baked albedo textures, vertex colors or glow effects.
 export const harmonizeEnvironmentMaterials = (materials, assetName) => {
-  const vegetation = /^(birch_|oak_|pine_|fir_|bush_|grass_|fern$)/.test(assetName);
+  const flowers = /^flowers_/.test(assetName);
+  const vegetation = flowers || /^(birch_|oak_|pine_|fir_|bush_|grass_|fern$)/.test(assetName);
   const wood = /^(dry_tree_|log_|stump_)/.test(assetName);
   const rock = /^rock_/.test(assetName);
   const leafColor = /^(pine_|fir_)/.test(assetName) ? PALETTE.foliage.evergreen
     : assetName === "birch_2" ? PALETTE.foliage.autumnGold
       : assetName === "birch_3" ? PALETTE.foliage.autumnOrange
-        : /^(bush_|grass_|fern$)/.test(assetName) ? PALETTE.foliage.bush : PALETTE.foliage.leaves;
+        : flowers || /^(bush_|grass_|fern$)/.test(assetName) ? PALETTE.foliage.bush : PALETTE.foliage.leaves;
 
   for (const material of new Set(materials)) {
     if (!material?.albedoColor || material.disableLighting || material.alpha < 1 ||
@@ -29,7 +30,7 @@ export const harmonizeEnvironmentMaterials = (materials, assetName) => {
       Math.max(color.r, color.g, color.b) * 0.2;
     const hex = rock ? PALETTE.rock
       : vegetation && green ? leafColor
-        : wood || (vegetation && brown) ? PALETTE.bark
+        : wood || (vegetation && brown && !flowers) ? PALETTE.bark
           : !vegetation && neutral ? PALETTE.stone : null;
     if (!hex) continue;
     // GLTF/PBR base colors are linear; retain some authored shade variation.
