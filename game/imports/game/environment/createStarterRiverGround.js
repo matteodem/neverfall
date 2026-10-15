@@ -1,8 +1,9 @@
-import { Color3, MeshBuilder, VertexBuffer, VertexData } from "@babylonjs/core";
+import { Color3, VertexBuffer, VertexData } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { STARTER_RIVER as RIVER } from "./starterRiverConfig";
 import { getStarterRiverBankMix } from "./starterRiverHeight";
 import { WORLD_PALETTE as PALETTE } from "./worldPalette";
+import { attachRiverGroundSampling, createRiverGroundGrid } from "./starterRiverGroundGeometry";
 
 // Replace a few coarse terrain cells with a fine, collidable patch, sharing
 // the ground material. The rest of the world's resolution remains unchanged.
@@ -18,12 +19,7 @@ export const createStarterRiverGround = (scene, ground) => {
   const bottom = Math.ceil((maxZ - RIVER.path[0].z + 1) / step);
   const bounds = { minX: min + left * step, maxX: min + right * step,
     minZ: maxZ - bottom * step, maxZ: maxZ - top * step };
-  const width = bounds.maxX - bounds.minX, height = bounds.maxZ - bounds.minZ;
-  const patch = MeshBuilder.CreateGround("starter-river-banks", { width, height,
-    subdivisionsX: Math.ceil(width / RIVER.groundSpacing),
-    subdivisionsY: Math.ceil(height / RIVER.groundSpacing), updatable: true }, scene);
-  patch.position.set((bounds.minX + bounds.maxX) / 2, 0, (bounds.minZ + bounds.maxZ) / 2);
-  const positions = patch.getVerticesData(VertexBuffer.PositionKind);
+  const { patch, positions, shoreVertices } = createRiverGroundGrid(scene, bounds);
   const colors = new Float32Array(positions.length / 3 * 4);
   const normals = patch.getVerticesData(VertexBuffer.NormalKind);
   const earth = Color3.FromHexString(PALETTE.terrain.earth).asArray();
@@ -34,6 +30,7 @@ export const createStarterRiverGround = (scene, ground) => {
     // Meet the original triangles exactly at the boundary (no cracks or steps).
     const blend = Math.max(0, Math.min(1, border / 2));
     positions[index + 1] = coarseHeight(x, z) * (1 - blend) + getWorldHeight(x, z) * blend;
+    if (shoreVertices.has(index / 3)) positions[index + 1] = RIVER.waterLevel;
     const col = Math.floor((x - min) / step), row = Math.floor((maxZ - z) / step);
     const u = (x - min) / step - col, v = (maxZ - z) / step - row;
     const a = row * stride + col, d = a + stride + 1;
@@ -58,6 +55,7 @@ export const createStarterRiverGround = (scene, ground) => {
   patch.metadata = { worldShadows: { cast: false, receive: true } };
   patch.refreshBoundingInfo();
   patch.freezeWorldMatrix();
+  attachRiverGroundSampling(patch, positions);
   const indices = ground.getIndices(), retained = [];
   for (let index = 0; index < indices.length; index += 6) {
     const cell = index / 6, row = Math.floor(cell / columns), col = cell % columns;

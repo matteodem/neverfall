@@ -1,4 +1,4 @@
-import { Color3, MeshBuilder, RawTexture, Texture, Vector2, Vector3, VertexBuffer } from "@babylonjs/core";
+import { Color3, DirectionalLight, MeshBuilder, RawTexture, Texture, Vector2, Vector3, VertexBuffer } from "@babylonjs/core";
 import { WaterMaterial } from "@babylonjs/materials/water/waterMaterial";
 import { STARTER_RIVER as RIVER } from "./starterRiverConfig";
 import { getStarterRiverSection } from "./starterRiverHeight";
@@ -31,24 +31,51 @@ export const createStarterRiver = (scene, ground, quality) => {
   const pixels = new Uint8Array(64 * 64 * 4);
   for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) {
     const a = x / 64 * Math.PI * 2, b = y / 64 * Math.PI * 2;
-    pixels.set([128 + Math.round(35 * Math.cos(a * 2 + b)),
-      128 + Math.round(35 * Math.sin(b * 3 - a)), 255, 255], (y * 64 + x) * 4);
+    // Periodic warping breaks up straight bands while retaining seamless tiling.
+    pixels.set([128 + Math.round(28 * Math.cos(a * 2 + b + 0.8 * Math.sin(b * 2 - a)) + 8 * Math.sin(a * 5 + b * 3)),
+      128 + Math.round(25 * Math.sin(b * 3 - a + 1.1 * Math.sin(a * 2 + b)) + 8 * Math.cos(a * 3 - b * 4)),
+      255, 255], (y * 64 + x) * 4);
   }
   material.bumpTexture = RawTexture.CreateRGBATexture(pixels, 64, 64, scene, true, false, Texture.TRILINEAR_SAMPLINGMODE);
   material.bumpTexture.wrapU = material.bumpTexture.wrapV = Texture.WRAP_ADDRESSMODE;
   material.waterColor = Color3.FromHexString("#32ADBB");
-  material.colorBlendFactor = 0.35;
-  material.windDirection = new Vector2(0.3, 1);
-  material.windForce = 1.2;
-  material.waveHeight = 0.004;
-  material.waveLength = 0.6;
-  material.waveSpeed = 0.25;
-  material.waveCount = 0.2;
-  material.bumpHeight = 0.08;
-  material.bumpSuperimpose = true;
-  material.specularColor = Color3.FromHexString("#578C94");
-  material.specularPower = 64;
+  material.fresnelSeparate = true;
+  material.colorBlendFactor = 0.25;
+  material.colorBlendFactor2 = 0.55;
+  material.windDirection = new Vector2(0.15, 1);
+  material.windForce = 0.012;
+  material.waveHeight = 0.0006;
+  material.waveLength = 1.2;
+  material.waveSpeed = 0.18;
+  material.waveCount = 0.25;
+  material.bumpHeight = 0.012;
+  material.bumpSuperimpose = false;
+  material.bumpAffectsReflection = false;
+  material.specularColor = Color3.FromHexString("#9EDDDC");
+  material.specularPower = 48;
+  // Keep the riverbed visible through refraction, without alpha sorting artifacts.
+  material.alpha = 1;
   material.backFaceCulling = false;
+  // A subtle, water-only specular fill makes moving normals readable against
+  // the smooth sky gradient. No extra geometry, render pass or shadow map.
+  const glints = new DirectionalLight("starter-river-glints", new Vector3(-0.2, -0.25, -1), scene);
+  glints.diffuse = Color3.Black();
+  glints.specular = Color3.FromHexString("#A6E5E5");
+  glints.intensity = 0.16;
+  glints.includedOnlyMeshes = [water];
+  glints.shadowEnabled = false;
+  water.onDisposeObservable.addOnce(() => glints.dispose());
+  // WaterMaterial 9.27 gates its internal clock on changes in frame duration.
+  // Bind seconds directly so a stable frame rate still animates at river speed.
+  const startedAt = performance.now();
+  material.onBindObservable.add(() => {
+    material.getEffect().setFloat("time", (performance.now() - startedAt) / 1000);
+    // Keep the soft glint fill readable as the player orbits the camera.
+    const camera = scene.activeCamera.globalPosition;
+    const center = water.getBoundingInfo().boundingSphere.centerWorld;
+    glints.direction.set(camera.x - center.x, -Math.max(camera.y - water.position.y, 1),
+      camera.z - center.z).normalize();
+  });
   const sky = scene.getMeshByName("worldSky");
   material.reflectionTexture.renderList = sky ? [sky, banks] : [banks];
   material.refractionTexture.renderList = [banks];

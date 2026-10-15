@@ -12,8 +12,8 @@ export const STARTER_RIVER = {
   bedDepth: 0.28,
   bankWidth: 1.4,
   endFade: 3,
-  sampleSpacing: 0.5,
-  groundSpacing: 0.5,
+  sampleSpacing: 0.25,
+  groundSpacing: 0.35,
   reflectionSize: 256,
   lowReflectionSize: 128,
 };
