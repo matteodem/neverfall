@@ -32,8 +32,10 @@ export const STARTER_RIVER = {
   bedDepth: 0.28,
   bankWidth: 1.4,
   endFade: 0, // Continuous through the playable boundary; no inland caps.
-  sampleSpacing: 0.5,
-  groundSpacing: 0.5,
+  // One-meter samples retain curved waterlines without densely tessellating
+  // the entire world-length bank mesh in the main and offscreen passes.
+  sampleSpacing: 1,
+  groundSpacing: 1,
   reflectionSize: 256,
   lowReflectionSize: 128,
 };
