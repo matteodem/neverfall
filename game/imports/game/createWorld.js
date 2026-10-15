@@ -547,7 +547,7 @@ export const createWorld =
         if (lakeChunk) chunks.add(createSouthwestLake(scene), SOUTHWEST_LAKE.center);
         if (chunk.region === "highlands") {
           if (assetForest) await forestProps.preloadHighlands();
-          chunks.add(await createHighlandsArea({ scene, chunk, props: assetForest ? forestProps : null }), chunk);
+          chunks.add(await createHighlandsArea({ scene, chunk, props: assetForest ? forestProps : null, density: quality.density }), chunk);
         }
         if (northernCampChunk) {
           const camp = createCamp({
