@@ -19,6 +19,7 @@ export const ENVIRONMENT_PATHS = {
   sceneryClearance: 2,
   routes: [
     { id: "guard-dungeon", capStyle: "worn", points: [[0, -8], [0, -38], [0, -90]] },
+    { id: "central-camp", points: [[0, -8], [0, -2], [-0.3, 4], [0, 10]] },
     { id: "camp-highlands", points: [[0, 10], [0, 85], [0, 150], [0, 200]] },
     { id: "giant-hill", points: [[0, 35], [32, 48], [70, 72]] },
     { id: "northern-ruins", points: [[0, 200], [40, 196], [80, 180]] },
