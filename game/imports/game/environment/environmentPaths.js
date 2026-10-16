@@ -17,12 +17,14 @@ export const ENVIRONMENT_ROUTES = CONFIG.routes.map((route) => {
 });
 
 export const isOnEnvironmentPath = ({ x, z }, clearance = 0) => {
-  const radius = CONFIG.width / 2 + clearance;
-  return ENVIRONMENT_ROUTES.some(({ segments }) => segments.some((segment) => {
-    const { from, dx, dz, lengthSquared, minX, maxX, minZ, maxZ } = segment;
-    if (x < minX - radius || x > maxX + radius || z < minZ - radius || z > maxZ + radius) return false;
-    const t = lengthSquared ? Math.max(0, Math.min(1,
-      ((x - from.x) * dx + (z - from.z) * dz) / lengthSquared)) : 0;
-    return (x - from.x - dx * t) ** 2 + (z - from.z - dz * t) ** 2 < radius * radius;
-  }));
+  return ENVIRONMENT_ROUTES.some(({ segments, width = CONFIG.width }) => {
+    const radius = width / 2 + clearance;
+    return segments.some((segment) => {
+      const { from, dx, dz, lengthSquared, minX, maxX, minZ, maxZ } = segment;
+      if (x < minX - radius || x > maxX + radius || z < minZ - radius || z > maxZ + radius) return false;
+      const t = lengthSquared ? Math.max(0, Math.min(1,
+        ((x - from.x) * dx + (z - from.z) * dz) / lengthSquared)) : 0;
+      return (x - from.x - dx * t) ** 2 + (z - from.z - dz * t) ** 2 < radius * radius;
+    });
+  });
 };

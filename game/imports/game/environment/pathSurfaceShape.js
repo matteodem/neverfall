@@ -6,11 +6,12 @@ export const pathNoise = (x, z, side = 0) => {
     Math.sin(x / scale * 2.3 - z / scale * 1.7 + side * 4) * 0.35;
 };
 
-export const pathEdgeRadius = (point, side) => {
+export const pathEdgeRadius = (point, side, width = CONFIG.width) => {
   const bite = Math.max(0, Math.sin((point.x * 0.7 + point.z) /
     Math.max(0.1, CONFIG.grassIntrusionSpacing) + side * 2.7)) ** 8;
-  return Math.max(0.5, CONFIG.width / 2 + pathNoise(point.x, point.z, side) * CONFIG.edgeNoise -
-    bite * CONFIG.grassIntrusion);
+  const detailScale = width / CONFIG.width;
+  return Math.max(0.5, width / 2 + pathNoise(point.x, point.z, side) * CONFIG.edgeNoise * detailScale -
+    bite * CONFIG.grassIntrusion * detailScale);
 };
 
 // Read the existing deck collider once; never change its shape or traversal.

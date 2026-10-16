@@ -84,7 +84,7 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
 
   // A thin worn-earth shoulder outside the existing path: the opaque sand center is untouched.
   const positions = [], indices = [], colors = [], soil = Color3.FromHexString(CONFIG.wornColor);
-  for (const { points } of ENVIRONMENT_ROUTES) {
+  for (const { points, width } of ENVIRONMENT_ROUTES) {
     for (let index = 1; index < points.length; index++) {
       const from = points[index - 1], to = points[index];
       if (!getCentralCampMix((from.x + to.x) / 2, (from.z + to.z) / 2) ||
@@ -94,7 +94,7 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
         for (const [point, i] of [[from, index - 1], [to, index]]) {
           const before = points[Math.max(0, i - 1)], after = points[Math.min(points.length - 1, i + 1)];
           const length = Math.hypot(after.x - before.x, after.z - before.z) || 1;
-          const approach = bridgeApproach(point), radius = pathEdgeRadius(point, side);
+          const approach = bridgeApproach(point), radius = pathEdgeRadius(point, side, width);
           const edge = approach ? radius * (1 - approach.weight * 0.85) +
             (approach.halfWidth + 0.1) * approach.weight * 0.85 : radius;
           for (const outer of [0, 1]) {

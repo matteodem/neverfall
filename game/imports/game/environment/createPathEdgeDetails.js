@@ -8,7 +8,7 @@ import { getPathBridgeApproach, pathEdgeRadius } from "./pathSurfaceShape";
 export const createPathEdgeDetails = ({ scene, root, ground, props, belongs, density }) => {
   if (!props.available || density <= 0) return;
   const bridgeApproach = getPathBridgeApproach(scene);
-  for (const { points } of ENVIRONMENT_ROUTES) {
+  for (const { points, width } of ENVIRONMENT_ROUTES) {
     const random = randomForChunk({ x: points[0].x + 17, z: points[0].z - 31 });
     const spacing = CONFIG.stoneSpacing / density;
     let distance = 0, next = spacing * (0.5 + random() * 0.5), placed = 0;
@@ -19,7 +19,7 @@ export const createPathEdgeDetails = ({ scene, root, ground, props, belongs, den
       if (distance < next) continue;
       next += spacing * (0.8 + random() * 0.4);
       const side = random() < 0.5 ? -1 : 1;
-      const offset = side * (pathEdgeRadius(point, side) + 0.08);
+      const offset = side * (pathEdgeRadius(point, side, width) + 0.08);
       const position = { x: point.x + (point.z - from.z) / length * offset,
         z: point.z - (point.x - from.x) / length * offset };
       if (!belongs(position) || bridgeApproach(position)?.weight > 0 ||
