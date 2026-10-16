@@ -3,6 +3,7 @@ import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { isOnEnvironmentPath } from "./environmentPaths";
+import { CENTRAL_CAMP_POLISH, getCentralCampMix } from "./centralCampPolishConfig";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
 // import { isInRiver } from "./terrainHeight";
@@ -98,6 +99,16 @@ const PATHS = [
 const DETAIL_CLEARINGS = [
   ...CIRCLES,
   ...NPC_DEFINITIONS.map((npc) => ({ ...npc.position, radius: 5 })),
+  ...HIDDEN_CACHES.map((cache) => ({ ...cache.position, radius: 4 })),
+];
+
+// Fine camp vegetation may enter the broad spawn clearing, but never interaction spaces.
+const CAMP_DETAIL_CLEARINGS = [
+  ...CIRCLES.filter((area) => !(area.x === 0 && area.z === 0 && area.radius === 10))
+    .map((area) => area.radius === 8 && ENEMY_SPAWNS.some((spawn) => spawn.x === area.x && spawn.z === area.z)
+      ? { ...area, radius: CENTRAL_CAMP_POLISH.enemyClearance } : area),
+  { x: 0, z: 0, radius: 3.5 },
+  ...NPC_DEFINITIONS.map((npc) => ({ ...npc.position, radius: CENTRAL_CAMP_POLISH.npcClearance })),
   ...HIDDEN_CACHES.map((cache) => ({ ...cache.position, radius: 4 })),
 ];
 
@@ -331,6 +342,8 @@ export const loadForestProps = async (scene) => {
     canPlacePathDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false),
     // Authored dry shoreline details may enter the usual scenery bank exclusion.
     canPlaceBankDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false, false),
+    canPlaceCampDetail: (position, clearance) => getCentralCampMix(position.x, position.z) > 0 &&
+      isOpen(position, clearance, CAMP_DETAIL_CLEARINGS, false, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {
       const root = new TransformNode("ancient-forest-shrine", scene);

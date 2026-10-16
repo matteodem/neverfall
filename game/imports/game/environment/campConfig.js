@@ -10,8 +10,8 @@ export const MAGE_AWNING = {
 
 export const GUARD_POST = {
   asset: "guard-post",
-  x: -8.2,
-  z: -13.9,
+  x: -6.6, // World x: -4.6, just beside the Guard's west shoulder.
+  z: -15.3, // World z: -11.8, behind the Guard toward the bridge.
   rotationY: Math.PI + 0.35, // Face the lantern arm toward the road.
   scale: 1.6, // Existing camp scale (1.8) makes the final uniform scale 2.88.
 };
