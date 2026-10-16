@@ -28,7 +28,7 @@ export const createGameCamera = (
   const camera =
     new ArcRotateCamera(
       "camera",
-      Math.PI * 1.5,
+      Math.PI / 2,
       Math.PI / 3,
       CAMERA.radius,
       player.position,
