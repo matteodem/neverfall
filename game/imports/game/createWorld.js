@@ -40,6 +40,9 @@ import {
 } from "@babylonjs/core";
 
 import { createWorldBoundary } from "./environment/createWorldBoundary";
+import { createEnvironmentPolish } from "./environment/createEnvironmentPolish";
+import { isOnEnvironmentPath } from "./environment/environmentPaths";
+import { ENVIRONMENT_PATHS } from "./environment/environmentPolishConfig";
 
 import {
   createClearingCamp,
@@ -511,7 +514,8 @@ export const createWorld =
           center: new Vector3(chunk.x, 0, chunk.z),
           includeFloor: false,
           // exclude: (position) => isInRiver(position, 5),
-          exclude: (position) => isInStarterRiver(position, 2),
+          exclude: (position) => isInStarterRiver(position, 2) ||
+            isOnEnvironmentPath(position, ENVIRONMENT_PATHS.sceneryClearance),
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             // Keep fallback scenery off the mountain's approach and summit too.
@@ -562,6 +566,9 @@ export const createWorld =
           });
           chunks.add(camp, NORTHERN_CAMP.center);
         }
+        chunks.add(createEnvironmentPolish({
+          scene, chunk, ground, props: forestProps, density: quality.density,
+        }), chunk);
         if (chunk.x === 0 && chunk.z === 0) forest = area;
         });
       }

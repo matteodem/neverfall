@@ -2,6 +2,7 @@ import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
 import { isInStarterRiver } from "./starterRiverHeight";
+import { isOnEnvironmentPath } from "./environmentPaths";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
 // import { isInRiver } from "./terrainHeight";
@@ -119,13 +120,14 @@ const distanceToPath = (position, { from, to }) => {
   return Math.hypot(position.x - from.x - t * dx, position.z - from.z - t * dz);
 };
 
-const isOpen = (position, clearance, areas) =>
+const isOpen = (position, clearance, areas, keepPaths = true) =>
   !isInStarterRiver(position, clearance) &&
   // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
     Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
-  PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance);
+  (!keepPaths || (PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance) &&
+    !isOnEnvironmentPath(position, clearance)));
 
 const nearby = (center, radius, random) => {
   const angle = random() * Math.PI * 2;
@@ -325,6 +327,8 @@ export const loadForestProps = async (scene) => {
     available, placeChunk, placeVegetation,
     placeAsset: place,
     canPlace: (position, clearance) => isOpen(position, clearance, CIRCLES),
+    canPlaceDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS),
+    canPlacePathDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {
       const root = new TransformNode("ancient-forest-shrine", scene);
