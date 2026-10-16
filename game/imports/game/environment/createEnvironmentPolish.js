@@ -4,6 +4,7 @@ import { randomForChunk } from "./createForestProps";
 import { PROP_CLUSTERS, PROP_CLUSTER_STYLES } from "./environmentPolishConfig";
 import { createEnvironmentPaths } from "./createEnvironmentPaths";
 import { createPathEdgeDetails } from "./createPathEdgeDetails";
+import { createBridgeBanks } from "./createBridgeBanks";
 
 // Paths and reused prop instances follow the existing chunk visibility lifecycle.
 export const createEnvironmentPolish = ({ scene, chunk, ground, props, density }) => {
@@ -16,6 +17,7 @@ export const createEnvironmentPolish = ({ scene, chunk, ground, props, density }
   const paths = createEnvironmentPaths({ scene, chunk, ground, belongs });
   if (paths) paths.parent = root;
   createPathEdgeDetails({ scene, root, ground, props, belongs, density });
+  if (chunk.x === 0 && chunk.z === 0) createBridgeBanks({ scene, root, ground, props, density });
 
   if (props.available) {
     for (const cluster of PROP_CLUSTERS.filter(belongs)) {

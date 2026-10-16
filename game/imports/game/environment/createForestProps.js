@@ -120,8 +120,8 @@ const distanceToPath = (position, { from, to }) => {
   return Math.hypot(position.x - from.x - t * dx, position.z - from.z - t * dz);
 };
 
-const isOpen = (position, clearance, areas, keepPaths = true) =>
-  !isInStarterRiver(position, clearance) &&
+const isOpen = (position, clearance, areas, keepPaths = true, keepRiver = true) =>
+  (!keepRiver || !isInStarterRiver(position, clearance)) &&
   // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
@@ -329,6 +329,8 @@ export const loadForestProps = async (scene) => {
     canPlace: (position, clearance) => isOpen(position, clearance, CIRCLES),
     canPlaceDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS),
     canPlacePathDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false),
+    // Authored dry shoreline details may enter the usual scenery bank exclusion.
+    canPlaceBankDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {
       const root = new TransformNode("ancient-forest-shrine", scene);

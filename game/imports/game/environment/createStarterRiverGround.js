@@ -4,6 +4,7 @@ import { STARTER_RIVER as RIVER, riverToWorld, worldToRiver } from "./starterRiv
 import { getStarterRiverBankMix, getStarterRiverSection } from "./starterRiverHeight";
 import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 import { attachRiverGroundSampling, createRiverGroundGrid } from "./starterRiverGroundGeometry";
+import { BRIDGE_BANK_POLISH } from "./environmentPolishConfig";
 
 // Replace only coarse cells along the channel. Short strips follow the bends,
 // then merge into one bank mesh: distant terrain and draw calls stay unchanged.
@@ -51,9 +52,15 @@ export const createStarterRiverGround = (scene, ground) => {
       const samples = u >= v ? [[a, 1 - u], [a + 1, u - v], [d, v]]
         : [[a, 1 - v], [a + stride, v - u], [d, u]];
       const bank = getStarterRiverBankMix(x, z) * 0.55;
+      // Color only: softly widen the dry soil shoulder near the existing camp crossing.
+      // Keep every height, shoreline vertex and collision triangle unchanged.
+      const shoreDistance = section ? Math.abs(cross - section.x) - section.halfWidth : Infinity;
+      const local = Math.max(0, 1 - Math.abs(x) / BRIDGE_BANK_POLISH.soilLength);
+      const shore = Math.max(0, Math.min(1, 1 - shoreDistance / BRIDGE_BANK_POLISH.soilReach));
+      const soil = Math.max(bank, local * local * shore * shore * (3 - 2 * shore) * 0.65);
       for (let channel = 0; channel < 3; channel++) {
         const original = samples.reduce((sum, [vertex, weight]) => sum + sourceColors[vertex * 4 + channel] * weight, 0);
-        colors[index / 3 * 4 + channel] = original * (1 - bank) + earth[channel] * bank;
+        colors[index / 3 * 4 + channel] = original * (1 - soil) + earth[channel] * soil;
       }
       colors[index / 3 * 4 + 3] = 1;
     }

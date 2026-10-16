@@ -31,6 +31,19 @@ export const ENVIRONMENT_PATHS = {
   ],
 };
 
+export const BRIDGE_BANK_POLISH = {
+  soilReach: 3.2,
+  soilLength: 14,
+  shoulderHeight: 0.22,
+  shoulderWidth: 3.2,
+  shoulderDepth: 4.2,
+  walkwayClearance: 0.45,
+  thresholdDustLength: 0.85,
+  thresholdDustOpacity: 0.4,
+  rockScales: [0.7, 0.48, 0.36],
+  shorelineOffsets: [-10.5, -7.2, -4.2, 4.2, 7.2, 10.5],
+};
+
 // Asymmetric, reusable compositions, rather than uniform random scatter.
 export const PROP_CLUSTER_STYLES = {
   forest: [
