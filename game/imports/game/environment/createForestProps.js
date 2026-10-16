@@ -2,6 +2,8 @@ import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
 import { isInStarterRiver } from "./starterRiverHeight";
+import { isOnEnvironmentPath } from "./environmentPaths";
+import { CENTRAL_CAMP_POLISH, getCentralCampMix } from "./centralCampPolishConfig";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
 // import { isInRiver } from "./terrainHeight";
@@ -100,6 +102,16 @@ const DETAIL_CLEARINGS = [
   ...HIDDEN_CACHES.map((cache) => ({ ...cache.position, radius: 4 })),
 ];
 
+// Fine camp vegetation may enter the broad spawn clearing, but never interaction spaces.
+const CAMP_DETAIL_CLEARINGS = [
+  ...CIRCLES.filter((area) => !(area.x === 0 && area.z === 0 && area.radius === 10))
+    .map((area) => area.radius === 8 && ENEMY_SPAWNS.some((spawn) => spawn.x === area.x && spawn.z === area.z)
+      ? { ...area, radius: CENTRAL_CAMP_POLISH.enemyClearance } : area),
+  { x: 0, z: 0, radius: 3.5 },
+  ...NPC_DEFINITIONS.map((npc) => ({ ...npc.position, radius: CENTRAL_CAMP_POLISH.npcClearance })),
+  ...HIDDEN_CACHES.map((cache) => ({ ...cache.position, radius: 4 })),
+];
+
 export const randomForChunk = ({ x, z }) => {
   let seed = ((x + 400) * 73856093 ^ (z + 400) * 19349663) >>> 0;
   return () => {
@@ -119,13 +131,14 @@ const distanceToPath = (position, { from, to }) => {
   return Math.hypot(position.x - from.x - t * dx, position.z - from.z - t * dz);
 };
 
-const isOpen = (position, clearance, areas) =>
-  !isInStarterRiver(position, clearance) &&
+const isOpen = (position, clearance, areas, keepPaths = true, keepRiver = true) =>
+  (!keepRiver || !isInStarterRiver(position, clearance)) &&
   // !isInRiver(position, clearance + 4) &&
   !isInSoutheastMountain(position, clearance) &&
   areas.every((area) =>
     Math.hypot(position.x - area.x, position.z - area.z) >= area.radius + clearance) &&
-  PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance);
+  (!keepPaths || (PATHS.every((path) => distanceToPath(position, path) >= path.width + clearance) &&
+    !isOnEnvironmentPath(position, clearance)));
 
 const nearby = (center, radius, random) => {
   const angle = random() * Math.PI * 2;
@@ -325,6 +338,12 @@ export const loadForestProps = async (scene) => {
     available, placeChunk, placeVegetation,
     placeAsset: place,
     canPlace: (position, clearance) => isOpen(position, clearance, CIRCLES),
+    canPlaceDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS),
+    canPlacePathDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false),
+    // Authored dry shoreline details may enter the usual scenery bank exclusion.
+    canPlaceBankDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false, false),
+    canPlaceCampDetail: (position, clearance) => getCentralCampMix(position.x, position.z) > 0 &&
+      isOpen(position, clearance, CAMP_DETAIL_CLEARINGS, false, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {
       const root = new TransformNode("ancient-forest-shrine", scene);

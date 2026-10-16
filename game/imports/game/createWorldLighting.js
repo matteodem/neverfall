@@ -70,14 +70,15 @@ export const createWorldLighting = (scene, { player, ground, quality }) => {
       const material = mesh.material || scene.defaultMaterial;
       const materials = material.subMaterials || [material];
       const source = mesh.sourceMesh || mesh;
+      const role = mesh.metadata?.worldShadows || source.metadata?.worldShadows;
       if (!materials.some((material) => isSolidMaterial(material, mesh))) {
-        source.receiveShadows = false;
+        // Alpha-blended roads can receive the world map without entering its caster list.
+        source.receiveShadows = role?.receive === true;
         continue;
       }
 
       // Instances inherit receiveShadows from their source, but each placement
       // must enter the render list for Babylon's instance batching to include it.
-      const role = mesh.metadata?.worldShadows || source.metadata?.worldShadows;
       source.receiveShadows = role?.receive !== false;
       if (role?.cast === false || mesh === ground || mesh.name === "forestPathGround") continue;
 

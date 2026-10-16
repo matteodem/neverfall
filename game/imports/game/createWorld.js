@@ -21,6 +21,8 @@ import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerC
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
 import { getTerrainColorVariation } from "./environment/terrainColor";
+import { CENTRAL_CAMP_POLISH } from "./environment/centralCampPolishConfig";
+import { createCentralCampPolish } from "./environment/createCentralCampPolish";
 import { WORLD_PALETTE as PALETTE } from "./environment/worldPalette";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
 import { WAYPOINTS } from "./waypoints";
@@ -40,6 +42,9 @@ import {
 } from "@babylonjs/core";
 
 import { createWorldBoundary } from "./environment/createWorldBoundary";
+import { createEnvironmentPolish } from "./environment/createEnvironmentPolish";
+import { isOnEnvironmentPath } from "./environment/environmentPaths";
+import { ENVIRONMENT_PATHS } from "./environment/environmentPolishConfig";
 
 import {
   createClearingCamp,
@@ -122,6 +127,7 @@ export const createWorld =
       const highlandColor = Color3.FromHexString(PALETTE.terrain.highlands);
       const oliveColor = Color3.FromHexString(PALETTE.terrain.olive);
       const brownColor = Color3.FromHexString(PALETTE.terrain.earth);
+      const campEarthColor = Color3.FromHexString(CENTRAL_CAMP_POLISH.wornColor);
       const snowColor = Color3.FromHexString(PALETTE.terrain.snow);
       const coldStoneColor = Color3.FromHexString(PALETTE.rock);
       for (let index = 0; index < positions.length; index += 3) {
@@ -144,7 +150,7 @@ export const createWorld =
           const terrain = warm * (1 - snow) + cold * snow * shade;
           const groundColor = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;
           // colors[colorIndex + offset] = groundColor + (brownColor[channel] - groundColor) * riverBankMix;
-          colors[colorIndex + offset] = groundColor;
+          colors[colorIndex + offset] = groundColor + (campEarthColor[channel] - groundColor) * variation.campEarth;
         }
         colors[colorIndex + 3] = 1;
       }
@@ -511,7 +517,8 @@ export const createWorld =
           center: new Vector3(chunk.x, 0, chunk.z),
           includeFloor: false,
           // exclude: (position) => isInRiver(position, 5),
-          exclude: (position) => isInStarterRiver(position, 2),
+          exclude: (position) => isInStarterRiver(position, 2) ||
+            isOnEnvironmentPath(position, ENVIRONMENT_PATHS.sceneryClearance),
           ...WORLD_REGIONS[chunk.region],
           extraClearings: [
             // Keep fallback scenery off the mountain's approach and summit too.
@@ -562,6 +569,9 @@ export const createWorld =
           });
           chunks.add(camp, NORTHERN_CAMP.center);
         }
+        chunks.add(createEnvironmentPolish({
+          scene, chunk, ground, props: forestProps, density: quality.density,
+        }), chunk);
         if (chunk.x === 0 && chunk.z === 0) forest = area;
         });
       }
@@ -637,6 +647,8 @@ export const createWorld =
 
 
       chunks.add(clearingCamp, clearingCamp.position);
+      chunks.add(createCentralCampPolish({ scene, camp: clearingCamp, ground, props: forestProps,
+        density: quality.density }), clearingCamp.position);
       chunks.update();
     }
 

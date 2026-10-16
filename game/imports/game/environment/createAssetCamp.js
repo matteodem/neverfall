@@ -1,8 +1,9 @@
 import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
+import { GUARD_POST, MAGE_AWNING } from "./campConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot"];
+const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset, GUARD_POST.asset];
 const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
 const assetFile = (name) => ENVIRONMENT_ASSETS[name]
   ? ["/models/environment/", `${ENVIRONMENT_ASSETS[name]}.glb`]
@@ -36,7 +37,7 @@ const CENTRAL_PROPS = [
   ["campfire", 1.5, 0.5, 0, 4],
   ["tent", -8.5, -2, 0.35, 1.45],
   ["tent", 10.9, -2.3, -0.45, 1.4],
-  ["logBench", -2.7, 2.1, 0.4, 1.7],
+  ["logBench", 2.2, 4.5, 0.15, 1.7],
   ["logBench", 5.5, 2.4, -0.5, 1.7],
   ["campingPot", 3.2, -0.5, 0, 1.2],
   ["flashlight", 5.2, -0.2, 0.2, 1.8],
@@ -57,7 +58,7 @@ export const loadCampAssets = async (scene) => {
   const containers = new Map();
   loaded.forEach((result, index) => {
     if (result.status === "fulfilled") {
-      harmonizeEnvironmentMaterials(result.value.materials, ENVIRONMENT_ASSETS[ASSETS[index]]);
+      harmonizeEnvironmentMaterials(result.value.materials, ENVIRONMENT_ASSETS[ASSETS[index]] || ASSETS[index]);
       containers.set(ASSETS[index], result.value);
     } else console.warn(`[Camp] Could not load ${ASSETS[index]}.glb`, result.reason);
   });
@@ -87,7 +88,7 @@ export const loadCampAssets = async (scene) => {
       minZ = Math.min(minZ, bounds.minimumWorld.z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
-      mesh.checkCollisions = name !== "tent";
+      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset && name !== GUARD_POST.asset;
       mesh.receiveShadows = true;
     }
     if (Number.isFinite(minY))
@@ -111,6 +112,10 @@ export const loadCampAssets = async (scene) => {
     const offsetScale = rugged ? 0.85 : 1;
     for (const [name, x, z, rotation, scale] of props)
       place(root, name, x * offsetScale, z * offsetScale, rotation, scale);
+    if (!rugged) place(root, MAGE_AWNING.asset, MAGE_AWNING.x, MAGE_AWNING.z,
+      MAGE_AWNING.rotationY, MAGE_AWNING.scale);
+    if (!rugged) place(root, GUARD_POST.asset, GUARD_POST.x, GUARD_POST.z,
+      GUARD_POST.rotationY, GUARD_POST.scale);
 
     const fire = props[0];
     const fireX = fire[1] * offsetScale;
