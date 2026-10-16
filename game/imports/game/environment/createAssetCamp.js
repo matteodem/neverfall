@@ -1,8 +1,9 @@
 import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
+import { MAGE_AWNING } from "./campConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot"];
+const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset];
 const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
 const assetFile = (name) => ENVIRONMENT_ASSETS[name]
   ? ["/models/environment/", `${ENVIRONMENT_ASSETS[name]}.glb`]
@@ -57,7 +58,7 @@ export const loadCampAssets = async (scene) => {
   const containers = new Map();
   loaded.forEach((result, index) => {
     if (result.status === "fulfilled") {
-      harmonizeEnvironmentMaterials(result.value.materials, ENVIRONMENT_ASSETS[ASSETS[index]]);
+      harmonizeEnvironmentMaterials(result.value.materials, ENVIRONMENT_ASSETS[ASSETS[index]] || ASSETS[index]);
       containers.set(ASSETS[index], result.value);
     } else console.warn(`[Camp] Could not load ${ASSETS[index]}.glb`, result.reason);
   });
@@ -87,7 +88,7 @@ export const loadCampAssets = async (scene) => {
       minZ = Math.min(minZ, bounds.minimumWorld.z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
-      mesh.checkCollisions = name !== "tent";
+      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset;
       mesh.receiveShadows = true;
     }
     if (Number.isFinite(minY))
@@ -111,6 +112,8 @@ export const loadCampAssets = async (scene) => {
     const offsetScale = rugged ? 0.85 : 1;
     for (const [name, x, z, rotation, scale] of props)
       place(root, name, x * offsetScale, z * offsetScale, rotation, scale);
+    if (!rugged) place(root, MAGE_AWNING.asset, MAGE_AWNING.x, MAGE_AWNING.z,
+      MAGE_AWNING.rotationY, MAGE_AWNING.scale);
 
     const fire = props[0];
     const fireX = fire[1] * offsetScale;
