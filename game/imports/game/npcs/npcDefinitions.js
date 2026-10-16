@@ -22,7 +22,7 @@ export const NPC_DEFINITIONS = [
       "awakened-threat", "discover-highlands",
     ],
     gameClass: "warrior",
-    position: { x: -2, y: 0, z: -7 },
+    position: { x: -3, y: 0, z: -10 },
     rotationY: 0,
     appearance: {
       head: "head-00", hair: null, skinTone: "tan", bodyType: "large",
