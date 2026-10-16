@@ -3,7 +3,7 @@ import { getWorldHeight } from "../worldConfig";
 import { CENTRAL_CAMP_POLISH as CONFIG, getCentralCampMix } from "./centralCampPolishConfig";
 import { randomForChunk } from "./createForestProps";
 import { ENVIRONMENT_ROUTES, isOnEnvironmentPath } from "./environmentPaths";
-import { pathEdgeRadius, getPathBridgeApproach } from "./pathSurfaceShape";
+import { getPathSection, getPathBridgeApproach } from "./pathSurfaceShape";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { STARTER_RIVER } from "./starterRiverConfig";
 import { batchCampVegetation } from "./batchCampVegetation";
@@ -84,23 +84,23 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
 
   // A thin worn-earth shoulder outside the existing path: the opaque sand center is untouched.
   const positions = [], indices = [], colors = [], soil = Color3.FromHexString(CONFIG.wornColor);
-  for (const { points, width } of ENVIRONMENT_ROUTES) {
+  for (const route of ENVIRONMENT_ROUTES) {
+    const { points } = route;
     for (let index = 1; index < points.length; index++) {
       const from = points[index - 1], to = points[index];
       if (!getCentralCampMix((from.x + to.x) / 2, (from.z + to.z) / 2) ||
         isInStarterRiver(from, 1.5) || isInStarterRiver(to, 1.5)) continue;
       for (const side of [-1, 1]) {
         const start = positions.length / 3;
-        for (const [point, i] of [[from, index - 1], [to, index]]) {
-          const before = points[Math.max(0, i - 1)], after = points[Math.min(points.length - 1, i + 1)];
-          const length = Math.hypot(after.x - before.x, after.z - before.z) || 1;
-          const approach = bridgeApproach(point), radius = pathEdgeRadius(point, side, width);
+        for (const i of [index - 1, index]) {
+          const section = getPathSection(route, i);
+          const approach = bridgeApproach(section), radius = section.radius(side);
           const edge = approach ? radius * (1 - approach.weight * 0.85) +
             (approach.halfWidth + 0.1) * approach.weight * 0.85 : radius;
           for (const outer of [0, 1]) {
             const distance = side * (edge - 0.08 + outer * CONFIG.shoulderWidth);
-            const x = point.x + (after.z - before.z) / length * distance;
-            const z = point.z - (after.x - before.x) / length * distance;
+            const x = section.x + section.dz * distance;
+            const z = section.z - section.dx * distance;
             positions.push(x, ground.getHeightAtCoordinates(x, z) + 0.02, z);
             colors.push(soil.r, soil.g, soil.b, outer ? 0 : getCentralCampMix(x, z) * 0.55);
           }

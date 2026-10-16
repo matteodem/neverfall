@@ -14,6 +14,34 @@ export const pathEdgeRadius = (point, side, width = CONFIG.width) => {
     bite * CONFIG.grassIntrusion * detailScale);
 };
 
+export const isPathConnection = (point) => CONFIG.connections.some((join) =>
+  Math.hypot(point.x - join.x, point.z - join.z) < 0.01);
+
+// Opposite route directions must share the same physical edges at an internal join.
+export const getPathSection = (route, index) => {
+  const point = route.points[index];
+  const before = route.points[Math.max(0, index - 1)], after = route.points[Math.min(route.points.length - 1, index + 1)];
+  const length = Math.hypot(after.x - before.x, after.z - before.z) || 1;
+  let dx = (after.x - before.x) / length, dz = (after.z - before.z) / length;
+  let x = point.x, z = point.z, reverseMix = 0;
+  const join = CONFIG.connections.find((entry) => Math.hypot(x - entry.x, z - entry.z) < entry.blendLength);
+  if (join) {
+    const t = 1 - Math.hypot(x - join.x, z - join.z) / join.blendLength;
+    const blend = t * t * (3 - 2 * t);
+    const along = (x - join.x) * join.directionX + (z - join.z) * join.directionZ;
+    const sign = dx * join.directionX + dz * join.directionZ < 0 ? -1 : 1;
+    x += (join.x + along * join.directionX - x) * blend;
+    z += (join.z + along * join.directionZ - z) * blend;
+    dx += (join.directionX * sign - dx) * blend;
+    dz += (join.directionZ * sign - dz) * blend;
+    reverseMix = sign < 0 ? blend : 0;
+  }
+  const tangentLength = Math.hypot(dx, dz) || 1;
+  return { x, z, dx: dx / tangentLength, dz: dz / tangentLength,
+    radius: (side) => pathEdgeRadius({ x, z }, side, route.width) * (1 - reverseMix) +
+      pathEdgeRadius({ x, z }, -side, route.width) * reverseMix };
+};
+
 // Read the existing deck collider once; never change its shape or traversal.
 export const getPathBridgeApproach = (scene) => {
   const deck = scene.getMeshByName("central-camp-bridge-collider");

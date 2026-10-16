@@ -6,7 +6,7 @@ import { GroundSkyFog } from "./groundSkyFog";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { WORLD_PALETTE as PALETTE } from "./worldPalette";
 import { appendPathJunction, getPathJunctions } from "./pathJunctionFillets";
-import { getPathBridgeApproach, pathEdgeRadius, pathNoise as noise } from "./pathSurfaceShape";
+import { getPathBridgeApproach, getPathSection, isPathConnection, pathEdgeRadius, pathNoise as noise } from "./pathSurfaceShape";
 
 const smooth = (value) => {
   const t = Math.max(0, Math.min(1, value));
@@ -33,8 +33,8 @@ const pathMaterial = (scene, ground) => {
 // Keep one mesh per chunk and one shared material, with no per-frame updates.
 export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
   const bridgeApproach = getPathBridgeApproach(scene);
-  const edgeRadius = (point, side, width) => {
-    const radius = pathEdgeRadius(point, side, width), approach = bridgeApproach(point);
+  const edgeRadius = (point, side, width, radius = pathEdgeRadius(point, side, width)) => {
+    const approach = bridgeApproach(point);
     if (!approach) return radius;
     // Settle into the deck width gradually, leaving a little irregularity at the abutments.
     return radius * (1 - approach.weight * 0.85) +
@@ -58,7 +58,7 @@ export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
     indices.push(a, winding >= 0 ? b : c, winding >= 0 ? c : b);
   };
   const cap = (point, direction, outward, worn = false, width) => {
-    if (!belongs(point) || isInStarterRiver(point, 1.5)) return;
+    if (!belongs(point) || isInStarterRiver(point, 1.5) || isPathConnection(point)) return;
     const length = Math.hypot(direction.x, direction.z) || 1;
     const dx = direction.x / length, dz = direction.z / length;
     const center = vertex(point.x, point.z, 1);
@@ -90,22 +90,20 @@ export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
   const junctions = getPathJunctions();
   const rows = new Map();
   const row = (route, index) => {
-    const { points, width } = route;
+    const { width } = route;
     if (!rows.has(route)) rows.set(route, new Map());
     const routeRows = rows.get(route);
     if (routeRows.has(index)) return routeRows.get(index);
-    const point = points[index], before = points[Math.max(0, index - 1)];
-    const after = points[Math.min(points.length - 1, index + 1)];
-    const length = Math.hypot(after.x - before.x, after.z - before.z) || 1;
+    const section = getPathSection(route, index);
     const start = positions.length / 3;
     for (let band = 0; band < 7; band++) {
       const side = band < 3 ? -1 : band > 3 ? 1 : 0;
-      const radius = edgeRadius(point, side, width);
+      const radius = edgeRadius(section, side, width, section.radius(side));
       const feather = Math.min(Math.max(0.01, CONFIG.edgeFade), radius * 0.9);
       const edgeStep = Math.min(band, 6 - band);
       const offset = side * (radius - feather * edgeStep / 2);
-      const x = point.x + (after.z - before.z) / length * offset;
-      const z = point.z - (after.x - before.x) / length * offset;
+      const x = section.x + section.dz * offset;
+      const z = section.z - section.dx * offset;
       vertex(x, z, edgeAlpha(edgeStep / 2));
     }
     routeRows.set(index, start);

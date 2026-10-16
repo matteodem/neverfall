@@ -17,6 +17,8 @@ export const ENVIRONMENT_PATHS = {
   sampleSpacing: 1,
   groundOffset: 0.035,
   sceneryClearance: 2,
+  // One shared cross-section where the camp road meets the bridge approach.
+  connections: [{ x: 0, z: -8, directionX: 0, directionZ: -1, blendLength: 2 }],
   routes: [
     { id: "guard-dungeon", capStyle: "worn", points: [[0, -8], [0, -38], [0, -90]] },
     { id: "central-camp", points: [[0, -8], [0, -2], [-0.3, 4], [0, 10]] },
