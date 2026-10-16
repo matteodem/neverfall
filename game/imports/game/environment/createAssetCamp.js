@@ -1,9 +1,9 @@
 import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
-import { MAGE_AWNING } from "./campConfig";
+import { GUARD_POST, MAGE_AWNING } from "./campConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset];
+const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset, GUARD_POST.asset];
 const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
 const assetFile = (name) => ENVIRONMENT_ASSETS[name]
   ? ["/models/environment/", `${ENVIRONMENT_ASSETS[name]}.glb`]
@@ -88,7 +88,7 @@ export const loadCampAssets = async (scene) => {
       minZ = Math.min(minZ, bounds.minimumWorld.z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
-      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset;
+      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset && name !== GUARD_POST.asset;
       mesh.receiveShadows = true;
     }
     if (Number.isFinite(minY))
@@ -114,6 +114,8 @@ export const loadCampAssets = async (scene) => {
       place(root, name, x * offsetScale, z * offsetScale, rotation, scale);
     if (!rugged) place(root, MAGE_AWNING.asset, MAGE_AWNING.x, MAGE_AWNING.z,
       MAGE_AWNING.rotationY, MAGE_AWNING.scale);
+    if (!rugged) place(root, GUARD_POST.asset, GUARD_POST.x, GUARD_POST.z,
+      GUARD_POST.rotationY, GUARD_POST.scale);
 
     const fire = props[0];
     const fireX = fire[1] * offsetScale;
