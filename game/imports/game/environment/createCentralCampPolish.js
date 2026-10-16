@@ -1,10 +1,9 @@
-import { Color3, Mesh, TransformNode, VertexData } from "@babylonjs/core";
+import { TransformNode } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { CENTRAL_CAMP_POLISH as CONFIG, getCentralCampMix } from "./centralCampPolishConfig";
 import { randomForChunk } from "./createForestProps";
-import { ENVIRONMENT_ROUTES, isOnEnvironmentPath } from "./environmentPaths";
-import { getPathSection, getPathBridgeApproach } from "./pathSurfaceShape";
-import { isInStarterRiver } from "./starterRiverHeight";
+import { isOnEnvironmentPath } from "./environmentPaths";
+import { getPathBridgeApproach } from "./pathSurfaceShape";
 import { STARTER_RIVER } from "./starterRiverConfig";
 import { batchCampVegetation } from "./batchCampVegetation";
 
@@ -82,48 +81,6 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
 
   batchCampVegetation(root);
 
-  // A thin worn-earth shoulder outside the existing path: the opaque sand center is untouched.
-  const positions = [], indices = [], colors = [], soil = Color3.FromHexString(CONFIG.wornColor);
-  for (const route of ENVIRONMENT_ROUTES) {
-    if (route.campShoulder === false) continue;
-    const { points } = route;
-    for (let index = 1; index < points.length; index++) {
-      const from = points[index - 1], to = points[index];
-      if (!getCentralCampMix((from.x + to.x) / 2, (from.z + to.z) / 2) ||
-        isInStarterRiver(from, 1.5) || isInStarterRiver(to, 1.5)) continue;
-      for (const side of [-1, 1]) {
-        const start = positions.length / 3;
-        for (const i of [index - 1, index]) {
-          const section = getPathSection(route, i);
-          const approach = bridgeApproach(section), radius = section.radius(side);
-          const edge = approach ? radius * (1 - approach.weight * 0.85) +
-            (approach.halfWidth + 0.1) * approach.weight * 0.85 : radius;
-          for (const outer of [0, 1]) {
-            const distance = side * (edge - 0.08 + outer * CONFIG.shoulderWidth);
-            const x = section.x + section.dz * distance;
-            const z = section.z - section.dx * distance;
-            positions.push(x, ground.getHeightAtCoordinates(x, z) + 0.02, z);
-            colors.push(soil.r, soil.g, soil.b, outer ? 0 : getCentralCampMix(x, z) * 0.55);
-          }
-        }
-        if (side < 0) indices.push(start, start + 2, start + 1, start + 1, start + 2, start + 3);
-        else indices.push(start, start + 1, start + 2, start + 1, start + 3, start + 2);
-      }
-    }
-  }
-  const shoulders = new Mesh("central-camp-path-shoulders", scene);
-  const data = new VertexData();
-  Object.assign(data, { positions, indices, colors, normals: [] });
-  VertexData.ComputeNormals(positions, indices, data.normals);
-  data.applyToMesh(shoulders);
-  shoulders.parent = root;
-  shoulders.material = scene.getMaterialByName("environment-dirt-path");
-  shoulders.useVertexColors = true;
-  shoulders.hasVertexAlpha = true;
-  shoulders.isPickable = false;
-  shoulders.checkCollisions = false;
-  shoulders.receiveShadows = true;
-  shoulders.metadata = { worldShadows: { cast: false, receive: true } };
   root.metadata = { vegetationCounts: counts };
   for (const mesh of root.getChildMeshes()) mesh.freezeWorldMatrix();
   return root;

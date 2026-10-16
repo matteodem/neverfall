@@ -17,13 +17,16 @@ export const ENVIRONMENT_PATHS = {
   sampleSpacing: 1,
   groundOffset: 0.035,
   sceneryClearance: 2,
-  // One shared cross-section where the camp road meets the bridge approach.
-  connections: [{ x: 0, z: -8, directionX: 0, directionZ: -1, blendLength: 2 }],
+  // Shared cross-sections at continuous camp-road joins; no overlapping endpoint caps.
+  connections: [
+    { x: 0, z: -8, directionX: 0, directionZ: -1, blendLength: 2 },
+    { x: 0, z: 10, directionX: 0, directionZ: 1, blendLength: 2 },
+  ],
   routes: [
     { id: "guard-dungeon", capStyle: "worn", points: [[0, -8], [0, -38], [0, -90]] },
     { id: "central-camp", points: [[0, -8], [0, -2], [-0.3, 4], [0, 10]] },
     { id: "camp-highlands", points: [[0, 10], [0, 85], [0, 150], [0, 200]] },
-    { id: "wolf-trail", width: 1.8, campShoulder: false,
+    { id: "wolf-trail", width: 1.8,
       points: [[0, 35], [-12, 36], [-27, 49], [-43, 50]] },
     { id: "giant-hill", points: [[0, 35], [32, 48], [70, 72]] },
     { id: "northern-ruins", points: [[0, 200], [40, 196], [80, 180]] },

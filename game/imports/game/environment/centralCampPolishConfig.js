@@ -14,7 +14,6 @@ export const CENTRAL_CAMP_POLISH = {
   npcClearance: 3.4,
   enemyClearance: 4.5,
   wornColor: "#B99E70",
-  shoulderWidth: 0.8,
   // Keep camp activity warm and worn, with darker greens around planted beds.
   activityAreas: [
     { x: 0, z: 0, radius: 7 }, { x: 3.5, z: 4, radius: 7 },
