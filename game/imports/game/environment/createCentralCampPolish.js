@@ -1,5 +1,6 @@
 import { TransformNode } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
+// import { CENTRAL_CAMP_POLISH as CONFIG, getCentralCampClearing } from "./centralCampPolishConfig";
 import { CENTRAL_CAMP_POLISH as CONFIG } from "./centralCampPolishConfig";
 import { randomForChunk } from "./createForestProps";
 import { ENVIRONMENT_ROUTES, isOnEnvironmentPath } from "./environmentPaths";
@@ -68,11 +69,29 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
       const other = Math.floor(random() * (index + 1));
       [anchors[index], anchors[other]] = [anchors[other], anchors[index]];
     }
+//     // Reserve part of the existing budget for pockets immediately outside the dirt.
+//     // Radial searches follow the merged lobes rather than adding a uniform circular bed.
+//     const edgeAnchors = Array.from({ length: 36 }, (_, index) => {
+//       const angle = (index + random() * 0.5) / 36 * Math.PI * 2;
+//       const dx = Math.cos(angle), dz = Math.sin(angle);
+//       let inner = 0, outer = 35;
+//       for (let step = 0; step < 12; step++) {
+//         const radius = (inner + outer) / 2;
+//         const inset = getCentralCampClearing(CONFIG.center.x + dx * radius, CONFIG.center.z + dz * radius).inset;
+//         if (inset > -0.8) inner = radius;
+//         else outer = radius;
+//       }
+//       return { x: CONFIG.center.x + dx * outer, z: CONFIG.center.z + dz * outer, edge: true };
+//     });
     const occupied = [];
+    // for (const anchor of [...edgeAnchors, ...anchors]) {
     for (const anchor of anchors) {
       const richness = 0.65 + random() * 0.7;
+      // const radius = anchor.edge ? 1.6 : CONFIG.clusterRadius * (0.7 + random() * 0.6);
       const radius = CONFIG.clusterRadius * (0.7 + random() * 0.6);
+      // const grassCount = Math.ceil((anchor.edge ? 28 : CONFIG.clusterGrass) * density * richness);
       const grassCount = Math.ceil(CONFIG.clusterGrass * density * richness);
+      // const flowerCount = Math.ceil((anchor.edge ? 6 : CONFIG.clusterFlowers) * density * richness);
       const flowerCount = Math.ceil(CONFIG.clusterFlowers * density * richness);
       for (let index = 0; index < grassCount + flowerCount; index++) {
         const flowering = index >= grassCount;

@@ -4,6 +4,7 @@ import { createVegetationPatches } from "./createVegetationPatches";
 import { createCentralForestTrees } from "./createCentralForestTrees";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { isOnEnvironmentPath } from "./environmentPaths";
+// import { CENTRAL_CAMP_POLISH, getCentralCampClearing } from "./centralCampPolishConfig";
 import { CENTRAL_CAMP_POLISH } from "./centralCampPolishConfig";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
@@ -248,6 +249,7 @@ export const loadForestProps = async (scene) => {
       center, size, density,
       random: randomForChunk({ x: center.x + 106, z: center.z - 106 }),
       canPlace: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS) &&
+        // getCentralCampClearing(position.x, position.z).dirt < 0.35 &&
         occupied.every((point) => Math.hypot(point.x - position.x, point.z - position.z) > 1.5),
       place: (kind, position, random, scale) => place(root, kind, {
         x: position.x - root.position.x, z: position.z - root.position.z,
@@ -355,6 +357,7 @@ export const loadForestProps = async (scene) => {
     canPlaceBankDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false, false),
     canPlaceCampDetail: (position, clearance) => Math.hypot(position.x - CENTRAL_CAMP_POLISH.center.x,
       position.z - CENTRAL_CAMP_POLISH.center.z) < CENTRAL_CAMP_POLISH.vegetationRadius &&
+      // getCentralCampClearing(position.x, position.z).dirt < 0.35 &&
       isOpen(position, clearance, CAMP_DETAIL_CLEARINGS, false, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {

@@ -1,10 +1,10 @@
 import { Color3, MeshBuilder, PointLight, SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { getWorldHeight } from "../worldConfig";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
-import { GUARD_POST, MAGE_AWNING } from "./campConfig";
+import { CENTRAL_CAMP_FENCES, GUARD_POST, MAGE_AWNING } from "./campConfig";
 
-const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset, GUARD_POST.asset];
-const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot" };
+const ASSETS = ["tent", "campfire", "logBench", "campingPot", MAGE_AWNING.asset, GUARD_POST.asset, "fence"];
+const ENVIRONMENT_ASSETS = { tent: "camp-tent", campfire: "camp-fire", logBench: "log-bench", campingPot: "camping-pot", fence: "fence" };
 const assetFile = (name) => ENVIRONMENT_ASSETS[name]
   ? ["/models/environment/", `${ENVIRONMENT_ASSETS[name]}.glb`]
   : ["/models/camp/", `${name}.glb`];
@@ -88,8 +88,9 @@ export const loadCampAssets = async (scene) => {
       minZ = Math.min(minZ, bounds.minimumWorld.z);
       maxZ = Math.max(maxZ, bounds.maximumWorld.z);
       mesh.isPickable = false;
-      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset && name !== GUARD_POST.asset;
+      mesh.checkCollisions = name !== "tent" && name !== MAGE_AWNING.asset && name !== GUARD_POST.asset && name !== "fence";
       mesh.receiveShadows = true;
+      if (name === "fence") mesh.metadata = { ...mesh.metadata, worldShadows: { cast: false, receive: true } };
     }
     if (Number.isFinite(minY))
       model.position.set(-(minX + maxX) / 2, -minY, -(minZ + maxZ) / 2);
@@ -116,6 +117,9 @@ export const loadCampAssets = async (scene) => {
       MAGE_AWNING.rotationY, MAGE_AWNING.scale);
     if (!rugged) place(root, GUARD_POST.asset, GUARD_POST.x, GUARD_POST.z,
       GUARD_POST.rotationY, GUARD_POST.scale);
+    // Fence rendering disabled; retain the placement config and asset for later.
+    // if (!rugged) for (const [x, z, rotation, scale] of CENTRAL_CAMP_FENCES)
+    //   place(root, "fence", x, z, rotation, scale);
 
     const fire = props[0];
     const fireX = fire[1] * offsetScale;
