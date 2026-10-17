@@ -3,7 +3,7 @@ import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { isOnEnvironmentPath } from "./environmentPaths";
-import { CENTRAL_CAMP_POLISH, getCentralCampMix } from "./centralCampPolishConfig";
+import { CENTRAL_CAMP_POLISH } from "./centralCampPolishConfig";
 import { HIDDEN_CACHES } from "../hiddenCaches";
 import { NPC_DEFINITIONS } from "../npcs/npcDefinitions";
 // import { isInRiver } from "./terrainHeight";
@@ -34,6 +34,7 @@ const MODELS = {
   scrub: ["bush_3", "grass_2"],
   grassTufts: ["grass_1", "grass_2"],
   flowers: ["flowers_1"],
+  campFlowers: ["flowers_1", "flowers_2"],
   bushes: ["bush_1", "bush_2", "bush_3"],
   stones: ["rock_1"],
   rocks: ["rock_1", "rock_2"],
@@ -173,7 +174,7 @@ export const loadForestProps = async (scene) => {
       if (result.status === "rejected") console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
     });
   };
-  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents", "flowers"];
+  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents", "flowers", "campFlowers"];
   const initialNames = [...new Set(initialKinds.flatMap((kind) => MODELS[kind]))];
   const snowyNames = [...new Set(Object.entries(MODELS)
     .filter(([kind]) => kind.startsWith("snowy"))
@@ -342,7 +343,8 @@ export const loadForestProps = async (scene) => {
     canPlacePathDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false),
     // Authored dry shoreline details may enter the usual scenery bank exclusion.
     canPlaceBankDetail: (position, clearance) => isOpen(position, clearance, DETAIL_CLEARINGS, false, false),
-    canPlaceCampDetail: (position, clearance) => getCentralCampMix(position.x, position.z) > 0 &&
+    canPlaceCampDetail: (position, clearance) => Math.hypot(position.x - CENTRAL_CAMP_POLISH.center.x,
+      position.z - CENTRAL_CAMP_POLISH.center.z) < CENTRAL_CAMP_POLISH.vegetationRadius &&
       isOpen(position, clearance, CAMP_DETAIL_CLEARINGS, false, false),
     preloadShrine: () => preload(MODELS.ancientShrine),
     createShrine(position) {
