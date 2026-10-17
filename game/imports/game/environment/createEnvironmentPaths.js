@@ -5,7 +5,7 @@ import { ENVIRONMENT_ROUTES } from "./environmentPaths";
 import { GroundSkyFog } from "./groundSkyFog";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { WORLD_PALETTE as PALETTE } from "./worldPalette";
-import { appendPathJunction, getPathJunctions } from "./pathJunctionFillets";
+import { appendPathJunction, getPathJunctions, preparePathJunction } from "./pathJunctionFillets";
 import { getPathBridgeApproach, getPathSection, isPathConnection, pathEdgeRadius, pathNoise as noise } from "./pathSurfaceShape";
 
 const smooth = (value) => {
@@ -87,25 +87,35 @@ export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
       }
     }
   };
-  const junctions = getPathJunctions();
-  const rows = new Map();
-  const row = (route, index) => {
+  const section = (route, index) => {
     const { width } = route;
-    if (!rows.has(route)) rows.set(route, new Map());
-    const routeRows = rows.get(route);
-    if (routeRows.has(index)) return routeRows.get(index);
-    const section = getPathSection(route, index);
-    const start = positions.length / 3;
-    for (let band = 0; band < 7; band++) {
+    const crossSection = getPathSection(route, index);
+    return Array.from({ length: 7 }, (_, band) => {
       const side = band < 3 ? -1 : band > 3 ? 1 : 0;
-      const radius = edgeRadius(section, side, width, section.radius(side));
+      const radius = edgeRadius(crossSection, side, width, crossSection.radius(side));
       const feather = Math.min(Math.max(0.01, CONFIG.edgeFade), radius * 0.9);
       const edgeStep = Math.min(band, 6 - band);
       const offset = side * (radius - feather * edgeStep / 2);
-      const x = section.x + section.dz * offset;
-      const z = section.z - section.dx * offset;
-      vertex(x, z, edgeAlpha(edgeStep / 2));
-    }
+      const x = crossSection.x + crossSection.dz * offset;
+      const z = crossSection.z - crossSection.dx * offset;
+      return { x, z, alpha: edgeAlpha(edgeStep / 2) };
+    });
+  };
+  const candidates = getPathJunctions();
+  const junctions = candidates.filter((junction) => !isInStarterRiver(junction.center, 1.5) &&
+    !candidates.some((other) => other !== junction && junction.cuts.some((a) =>
+      other.cuts.some((b) => a.route === b.route && Math.max(a.from, b.from) < Math.min(a.to, b.to)))))
+    .map((junction) => ({ ...junction, geometry: preparePathJunction({ junction, section, edgeAlpha }) }))
+    .filter(({ geometry }) => geometry);
+  // Invalid/overlapping junctions keep their complete ribbons and rounded caps.
+  // Only successfully planned surfaces may remove route segments.
+  const rows = new Map();
+  const row = (route, index) => {
+    if (!rows.has(route)) rows.set(route, new Map());
+    const routeRows = rows.get(route);
+    if (routeRows.has(index)) return routeRows.get(index);
+    const start = positions.length / 3;
+    for (const point of section(route, index)) vertex(point.x, point.z, point.alpha);
     routeRows.set(index, start);
     return start;
   };
@@ -134,7 +144,7 @@ export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
   }
   for (const junction of junctions) {
     if (!belongs(junction.center) || isInStarterRiver(junction.center, 1.5)) continue;
-    appendPathJunction({ junction, row, vertex, triangle: capTriangle, positions, edgeAlpha });
+    appendPathJunction({ geometry: junction.geometry, row, vertex, triangle: capTriangle });
   }
   if (!positions.length) return null;
   const mesh = new Mesh(`environment-paths-${chunk.x}-${chunk.z}`, scene);
