@@ -4,6 +4,8 @@ import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession";
 import { createPlayerSelection } from "../game/playerSelection";
+import { createWorldEditor } from "../game/editor/createWorldEditor";
+import { WorldEditorPanel } from "./components/WorldEditorPanel";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { createNpcManager } from "../game/npcs/createNpcManager";
 import { useNpcStore } from "./stores/useNpcStore";
@@ -150,6 +152,7 @@ export const Game = ({
 
       let jump = null;
       let npcManager = null;
+      let worldEditor = null;
 
       let combat =
         null;
@@ -483,8 +486,15 @@ export const Game = ({
           input =
             createInput(
               canvas,
-              () => playerAlive
+              () => playerAlive && !worldEditor?.isEnabled()
             );
+
+          const canPlay = () => playerAlive && !worldEditor?.isEnabled();
+          if (location === "world") worldEditor = createWorldEditor({
+            scene, canvas, terrain: world.terrain,
+            canEnable: () => playerAlive && !useWaypointStore.getState().traveling && !useLoadingStore.getState().visible,
+            onToggle: () => { input.clear(); if (!disposed) setSelectedPlayer(null); },
+          });
 
 
           /*
@@ -513,6 +523,7 @@ export const Game = ({
            */
 
           const performAttack = (code) => {
+            if (!canPlay()) return;
             const activeCharacter = characterRef.current;
             const skill = getTalentSkill(activeCharacter.gameClass, code, activeCharacter.currentLevel, activeCharacter.talents, useSkillsStore.getState().equippedSkills);
             const actionBar = useActionBarStore.getState();
@@ -569,7 +580,7 @@ export const Game = ({
             (
               code
             ) => {
-              if (!playerAlive) return;
+              if (!canPlay()) return;
               if (
                 mounted &&
                 /^Digit[1-4]$/.test(code) &&
@@ -601,10 +612,11 @@ export const Game = ({
            * =====================================================
            */
 
-          createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer, canInteract: () => playerAlive });
+          createPlayerSelection({ canvas, scene, input, multiplayer, onSelect: setSelectedPlayer, canInteract: canPlay });
 
           let previousTouch = null;
           input.on(window, "pointerdown", (event) => {
+            if (worldEditor?.isEnabled()) return;
             if (event.pointerType !== "touch" || previousTouch ||
               (event.target !== canvas && !event.target?.closest?.(".mobile-joystick-area"))) return;
             previousTouch = { id: event.pointerId, x: event.clientX, y: event.clientY };
@@ -618,6 +630,7 @@ export const Game = ({
             (
               event
             ) => {
+              if (worldEditor?.isEnabled()) { previousTouch = null; return; }
               let dx = event.movementX;
               let dy = event.movementY;
               if (event.pointerType === "touch") {
@@ -660,8 +673,7 @@ export const Game = ({
               event
             ) => {
               event.preventDefault();
-
-
+              if (worldEditor?.isEnabled()) return;
               zoomCamera(
                 camera,
 
@@ -694,6 +706,7 @@ export const Game = ({
             (
               event
             ) => {
+              if (worldEditor?.isEnabled()) return;
               if (event.target?.closest?.("input, textarea, select, [contenteditable='true']")) return;
               if (
                 event.repeat
@@ -951,7 +964,7 @@ export const Game = ({
                * ---------------------
                */
 
-              const movement = playerAlive && !useWaypointStore.getState().traveling ?
+              const movement = canPlay() && !useWaypointStore.getState().traveling ?
                 updateMovement({
                   deltaTime: movementDeltaTime,
                   terrain: world.terrain,
@@ -975,7 +988,7 @@ export const Game = ({
                 );
 
 
-              if (playerAlive && !useWaypointStore.getState().traveling) updateCameraFacing({
+              if (canPlay() && !useWaypointStore.getState().traveling) updateCameraFacing({
                 input:
                   input.state,
 
@@ -984,7 +997,7 @@ export const Game = ({
                 player,
               });
 
-              if (playerAlive) multiplayer?.faceAttackTarget();
+              if (canPlay()) multiplayer?.faceAttackTarget();
 
 
               /*
@@ -1206,6 +1219,7 @@ export const Game = ({
           ?.stopRenderLoop();
 
         npcManager?.destroy();
+        worldEditor?.dispose();
 
         scene
           ?.dispose();
@@ -1228,6 +1242,7 @@ export const Game = ({
       {selectedPlayer && (
         <PlayerDropdown selection={selectedPlayer} onClose={closePlayerDropdown} />
       )}
+      <WorldEditorPanel />
     </>
   );
 };

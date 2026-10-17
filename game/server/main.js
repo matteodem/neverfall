@@ -16,6 +16,7 @@ import "./methods/onboarding";
 import "./methods/quests";
 import "./methods/feedback";
 import "./methods/analytics";
+import "./methods/worldEditor";
 
 import "./publications/characters";
 
