@@ -4,8 +4,8 @@ import { QUALITY_PRESETS } from "../game/performanceConfig";
 import { useDungeonStore } from "./stores/useDungeonStore";
 import { getDungeonExitTrace, clearDungeonExitTrace } from "../game/gameSession";
 import { createPlayerSelection } from "../game/playerSelection";
-import { createWorldEditor } from "../game/editor/createWorldEditor";
-import { WorldEditorPanel } from "./components/WorldEditorPanel";
+import { createWorldEditorRuntime } from "../game/editor/createWorldEditorRuntime";
+import { useWorldEditorStore } from "./stores/useWorldEditorStore";
 import { PlayerDropdown } from "./components/PlayerDropdown";
 import { createNpcManager } from "../game/npcs/createNpcManager";
 import { useNpcStore } from "./stores/useNpcStore";
@@ -17,6 +17,8 @@ import React, {
   useRef,
   useState,
   useCallback,
+  lazy,
+  Suspense,
 } from "react";
 
 import {
@@ -90,6 +92,9 @@ import {
 } from "../game/sound";
 
 
+const WorldEditorPanel = lazy(() => import("./components/WorldEditorPanel")
+  .then((module) => ({ default: module.WorldEditorPanel })));
+
 export const Game = ({
   character,
 
@@ -101,6 +106,7 @@ export const Game = ({
 }) => {
   const location = useDungeonStore((state) => state.location);
   const quality = useQualityStore((state) => state.quality);
+  const editorEnabled = useWorldEditorStore((state) => state.enabled);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const closePlayerDropdown = useCallback(() => setSelectedPlayer(null), []);
 
@@ -189,6 +195,24 @@ export const Game = ({
           }
 
           const loadingStartedAt = performance.now();
+          const loadStage = async (label, progress, load) => {
+            useLoadingStore.getState().setProgress(progress);
+            const started = performance.now();
+            if (Meteor.isDevelopment) console.info(`[Loading] ${label} started`);
+            const warning = setTimeout(() => {
+              if (!disposed) console.warn(`[Loading] Still waiting for ${label} after 10s`);
+            }, 10000);
+            try {
+              const result = await load();
+              if (Meteor.isDevelopment) console.info(`[Loading] ${label} completed in ${Math.round(performance.now() - started)}ms`);
+              return result;
+            } catch (error) {
+              console.error(`[Loading] ${label} failed`, error);
+              throw error;
+            } finally {
+              clearTimeout(warning);
+            }
+          };
 
 
           /*
@@ -357,7 +381,7 @@ export const Game = ({
 
           exitTrace?.("WorldRoom scene binding started");
           multiplayer =
-            await createMultiplayer({
+            await loadStage("multiplayer session and scene binding", 55, () => createMultiplayer({
               scene,
 
               player,
@@ -415,7 +439,7 @@ export const Game = ({
                       duration
                   );
                 },
-            });
+            }));
           exitTrace?.("WorldRoom scene binding completed");
           if (
             disposed
@@ -427,10 +451,10 @@ export const Game = ({
           }
 
           exitTrace?.("return chunk loading started", { x: player.position.x, y: player.position.y, z: player.position.z });
-          await world.worldChunks?.loadAt(player.position);
+          await loadStage("spawn chunk", 65, () => world.worldChunks?.loadAt(player.position));
           exitTrace?.("return chunk loading completed");
           exitTrace?.("nearby enemy loading started");
-          await multiplayer.preloadEnemiesAt(player.position, QUALITY_PRESETS[quality].enemyDistance);
+          await loadStage("nearby enemy GLBs", 70, () => multiplayer.preloadEnemiesAt(player.position, QUALITY_PRESETS[quality].enemyDistance));
           exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
@@ -441,7 +465,7 @@ export const Game = ({
             getCharacter: () => characterRef.current,
             canInteract: () => playerAlive && !useWaypointStore.getState().traveling && useDungeonStore.getState().location === "world",
           });
-          await npcManager?.ready;
+          await loadStage("NPC character GLBs", 78, () => npcManager?.ready);
           if (disposed) return;
 
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
@@ -490,12 +514,11 @@ export const Game = ({
             );
 
           const canPlay = () => playerAlive && !worldEditor?.isEnabled();
-          if (location === "world") worldEditor = createWorldEditor({
+          if (location === "world") worldEditor = createWorldEditorRuntime({
             scene, canvas, terrain: world.terrain,
             canEnable: () => playerAlive && !useWaypointStore.getState().traveling && !useLoadingStore.getState().visible,
             onToggle: () => { input.clear(); if (!disposed) setSelectedPlayer(null); },
           });
-          await worldEditor?.ready;
           if (disposed) return;
 
 
@@ -938,6 +961,7 @@ export const Game = ({
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
           world.worldChunks?.start();
+          worldEditor?.start();
 
 
           /*
@@ -1244,7 +1268,7 @@ export const Game = ({
       {selectedPlayer && (
         <PlayerDropdown selection={selectedPlayer} onClose={closePlayerDropdown} />
       )}
-      <WorldEditorPanel />
+      {editorEnabled && <Suspense fallback={null}><WorldEditorPanel /></Suspense>}
     </>
   );
 };

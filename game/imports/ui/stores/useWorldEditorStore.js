@@ -6,6 +6,7 @@ export const useWorldEditorStore = create(() => ({
   source: null,
   readOnly: true,
   asset: null,
+  previewAsset: null,
   tool: "move",
   selected: false,
   busy: false,

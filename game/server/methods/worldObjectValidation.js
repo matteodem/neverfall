@@ -1,4 +1,5 @@
 import { Meteor } from "meteor/meteor";
+import { getWorldEditorAsset } from "../../imports/game/editor/worldEditorAssets";
 
 const invalid = () => { throw new Meteor.Error("invalid-world-object", "Invalid world object data."); };
 const hasKeys = (value, keys) => value && typeof value === "object" && !Array.isArray(value) &&
@@ -16,7 +17,7 @@ export const validateWorldObjectId = (id) => {
 };
 
 export const validateWorldObject = (data) => {
-  if (!hasKeys(data, ["assetId", "position", "rotation", "scaling"]) || data.assetId !== "fence") invalid();
+  if (!hasKeys(data, ["assetId", "position", "rotation", "scaling"]) || !getWorldEditorAsset(data.assetId)) invalid();
   return {
     assetId: data.assetId,
     position: vector(data.position, -1000, 1000),

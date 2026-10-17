@@ -2,12 +2,11 @@ import { Meteor } from "meteor/meteor";
 import { Tracker } from "meteor/tracker";
 import { GizmoManager, PointerEventTypes } from "@babylonjs/core";
 import { useWorldEditorStore } from "../../ui/stores/useWorldEditorStore";
-import { EDITOR_FENCE_SCALE } from "./loadEditorFence";
-import { createWorldObjectScene } from "./createWorldObjectScene";
+import { getWorldEditorAsset } from "./worldEditorAssets";
 import { downloadWorldObjects } from "./downloadWorldObjects";
 
 // Only persisted editor objects are editable; the UI cannot authorize itself.
-export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle }) => {
+export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle, objects, refreshObjects }) => {
   let enabled = false, authorizing = false, disposed = false, revision = 0;
   let adminId = null, asset = null, selected = null, tool = "move";
   let pending = false, gizmos = null;
@@ -16,23 +15,18 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
   const mayUseEditor = () => !disposed && enabled && adminId && adminId === Meteor.userId();
   const mayEdit = () => mayUseEditor() && !readOnly;
   const publish = (state) => useWorldEditorStore.setState(state);
-  const objects = createWorldObjectScene({ scene, onRemove: (root) => {
+  const onObjectRemoved = (root) => {
     if (root !== selected) return;
     gizmos?.attachToNode(null);
     selected = null;
     publish({ selected: false });
-  } });
+  };
   const refresh = async (isCurrent = () => true) => {
-    const snapshot = await Meteor.callAsync("worldObjects.list");
+    const snapshot = await refreshObjects(isCurrent);
     if (disposed || !isCurrent()) return;
     readOnly = snapshot.readOnly;
     publish({ source: snapshot.source, readOnly });
-    await objects.reconcile(snapshot.objects, isCurrent);
   };
-  // Every player loads saved scenery, regardless of Build Mode/admin access.
-  const ready = refresh().catch((error) => {
-    if (!disposed) console.warn("[WorldEditor] Could not load saved objects", error);
-  });
 
   const showGizmo = () => {
     if (!mayEdit() || !selected || pending) return;
@@ -57,6 +51,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     gizmos?.attachToNode(null);
     if (root) showGizmo();
     publish({ selected: !!root, asset: null, error: "" });
+    if (root) publish({ previewAsset: root.metadata.assetId });
   };
   const close = () => {
     revision++;
@@ -70,7 +65,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     gizmos?.dispose();
     gizmos = null;
     objects.setPickable(false);
-    publish({ enabled: false, asset: null, selected: false, busy: false, error: "" });
+    publish({ enabled: false, asset: null, previewAsset: null, selected: false, busy: false, error: "" });
     onToggle();
   };
   const authorize = async () => {
@@ -87,7 +82,6 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
       const userId = await authorize();
       if (request !== revision || !userId || !canEnable()) return;
       // Refresh this client's snapshot and prune objects deleted since last opening.
-      await ready;
       await refresh(() => request === revision);
       if (request !== revision || !userId || !canEnable() || userId !== Meteor.userId()) return;
       adminId = userId;
@@ -101,18 +95,20 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
       if (request === revision) authorizing = false;
     }
   };
-  const selectFence = async () => {
-    if (!mayEdit() || pending) return;
+  const selectAsset = async (assetId) => {
+    if (!mayUseEditor() || pending || gizmos?.isDragging || !getWorldEditorAsset(assetId)) return;
+    publish({ previewAsset: assetId });
+    if (readOnly) return;
     select(null);
-    asset = "fence";
+    asset = assetId;
     publish({ asset, busy: true });
     pending = true;
     try {
-      await objects.prepare();
+      await objects.prepare(assetId);
     } catch {
       if (mayEdit()) {
         asset = null;
-        publish({ asset: null, error: "Could not load the fence. Select Fence to retry." });
+        publish({ asset: null, error: "Could not load this asset. Select it again to retry." });
       }
     } finally {
       pending = false;
@@ -190,14 +186,17 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     if (!pick?.hit) return;
     const root = objects.rootForMesh(pick.pickedMesh);
     if (root) { select(root); return; }
-    if (asset !== "fence") { select(null); return; }
+    const assetId = asset;
+    const definition = getWorldEditorAsset(assetId);
+    if (!definition) { select(null); return; }
+    const scale = definition.scale ?? 1;
     const point = pick.pickedPoint.clone();
     await write(async () => {
       const saved = await Meteor.callAsync("worldObjects.create", {
-        assetId: "fence",
+        assetId,
         position: { x: point.x, y: point.y, z: point.z },
         rotation: { x: 0, y: 0, z: 0 },
-        scaling: { x: EDITOR_FENCE_SCALE, y: EDITOR_FENCE_SCALE, z: EDITOR_FENCE_SCALE },
+        scaling: { x: scale, y: scale, z: scale },
       });
       if (disposed) return;
       const placed = objects.upsert(saved);
@@ -205,16 +204,6 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     });
   };
   const pointerObserver = scene.onPointerObservable.add((info) => { void onPointer(info); });
-  const handleKeyDown = (event) => {
-    if (event.code !== "KeyR" || !event.ctrlKey || !event.shiftKey || event.altKey ||
-      event.target?.closest?.("input, textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (event.repeat) return;
-    if (enabled || authorizing) close();
-    else void enable();
-  };
-  window.addEventListener("keydown", handleKeyDown, true);
   const frameObserver = scene.onBeforeRenderObservable.add(() => {
     if (enabled && (!mayUseEditor() || !canEnable())) close();
   });
@@ -227,7 +216,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
   });
   const actions = {
     close,
-    selectFence,
+    selectAsset,
     deleteSelected,
     exportWorld,
     setTool(mode) {
@@ -243,12 +232,15 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     close();
     disposed = true;
     accountObserver.stop();
-    window.removeEventListener("keydown", handleKeyDown, true);
     scene.onPointerObservable.remove(pointerObserver);
     scene.onBeforeRenderObservable.remove(frameObserver);
-    objects.dispose();
     if (useWorldEditorStore.getState().actions === actions) publish({ actions: null });
   };
   scene.onDisposeObservable.addOnce(dispose);
-  return { isEnabled: () => !!mayUseEditor(), ready, dispose };
+  return {
+    isEnabled: () => !!mayUseEditor(),
+    toggle: () => enabled || authorizing ? close() : enable(),
+    onObjectRemoved,
+    dispose,
+  };
 };

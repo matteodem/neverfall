@@ -138,6 +138,10 @@ export const getGameSession = async () => {
   if (session) return session;
   if (connecting) return connecting;
   connecting = (async () => {
+    const trace = (stage) => {
+      if (Meteor.isDevelopment) console.info(`[Loading] World connection: ${stage}`);
+    };
+    trace("waiting for Meteor authentication");
     await ensureGuestUser();
 
     const protocol =
@@ -154,13 +158,17 @@ export const getGameSession = async () => {
         endpoint
       );
 
+    trace("requesting Colyseus auth token");
     client.auth.token = await Meteor.callAsync("colyseus.authToken");
+    trace("joining WorldRoom");
     const worldRoom = await client.joinOrCreate("world");
     worldRoom.onMessage("questCompleted", (quest) => useQuestCompletionStore.getState().show(quest));
     worldRoom.onMessage("enemyEngaged", recordEnemyAttack);
     try {
+      trace("waiting for authoritative player state");
       await waitForState(worldRoom, (state) => state?.players?.has(worldRoom.sessionId));
     } catch (error) { await leaveRoom(worldRoom); throw error; }
+    trace("ready");
     const current = { client, room: worldRoom, worldRoom, entering: false, exiting: false, disconnectGroups: connectGroups(worldRoom) };
     session = current;
     // The party connection receives combat broadcasts while its scene is inactive.

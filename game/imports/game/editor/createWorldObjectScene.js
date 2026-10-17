@@ -1,5 +1,5 @@
 import { Vector3 } from "@babylonjs/core";
-import { loadEditorFence } from "./loadEditorFence";
+import { createEditorAssetCache } from "./loadEditorAsset";
 
 const vector = ({ x, y, z }) => ({ x, y, z });
 
@@ -7,16 +7,9 @@ const vector = ({ x, y, z }) => ({ x, y, z });
 export const createWorldObjectScene = ({ scene, onRemove }) => {
   const objects = new Map();
   const meshes = new Map();
-  let fenceAsset = null, loading = null, disposed = false, pickable = false;
-  const prepare = async () => {
-    if (!fenceAsset) {
-      loading ||= loadEditorFence(scene).catch((error) => { loading = null; throw error; });
-      const loaded = await loading;
-      if (disposed) { loaded?.dispose(); return null; }
-      fenceAsset = loaded;
-    }
-    return fenceAsset;
-  };
+  let disposed = false, pickable = false;
+  const assets = createEditorAssetCache(scene);
+  const prepare = (assetId) => assets.get(assetId);
   const restore = (root) => {
     const object = objects.get(root.metadata.worldObjectId)?.object;
     if (!object) return;
@@ -26,11 +19,13 @@ export const createWorldObjectScene = ({ scene, onRemove }) => {
     root.scaling.copyFromFloats(object.scaling.x, object.scaling.y, object.scaling.z);
   };
   const upsert = (object) => {
-    if (disposed || object.assetId !== "fence" || !fenceAsset) return null;
+    const asset = assets.getLoaded(object.assetId);
+    if (disposed || !asset) return null;
     let entry = objects.get(object._id);
+    if (entry && entry.object.assetId !== object.assetId) { remove(object._id); entry = null; }
     if (!entry) {
-      const root = fenceAsset.place(Vector3.Zero());
-      root.metadata = { worldObjectId: object._id };
+      const root = asset.place(Vector3.Zero());
+      root.metadata = { worldObjectId: object._id, assetId: object.assetId };
       entry = { root, object };
       objects.set(object._id, entry);
       for (const mesh of root.getChildMeshes()) if (mesh.getTotalVertices()) {
@@ -67,7 +62,7 @@ export const createWorldObjectScene = ({ scene, onRemove }) => {
       };
     },
     async reconcile(documents, isCurrent = () => true) {
-      if (documents.length) await prepare();
+      await Promise.all([...new Set(documents.map((object) => object.assetId))].map(prepare));
       if (disposed || !isCurrent()) return;
       const ids = new Set(documents.map((object) => object._id));
       for (const id of objects.keys()) if (!ids.has(id)) remove(id);
@@ -76,7 +71,7 @@ export const createWorldObjectScene = ({ scene, onRemove }) => {
     dispose() {
       disposed = true;
       for (const id of objects.keys()) remove(id);
-      fenceAsset?.dispose();
+      assets.dispose();
     },
   };
 };
