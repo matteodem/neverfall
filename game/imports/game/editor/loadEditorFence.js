@@ -1,6 +1,8 @@
 import { SceneLoader, TransformNode, Vector3 } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "../environment/harmonizeEnvironmentMaterials";
 
+export const EDITOR_FENCE_SCALE = 1.98;
+
 // Use the same GLB/container instancing and material treatment as camp props.
 export const loadEditorFence = async (scene) => {
   const container = await SceneLoader.LoadAssetContainerAsync("/models/environment/", "fence.glb", scene);
@@ -24,7 +26,7 @@ export const loadEditorFence = async (scene) => {
       for (const node of entries.rootNodes) node.parent = model;
       model.position.set(-(min.x + max.x) / 2, -min.y, -(min.z + max.z) / 2);
       root.position.copyFrom(point);
-      root.scaling.setAll(1.98); // Same approximately 1.1m height as the authored camp fence.
+      root.scaling.setAll(EDITOR_FENCE_SCALE); // Same approximately 1.1m height as the authored camp fence.
       for (const mesh of root.getChildMeshes()) {
         mesh.isPickable = true;
         mesh.checkCollisions = false;

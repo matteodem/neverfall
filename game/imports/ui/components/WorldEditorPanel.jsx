@@ -21,12 +21,14 @@ export const WorldEditorPanel = () => {
               onClick={() => actions?.setTool(mode)}>{mode}</button>
           ))}
         </div>
+        <button type="button" className="btn btn-error btn-outline btn-sm" disabled={!selected || busy}
+          onClick={() => actions?.deleteSelected()}>Delete selected</button>
         <p className="text-xs opacity-80" role="status">
-          {busy ? "Preparing fence…" : asset === "fence" ? "Click terrain to place a fence."
+          {busy ? "Loading / saving…" : asset === "fence" ? "Click terrain to place a fence."
             : selected ? "Drag the gizmo to move or rotate this fence." : "Choose Fence to place, or click a placed fence to edit."}
         </p>
         {error && <p className="text-xs text-error" role="alert">{error}</p>}
-        <p className="text-xs opacity-60">Ctrl+Shift+R to close · Changes last for this scene only.</p>
+        <p className="text-xs opacity-60">Ctrl+Shift+R to close · Placement and gizmo release save changes.</p>
       </div>
     </section>
   );

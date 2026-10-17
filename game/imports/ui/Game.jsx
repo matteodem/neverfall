@@ -495,6 +495,8 @@ export const Game = ({
             canEnable: () => playerAlive && !useWaypointStore.getState().traveling && !useLoadingStore.getState().visible,
             onToggle: () => { input.clear(); if (!disposed) setSelectedPlayer(null); },
           });
+          await worldEditor?.ready;
+          if (disposed) return;
 
 
           /*
