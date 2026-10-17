@@ -8,7 +8,6 @@ export const CENTRAL_CAMP_POLISH = {
   flowerLimit: 320,
   bushLimit: 60,
   stoneLimit: 20,
-  treeLimit: 18,
   grassScale: [0.85, 1.25],
   flowerScale: [0.9, 1.3],
   clusterRadius: 2.8,
@@ -36,8 +35,6 @@ export const CENTRAL_CAMP_POLISH = {
     [-46, 17], [-49, 34], [-31, 38], [29, 47], [47, 26],
     [-26, -47], [-13, -56], [17, -52], [38, -18],
   ],
-  treeGroves: [[-27, 25], [-34, 8], [-32, -14], [-20, -35], [23, 34], [35, 12], [32, -23], [-16, 38],
-    [-48, 27], [-38, 48], [20, 59], [50, 33], [56, 7], [-34, -51], [22, -62]],
 };
 
 export const getCentralCampMix = (x, z) => {

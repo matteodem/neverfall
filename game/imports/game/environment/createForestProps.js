@@ -1,6 +1,7 @@
 import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
+import { createCentralForestTrees } from "./createCentralForestTrees";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { isOnEnvironmentPath } from "./environmentPaths";
 import { CENTRAL_CAMP_POLISH } from "./centralCampPolishConfig";
@@ -257,6 +258,7 @@ export const loadForestProps = async (scene) => {
   const placeChunk = async ({ center, size, density, gradual = true }) => {
     if (!available) return null;
     const forestRegion = center.region === "forest" || center.region === "starterForest";
+    const centralForest = center.region === "starterForest" && center.x === 0 && center.z === 0;
     const random = randomForChunk(center);
     const root = new TransformNode(`forest-props-${center.x}-${center.z}`, scene);
     root.setEnabled(false);
@@ -281,7 +283,7 @@ export const loadForestProps = async (scene) => {
         const rockChance = density * (0.18 + 0.34 * mix);
 
         const treePlaced = random() < treeChance && isOpen(position, 2, CIRCLES);
-        if (treePlaced) {
+        if (treePlaced && !centralForest) {
           const kind = forestRegion ? "broadleaf" :
             random() < 0.4 + 0.55 * mix ? "conifers" : "broadleaf";
           place(root, kind, position, random, 0.75 + random() * 0.35);
@@ -325,6 +327,14 @@ export const loadForestProps = async (scene) => {
       if (yieldIfNeeded) await yieldIfNeeded();
     }
 
+    if (centralForest) root.metadata = { centralForest: createCentralForestTrees({
+      density,
+      random: randomForChunk({ x: 214, z: -114 }),
+      // Follow the visible curved roads instead of the older, broad straight corridors.
+      canPlace: (point, margin) => isOpen(point, margin, DETAIL_CLEARINGS, false) &&
+        !isOnEnvironmentPath(point, margin + 2),
+      place: (kind, point, groveRandom, scale) => place(root, kind, point, groveRandom, scale),
+    }) };
     if (center.region !== "snowyMountains") placeVegetation(root, { center, size, density });
 
     const meshes = root.getChildMeshes();

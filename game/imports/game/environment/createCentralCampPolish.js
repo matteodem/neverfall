@@ -51,16 +51,6 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
       .map((node) => { node.computeWorldMatrix(true); return node.getAbsolutePosition().clone(); })
       .filter((point) => Math.hypot(point.x - CONFIG.center.x, point.z - CONFIG.center.z) < CONFIG.vegetationRadius);
     const treeBases = [...existingTrees];
-    for (const [x, z] of CONFIG.treeGroves) {
-      for (const [dx, dz] of [[0, 0], [6, 3], [-4, 6]]) {
-        const point = { x: x + dx, z: z + dz };
-        if (counts.trees >= Math.ceil(CONFIG.treeLimit * density)) break;
-        if (!props.canPlace(point, 4) || !clear(point, 4) ||
-          treeBases.some((tree) => Math.hypot(tree.x - point.x, tree.z - point.z) < 5.5)) continue;
-        place("broadleaf", point, 0.75 + random() * 0.35, "trees");
-        treeBases.push(point);
-      }
-    }
     const pathEdges = ENVIRONMENT_ROUTES.flatMap(({ points, width = 3.2 }) =>
       points.filter((point, index) => index % 8 === 0).flatMap((point, index, samples) => {
         const next = samples[index + 1] || samples[index - 1];
