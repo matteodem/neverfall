@@ -35,6 +35,7 @@ Changes are saved to **local MongoDB** by the editor. If saving is manual in you
 1. When you're satisfied, click **Export World** in the editor.
 2. The editor downloads **`world-objects.json`**.
 3. Copy this file into the project's configured world-data location, **replacing the previous exported file**.
+  * The file is located under `game/imports/api/worldObjects/world-objects.json`
 4. Check that the file is included in your Git changes.
 
 This JSON contains the **asset references and placement information** (position, rotation, and scale). It does **not** contain the actual 3D models: the corresponding GLB files still need to be part of the game.

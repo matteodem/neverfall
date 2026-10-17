@@ -24,3 +24,18 @@ export const validateWorldObject = (data) => {
     scaling: vector(data.scaling, 0.05, 20),
   };
 };
+
+// Canonical fields/order for bundled snapshots and downloads; no Mongo internals.
+export const validateWorldObjectSnapshot = (documents) => {
+  if (!Array.isArray(documents)) invalid();
+  const ids = new Set();
+  const objects = documents.map((document) => {
+    if (!hasKeys(document, ["_id", "assetId", "position", "rotation", "scaling"])) invalid();
+    const { _id, ...data } = document;
+    validateWorldObjectId(_id);
+    if (ids.has(_id)) invalid();
+    ids.add(_id);
+    return { _id, ...validateWorldObject(data) };
+  });
+  return objects.sort((a, b) => a._id < b._id ? -1 : a._id > b._id ? 1 : 0);
+};

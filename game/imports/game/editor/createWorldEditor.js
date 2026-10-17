@@ -4,14 +4,17 @@ import { GizmoManager, PointerEventTypes } from "@babylonjs/core";
 import { useWorldEditorStore } from "../../ui/stores/useWorldEditorStore";
 import { EDITOR_FENCE_SCALE } from "./loadEditorFence";
 import { createWorldObjectScene } from "./createWorldObjectScene";
+import { downloadWorldObjects } from "./downloadWorldObjects";
 
 // Only persisted editor objects are editable; the UI cannot authorize itself.
 export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle }) => {
   let enabled = false, authorizing = false, disposed = false, revision = 0;
   let adminId = null, asset = null, selected = null, tool = "move";
   let pending = false, gizmos = null;
+  let readOnly = true;
   const wiredGizmos = new WeakSet();
-  const mayEdit = () => !disposed && enabled && adminId && adminId === Meteor.userId();
+  const mayUseEditor = () => !disposed && enabled && adminId && adminId === Meteor.userId();
+  const mayEdit = () => mayUseEditor() && !readOnly;
   const publish = (state) => useWorldEditorStore.setState(state);
   const objects = createWorldObjectScene({ scene, onRemove: (root) => {
     if (root !== selected) return;
@@ -20,8 +23,11 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     publish({ selected: false });
   } });
   const refresh = async (isCurrent = () => true) => {
-    const documents = await Meteor.callAsync("worldObjects.list");
-    if (!disposed && isCurrent()) await objects.reconcile(documents, isCurrent);
+    const snapshot = await Meteor.callAsync("worldObjects.list");
+    if (disposed || !isCurrent()) return;
+    readOnly = snapshot.readOnly;
+    publish({ source: snapshot.source, readOnly });
+    await objects.reconcile(snapshot.objects, isCurrent);
   };
   // Every player loads saved scenery, regardless of Build Mode/admin access.
   const ready = refresh().catch((error) => {
@@ -86,7 +92,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
       if (request !== revision || !userId || !canEnable() || userId !== Meteor.userId()) return;
       adminId = userId;
       enabled = true;
-      objects.setPickable(true);
+      objects.setPickable(!readOnly);
       onToggle();
       publish({ enabled: true, tool, error: "" });
     } catch {
@@ -154,6 +160,22 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
       if (!disposed) objects.remove(id);
     }, root);
   };
+  const exportWorld = async () => {
+    if (!mayUseEditor() || pending || gizmos?.isDragging) return;
+    pending = true;
+    publish({ busy: true, error: "" });
+    gizmos?.attachToNode(null);
+    try {
+      const json = await Meteor.callAsync("worldObjects.export");
+      if (mayUseEditor()) downloadWorldObjects(json);
+    } catch (error) {
+      if (error.error === "not-authorized") close();
+      else if (mayUseEditor()) publish({ error: "Could not export the world. Try again." });
+    } finally {
+      pending = false;
+      if (mayUseEditor()) { publish({ busy: false }); showGizmo(); }
+    }
+  };
 
   const onPointer = async ({ type, event }) => {
     if (type !== PointerEventTypes.POINTERTAP || event.button !== 0 || !mayEdit() ||
@@ -194,7 +216,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
   };
   window.addEventListener("keydown", handleKeyDown, true);
   const frameObserver = scene.onBeforeRenderObservable.add(() => {
-    if (enabled && (!mayEdit() || !canEnable())) close();
+    if (enabled && (!mayUseEditor() || !canEnable())) close();
   });
   let currentUser = Meteor.userId();
   const accountObserver = Tracker.autorun(() => {
@@ -207,6 +229,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     close,
     selectFence,
     deleteSelected,
+    exportWorld,
     setTool(mode) {
       if (!mayEdit() || pending || gizmos?.isDragging || !["move", "rotate"].includes(mode)) return;
       tool = mode;
@@ -227,5 +250,5 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle 
     if (useWorldEditorStore.getState().actions === actions) publish({ actions: null });
   };
   scene.onDisposeObservable.addOnce(dispose);
-  return { isEnabled: () => !!mayEdit(), ready, dispose };
+  return { isEnabled: () => !!mayUseEditor(), ready, dispose };
 };
