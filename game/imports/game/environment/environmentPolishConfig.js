@@ -27,7 +27,7 @@ export const ENVIRONMENT_PATHS = {
     { id: "central-camp", points: [[0, -8], [0, -2], [-0.3, 4], [0, 10]] },
     { id: "camp-highlands", points: [[0, 10], [0, 85], [0, 150], [0, 200]] },
     { id: "wolf-trail", width: 1.8,
-      points: [[0, 35], [-12, 36], [-27, 49], [-43, 50]] },
+      points: [[0, 35], [-12, 36], [-27, 49], [-43, 50], [-62, 65], [-74, 77]] },
     { id: "giant-hill", points: [[0, 35], [32, 48], [70, 72]] },
     { id: "northern-ruins", points: [[0, 200], [40, 196], [80, 180]] },
     { id: "highlands-lookout", points: [[0, 200], [22, 222], [40, 245]] },
@@ -36,6 +36,22 @@ export const ENVIRONMENT_PATHS = {
     { id: "forest-shrine", points: [[-130, -125], [-178, -94], [-240, -65]] },
     { id: "snowy-waypoint", points: [[0, 35], [85, 25], [145, 8], [185, 0]] },
     { id: "frozen-arch", points: [[185, 0], [210, -30], [226, -62], [250, -82]] },
+    // Hunting trails share existing road points so their mouths receive rounded junctions.
+    { id: "highlands-goats", points: [[0, 150], [-48, 164], [-108, 182], [-160, 198]] },
+    { id: "highlands-rats", width: 1.8,
+      points: [[0, 200], [-4, 218], [-16, 234]] },
+    { id: "highlands-bees", points: [[80, 180], [118, 204], [146, 225], [160, 238]] },
+    { id: "relic-guardian", points: [[80, 180], [92, 179], [105, 180]] },
+    { id: "snow-wolves", points: [[185, 0], [210, 24], [224, 40], [239, 46]] },
+    { id: "frost-ogre", points: [[239, 46], [255, 28], [262, 0]] },
+    { id: "mountain-goats", width: 1.8,
+      points: [[210, -30], [202, -40], [196, -51]] },
+    { id: "frostbound-sentinel", points: [[250, -82], [247, -98], [235, -110]] },
+    { id: "hammer-guardian", points: [[-160, -220], [-190, -232], [-225, -210]] },
+    // Follow the dry shoreline around the seals, reconnecting to the ruins approach.
+    { id: "seal-shore", width: 1.8,
+      points: [[-198, -160], [-185, -137], [-159, -131], [-135, -143],
+        [-132, -166], [-149, -186], [-174, -184], [-185, -190]] },
   ],
 };
 
