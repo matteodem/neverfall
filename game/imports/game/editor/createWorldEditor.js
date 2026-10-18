@@ -4,17 +4,43 @@ import { GizmoManager, PointerEventTypes } from "@babylonjs/core";
 import { useWorldEditorStore } from "../../ui/stores/useWorldEditorStore";
 import { getWorldEditorAsset } from "./worldEditorAssets";
 import { downloadWorldObjects } from "./downloadWorldObjects";
+import { MAX_STROKE_VERTICES, TERRAIN_PAINT_COLORS } from "../../api/terrainPaint/config";
+import { createTerrainPaintInput } from "./createTerrainPaintInput";
 
 // Only persisted editor objects are editable; the UI cannot authorize itself.
-export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle, objects, refreshObjects }) => {
+export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle, objects, refreshObjects, painter }) => {
   let enabled = false, authorizing = false, disposed = false, revision = 0;
   let adminId = null, asset = null, selected = null, tool = "move";
   let pending = false, gizmos = null;
   let readOnly = true;
+  let paintColor = 0, brushRadius = 8;
   const wiredGizmos = new WeakSet();
   const mayUseEditor = () => !disposed && enabled && adminId && adminId === Meteor.userId();
   const mayEdit = () => mayUseEditor() && !readOnly;
   const publish = (state) => useWorldEditorStore.setState(state);
+  const paintInput = createTerrainPaintInput({
+    scene, canvas, painter,
+    canPaint: () => mayUseEditor() && canEnable() && tool === "paint" && !pending,
+    getBrush: () => ({ color: paintColor, radius: brushRadius }),
+    async save(stroke) {
+      if (!stroke.size) return;
+      pending = true;
+      publish({ busy: true, error: "" });
+      try {
+        await painter.save(stroke);
+        if (mayUseEditor() && stroke.size >= MAX_STROKE_VERTICES)
+          publish({ error: "Stroke reached the 20,000 vertex limit. Start another stroke to continue painting." });
+      }
+      catch (error) {
+        if (disposed) return;
+        if (error.error === "not-authorized") close();
+        else if (mayUseEditor()) publish({ error: "Could not save terrain paint. Saved colors have been restored." });
+      } finally {
+        pending = false;
+        if (mayUseEditor()) publish({ busy: false });
+      }
+    },
+  });
   const onObjectRemoved = (root) => {
     if (root !== selected) return;
     gizmos?.attachToNode(null);
@@ -29,7 +55,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
   };
 
   const showGizmo = () => {
-    if (!mayEdit() || !selected || pending) return;
+    if (!mayEdit() || !selected || pending || tool === "paint") return;
     if (!gizmos) {
       gizmos = new GizmoManager(scene);
       gizmos.usePointerToAttachGizmos = false;
@@ -54,6 +80,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     if (root) publish({ previewAsset: root.metadata.assetId });
   };
   const close = () => {
+    paintInput.finish();
     revision++;
     enabled = false;
     authorizing = false;
@@ -83,12 +110,14 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       if (request !== revision || !userId || !canEnable()) return;
       // Refresh this client's snapshot and prune objects deleted since last opening.
       await refresh(() => request === revision);
+      if (request !== revision || disposed) return;
+      await painter.load();
       if (request !== revision || !userId || !canEnable() || userId !== Meteor.userId()) return;
       adminId = userId;
       enabled = true;
       objects.setPickable(!readOnly);
       onToggle();
-      publish({ enabled: true, tool, error: "" });
+      publish({ enabled: true, tool, paintColor, brushRadius, error: "" });
     } catch {
       // Access is denied unless the server explicitly authorizes this account.
     } finally {
@@ -99,6 +128,12 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     if (!mayUseEditor() || pending || gizmos?.isDragging || !getWorldEditorAsset(assetId)) return;
     publish({ previewAsset: assetId });
     if (readOnly) return;
+    paintInput.finish();
+    if (pending) return;
+    if (tool === "paint") {
+      tool = "move";
+      publish({ tool });
+    }
     select(null);
     asset = assetId;
     publish({ asset, busy: true });
@@ -174,7 +209,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
   };
 
   const onPointer = async ({ type, event }) => {
-    if (type !== PointerEventTypes.POINTERTAP || event.button !== 0 || !mayEdit() ||
+    if (tool === "paint" || type !== PointerEventTypes.POINTERTAP || event.button !== 0 || !mayEdit() ||
       pending || gizmos?.isHovered || gizmos?.isDragging) return;
     const bounds = canvas.getBoundingClientRect();
     const portrait = !!canvas.closest(".mobile-portrait");
@@ -220,16 +255,38 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     deleteSelected,
     exportWorld,
     setTool(mode) {
-      if (!mayEdit() || pending || gizmos?.isDragging || !["move", "rotate"].includes(mode)) return;
+      if (!mayUseEditor() || (readOnly && mode !== "paint") || pending || gizmos?.isDragging ||
+        !["move", "rotate", "paint"].includes(mode)) return;
+      paintInput.finish();
+      if (pending) return;
       tool = mode;
+      if (mode === "paint") {
+        selected = null;
+        asset = null;
+        gizmos?.attachToNode(null);
+        publish({ selected: false, asset: null });
+      }
       showGizmo();
       publish({ tool });
+    },
+    setPaintColor(color) {
+      if (Number.isInteger(color) && TERRAIN_PAINT_COLORS[color]) {
+        paintColor = color;
+        publish({ paintColor });
+      }
+    },
+    setBrushRadius(radius) {
+      if (Number.isFinite(radius)) {
+        brushRadius = Math.max(1, Math.min(30, radius));
+        publish({ brushRadius });
+      }
     },
   };
   publish({ actions });
   const dispose = () => {
     if (disposed) return;
     close();
+    paintInput.dispose();
     disposed = true;
     accountObserver.stop();
     scene.onPointerObservable.remove(pointerObserver);

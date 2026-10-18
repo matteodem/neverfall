@@ -8,6 +8,8 @@ export const useWorldEditorStore = create(() => ({
   asset: null,
   previewAsset: null,
   tool: "move",
+  paintColor: 0,
+  brushRadius: 8,
   selected: false,
   busy: false,
   error: "",

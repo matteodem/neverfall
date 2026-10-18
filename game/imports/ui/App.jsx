@@ -45,7 +45,6 @@ import {
 import { OnboardingAutoStart, OnboardingTour } from "./OnboardingTour";
 import { CharacterAccountFlow, useCharacterAccountFlow } from "./CharacterAccountFlow";
 
-
 export const App = () => (
   <OnboardingTour>
     <CharacterAccountFlow>
