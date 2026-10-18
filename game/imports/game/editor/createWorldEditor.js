@@ -4,6 +4,7 @@ import { GizmoManager, PointerEventTypes } from "@babylonjs/core";
 import { useWorldEditorStore } from "../../ui/stores/useWorldEditorStore";
 import { getWorldEditorAsset } from "./worldEditorAssets";
 import { downloadWorldObjects } from "./downloadWorldObjects";
+import { downloadTerrainPaint } from "./downloadTerrainPaint";
 import { MAX_STROKE_VERTICES, TERRAIN_PAINT_COLORS } from "../../api/terrainPaint/config";
 import { createTerrainPaintInput } from "./createTerrainPaintInput";
 
@@ -20,7 +21,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
   const publish = (state) => useWorldEditorStore.setState(state);
   const paintInput = createTerrainPaintInput({
     scene, canvas, painter,
-    canPaint: () => mayUseEditor() && canEnable() && tool === "paint" && !pending,
+    canPaint: () => mayUseEditor() && canEnable() && tool === "paint" && !pending && !painter.isReadOnly(),
     getBrush: () => ({ color: paintColor, radius: brushRadius }),
     async save(stroke) {
       if (!stroke.size) return;
@@ -37,10 +38,34 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
         else if (mayUseEditor()) publish({ error: "Could not save terrain paint. Saved colors have been restored." });
       } finally {
         pending = false;
-        if (mayUseEditor()) publish({ busy: false });
+        if (mayUseEditor()) publish({ busy: false, ...painter.getState() });
       }
     },
   });
+  const changePaintHistory = async (direction) => {
+    if (!mayUseEditor() || tool !== "paint" || pending || paintInput.isPainting() || !canEnable() ||
+      painter.isReadOnly() || !(direction === "undo" ? painter.canUndo() : painter.canRedo())) return;
+    pending = true;
+    publish({ busy: true, error: "" });
+    try { await painter[direction](); }
+    catch (error) {
+      if (disposed) return;
+      if (error.error === "not-authorized") close();
+      else if (mayUseEditor()) publish({ error: `Could not ${direction} terrain paint. Saved colors have been restored.` });
+    } finally {
+      pending = false;
+      if (mayUseEditor()) publish({ busy: false, ...painter.getState() });
+    }
+  };
+  const undoPaint = (event) => {
+    if (event.code !== "KeyZ" || !event.ctrlKey || event.shiftKey || event.altKey || event.metaKey ||
+      !mayUseEditor() || tool !== "paint" ||
+      event.target?.closest?.("input:not([type='range']), textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (!event.repeat) void changePaintHistory("undo");
+  };
+  window.addEventListener("keydown", undoPaint, true);
   const onObjectRemoved = (root) => {
     if (root !== selected) return;
     gizmos?.attachToNode(null);
@@ -117,7 +142,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       enabled = true;
       objects.setPickable(!readOnly);
       onToggle();
-      publish({ enabled: true, tool, paintColor, brushRadius, error: "" });
+      publish({ enabled: true, tool, paintColor, brushRadius, error: "", ...painter.getState() });
     } catch {
       // Access is denied unless the server explicitly authorizes this account.
     } finally {
@@ -207,6 +232,23 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       if (mayUseEditor()) { publish({ busy: false }); showGizmo(); }
     }
   };
+  const exportPaint = async () => {
+    if (!mayUseEditor() || pending || paintInput.isPainting() || gizmos?.isDragging) return;
+    pending = true;
+    publish({ busy: true, error: "" });
+    gizmos?.attachToNode(null);
+    try {
+      const json = await Meteor.callAsync("terrainPaint.export");
+      if (mayUseEditor()) downloadTerrainPaint(json);
+    } catch (error) {
+      if (disposed) return;
+      if (error.error === "not-authorized") close();
+      else if (mayUseEditor()) publish({ error: "Could not export terrain paint. Try again." });
+    } finally {
+      pending = false;
+      if (mayUseEditor()) { publish({ busy: false }); showGizmo(); }
+    }
+  };
 
   const onPointer = async ({ type, event }) => {
     if (tool === "paint" || type !== PointerEventTypes.POINTERTAP || event.button !== 0 || !mayEdit() ||
@@ -254,6 +296,9 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     selectAsset,
     deleteSelected,
     exportWorld,
+    exportPaint,
+    undoPaint: () => changePaintHistory("undo"),
+    redoPaint: () => changePaintHistory("redo"),
     setTool(mode) {
       if (!mayUseEditor() || (readOnly && mode !== "paint") || pending || gizmos?.isDragging ||
         !["move", "rotate", "paint"].includes(mode)) return;
@@ -287,6 +332,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     if (disposed) return;
     close();
     paintInput.dispose();
+    window.removeEventListener("keydown", undoPaint, true);
     disposed = true;
     accountObserver.stop();
     scene.onPointerObservable.remove(pointerObserver);

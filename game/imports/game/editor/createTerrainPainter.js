@@ -3,11 +3,12 @@ import { Color3, Vector3, VertexBuffer } from "@babylonjs/core";
 import { MAX_STROKE_VERTICES, PAINT_PRECISION, TERRAIN_PAINT_COLORS, paintKey } from "../../api/terrainPaint/config";
 
 const BUCKET_SIZE = 16;
-const palette = TERRAIN_PAINT_COLORS.map(({ hex }) => Color3.FromHexString(hex).asArray());
+const palette = TERRAIN_PAINT_COLORS.map(({ hex, rgb }) => rgb || Color3.FromHexString(hex).asArray());
 
 export const createTerrainPainter = ({ scene, terrain }) => {
   const meshes = new Map(), buckets = new Map(), queued = new Set();
-  let saved = new Map(), loading = null, disposed = false;
+  let saved = new Map(), loading = null, disposed = false, lastStroke = null, redoStroke = null;
+  let source = null, readOnly = true;
   const isTerrain = (mesh) => mesh === terrain || mesh.name === terrain.name || mesh.name === "starter-river-banks";
   const setColor = (vertex, color) => {
     const { entry, index } = vertex;
@@ -64,15 +65,43 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     }
   };
   const load = () => {
-    if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((tiles) => {
+    if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((snapshot) => {
       if (disposed) return;
-      saved = new Map(tiles.flatMap(({ colors }) => Object.entries(colors || {})));
+      source = snapshot.source;
+      readOnly = snapshot.readOnly;
+      saved = new Map(snapshot.tiles.flatMap(({ colors }) => Object.entries(colors || {})));
+      lastStroke = null;
+      redoStroke = null;
       restore();
     }).finally(() => { loading = null; });
     return loading;
   };
+  const persist = async (vertices) => {
+    if (readOnly) throw new Meteor.Error("terrain-paint-read-only");
+    try {
+      const previous = await Meteor.callAsync("terrainPaint.save", vertices);
+      for (const [x, z, color] of vertices) {
+        const key = paintKey(x, z);
+        if (color === null) saved.delete(key);
+        else saved.set(key, color);
+      }
+      return previous;
+    } catch (error) {
+      // A multi-tile save can partially succeed; reload its authoritative state.
+      lastStroke = null;
+      redoStroke = null;
+      if (!disposed) {
+        restore();
+        try { await load(); } catch { /* Keep the previous confirmed snapshot. */ }
+      }
+      throw error;
+    }
+  };
   return {
     load,
+    isReadOnly: () => readOnly,
+    getState: () => ({ paintSource: source, paintReadOnly: readOnly,
+      canUndoPaint: !readOnly && !!lastStroke, canRedoPaint: !readOnly && !!redoStroke }),
     isTerrain: (mesh) => meshes.has(mesh) && mesh.isEnabled() && mesh.isVisible,
     paint(point, radius, color, stroke, dirty) {
       for (let bx = Math.floor((point.x - radius) / BUCKET_SIZE); bx <= Math.floor((point.x + radius) / BUCKET_SIZE); bx++) {
@@ -91,20 +120,27 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     upload: (dirty) => { for (const entry of dirty) upload(entry); },
     async save(stroke) {
       if (!stroke.size) return;
-      try {
-        await Meteor.callAsync("terrainPaint.save", [...stroke.values()]);
-        for (const [key, vertex] of stroke) saved.set(key, vertex[2]);
-      } catch (error) {
-        // A multi-tile save can partially succeed; reload its authoritative state.
-        if (!disposed) {
-          restore();
-          try { await load(); } catch { /* Keep the previous confirmed snapshot. */ }
-        }
-        throw error;
-      }
+      lastStroke = await persist([...stroke.values()]);
+      redoStroke = null;
+    },
+    canUndo: () => !!lastStroke,
+    async undo() {
+      if (!lastStroke) return;
+      redoStroke = await persist(lastStroke);
+      lastStroke = null;
+      if (!disposed) restore();
+    },
+    canRedo: () => !!redoStroke,
+    async redo() {
+      if (!redoStroke) return;
+      lastStroke = await persist(redoStroke);
+      redoStroke = null;
+      if (!disposed) restore();
     },
     dispose() {
       disposed = true;
+      lastStroke = null;
+      redoStroke = null;
       scene.onNewMeshAddedObservable.remove(added);
       scene.onBeforeRenderObservable.remove(frame);
       meshes.clear(); buckets.clear(); queued.clear();

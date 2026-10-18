@@ -53,6 +53,7 @@ export const createTerrainPaintInput = ({ scene, canvas, painter, canPaint, getB
   window.addEventListener("blur", finish);
   return {
     finish,
+    isPainting: () => !!stroke,
     dispose() {
       finish();
       for (const [name, handler] of Object.entries(handlers)) canvas.removeEventListener(name, handler, true);
