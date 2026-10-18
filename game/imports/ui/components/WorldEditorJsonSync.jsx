@@ -23,7 +23,7 @@ export const WorldEditorJsonSync = ({ busy, actions }) => {
         <div className="modal-box">
           <h3 id="world-editor-sync-title" className="text-lg font-bold">Sync {target.label} from JSON?</h3>
           <p id="world-editor-sync-warning" className="py-4">
-            All local MongoDB {target.label} changes will be overwritten by {target.file}.
+            All local MongoDB {target.label} changes will be overwritten by game/private/world/{target.file}.
             Only this collection will be replaced. The other collection will not be changed.
           </p>
           <div className="modal-action">

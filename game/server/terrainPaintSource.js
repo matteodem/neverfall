@@ -36,26 +36,22 @@ const canonicalTiles = (tiles) => {
 
 // Imports must fail closed: a missing/malformed asset must never clear MongoDB.
 export const readJsonTerrainPaint = async () => {
-  const text = await Assets.getTextAsync("terrain-paint.json");
-  const data = JSON.parse(text);
-  if (!data || ![1, 2, 3].includes(data.version) || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
-  return canonicalTiles(data.tiles);
+  try {
+    const text = await Assets.getTextAsync("world/terrain-paint.json");
+    const data = JSON.parse(text);
+    if (!data || ![1, 2, 3].includes(data.version) || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
+    return canonicalTiles(data.tiles);
+  } catch {
+    throw new Meteor.Error("invalid-terrain-paint-json", "Could not load or validate game/private/world/terrain-paint.json. Expected a valid terrain-paint snapshot.");
+  }
 };
 
 let jsonTiles = null;
 export const invalidateTerrainPaintJsonCache = () => { jsonTiles = null; };
-const readJsonTiles = () => {
-  if (!jsonTiles) jsonTiles = (async () => {
-    try {
-      // Assets are copied into the server bundle, including Render deployments.
-      return await readJsonTerrainPaint();
-    } catch (error) {
-      console.warn("[TerrainPaint] Could not load game/private/terrain-paint.json; using unpainted terrain.", error.message);
-      return [];
-    }
-  })();
-  return jsonTiles;
-};
+const readJsonTiles = () => jsonTiles ||= readJsonTerrainPaint().catch((error) => {
+  jsonTiles = null;
+  throw error;
+});
 
 export const readMongoTerrainPaint = async () => canonicalTiles(await TerrainPaint.find({}, {
   fields: { colors: 1 },

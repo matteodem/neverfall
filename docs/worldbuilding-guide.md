@@ -13,7 +13,7 @@ Your local changes are saved in **MongoDB**. To publish them, export **two separ
 
 **Workflow:** Edit locally → Save to MongoDB → Export both JSON files → Test JSON locally → Commit & push → Deploy on Render.
 
-> This guide assumes the World Editor, terrain painting, JSON export, and JSON-source loading have been implemented. Button labels may vary slightly. The paths below assume the migration to `game/private/world/` is complete.
+The World Editor exports both JSON files for `game/private/world/`. Meteor loads them on the server using `Assets.getTextAsync('world/<filename>.json')`.
 
 ## 2. Open the World Editor
 
@@ -77,6 +77,8 @@ game/
 ```
 
 These files are bundled as **server-side assets** and loaded by Meteor on the server. The 3D `.glb` assets referenced by World Objects still need to be included in your game separately.
+
+Missing or invalid JSON produces a load error. Sync validates the complete file before replacing MongoDB data; a validation failure leaves the collection unchanged.
 
 > **Important:** Saving to MongoDB does not automatically update either JSON file. Export again after making changes. If you only changed one category, you only need to re-export that category, but check both files before deployment.
 

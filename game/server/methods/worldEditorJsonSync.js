@@ -3,7 +3,7 @@ import { Meteor } from "meteor/meteor";
 import { isAnalyticsAdmin } from "../config/adminAnalytics";
 import { WorldObjects } from "../../imports/api/worldObjects/worldObjects";
 import { TerrainPaint } from "../../imports/api/terrainPaint/terrainPaint";
-import { WORLD_OBJECTS_SOURCE, readJsonWorldObjects } from "../worldObjectsSource";
+import { WORLD_OBJECTS_SOURCE, invalidateWorldObjectsJsonCache, readJsonWorldObjects } from "../worldObjectsSource";
 import { TERRAIN_PAINT_SOURCE, invalidateTerrainPaintJsonCache, readJsonTerrainPaint } from "../terrainPaintSource";
 
 const requireDevelopmentAdmin = (userId) => {
@@ -35,8 +35,13 @@ const replaceCollection = async (collection, documents) => {
 Meteor.methods({
   async "worldObjects.syncFromJson"() {
     requireDevelopmentAdmin(this.userId);
-    const objects = readJsonWorldObjects();
+    let objects;
+    try { objects = await readJsonWorldObjects(); }
+    catch {
+      throw new Meteor.Error("invalid-world-objects-json", "Could not load or validate game/private/world/world-objects.json. MongoDB was not changed.");
+    }
     await replaceCollection(WorldObjects, objects);
+    invalidateWorldObjectsJsonCache();
     return { source: WORLD_OBJECTS_SOURCE, readOnly: WORLD_OBJECTS_SOURCE === "json", objects };
   },
   async "terrainPaint.syncFromJson"() {
@@ -44,7 +49,7 @@ Meteor.methods({
     let tiles;
     try { tiles = await readJsonTerrainPaint(); }
     catch {
-      throw new Meteor.Error("invalid-terrain-paint-json", "Could not validate game/private/terrain-paint.json. MongoDB was not changed.");
+      throw new Meteor.Error("invalid-terrain-paint-json", "Could not load or validate game/private/world/terrain-paint.json. MongoDB was not changed.");
     }
     await replaceCollection(TerrainPaint, tiles);
     invalidateTerrainPaintJsonCache();
