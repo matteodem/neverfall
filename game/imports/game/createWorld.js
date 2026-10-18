@@ -6,6 +6,7 @@ import { GroundSkyFog } from "./environment/groundSkyFog";
 // River temporarily disabled.
 // import { createSouthernRiver } from "./environment/createSouthernRiver";
 import { createStarterRiver } from "./environment/createStarterRiver";
+import { createTerrainVegetation } from "./environment/terrainVegetation";
 import { isInStarterRiver } from "./environment/starterRiverHeight";
 // import { getRiverBankMix, isInRiver } from "./environment/terrainHeight";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
@@ -190,7 +191,10 @@ export const createWorld =
       groundMaterial;
     ground.freezeWorldMatrix();
     // if (!dungeon) createSouthernRiver(scene);
-    if (!dungeon) createStarterRiver(scene, ground, quality);
+    if (!dungeon) {
+      createStarterRiver(scene, ground, quality);
+      createTerrainVegetation(scene, ground);
+    }
 
 
     /*

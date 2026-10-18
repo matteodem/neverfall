@@ -2,6 +2,7 @@ import { SceneLoader, TransformNode } from "@babylonjs/core";
 import { harmonizeEnvironmentMaterials } from "./harmonizeEnvironmentMaterials";
 import { createVegetationPatches } from "./createVegetationPatches";
 import { createCentralForestTrees } from "./createCentralForestTrees";
+import { getTerrainVegetation } from "./terrainVegetation";
 import { isInStarterRiver } from "./starterRiverHeight";
 import { isOnEnvironmentPath } from "./environmentPaths";
 // import { CENTRAL_CAMP_POLISH, getCentralCampClearing } from "./centralCampPolishConfig";
@@ -217,6 +218,11 @@ export const loadForestProps = async (scene) => {
       mesh.isPickable = false;
       mesh.checkCollisions = false;
       mesh.receiveShadows = true;
+    }
+    if (/^(grass_|flowers_)/.test(name)) {
+      prop.metadata = { terrainVegetation: true };
+      prop.computeWorldMatrix(true);
+      getTerrainVegetation(scene)?.register(prop, prop.getAbsolutePosition(), (visible) => prop.setEnabled(visible));
     }
     return prop;
   };

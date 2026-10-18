@@ -41,7 +41,7 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
     const prop = props.placeAsset(root, kind, point, random, scale);
     if (!prop) return;
     prop.position.y += ground.getHeightAtCoordinates(point.x, point.z) - getWorldHeight(point.x, point.z);
-    prop.metadata = { centralCampVegetation: type };
+    prop.metadata = { ...prop.metadata, centralCampVegetation: type };
     for (const mesh of prop.getChildMeshes()) {
       mesh.metadata = { ...mesh.metadata, worldShadows: { cast: false, receive: true } };
     }

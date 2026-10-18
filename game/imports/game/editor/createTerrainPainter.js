@@ -2,12 +2,14 @@ import { Meteor } from "meteor/meteor";
 import { Color3, Vector3, VertexBuffer } from "@babylonjs/core";
 import { MAX_STROKE_VERTICES, PAINT_PRECISION, TERRAIN_PAINT_COLORS, paintKey } from "../../api/terrainPaint/config";
 import { createPaintedPathMask } from "./createPaintedPathMask";
+import { getTerrainVegetation } from "../environment/terrainVegetation";
 
 const BUCKET_SIZE = 16;
 const palette = TERRAIN_PAINT_COLORS.map(({ hex, rgb }) => rgb || Color3.FromHexString(hex).asArray());
 
 export const createTerrainPainter = ({ scene, terrain }) => {
   const meshes = new Map(), buckets = new Map(), queued = new Set();
+  const vegetation = getTerrainVegetation(scene);
   let saved = new Map(), loading = null, disposed = false, lastStroke = null, redoStroke = null;
   let source = null, readOnly = true;
   let visible = new Map();
@@ -21,6 +23,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     if (color === undefined) visible.delete(vertex.key);
     else visible.set(vertex.key, color);
     paths.update(vertex.key);
+    vegetation?.changed(vertex.key);
   };
   const upload = (entry) => {
     if (!entry.mesh.isDisposed()) entry.mesh.updateVerticesData(VertexBuffer.ColorKind, entry.colors);
@@ -75,6 +78,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     }
     paths.restore();
     paths.flush();
+    vegetation?.restore();
   };
   const load = () => {
     if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((snapshot) => {
@@ -132,6 +136,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     upload: (dirty) => {
       for (const entry of dirty) upload(entry);
       paths.flush();
+      vegetation?.flush();
     },
     async save(stroke) {
       if (!stroke.size) return;
