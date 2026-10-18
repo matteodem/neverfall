@@ -7,6 +7,7 @@ import { downloadWorldObjects } from "./downloadWorldObjects";
 import { downloadTerrainPaint } from "./downloadTerrainPaint";
 import { MAX_STROKE_VERTICES, TERRAIN_PAINT_COLORS } from "../../api/terrainPaint/config";
 import { createTerrainPaintInput } from "./createTerrainPaintInput";
+import { configureUniformScaleGizmo } from "./configureUniformScaleGizmo";
 
 // Only persisted editor objects are editable; the UI cannot authorize itself.
 export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle, objects, refreshObjects, painter }) => {
@@ -89,9 +90,11 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     }
     gizmos.positionGizmoEnabled = tool === "move";
     gizmos.rotationGizmoEnabled = tool === "rotate";
-    for (const gizmo of [gizmos.gizmos.positionGizmo, gizmos.gizmos.rotationGizmo]) {
+    gizmos.scaleGizmoEnabled = tool === "scale";
+    for (const gizmo of [gizmos.gizmos.positionGizmo, gizmos.gizmos.rotationGizmo, gizmos.gizmos.scaleGizmo]) {
       if (!gizmo || wiredGizmos.has(gizmo)) continue;
       wiredGizmos.add(gizmo);
+      if (gizmo === gizmos.gizmos.scaleGizmo) configureUniformScaleGizmo(gizmo);
       gizmo.onDragEndObservable.add(() => { void saveSelected(); });
     }
     gizmos.attachToNode(selected);
@@ -335,7 +338,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     redoPaint: () => changePaintHistory("redo"),
     setTool(mode) {
       if (!mayUseEditor() || (readOnly && mode !== "paint") || pending || gizmos?.isDragging ||
-        !["move", "rotate", "paint"].includes(mode)) return;
+        !["move", "rotate", "scale", "paint"].includes(mode)) return;
       paintInput.finish();
       if (pending) return;
       if (mode === "paint") {

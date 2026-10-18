@@ -43,7 +43,7 @@ export const WorldEditorPanel = () => {
         <span className="badge badge-outline badge-sm">{source === "json" ? "JSON · read-only" : "MongoDB"}</span>
         <WorldEditorAssetLibrary selectedAsset={previewAsset} busy={busy} onSelect={(id) => actions?.selectAsset(id)} />
         <div className="join">
-          {["move", "rotate"].map((mode) => (
+          {["move", "rotate", "scale"].map((mode) => (
             <button key={mode} type="button" disabled={(!selected && tool !== "paint") || busy || readOnly} aria-pressed={tool === mode}
               className={`btn btn-sm join-item flex-1 capitalize ${tool === mode ? "btn-primary" : "btn-outline"}`}
               onClick={() => actions?.setTool(mode)}>{mode}</button>
@@ -61,7 +61,7 @@ export const WorldEditorPanel = () => {
             : "Left-click or drag terrain to paint. Small brushes may miss coarse vertices."
             : readOnly ? "JSON world data is read-only. Export downloads the MongoDB draft."
             : asset ? "Click terrain to place the selected asset."
-            : selected ? "Drag the gizmo to move or rotate this object." : "Choose an asset to place, or click a placed object to edit."}
+            : selected ? "Drag the gizmo to move, rotate, or uniformly scale this object." : "Choose an asset to place, or click a placed object to edit."}
         </p>
         {error && <p className="text-xs text-error" role="alert">{error}</p>}
         <p className="text-xs opacity-60">Ctrl+Shift+R to close{!readOnly && " · Placement and gizmo release save changes."}</p>
