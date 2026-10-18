@@ -80,16 +80,20 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     paths.flush();
     vegetation?.restore();
   };
-  const load = () => {
-    if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((snapshot) => {
-      if (disposed) return;
-      source = snapshot.source;
-      readOnly = snapshot.readOnly;
-      saved = new Map(snapshot.tiles.flatMap(({ colors }) => Object.entries(colors || {})));
+  const applySnapshot = (snapshot, { preserveHistory = false } = {}) => {
+    if (disposed) return;
+    source = snapshot.source;
+    readOnly = snapshot.readOnly;
+    saved = new Map(snapshot.tiles.flatMap(({ colors }) => Object.entries(colors || {})));
+    if (!preserveHistory) {
       lastStroke = null;
       redoStroke = null;
-      restore();
-    }).finally(() => { loading = null; });
+    }
+    restore();
+  };
+  const load = () => {
+    if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((snapshot) => applySnapshot(snapshot))
+      .finally(() => { loading = null; });
     return loading;
   };
   const persist = async (vertices) => {
@@ -115,6 +119,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   };
   return {
     load,
+    applySnapshot,
     isReadOnly: () => readOnly,
     getState: () => ({ paintSource: source, paintReadOnly: readOnly,
       canUndoPaint: !readOnly && !!lastStroke, canRedoPaint: !readOnly && !!redoStroke }),

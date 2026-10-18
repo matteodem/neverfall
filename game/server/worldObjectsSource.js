@@ -12,10 +12,11 @@ if (!["mongodb", "json"].includes(WORLD_OBJECTS_SOURCE))
 
 // A static import makes this file a server bundle dependency, including on Render.
 // Missing/malformed JSON fails the build; invalid records fail startup with this error.
+export const readJsonWorldObjects = () => validateWorldObjectSnapshot(bundledWorldObjects);
 let jsonObjects = null;
 if (WORLD_OBJECTS_SOURCE === "json") {
   try {
-    jsonObjects = validateWorldObjectSnapshot(bundledWorldObjects);
+    jsonObjects = readJsonWorldObjects();
   } catch {
     throw new Error("Invalid game/imports/api/worldObjects/world-objects.json: expected an array of objects with unique stable IDs and valid assetId, position, rotation and scaling.");
   }

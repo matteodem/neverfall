@@ -31,16 +31,21 @@ const canonicalTiles = (tiles) => {
   }).filter((tile) => Object.keys(tile.colors).length).sort((a, b) => compare(a._id, b._id));
 };
 
+// Imports must fail closed: a missing/malformed asset must never clear MongoDB.
+export const readJsonTerrainPaint = async () => {
+  const text = await Assets.getTextAsync("terrain-paint.json");
+  const data = JSON.parse(text);
+  if (!data || data.version !== 1 || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
+  return canonicalTiles(data.tiles);
+};
+
 let jsonTiles = null;
+export const invalidateTerrainPaintJsonCache = () => { jsonTiles = null; };
 const readJsonTiles = () => {
   if (!jsonTiles) jsonTiles = (async () => {
     try {
       // Assets are copied into the server bundle, including Render deployments.
-      const text = await Assets.getTextAsync("terrain-paint.json");
-      if (!text.trim()) return [];
-      const data = JSON.parse(text);
-      if (data.version !== 1 || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
-      return canonicalTiles(data.tiles);
+      return await readJsonTerrainPaint();
     } catch (error) {
       console.warn("[TerrainPaint] Could not load game/private/terrain-paint.json; using unpainted terrain.", error.message);
       return [];

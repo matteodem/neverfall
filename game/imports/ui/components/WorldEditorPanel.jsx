@@ -2,6 +2,7 @@ import React from "react";
 import { useWorldEditorStore } from "../stores/useWorldEditorStore";
 import { WorldEditorAssetLibrary } from "./WorldEditorAssetLibrary";
 import { TERRAIN_PAINT_COLORS } from "../../api/terrainPaint/config";
+import { WorldEditorJsonSync } from "./WorldEditorJsonSync";
 
 export const WorldEditorPanel = () => {
   const { enabled, source, readOnly, asset, previewAsset, selected, tool, paintColor, brushRadius,
@@ -54,6 +55,7 @@ export const WorldEditorPanel = () => {
           onClick={() => actions?.exportWorld()}>Export World</button>
         <button type="button" className="btn btn-outline btn-sm" disabled={busy}
           onClick={() => actions?.exportPaint()}>Export Terrain Paint</button>
+        <WorldEditorJsonSync busy={busy} actions={actions} />
         <p className="text-xs opacity-80" role="status">
           {busy ? "Working…" : tool === "paint" ? paintReadOnly ? "Terrain paint is read-only in JSON mode."
             : "Left-click or drag terrain to paint. Small brushes may miss coarse vertices."

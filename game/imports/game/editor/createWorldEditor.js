@@ -61,7 +61,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
   const undoPaint = (event) => {
     if (event.code !== "KeyZ" || !event.ctrlKey || event.shiftKey || event.altKey || event.metaKey ||
       !mayUseEditor() || tool !== "paint" ||
-      event.target?.closest?.("input:not([type='range']), textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
+      event.target?.closest?.("dialog, input:not([type='range']), textarea, select, [contenteditable]:not([contenteditable='false'])")) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     if (!event.repeat) void changePaintHistory("undo");
@@ -250,6 +250,38 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       if (mayUseEditor()) { publish({ busy: false }); showGizmo(); }
     }
   };
+  const syncFromJson = async (kind) => {
+    if (!Meteor.isDevelopment || !mayUseEditor() || pending || paintInput.isPainting() || gizmos?.isDragging ||
+      !["worldObjects", "terrainPaint"].includes(kind)) return false;
+    pending = true;
+    publish({ busy: true, error: "" });
+    gizmos?.attachToNode(null);
+    let imported = false;
+    try {
+      const snapshot = await Meteor.callAsync(`${kind}.syncFromJson`);
+      imported = true;
+      if (disposed) return true;
+      if (kind === "worldObjects") {
+        await objects.reconcile(snapshot.objects, () => !disposed);
+        if (disposed) return true;
+        readOnly = snapshot.readOnly;
+        selected = null;
+        asset = null;
+        publish({ source: snapshot.source, readOnly, selected: false, asset: null, previewAsset: null });
+      } else painter.applySnapshot(snapshot, { preserveHistory: true });
+      return true;
+    } catch (error) {
+      if (disposed) return false;
+      if (error.error === "not-authorized") close();
+      else if (mayUseEditor()) publish({ error: imported
+        ? "MongoDB was synced, but the scene could not refresh. Reopen Build Mode to retry."
+        : error.reason || "Could not sync from JSON. Check the JSON file and server logs." });
+      return false;
+    } finally {
+      pending = false;
+      if (mayUseEditor()) { publish({ busy: false, ...painter.getState() }); showGizmo(); }
+    }
+  };
 
   const onPointer = async ({ type, event }) => {
     if (tool === "paint" || type !== PointerEventTypes.POINTERTAP || event.button !== 0 || !mayEdit() ||
@@ -298,6 +330,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
     deleteSelected,
     exportWorld,
     exportPaint,
+    syncFromJson,
     undoPaint: () => changePaintHistory("undo"),
     redoPaint: () => changePaintHistory("redo"),
     setTool(mode) {
