@@ -219,7 +219,7 @@ export const loadForestProps = async (scene) => {
       mesh.checkCollisions = false;
       mesh.receiveShadows = true;
     }
-    if (/^(grass_|flowers_)/.test(name)) {
+    if (/^(grass_|flowers_|bush_)/.test(name)) {
       prop.metadata = { terrainVegetation: true };
       prop.computeWorldMatrix(true);
       getTerrainVegetation(scene)?.register(prop, prop.getAbsolutePosition(), (visible) => prop.setEnabled(visible));
