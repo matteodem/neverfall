@@ -15,7 +15,7 @@ const references = [
   { rgb: PATH_BASE_COLOR, green: false },
   ...TERRAIN_PAINT_COLORS.map((color) => ({ ...color, green: !!color.supportsVegetation })),
 ].map(({ hex, rgb, green }) => ({ rgb: chroma(rgb || Color3.FromHexString(hex).asArray()), green }));
-const isGreen = (rgb) => {
+export const isGreenTerrainColor = (rgb) => {
   const color = chroma(rgb);
   let closest = Infinity, green = false;
   for (const reference of references) {
@@ -75,7 +75,7 @@ export const createTerrainVegetation = (scene, terrain) => {
     if (location) for (const { index, weight } of location.samples) {
       for (let channel = 0; channel < 3; channel++) rgb[channel] += location.surface.colors[index * 4 + channel] * weight;
     }
-    const visible = !!location && isGreen(rgb);
+    const visible = !!location && isGreenTerrainColor(rgb);
     if (visible === candidate.visible) return;
     candidate.visible = visible;
     candidate.setVisible(visible);

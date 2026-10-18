@@ -1,5 +1,11 @@
 // import { getCentralCampClearing, getCentralCampMix } from "./centralCampPolishConfig";
 import { getCentralCampMix } from "./centralCampPolishConfig";
+import { Color3 } from "@babylonjs/core";
+import { getHighlandMix } from "../worldConfig";
+import { WORLD_PALETTE } from "./worldPalette";
+
+const [forest, highlands, olive, earth] = ["forest", "highlands", "olive", "earth"]
+  .map((key) => Color3.FromHexString(WORLD_PALETTE.terrain[key]).asArray());
 
 const smooth = (value) => value * value * (3 - 2 * value);
 
@@ -31,4 +37,14 @@ export const getTerrainColorVariation = (x, z) => {
     olive: Math.max(0, noise(x + 131, z - 79, 45) - 0.54) * 0.3,
     brown: Math.max(0, noise(x - 193, z + 117, 38) - 0.6) * 0.2,
   };
+};
+
+// The exact grass RGB written by world generation, before snow/stone overrides.
+// Keep paint in the same vertex-color space; no additional gamma conversion.
+export const getTerrainGrassColor = (x, z, variation = getTerrainColorVariation(x, z)) => {
+  const mix = getHighlandMix(z);
+  const baseWeight = 1 - variation.olive - variation.brown;
+  const shade = 1 + variation.shade;
+  return forest.map((value, channel) => (value + (highlands[channel] - value) * mix) *
+    shade * baseWeight + olive[channel] * variation.olive + earth[channel] * variation.brown);
 };

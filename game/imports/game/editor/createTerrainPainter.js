@@ -2,7 +2,8 @@ import { Meteor } from "meteor/meteor";
 import { Color3, Vector3, VertexBuffer } from "@babylonjs/core";
 import { MAX_STROKE_VERTICES, PAINT_PRECISION, TERRAIN_PAINT_COLORS, paintKey } from "../../api/terrainPaint/config";
 import { createPaintedPathMask } from "./createPaintedPathMask";
-import { getTerrainVegetation } from "../environment/terrainVegetation";
+import { getTerrainVegetation, isGreenTerrainColor } from "../environment/terrainVegetation";
+import { getTerrainGrassColor } from "../environment/terrainColor";
 
 const BUCKET_SIZE = 16;
 const palette = TERRAIN_PAINT_COLORS.map(({ hex, rgb }) => rgb || Color3.FromHexString(hex).asArray());
@@ -18,7 +19,16 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   const isTerrain = (mesh) => mesh === terrain || mesh.name === terrain.name || mesh.name === "starter-river-banks";
   const setColor = (vertex, color) => {
     const { entry, index } = vertex;
-    const rgb = color === undefined ? entry.original.subarray(index * 4, index * 4 + 3) : palette[color];
+    let rgb = color === undefined ? entry.original.subarray(index * 4, index * 4 + 3) : palette[color];
+    if (TERRAIN_PAINT_COLORS[color]?.proceduralGrass) {
+      if (!vertex.grassColor) {
+        const original = entry.original.subarray(index * 4, index * 4 + 3);
+        // Retain exact generated grass, including interpolated riverbank detail.
+        // Non-green terrain still receives grass instead of restoring soil/snow.
+        vertex.grassColor = isGreenTerrainColor(original) ? original : getTerrainGrassColor(vertex.worldX, vertex.worldZ);
+      }
+      rgb = vertex.grassColor;
+    }
     entry.colors.set(rgb, index * 4);
     if (color === undefined) visible.delete(vertex.key);
     else visible.set(vertex.key, color);
@@ -43,7 +53,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     for (const index of used) {
       const point = Vector3.TransformCoordinates(Vector3.FromArray(positions, index * 3), matrix);
       const x = Math.round(point.x * PAINT_PRECISION), z = Math.round(point.z * PAINT_PRECISION);
-      const vertex = { entry, index, x, z, key: paintKey(x, z) };
+      const vertex = { entry, index, x, z, worldX: point.x, worldZ: point.z, key: paintKey(x, z) };
       const bucket = paintKey(Math.floor(point.x / BUCKET_SIZE), Math.floor(point.z / BUCKET_SIZE));
       if (!buckets.has(bucket)) buckets.set(bucket, new Set());
       buckets.get(bucket).add(vertex);

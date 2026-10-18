@@ -12,7 +12,7 @@ import { isInStarterRiver } from "./environment/starterRiverHeight";
 import { DUNGEONS, getDungeonConfig } from "./dungeonConfig";
 import { createDungeonPortal, loadDungeonEntranceAsset } from "./environment/createDungeonPortal";
 import { createDungeonEnvironment } from "./environment/createDungeonEnvironment";
-import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getHighlandMix, getSnowMix, getWorldBaseHeight, getSoutheastMountainHeight } from "./worldConfig";
+import { ANCIENT_FOREST_SHRINE, FROZEN_STONE_ARCH, WORLD_SIZE, WORLD_CHUNKS, WORLD_REGIONS, CHUNK_SIZE, FOREST_GIANT_HILL, SNOWY_MOUNTAINS, SOUTHWEST_LAKE, SOUTHEAST_MOUNTAIN, getSnowMix, getWorldBaseHeight, getSoutheastMountainHeight } from "./worldConfig";
 import { NORTHERN_CAMP } from "./campProtection";
 import { createWorldChunks } from "./worldChunks";
 import { createHighlandsArea } from "./environment/createHighlandsArea";
@@ -22,7 +22,7 @@ import { createCampBridge } from "./environment/createCampBridge";
 import { BASIC_TOWER_CLEARING_RADIUS, BASIC_TOWER_POSITION } from "./basicTowerConfig";
 import { createBasicTower } from "./environment/createBasicTower";
 import { HIDDEN_CACHES } from "./hiddenCaches";
-import { getTerrainColorVariation } from "./environment/terrainColor";
+import { getTerrainColorVariation, getTerrainGrassColor } from "./environment/terrainColor";
 import { createCentralCampPolish } from "./environment/createCentralCampPolish";
 import { WORLD_PALETTE as PALETTE } from "./environment/worldPalette";
 import { createSouthwestLake } from "./environment/createWorldLandmarks";
@@ -124,19 +124,14 @@ export const createWorld =
       const positions = ground.getVerticesData(VertexBuffer.PositionKind);
       const normals = ground.getVerticesData(VertexBuffer.NormalKind);
       const colors = new Float32Array(positions.length / 3 * 4);
-      const forestColor = Color3.FromHexString(PALETTE.terrain.forest);
-      const highlandColor = Color3.FromHexString(PALETTE.terrain.highlands);
-      const oliveColor = Color3.FromHexString(PALETTE.terrain.olive);
-      const brownColor = Color3.FromHexString(PALETTE.terrain.earth);
       const snowColor = Color3.FromHexString(PALETTE.terrain.snow);
       const coldStoneColor = Color3.FromHexString(PALETTE.rock);
       for (let index = 0; index < positions.length; index += 3) {
         const x = positions[index];
         const z = positions[index + 2];
         positions[index + 1] = getWorldBaseHeight(x, z);
-        const mix = getHighlandMix(z);
         const variation = getTerrainColorVariation(x, z);
-        const baseWeight = 1 - variation.olive - variation.brown;
+        const grass = getTerrainGrassColor(x, z, variation);
         const shade = 1 + variation.shade;
         const snow = getSnowMix(x, z);
         const stoneMix = Math.max(0, Math.min(1, (x - 275) / 45));
@@ -144,8 +139,7 @@ export const createWorld =
         const colorIndex = index / 3 * 4;
         // const riverBankMix = getRiverBankMix(x, z) * 0.65;
         for (const [offset, channel] of ["r", "g", "b"].entries()) {
-          const warm = (forestColor[channel] + (highlandColor[channel] - forestColor[channel]) * mix) *
-            shade * baseWeight + oliveColor[channel] * variation.olive + brownColor[channel] * variation.brown;
+          const warm = grass[offset];
           const cold = snowColor[channel] + (coldStoneColor[channel] - snowColor[channel]) * stoneMix;
           const terrain = warm * (1 - snow) + cold * snow * shade;
           const groundColor = terrain * (1 - mountainStone) + coldStoneColor[channel] * shade * mountainStone;

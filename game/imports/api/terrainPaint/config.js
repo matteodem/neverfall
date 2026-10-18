@@ -6,7 +6,7 @@ export const PAINT_PRECISION = 1000;
 export const PAINT_TILE_SIZE = 32;
 export const MAX_STROKE_VERTICES = 20000;
 export const TERRAIN_PAINT_COLORS = [
-  { name: "Bright Green", hex: WORLD_PALETTE.terrain.forest, supportsVegetation: true },
+  { name: "Bright Green", hex: WORLD_PALETTE.terrain.forest, supportsVegetation: true, proceduralGrass: true },
   { name: "Dark green", hex: "#48643D", supportsVegetation: true },
   { name: "Brown", hex: "#876247" },
   { name: "Beige", hex: CENTRAL_CAMP_POLISH.wornColor, coversPaths: true },
