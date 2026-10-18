@@ -7,7 +7,6 @@ import { ENVIRONMENT_ROUTES, isOnEnvironmentPath } from "./environmentPaths";
 import { getPathBridgeApproach } from "./pathSurfaceShape";
 import { STARTER_RIVER } from "./starterRiverConfig";
 import { batchCampVegetation } from "./batchCampVegetation";
-import { createCentralCampGroundDetails } from "./createCentralCampGroundDetails";
 
 // Add fine detail after the camp exists, so authored props and tent doors can be protected.
 export const createCentralCampPolish = ({ scene, camp, ground, props, density }) => {
@@ -39,28 +38,14 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
     });
   const counts = { grass: 0, flowers: 0, bushes: 0, trees: 0, stones: 0 };
   const place = (kind, point, scale, type) => {
-    // Keep the surrounding forest's assets and placement unchanged.
-    if (Math.hypot(point.x - CONFIG.center.x, point.z - CONFIG.center.z) <= CONFIG.innerRadius) {
-      if (type === "bushes") return;
-      if (type === "grass") {
-        const details = CONFIG.groundDetails;
-        const tall = random() < details.tallGrassChance;
-        kind = tall ? "campTallGrass" : "campGrass";
-        const [min, max] = tall ? details.tallGrassScale : details.grassScale;
-        scale = min + random() * (max - min);
-      }
-    }
     const prop = props.placeAsset(root, kind, point, random, scale);
     if (!prop) return;
     prop.position.y += ground.getHeightAtCoordinates(point.x, point.z) - getWorldHeight(point.x, point.z);
-    prop.metadata = { ...prop.metadata, centralCampVegetation: type,
-      terrainVegetation: !!prop.metadata?.terrainVegetation || (type === "bushes" &&
-        Math.hypot(point.x - CONFIG.center.x, point.z - CONFIG.center.z) <= CONFIG.innerRadius) };
+    prop.metadata = { ...prop.metadata, centralCampVegetation: type };
     for (const mesh of prop.getChildMeshes()) {
       mesh.metadata = { ...mesh.metadata, worldShadows: { cast: false, receive: true } };
     }
     counts[type]++;
-    return prop;
   };
   if (props.available) {
     const existingTrees = scene.transformNodes.filter((node) => /^forest-(birch_|oak_)/.test(node.name))
@@ -114,8 +99,6 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
         if (counts[type] >= Math.floor((flowering ? CONFIG.flowerLimit : CONFIG.grassLimit) * density)) continue;
         const angle = random() * Math.PI * 2, distance = Math.sqrt(random()) * radius;
         const point = { x: anchor.x + Math.cos(angle) * distance, z: anchor.z + Math.sin(angle) * distance };
-        // The denser camp layer below owns these plants, keeping gaps between its clusters.
-        if (Math.hypot(point.x - CONFIG.center.x, point.z - CONFIG.center.z) <= CONFIG.innerRadius) continue;
         if (!clear(point) || occupied.some((other) => Math.hypot(other.x - point.x, other.z - point.z) < 0.45)) continue;
         const [min, max] = flowering ? CONFIG.flowerScale : CONFIG.grassScale;
         place(flowering ? "campFlowers" : "grassTufts", point, min + random() * (max - min), type);
@@ -128,7 +111,6 @@ export const createCentralCampPolish = ({ scene, camp, ground, props, density })
       if (random() < 0.25 && counts.stones < Math.floor(CONFIG.stoneLimit * density) && clear(stone, 0.8))
         place("stones", stone, 0.3 + random() * 0.2, "stones");
     }
-    createCentralCampGroundDetails({ scene, obstacles, density, clear, place });
   }
 
   batchCampVegetation(root);
