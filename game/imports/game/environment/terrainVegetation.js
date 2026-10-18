@@ -73,7 +73,9 @@ export const createTerrainVegetation = (scene, terrain) => {
     const { location } = candidate;
     const rgb = [0, 0, 0];
     if (location) for (const { index, weight } of location.samples) {
-      for (let channel = 0; channel < 3; channel++) rgb[channel] += location.surface.colors[index * 4 + channel] * weight;
+      for (let channel = 0; channel < 3; channel++) {
+        rgb[channel] += location.surface.colors[index * 4 + channel] * weight;
+      }
     }
     const visible = !!location && isGreenTerrainColor(rgb);
     if (visible === candidate.visible) return;
@@ -82,7 +84,9 @@ export const createTerrainVegetation = (scene, terrain) => {
     if (candidate.flush) flushers.add(candidate.flush);
   };
   const refreshColors = () => {
-    for (const surface of surfaces) surface.colors = surface.mesh.getVerticesData(VertexBuffer.ColorKind);
+    for (const surface of surfaces) {
+      surface.colors = surface.mesh.getVerticesData(VertexBuffer.ColorKind);
+    }
   };
   const system = {
     register(owner, position, setVisible, flush) {

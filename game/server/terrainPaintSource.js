@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { TerrainPaint } from "../imports/api/terrainPaint/terrainPaint";
-import { PAINT_PRECISION, PAINT_TILE_SIZE, TERRAIN_PAINT_COLORS, paintKey, paintTile } from "../imports/api/terrainPaint/config";
+import { PAINT_PRECISION, PAINT_TILE_SIZE, paintKey, paintTile } from "../imports/api/terrainPaint/config";
+import { isTerrainPaintValue } from "../imports/api/terrainPaint/paintValue";
 
 // Select exactly one source. Never expose environment variables to clients.
 export const TERRAIN_PAINT_SOURCE = process.env.TERRAIN_PAINT_SOURCE ??
@@ -9,7 +10,10 @@ if (!["mongodb", "json"].includes(TERRAIN_PAINT_SOURCE))
   throw new Error("TERRAIN_PAINT_SOURCE must be 'mongodb' or 'json'.");
 
 const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
-const snapshot = (tiles) => ({ version: 1, precision: PAINT_PRECISION, tileSize: PAINT_TILE_SIZE, tiles });
+const snapshot = (tiles) => ({
+  version: tiles.some((tile) => Object.values(tile.colors).some(Array.isArray)) ? 2 : 1,
+  precision: PAINT_PRECISION, tileSize: PAINT_TILE_SIZE, tiles,
+});
 const invalid = () => { throw new Error("Invalid terrain-paint snapshot."); };
 const canonicalTiles = (tiles) => {
   if (!Array.isArray(tiles)) invalid();
@@ -23,9 +27,8 @@ const canonicalTiles = (tiles) => {
       const [x, z] = key.split(":").map(Number);
       const color = tile.colors[key];
       if (![x, z].every(Number.isInteger) || Math.abs(x) > 400000 || Math.abs(z) > 400000 ||
-        key !== paintKey(x, z) || tile._id !== paintTile(x, z) || !Number.isInteger(color) ||
-        color < 0 || color >= TERRAIN_PAINT_COLORS.length) invalid();
-      colors[key] = color;
+        key !== paintKey(x, z) || tile._id !== paintTile(x, z) || !isTerrainPaintValue(color)) invalid();
+      colors[key] = Array.isArray(color) ? color.slice(0, 4) : color;
     }
     return { _id: tile._id, colors };
   }).filter((tile) => Object.keys(tile.colors).length).sort((a, b) => compare(a._id, b._id));
@@ -35,7 +38,7 @@ const canonicalTiles = (tiles) => {
 export const readJsonTerrainPaint = async () => {
   const text = await Assets.getTextAsync("terrain-paint.json");
   const data = JSON.parse(text);
-  if (!data || data.version !== 1 || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
+  if (!data || ![1, 2, 3].includes(data.version) || data.precision !== PAINT_PRECISION || data.tileSize !== PAINT_TILE_SIZE) invalid();
   return canonicalTiles(data.tiles);
 };
 

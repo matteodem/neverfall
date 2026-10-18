@@ -10,6 +10,7 @@ export const useWorldEditorStore = create(() => ({
   tool: "move",
   paintColor: 0,
   brushRadius: 8,
+  brushGradient: 100,
   paintSource: null,
   paintReadOnly: true,
   canUndoPaint: false,

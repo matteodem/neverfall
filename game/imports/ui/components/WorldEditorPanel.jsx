@@ -5,7 +5,7 @@ import { TERRAIN_PAINT_COLORS } from "../../api/terrainPaint/config";
 import { WorldEditorJsonSync } from "./WorldEditorJsonSync";
 
 export const WorldEditorPanel = () => {
-  const { enabled, source, readOnly, asset, previewAsset, selected, tool, paintColor, brushRadius,
+  const { enabled, source, readOnly, asset, previewAsset, selected, tool, paintColor, brushRadius, brushGradient,
     paintSource, paintReadOnly, canUndoPaint, canRedoPaint, busy, error, actions } = useWorldEditorStore();
   if (!enabled) return null;
   return (
@@ -30,6 +30,10 @@ export const WorldEditorPanel = () => {
             <label htmlFor="terrain-brush-radius" className="fieldset-label">Brush radius: {brushRadius} m</label>
             <input id="terrain-brush-radius" type="range" min="1" max="30" step="1" value={brushRadius}
               className="range range-primary range-sm" onChange={(event) => actions?.setBrushRadius(Number(event.target.value))} />
+            <label htmlFor="terrain-brush-gradient" className="fieldset-label">Brush Gradient: {brushGradient}%</label>
+            <input id="terrain-brush-gradient" type="range" min="0" max="100" step="1" value={brushGradient}
+              className="range range-primary range-sm" onChange={(event) => actions?.setBrushGradient(Number(event.target.value))} />
+            <p className="text-xs opacity-70">0% uniform intensity · 100% soft falloff</p>
             <div className="join">
               <button type="button" className="btn btn-outline btn-sm join-item flex-1" disabled={!canUndoPaint}
                 onClick={() => actions?.undoPaint()}>Undo</button>

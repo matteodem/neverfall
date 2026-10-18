@@ -4,6 +4,8 @@ import { MAX_STROKE_VERTICES, PAINT_PRECISION, TERRAIN_PAINT_COLORS, paintKey } 
 import { createPaintedPathMask } from "./createPaintedPathMask";
 import { getTerrainVegetation, isGreenTerrainColor } from "../environment/terrainVegetation";
 import { getTerrainGrassColor } from "../environment/terrainColor";
+import { getPaintPathCoverage } from "../../api/terrainPaint/paintValue";
+import { terrainBrushIntensity } from "./terrainBrushFalloff";
 
 const BUCKET_SIZE = 16;
 const palette = TERRAIN_PAINT_COLORS.map(({ hex, rgb }) => rgb || Color3.FromHexString(hex).asArray());
@@ -15,20 +17,20 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   let source = null, readOnly = true;
   let visible = new Map();
   const paths = createPaintedPathMask({ terrain,
-    isCovered: (key) => !!TERRAIN_PAINT_COLORS[visible.get(key)]?.coversPaths });
+    getCoverage: (key) => getPaintPathCoverage(visible.get(key)) });
   const isTerrain = (mesh) => mesh === terrain || mesh.name === terrain.name || mesh.name === "starter-river-banks";
+  const grassColor = (vertex) => {
+    if (!vertex.grassColor) {
+      const original = vertex.entry.original.subarray(vertex.index * 4, vertex.index * 4 + 3);
+      vertex.grassColor = isGreenTerrainColor(original) ? original : getTerrainGrassColor(vertex.worldX, vertex.worldZ);
+    }
+    return vertex.grassColor;
+  };
   const setColor = (vertex, color) => {
     const { entry, index } = vertex;
-    let rgb = color === undefined ? entry.original.subarray(index * 4, index * 4 + 3) : palette[color];
-    if (TERRAIN_PAINT_COLORS[color]?.proceduralGrass) {
-      if (!vertex.grassColor) {
-        const original = entry.original.subarray(index * 4, index * 4 + 3);
-        // Retain exact generated grass, including interpolated riverbank detail.
-        // Non-green terrain still receives grass instead of restoring soil/snow.
-        vertex.grassColor = isGreenTerrainColor(original) ? original : getTerrainGrassColor(vertex.worldX, vertex.worldZ);
-      }
-      rgb = vertex.grassColor;
-    }
+    let rgb = color === undefined ? entry.original.subarray(index * 4, index * 4 + 3)
+      : Array.isArray(color) ? color.slice(0, 3) : palette[color];
+    if (TERRAIN_PAINT_COLORS[color]?.proceduralGrass) rgb = grassColor(vertex);
     entry.colors.set(rgb, index * 4);
     if (color === undefined) visible.delete(vertex.key);
     else visible.set(vertex.key, color);
@@ -36,7 +38,8 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     vegetation?.changed(vertex.key);
   };
   const upload = (entry) => {
-    if (!entry.mesh.isDisposed()) entry.mesh.updateVerticesData(VertexBuffer.ColorKind, entry.colors);
+    if (entry.mesh.isDisposed()) return;
+    entry.mesh.updateVerticesData(VertexBuffer.ColorKind, entry.colors);
   };
   const register = (mesh) => {
     paths.register(mesh);
@@ -134,15 +137,35 @@ export const createTerrainPainter = ({ scene, terrain }) => {
     getState: () => ({ paintSource: source, paintReadOnly: readOnly,
       canUndoPaint: !readOnly && !!lastStroke, canRedoPaint: !readOnly && !!redoStroke }),
     isTerrain: (mesh) => meshes.has(mesh) && mesh.isEnabled() && mesh.isVisible,
-    paint(point, radius, color, stroke, dirty) {
+    paint(point, radius, color, stroke, dirty, gradient = 100) {
+      stroke.before ||= new Map();
+      stroke.strengths ||= new Map();
       for (let bx = Math.floor((point.x - radius) / BUCKET_SIZE); bx <= Math.floor((point.x + radius) / BUCKET_SIZE); bx++) {
         for (let bz = Math.floor((point.z - radius) / BUCKET_SIZE); bz <= Math.floor((point.z + radius) / BUCKET_SIZE); bz++) {
           for (const vertex of buckets.get(paintKey(bx, bz)) || []) {
-            if (!vertex.entry.mesh.isEnabled() || Math.hypot(vertex.x / PAINT_PRECISION - point.x,
-              vertex.z / PAINT_PRECISION - point.z) > radius) continue;
+            if (!vertex.entry.mesh.isEnabled()) continue;
+            const strength = terrainBrushIntensity(Math.hypot(vertex.worldX - point.x, vertex.worldZ - point.z) / radius, gradient);
+            if (strength <= 0) continue;
             if (!stroke.has(vertex.key) && stroke.size >= MAX_STROKE_VERTICES) continue;
-            stroke.set(vertex.key, [vertex.x, vertex.z, color]);
-            setColor(vertex, color);
+            if (!stroke.before.has(vertex.key)) stroke.before.set(vertex.key, {
+              rgb: Array.from(vertex.entry.colors.subarray(vertex.index * 4, vertex.index * 4 + 3)),
+              coverage: getPaintPathCoverage(visible.get(vertex.key)),
+            });
+            // Use the strongest stamp per stroke, so event frequency and overlapping
+            // drag samples cannot repeatedly darken the soft edge.
+            if (strength > (stroke.strengths.get(vertex.key) || 0)) {
+              let value = color;
+              if (strength < 1) {
+                const before = stroke.before.get(vertex.key);
+                setColor(vertex, color);
+                const target = vertex.entry.colors.subarray(vertex.index * 4, vertex.index * 4 + 3);
+                value = before.rgb.map((channel, index) => Math.fround(channel + (target[index] - channel) * strength));
+                value.push(before.coverage + (getPaintPathCoverage(color) - before.coverage) * strength);
+              }
+              stroke.set(vertex.key, [vertex.x, vertex.z, value]);
+              stroke.strengths.set(vertex.key, strength);
+            }
+            setColor(vertex, stroke.get(vertex.key)[2]);
             dirty.add(vertex.entry);
           }
         }

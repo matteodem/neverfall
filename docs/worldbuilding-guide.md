@@ -4,102 +4,168 @@
 
 ## 1. How it works
 
-You build the world **locally** using Neverfall's in-game World Editor. Your edits are saved in your local **MongoDB** database. When you're happy with the result, you export the objects into one file called **`world-objects.json`**. You then add this file to Git and deploy the updated game to Render.
+Build the world **locally** with Neverfall's in-game World Editor. You can make two kinds of changes:
 
-**Workflow:** Edit locally → Save to MongoDB → Export JSON → Test JSON → Commit & push → Deploy on Render.
+- **World Objects:** Place and adjust 3D assets such as fences, rocks, tents, and decorations.
+- **Terrain Paint:** Paint the ground with colors such as grass green, path beige, and brown.
 
-> This guide assumes World Editor Steps 1–3 have been implemented. Exact button labels and file locations may differ slightly depending on the implementation.
+Your local changes are saved in **MongoDB**. To publish them, export **two separate JSON files** into the game project, commit them with Git, and deploy the updated game to Render.
+
+**Workflow:** Edit locally → Save to MongoDB → Export both JSON files → Test JSON locally → Commit & push → Deploy on Render.
+
+> This guide assumes the World Editor, terrain painting, JSON export, and JSON-source loading have been implemented. Button labels may vary slightly. The paths below assume the migration to `game/private/world/` is complete.
 
 ## 2. Open the World Editor
 
-1. Start Neverfall locally in development mode and log in with an authorized admin account.
+1. Start Neverfall **locally** in development mode and log in with an authorized admin account.
 2. Enter the game world.
 3. Press **Ctrl + Shift + R** to turn the World Editor on or off.
-4. Open the editor's asset list and choose an object, such as a fence.
+4. Choose **World Objects** to work with 3D assets, or **Terrain Painting** to change ground colors.
 
 The editor is intended for authorized admins, not regular players.
 
-## 3. Build your world
+## 3. Place and edit World Objects
 
-- **Place:** Select an asset and click the ground to place it.
-- **Move:** Select an existing object and use the move controls.
-- **Rotate:** Use the rotation controls to turn the selected object.
-- **Delete:** Select an unwanted object and delete it.
+- **Place:** Choose an asset from the library and click the terrain.
+- **Move:** Select a placed object and move it with the controls.
+- **Rotate:** Turn the selected object with the rotation controls.
+- **Scale:** Resize an object proportionally (all axes together), if the Scale tool is available.
+- **Delete:** Remove an unwanted object.
 
-Changes are saved to **local MongoDB** by the editor. If saving is manual in your version, use the editor's Save action before exporting.
+The asset list may be organized into categories such as **Nature** and **Structures**. The JSON stores the asset's ID and its position, rotation, and scale—not the actual `.glb` model.
 
-**Tip:** Work on one small area at a time (for example, Central Camp), then walk around to check the result from the player's perspective.
+Changes are saved to **local MongoDB**. If your editor has a manual Save action, use it before exporting.
 
-## 4. Export your changes
+**Tip:** Work on a small area, like Central Camp, and walk through it from a player's perspective before moving on.
 
-1. When you're satisfied, click **Export World** in the editor.
-2. The editor downloads **`world-objects.json`**.
-3. Copy this file into the project's configured world-data location, **replacing the previous exported file**.
-  * The file is located under `game/imports/api/worldObjects/world-objects.json`
-4. Check that the file is included in your Git changes.
+## 4. Paint the terrain
 
-This JSON contains the **asset references and placement information** (position, rotation, and scale). It does **not** contain the actual 3D models: the corresponding GLB files still need to be part of the game.
+1. Switch to **Terrain Painting** in the World Editor.
+2. Choose a ground color (for example, light green for grass or beige for paths).
+3. Adjust the **Brush Size** and, if available, **Brush Gradient** (edge softness).
+4. Paint the ground with the mouse.
+5. Use the **Undo** and **Redo** buttons to correct mistakes. **Ctrl + Z** may also undo strokes.
 
-> Important: Export again after making further changes. Editing the world in MongoDB alone does **not** update the JSON file or the live game.
+Terrain Painting changes **ground colors**, not terrain height. Vegetation may also respond to painted colors: green areas can have grass and flowers, while beige/brown ground is intended to stay clear. Check the actual result in-game.
 
-## 5. Test the exported world locally
+Terrain paint changes are saved in the **local MongoDB** terrain-paint data, separately from World Objects.
 
-Before publishing, test the same data that the live server will load.
+## 5. Export both JSON files
 
-1. Start the game with the environment variable **`WORLD_OBJECTS_SOURCE=json`**.
-2. Enter the world and verify that the exported objects appear in the right locations.
-3. Check that no objects are missing or duplicated.
-4. Switch back to **`WORLD_OBJECTS_SOURCE=mongodb`** (or your normal development default) to continue editing.
+When you're happy with your changes, export **each type of data separately** from the World Editor:
 
-The JSON mode is **read-only**: switch back to MongoDB mode to make edits.
-
-### Which data source is used?
-
-| Environment | Default world-object source | Editing |
+| Editor action | Downloaded file | Replace this file in the project |
 | --- | --- | --- |
-| Local development | MongoDB | Enabled for admins |
-| Live production | JSON | Disabled / read-only |
+| **Export World** / **Export World Objects** | `world-objects.json` | `game/private/world/world-objects.json` |
+| **Export Terrain Paint** | `terrain-paint.json` | `game/private/world/terrain-paint.json` |
 
-The **`WORLD_OBJECTS_SOURCE`** setting overrides the default when needed. Use only **one source at a time** to avoid duplicate objects.
+Steps:
 
-## 6. Publish your changes with Git and Render
+1. Click the export button for **World Objects** and save the downloaded `world-objects.json`.
+2. Click **Export Terrain Paint** and save `terrain-paint.json`.
+3. Copy both downloaded files to `game/private/world/`, **replacing the older copies**.
+4. Confirm both files appear in your Git changes.
 
-1. Make sure the latest **`world-objects.json`** is in the correct project folder.
-2. If you added any new GLB assets, include them in the Git commit too.
-3. Commit and push your changes to the branch that Render deploys:
+The intended structure is:
 
-```bash
-git add .
-git commit -m "Update Neverfall world layout"
-git push
+```text
+game/
+  private/
+    world/
+      world-objects.json
+      terrain-paint.json
 ```
 
-4. Open your **Render dashboard** and confirm the new deployment started. If automatic deploys are disabled, manually deploy the latest commit.
-5. Wait for Render to report that the deployment succeeded.
-6. Open the live game and check the changed areas.
+These files are bundled as **server-side assets** and loaded by Meteor on the server. The 3D `.glb` assets referenced by World Objects still need to be included in your game separately.
 
-**The live server reads the exported JSON**, not your local MongoDB collection. You do not need to copy your local database to production.
+> **Important:** Saving to MongoDB does not automatically update either JSON file. Export again after making changes. If you only changed one category, you only need to re-export that category, but check both files before deployment.
 
-## 7. Common problems
+## 6. Test the exported files locally
+
+Before publishing, verify that the game loads the same JSON data that production will use.
+
+1. Start Neverfall locally with **both** data sources set to JSON:
+
+   ```bash
+   WORLD_OBJECTS_SOURCE=json TERRAIN_PAINT_SOURCE=json meteor
+   ```
+
+   Run this from the Meteor project directory, or apply these variables to your usual startup command.
+2. Enter the world and check that objects appear at the correct positions and scales.
+3. Check that painted ground colors appear correctly, including after terrain chunks reload.
+4. Confirm no World Objects are duplicated and there are no unexpected gaps in the painted terrain.
+5. Switch back to **MongoDB mode** to continue editing:
+
+   ```bash
+   WORLD_OBJECTS_SOURCE=mongodb TERRAIN_PAINT_SOURCE=mongodb meteor
+   ```
+
+**JSON mode is intended to be read-only.** Continue editing in local MongoDB mode.
+
+### Which source is used?
+
+| Environment | World Objects source | Terrain Paint source |
+| --- | --- | --- |
+| Local development (default) | MongoDB | MongoDB |
+| Live production (default) | JSON | JSON |
+
+`WORLD_OBJECTS_SOURCE` controls World Objects and `TERRAIN_PAINT_SOURCE` controls Terrain Painting. Each can be overridden independently. Don't load the same data from both sources simultaneously.
+
+## 7. Sync existing JSON back into local MongoDB
+
+If you want to start editing from the world layout stored in the project, use the editor's separate import/sync actions (if implemented):
+
+- **Sync World Objects from JSON:** Replaces local MongoDB World Objects with the contents of `game/private/world/world-objects.json`.
+- **Sync Terrain Paint from JSON:** Replaces local MongoDB terrain-paint data with the contents of `game/private/world/terrain-paint.json`.
+
+Open the editor in **local development mode**, choose the corresponding button, read the confirmation warning, and confirm only when you want to **overwrite local unsaved edits**. These operations should be admin-only. Syncing is **not automatic**.
+
+> The local JSON files represent what is in your current working copy. They match the live version only if those files are from the Git commit currently deployed on Render.
+
+## 8. Publish changes with Git and Render
+
+1. Make sure the latest exported files are in:
+   - `game/private/world/world-objects.json`
+   - `game/private/world/terrain-paint.json`
+2. If you added any new GLB assets, include those files and their asset configuration changes too.
+3. Commit and push your changes to the branch Render deploys:
+
+   ```bash
+   git add .
+   git commit -m "Update Neverfall worldbuilding"
+   git push
+   ```
+
+4. Open the **Render dashboard** and confirm that a new deployment started. If automatic deployments are disabled, deploy the latest commit manually.
+5. Wait for Render to report a successful deployment.
+6. Open live Neverfall and inspect both the placed objects **and** terrain colors.
+
+**The live server reads the committed JSON assets**, not your local MongoDB collections. You do not need to transfer the local database to Render.
+
+## 9. Common problems
 
 | Problem | What to check |
 | --- | --- |
-| Changes appear locally but not live | Did you export again, replace the correct JSON file, commit, and deploy? |
-| Objects disappear when testing JSON locally | Is `WORLD_OBJECTS_SOURCE=json` set? Is the exported JSON in the path expected by the loader? |
-| Missing models | Are the referenced GLB files present and deployed? |
-| Duplicate objects | Is the loader reading both MongoDB and JSON, or loading the same objects twice? Only one source should be active. |
-| Editor doesn't open | Are you logged in with an authorized admin account? Is the build-mode shortcut enabled? |
-| Render isn't showing the update | Check the deployed Git commit and Render build/deploy logs. |
+| Objects appear locally but not live | Did you export and replace `world-objects.json`, commit, and deploy? |
+| Terrain paint appears locally but not live | Did you export and replace `terrain-paint.json`, commit, and deploy? |
+| Objects or paint disappear in local JSON mode | Are the corresponding `*_SOURCE=json` variables set, and are both files in `game/private/world/`? |
+| Missing 3D models | Are the referenced `.glb` files and asset configurations included in the deployment? |
+| Duplicate objects | Make sure World Objects load from only one source and aren't loaded twice. |
+| Terrain paint disappears when moving around | Check that paint is reapplied when terrain chunks reload. |
+| The editor doesn't open | Are you an authorized admin, running the intended environment, and using **Ctrl + Shift + R**? |
+| Sync erased local changes | Sync replaces local MongoDB data; restore from backups or re-exported JSON if available. |
+| Render isn't showing updates | Check the deployed Git commit and Render build/deployment logs. |
 
-## 8. Quick checklist before every deployment
+## 10. Quick checklist before every deployment
 
-- [ ] World objects are placed correctly in local MongoDB mode.
-- [ ] Exported a fresh `world-objects.json`.
-- [ ] Replaced the project's previous JSON export.
-- [ ] Tested locally with `WORLD_OBJECTS_SOURCE=json`.
-- [ ] Included all new GLB assets, if any.
+- [ ] Checked World Objects in local MongoDB mode.
+- [ ] Checked Terrain Painting in local MongoDB mode.
+- [ ] Exported fresh `world-objects.json` and/or `terrain-paint.json` for everything changed.
+- [ ] Replaced the relevant files in `game/private/world/`.
+- [ ] Tested locally with both `WORLD_OBJECTS_SOURCE=json` and `TERRAIN_PAINT_SOURCE=json`.
+- [ ] Included new `.glb` assets or configuration changes, if any.
 - [ ] Committed and pushed the changes.
-- [ ] Confirmed Render deployed the latest commit.
-- [ ] Checked the live world in the browser.
+- [ ] Confirmed Render deployed the intended Git commit.
+- [ ] Checked both objects and terrain colors in the live game.
 
-**Remember:** MongoDB is your **local editing workspace**. `world-objects.json` is the **published world layout**.
+**Remember:** MongoDB is your **local editing workspace**. The two JSON files in `game/private/world/` are your **published World Objects and Terrain Paint data**.

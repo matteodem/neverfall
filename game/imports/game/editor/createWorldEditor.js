@@ -16,15 +16,15 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
   let previousObjectTool = "move";
   let pending = false, gizmos = null;
   let readOnly = true;
-  let paintColor = 0, brushRadius = 8;
+  let paintColor = 0, brushRadius = 8, brushGradient = 100;
   const wiredGizmos = new WeakSet();
   const mayUseEditor = () => !disposed && enabled && adminId && adminId === Meteor.userId();
   const mayEdit = () => mayUseEditor() && !readOnly;
   const publish = (state) => useWorldEditorStore.setState(state);
   const paintInput = createTerrainPaintInput({
-    scene, canvas, painter,
+    scene, canvas, painter, terrain,
     canPaint: () => mayUseEditor() && canEnable() && tool === "paint" && !pending && !painter.isReadOnly(),
-    getBrush: () => ({ color: paintColor, radius: brushRadius }),
+    getBrush: () => ({ color: paintColor, radius: brushRadius, gradient: brushGradient }),
     async save(stroke) {
       if (!stroke.size) return;
       pending = true;
@@ -146,7 +146,7 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       enabled = true;
       objects.setPickable(!readOnly);
       onToggle();
-      publish({ enabled: true, tool, paintColor, brushRadius, error: "", ...painter.getState() });
+      publish({ enabled: true, tool, paintColor, brushRadius, brushGradient, error: "", ...painter.getState() });
     } catch {
       // Access is denied unless the server explicitly authorizes this account.
     } finally {
@@ -365,6 +365,12 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
       if (Number.isFinite(radius)) {
         brushRadius = Math.max(1, Math.min(30, radius));
         publish({ brushRadius });
+      }
+    },
+    setBrushGradient(gradient) {
+      if (Number.isFinite(gradient)) {
+        brushGradient = Math.max(0, Math.min(100, gradient));
+        publish({ brushGradient });
       }
     },
   };

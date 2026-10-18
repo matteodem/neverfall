@@ -1,7 +1,8 @@
 import { Meteor } from "meteor/meteor";
 import { isAnalyticsAdmin } from "../config/adminAnalytics";
 import { TerrainPaint } from "../../imports/api/terrainPaint/terrainPaint";
-import { MAX_STROKE_VERTICES, TERRAIN_PAINT_COLORS, paintKey, paintTile } from "../../imports/api/terrainPaint/config";
+import { MAX_STROKE_VERTICES, paintKey, paintTile } from "../../imports/api/terrainPaint/config";
+import { isTerrainPaintValue } from "../../imports/api/terrainPaint/paintValue";
 import { TERRAIN_PAINT_SOURCE, exportTerrainPaint, readTerrainPaint } from "../terrainPaintSource";
 
 TerrainPaint.deny({ insert: () => true, update: () => true, remove: () => true });
@@ -26,7 +27,7 @@ Meteor.methods({
       if (!Array.isArray(vertex) || vertex.length !== 3) throw new Meteor.Error("invalid-terrain-paint");
       const [x, z, color] = vertex;
       if (![x, z].every(Number.isInteger) || Math.abs(x) > 400000 || Math.abs(z) > 400000 ||
-        (color !== null && (!Number.isInteger(color) || color < 0 || color >= TERRAIN_PAINT_COLORS.length)))
+        (color !== null && !isTerrainPaintValue(color)))
         throw new Meteor.Error("invalid-terrain-paint");
       const tile = paintTile(x, z);
       if (!tiles.has(tile)) tiles.set(tile, new Map());

@@ -3,7 +3,7 @@ import { PAINT_PRECISION, paintKey } from "../../api/terrainPaint/config";
 
 // Paths are translucent meshes above the terrain. Reveal Beige-painted ground
 // beneath them instead of compositing a second, independently shaded dirt color.
-export const createPaintedPathMask = ({ terrain, isCovered }) => {
+export const createPaintedPathMask = ({ terrain, getCoverage }) => {
   const entries = new Map(), influences = new Map(), dirty = new Set();
   const positions = terrain.getVerticesData(VertexBuffer.PositionKind);
   const columns = terrain.subdivisionsX, rows = terrain.subdivisionsY, stride = columns + 1;
@@ -11,7 +11,7 @@ export const createPaintedPathMask = ({ terrain, isCovered }) => {
   const keyAt = (index) => paintKey(Math.round(positions[index * 3] * PAINT_PRECISION),
     Math.round(positions[index * 3 + 2] * PAINT_PRECISION));
   const update = (vertex) => {
-    const coverage = vertex.samples.reduce((sum, [key, weight]) => sum + (isCovered(key) ? weight : 0), 0);
+    const coverage = vertex.samples.reduce((sum, [key, weight]) => sum + getCoverage(key) * weight, 0);
     const alpha = coverage > 1 - 1e-6 ? 0 : vertex.alpha * (1 - coverage);
     if (vertex.entry.colors[vertex.offset] === Math.fround(alpha)) return;
     vertex.entry.colors[vertex.offset] = alpha;
@@ -62,8 +62,9 @@ export const createPaintedPathMask = ({ terrain, isCovered }) => {
       for (const entry of entries.values()) for (const vertex of entry.vertices) update(vertex);
     },
     flush() {
-      for (const entry of dirty) if (!entry.mesh.isDisposed())
+      for (const entry of dirty) if (!entry.mesh.isDisposed()) {
         entry.mesh.updateVerticesData(VertexBuffer.ColorKind, entry.colors);
+      }
       dirty.clear();
     },
     dispose() { entries.clear(); influences.clear(); dirty.clear(); },
