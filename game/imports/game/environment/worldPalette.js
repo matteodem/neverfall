@@ -30,3 +30,11 @@ export const WORLD_PALETTE = {
     sunken: { sky: "#172b34", ground: "#3D5657", stone: "#718F8A" },
   },
 };
+
+// Procedural path base color, before local shading.
+export const PATH_BASE_COLOR = [0, 1, 2].map((channel) => {
+  const offset = 1 + channel * 2;
+  const path = parseInt(WORLD_PALETTE.path.slice(offset, offset + 2), 16) / 255;
+  const earth = parseInt(WORLD_PALETTE.terrain.earth.slice(offset, offset + 2), 16) / 255;
+  return path + (earth - path) * 0.35;
+});

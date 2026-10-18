@@ -4,7 +4,7 @@ import { ENVIRONMENT_PATHS as CONFIG } from "./environmentPolishConfig";
 import { ENVIRONMENT_ROUTES } from "./environmentPaths";
 import { GroundSkyFog } from "./groundSkyFog";
 import { isInStarterRiver } from "./starterRiverHeight";
-import { WORLD_PALETTE as PALETTE } from "./worldPalette";
+import { PATH_BASE_COLOR, WORLD_PALETTE as PALETTE } from "./worldPalette";
 import { appendPathJunction, getPathJunctions, preparePathJunction } from "./pathJunctionFillets";
 import { getPathBridgeApproach, getPathSection, isPathConnection, pathEdgeRadius, pathNoise as noise } from "./pathSurfaceShape";
 
@@ -41,8 +41,7 @@ export const createEnvironmentPaths = ({ scene, chunk, ground, belongs }) => {
       (approach.halfWidth + CONFIG.edgeFade / 2) * approach.weight * 0.85;
   };
   const positions = [], indices = [], colors = [];
-  const earth = Color3.Lerp(Color3.FromHexString(PALETTE.path),
-    Color3.FromHexString(PALETTE.terrain.earth), 0.35);
+  const earth = Color3.FromArray(PATH_BASE_COLOR);
   const snow = Color3.FromHexString(PALETTE.rock);
   const vertex = (x, z, alpha) => {
     const index = positions.length / 3;

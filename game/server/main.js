@@ -17,6 +17,8 @@ import "./methods/quests";
 import "./methods/feedback";
 import "./methods/analytics";
 import "./methods/worldEditor";
+import "./methods/terrainPaint";
+import "./methods/worldEditorJsonSync";
 
 import "./publications/characters";
 
