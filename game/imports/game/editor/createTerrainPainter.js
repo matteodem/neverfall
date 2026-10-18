@@ -1,6 +1,7 @@
 import { Meteor } from "meteor/meteor";
 import { Color3, Vector3, VertexBuffer } from "@babylonjs/core";
 import { MAX_STROKE_VERTICES, PAINT_PRECISION, TERRAIN_PAINT_COLORS, paintKey } from "../../api/terrainPaint/config";
+import { createPaintedPathMask } from "./createPaintedPathMask";
 
 const BUCKET_SIZE = 16;
 const palette = TERRAIN_PAINT_COLORS.map(({ hex, rgb }) => rgb || Color3.FromHexString(hex).asArray());
@@ -9,16 +10,23 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   const meshes = new Map(), buckets = new Map(), queued = new Set();
   let saved = new Map(), loading = null, disposed = false, lastStroke = null, redoStroke = null;
   let source = null, readOnly = true;
+  let visible = new Map();
+  const paths = createPaintedPathMask({ terrain,
+    isCovered: (key) => !!TERRAIN_PAINT_COLORS[visible.get(key)]?.coversPaths });
   const isTerrain = (mesh) => mesh === terrain || mesh.name === terrain.name || mesh.name === "starter-river-banks";
   const setColor = (vertex, color) => {
     const { entry, index } = vertex;
     const rgb = color === undefined ? entry.original.subarray(index * 4, index * 4 + 3) : palette[color];
     entry.colors.set(rgb, index * 4);
+    if (color === undefined) visible.delete(vertex.key);
+    else visible.set(vertex.key, color);
+    paths.update(vertex.key);
   };
   const upload = (entry) => {
     if (!entry.mesh.isDisposed()) entry.mesh.updateVerticesData(VertexBuffer.ColorKind, entry.colors);
   };
   const register = (mesh) => {
+    paths.register(mesh);
     if (mesh.isDisposed() || meshes.has(mesh) || !isTerrain(mesh)) return;
     const positions = mesh.getVerticesData(VertexBuffer.PositionKind);
     const colors = mesh.getVerticesData(VertexBuffer.ColorKind);
@@ -56,13 +64,17 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   const frame = scene.onBeforeRenderObservable.add(() => {
     for (const mesh of queued) register(mesh);
     queued.clear();
+    paths.flush();
   });
   const restore = () => {
+    visible = new Map(saved);
     for (const entry of meshes.values()) {
       entry.colors.set(entry.original);
       for (const vertex of entry.vertices) if (saved.has(vertex.key)) setColor(vertex, saved.get(vertex.key));
       upload(entry);
     }
+    paths.restore();
+    paths.flush();
   };
   const load = () => {
     if (!loading) loading = Meteor.callAsync("terrainPaint.list").then((snapshot) => {
@@ -117,7 +129,10 @@ export const createTerrainPainter = ({ scene, terrain }) => {
         }
       }
     },
-    upload: (dirty) => { for (const entry of dirty) upload(entry); },
+    upload: (dirty) => {
+      for (const entry of dirty) upload(entry);
+      paths.flush();
+    },
     async save(stroke) {
       if (!stroke.size) return;
       lastStroke = await persist([...stroke.values()]);
@@ -144,6 +159,7 @@ export const createTerrainPainter = ({ scene, terrain }) => {
       scene.onNewMeshAddedObservable.remove(added);
       scene.onBeforeRenderObservable.remove(frame);
       meshes.clear(); buckets.clear(); queued.clear();
+      paths.dispose();
     },
   };
 };

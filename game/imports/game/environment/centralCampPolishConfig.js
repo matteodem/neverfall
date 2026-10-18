@@ -15,8 +15,9 @@ export const CENTRAL_CAMP_POLISH = {
   clusterFlowers: 7,
   npcClearance: 3.4,
   enemyClearance: 4.5,
+  // Shared with Terrain Paint even while the procedural clearing is disabled.
+  wornColor: "#B99A68",
   // Central Camp dirt clearing configuration disabled.
-//   wornColor: "#B99A68",
 //   dirtTransition: 0.7,
 //   wornTransition: 0.35,
 //   clearingBounds: { minX: -25, maxX: 29, minZ: -22, maxZ: 23 },

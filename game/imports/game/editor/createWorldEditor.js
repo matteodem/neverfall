@@ -12,6 +12,7 @@ import { createTerrainPaintInput } from "./createTerrainPaintInput";
 export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle, objects, refreshObjects, painter }) => {
   let enabled = false, authorizing = false, disposed = false, revision = 0;
   let adminId = null, asset = null, selected = null, tool = "move";
+  let previousObjectTool = "move";
   let pending = false, gizmos = null;
   let readOnly = true;
   let paintColor = 0, brushRadius = 8;
@@ -304,6 +305,10 @@ export const createWorldEditor = ({ scene, canvas, terrain, canEnable, onToggle,
         !["move", "rotate", "paint"].includes(mode)) return;
       paintInput.finish();
       if (pending) return;
+      if (mode === "paint") {
+        if (tool === "paint") mode = previousObjectTool;
+        else previousObjectTool = tool;
+      }
       tool = mode;
       if (mode === "paint") {
         selected = null;

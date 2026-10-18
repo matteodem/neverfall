@@ -31,7 +31,7 @@ export const WORLD_PALETTE = {
   },
 };
 
-// Shared by procedural paths and the editor's Beige preset, before local shading.
+// Procedural path base color, before local shading.
 export const PATH_BASE_COLOR = [0, 1, 2].map((channel) => {
   const offset = 1 + channel * 2;
   const path = parseInt(WORLD_PALETTE.path.slice(offset, offset + 2), 16) / 255;
