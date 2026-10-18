@@ -36,6 +36,8 @@ const MODELS = {
   undergrowth: ["bush_1", "bush_2", "fern", "grass_1"],
   scrub: ["bush_3", "grass_2"],
   grassTufts: ["grass_1", "grass_2"],
+  campGrass: CENTRAL_CAMP_POLISH.groundDetails.grassAssets,
+  campTallGrass: CENTRAL_CAMP_POLISH.groundDetails.tallGrassAssets,
   flowers: ["flowers_1"],
   campFlowers: ["flowers_1", "flowers_2"],
   bushes: ["bush_1", "bush_2", "bush_3"],
@@ -164,7 +166,7 @@ export const loadForestProps = async (scene) => {
       loading.set(name, SceneLoader.LoadAssetContainerAsync("/models/environment/", `${name}.glb`, scene)
         .then((container) => {
           if (disposed) { container.dispose(); throw new Error("Scene disposed"); }
-          harmonizeEnvironmentMaterials(container.materials, name);
+          harmonizeEnvironmentMaterials(container.materials, name.split("/").pop());
           models.set(name, container);
           return container;
         }));
@@ -177,7 +179,7 @@ export const loadForestProps = async (scene) => {
       if (result.status === "rejected") console.warn(`[Forest] Could not load ${names[index]}.glb`, result.reason);
     });
   };
-  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents", "flowers", "campFlowers"];
+  const initialKinds = ["broadleaf", "conifers", "undergrowth", "scrub", "rocks", "boulders", "deadTrees", "accents", "flowers", "campFlowers", "campGrass", "campTallGrass"];
   const initialNames = [...new Set(initialKinds.flatMap((kind) => MODELS[kind]))];
   const snowyNames = [...new Set(Object.entries(MODELS)
     .filter(([kind]) => kind.startsWith("snowy"))
@@ -191,8 +193,9 @@ export const loadForestProps = async (scene) => {
   const available = variants("broadleaf").length + variants("conifers").length > 0;
 
   const place = (root, kind, position, random, scale = 1) => {
+    const fallback = { conifers: "broadleaf", campGrass: "grassTufts", campTallGrass: "campGrass" }[kind];
     const choices = variants(kind).length ? variants(kind) :
-      (kind === "conifers" ? variants("broadleaf") : []);
+      (fallback ? variants(fallback) : []);
     if (!choices.length) return;
     const name = choices[Math.floor(random() * choices.length)];
     const entries = models.get(name).instantiateModelsToScene(undefined, false, { doNotInstantiate: false });
@@ -219,7 +222,7 @@ export const loadForestProps = async (scene) => {
       mesh.checkCollisions = false;
       mesh.receiveShadows = true;
     }
-    if (/^(grass_|flowers_)/.test(name)) {
+    if (/^(grass_|flowers_)/.test(name) || kind === "campGrass" || kind === "campTallGrass") {
       prop.metadata = { terrainVegetation: true };
       prop.computeWorldMatrix(true);
       getTerrainVegetation(scene)?.register(prop, prop.getAbsolutePosition(), (visible) => prop.setEnabled(visible));
