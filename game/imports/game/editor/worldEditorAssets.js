@@ -9,6 +9,12 @@ export const WORLD_EDITOR_ASSETS = {
   bush_1: {
     name: "Leafy Bush", path: "/models/environment/bush_1.glb", category: "Nature", scale: 0.8,
   },
+  barrel_1: {
+    name: "Barrel 1", path: "/models/environment/medieval_free/props_barrel_01.glb", category: "Structures", scale: 1,
+  },
+  barrel_2: {
+    name: "Barrel 2", path: "/models/environment/medieval_free/props_barrel_02.glb", category: "Structures", scale: 1,
+  },
 };
 
 export const getWorldEditorAsset = (assetId) => typeof assetId === "string" &&
