@@ -77,11 +77,12 @@ export const createTerrainPainter = ({ scene, terrain }) => {
   for (const mesh of scene.meshes) register(mesh);
   // New meshes are announced before procedural geometry is populated.
   const added = scene.onNewMeshAddedObservable.add((mesh) => queued.add(mesh));
-  const frame = scene.onBeforeRenderObservable.add(() => {
+  const flush = () => {
     for (const mesh of queued) register(mesh);
     queued.clear();
     paths.flush();
-  });
+  };
+  const frame = scene.onBeforeRenderObservable.add(flush);
   const restore = () => {
     visible = new Map(saved);
     for (const entry of meshes.values()) {
@@ -102,6 +103,9 @@ export const createTerrainPainter = ({ scene, terrain }) => {
       lastStroke = null;
       redoStroke = null;
     }
+    // Include geometry created while the snapshot was loading, even before
+    // the first render pass. Loading resolves after its buffers are updated.
+    flush();
     restore();
   };
   const load = () => {

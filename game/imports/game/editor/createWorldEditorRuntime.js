@@ -6,7 +6,7 @@ import { createTerrainPainter } from "./createTerrainPainter";
 export const createWorldEditorRuntime = (options) => {
   const { scene, canEnable } = options;
   const painter = createTerrainPainter(options);
-  let editor = null, opening = null, refreshing = null, disposed = false;
+  let editor = null, opening = null, refreshing = null, starting = null, disposed = false;
   const objects = createWorldObjectScene({ scene, onRemove: (root) => editor?.onObjectRemoved(root) });
   const refreshObjects = (isCurrent = () => true) => {
     if (!refreshing) refreshing = (async () => {
@@ -45,12 +45,10 @@ export const createWorldEditorRuntime = (options) => {
   return {
     isEnabled: () => editor?.isEnabled() || false,
     start: () => {
-      void painter.load().catch((error) => {
-        if (!disposed) console.warn("[TerrainPaint] Could not load saved paint", error);
-      });
-      void refreshObjects().catch((error) => {
-        if (!disposed) console.warn("[WorldObjects] Could not load saved scenery", error);
-      });
+      // Resolve only after paint is applied and every saved object is placed.
+      // Let startup handle failures without revealing an incomplete world.
+      if (!starting) starting = Promise.all([painter.load(), refreshObjects()]);
+      return starting;
     },
     dispose,
   };

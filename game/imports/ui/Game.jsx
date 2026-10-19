@@ -451,7 +451,8 @@ export const Game = ({
           }
 
           exitTrace?.("return chunk loading started", { x: player.position.x, y: player.position.y, z: player.position.z });
-          await loadStage("spawn chunk", 65, () => world.worldChunks?.loadAt(player.position));
+          await loadStage("spawn area scenery", 65, () => world.worldChunks?.preloadAt(player.position));
+          if (disposed) return;
           exitTrace?.("return chunk loading completed");
           exitTrace?.("nearby enemy loading started");
           await loadStage("nearby enemy GLBs", 70, () => multiplayer.preloadEnemiesAt(player.position, QUALITY_PRESETS[quality].enemyDistance));
@@ -930,6 +931,8 @@ export const Game = ({
 
           // GUI nameplates need a render pass before their dynamic textures report ready.
           // Keep the loading overlay up while Babylon prepares those materials.
+          await loadStage("terrain paint and saved world objects", 90, () => worldEditor?.start());
+          if (disposed) return;
           await multiplayer.whenInitialPlayersReady();
           if (disposed) return;
           const loadingFrameReady = new Promise((resolve, reject) => {
@@ -961,7 +964,6 @@ export const Game = ({
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
           world.worldChunks?.start();
-          worldEditor?.start();
 
 
           /*
