@@ -546,7 +546,7 @@ export const Game = ({
           }
 
           exitTrace?.("return chunk loading started", { x: player.position.x, y: player.position.y, z: player.position.z });
-          await loadStage("spawn area scenery", 65, () => world.worldChunks?.preloadAt(player.position));
+          await loadStage("spawn area scenery", 65, () => world.worldChunks?.loadAt(player.position));
           if (disposed) return;
           exitTrace?.("return chunk loading completed");
           exitTrace?.("nearby enemy loading started");
