@@ -757,17 +757,31 @@ export const createMultiplayer =
     onHealCooldown,
     dungeonVisuals,
     worldChunks,
+    onDiagnosticStage,
+    onDiagnosticError,
   }) => {
+    // These checkpoints run only during setup, never per entity or per frame.
+    const setup = (label, create) => {
+      onDiagnosticStage?.(label);
+      const result = create();
+      onDiagnosticStage?.(label, true);
+      return result;
+    };
+    onDiagnosticStage?.("55%: getGameSession");
     const session = await getGameSession();
+    onDiagnosticStage?.("55%: getGameSession", true);
     const room = session.room;
     const dungeon = room !== session.worldRoom;
+    onDiagnosticStage?.("55%: room feedback and callbacks");
     const zoneEntryFeedback = dungeon ? null : createZoneEntryFeedback((text, duration) =>
       useBossNoticeStore.getState().show(text, duration));
     const mobile = getDevice().mobile;
     let attackFacingTargetId = null;
     let attackFacingUntil = 0;
-    const cacheVisuals = dungeon ? null : createHiddenCaches({ scene, chunks: worldChunks });
-    const dungeonInteractions = createDungeonInteractions({ room, player, visuals: dungeonVisuals, cacheVisuals, dungeon });
+    onDiagnosticStage?.("55%: room feedback and callbacks", true);
+    const cacheVisuals = setup("55%: hidden cache visuals", () => dungeon ? null : createHiddenCaches({ scene, chunks: worldChunks }));
+    const dungeonInteractions = setup("55%: dungeon interactions", () => createDungeonInteractions({ room, player, visuals: dungeonVisuals, cacheVisuals, dungeon }));
+    onDiagnosticStage?.("55%: state callbacks and chat");
     let destroyed = false;
     const disposers = [];
     const quality = scene.metadata?.quality || QUALITY_PRESETS.standard;
@@ -789,7 +803,7 @@ export const createMultiplayer =
         const stop = rawCallbacks[method](...args, (...values) => {
           if (destroyed) return;
           const result = callback(...values);
-          result?.catch?.((error) => { if (!destroyed) console.error("[Multiplayer] Entity update failed", error); });
+          result?.catch?.((error) => { if (!destroyed) { onDiagnosticError?.(error); console.error("[Multiplayer] Entity update failed", error); } });
           return result;
         });
         disposers.push(stop);
@@ -805,9 +819,10 @@ export const createMultiplayer =
     useChatStore.getState().connect(room.roomId, (text) => room.send("chat", text));
     onMessage("chatError", (message) => useChatStore.getState().setError(message));
 
-    const loot = createLoot({ scene, room, callbacks, player });
-    const projectiles = createProjectileVisuals(scene);
-    const bossVisuals = createBossVisuals(scene, { dungeon });
+    onDiagnosticStage?.("55%: state callbacks and chat", true);
+    const loot = setup("55%: loot visuals", () => createLoot({ scene, room, callbacks, player }));
+    const projectiles = setup("55%: projectile visuals", () => createProjectileVisuals(scene));
+    const bossVisuals = setup("55%: boss visuals", () => createBossVisuals(scene, { dungeon }));
     onMessage("bossImpact", (impact) => {
       if (enemies.get(impact.enemyId)?.visibility.isVisible()) {
         bossVisuals.impact(impact);
@@ -825,7 +840,7 @@ export const createMultiplayer =
         triggerCameraImpulse(scene.activeCamera, "heavy", mobile);
       }
     });
-    const worldEventVisuals = dungeon ? null : createWorldEventVisuals(scene, forestProps);
+    const worldEventVisuals = setup("55%: world event visuals", () => dungeon ? null : createWorldEventVisuals(scene, forestProps));
     onMessage("movementCorrection", ({ x, y, z }) => {
       resetCameraImpulse(scene.activeCamera);
       player.position.set(x, y + JUMP.groundY, z);
@@ -969,6 +984,7 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    onDiagnosticStage?.("55%: player callbacks (may start model loads)");
     callbacks.onAdd(
       "players",
       async (
@@ -1366,6 +1382,8 @@ export const createMultiplayer =
      * =========================================================
      */
 
+    onDiagnosticStage?.("55%: player callbacks (may start model loads)", true);
+    onDiagnosticStage?.("55%: player and room event bindings");
     callbacks.onRemove(
       "players",
       (
@@ -1738,6 +1756,8 @@ export const createMultiplayer =
         return loadEnemy(id);
       }));
 
+    onDiagnosticStage?.("55%: player and room event bindings", true);
+    onDiagnosticStage?.("55%: enemy callbacks (may start model loads)");
     callbacks.onAdd("enemies", (enemyState, enemyId) => {
       if (enemies.has(enemyId)) return;
       pendingEnemies.set(enemyId, enemyState);
@@ -1746,6 +1766,7 @@ export const createMultiplayer =
     });
 
 
+    onDiagnosticStage?.("55%: enemy callbacks (may start model loads)", true);
     callbacks.onRemove(
       "enemies",
       (
@@ -2200,6 +2221,7 @@ export const createMultiplayer =
       };
 
 
+    onDiagnosticStage?.("55%: multiplayer setup returned", true);
     return {
       room,
       getChatAnimation: () => localPlayerState?.chatAnimation || "",

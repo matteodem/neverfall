@@ -1,3 +1,4 @@
+import { getDevice } from "./hooks/useMobileDevice";
 import { useQualityStore } from "./stores/useQualityStore";
 import { resolveAmirEquipment } from "../game/character/amir/equipmentAppearance";
 import { QUALITY_PRESETS } from "../game/performanceConfig";
@@ -92,6 +93,76 @@ import {
 } from "../game/sound";
 
 
+// One recorder per document, including React remounts and development hot reloads.
+// Keep only the latest checkpoints; never retain errors, scene objects or a log buffer.
+const loadingDiagnostics = typeof window === "undefined" ? null : (() => {
+  if (window.__neverfallLoadingDiagnostics) return window.__neverfallLoadingDiagnostics;
+  const key = "neverfall.loadingDiagnostics.v1";
+  let previous = null;
+  let storageAvailable = true;
+  try {
+    previous = JSON.parse(sessionStorage.getItem(key) || "null");
+  } catch { storageAvailable = false; }
+  const state = {
+    page: (Number(previous?.page) || 0) + 1,
+    init: 0,
+    started: "Game module loaded",
+    completed: "none",
+    error: "",
+    context: "none detected",
+  };
+  let overlay = null;
+  const update = () => {
+    try { sessionStorage.setItem(key, JSON.stringify(state)); }
+    catch { storageAvailable = false; }
+    if (overlay) overlay.textContent = [
+      `Neverfall debug | Page ${state.page} | React init ${state.init}`,
+      `Current: ${state.started}`,
+      `Completed: ${state.completed}`,
+      `Before reload: ${previous?.started || "none"}`,
+      `Previously completed: ${previous?.completed || "none"}`,
+      `JS error: ${state.error || "none detected"}`,
+      `Previous error: ${previous?.error || "none detected"}`,
+      `WebGL: ${state.context} | Previous: ${previous?.context || "none detected"}`,
+      ...(storageAvailable ? [] : ["sessionStorage unavailable: reload history may be missing"]),
+    ].join("\n");
+  };
+  const recorder = {
+    begin() {
+      if (!overlay && getDevice().mobile) {
+        overlay = document.createElement("pre");
+        overlay.style.cssText = "position:fixed;top:env(safe-area-inset-top,0px);left:0;z-index:2147483647;max-width:100vw;margin:0;padding:6px;box-sizing:border-box;background:rgba(0,0,0,.85);color:#fff;font:10px/1.3 monospace;white-space:pre-wrap;overflow-wrap:anywhere;pointer-events:none";
+        document.body.appendChild(overlay);
+      }
+      state.init++;
+      state.started = "React game initialization";
+      state.completed = "none";
+      update();
+      return state.init;
+    },
+    stage(label, completed = false) {
+      state[completed ? "completed" : "started"] = label;
+      update();
+    },
+    error(error) {
+      const message = `Page ${state.page}, init ${state.init}, ${state.started}: ${String(error?.message || error || "Unknown error").slice(0, 180)}`;
+      if (state.error === message) return;
+      state.error = message;
+      update();
+    },
+    context(status) {
+      state.context = `${status} at ${state.started}`;
+      update();
+    },
+    isCurrent: (init) => state.init === init,
+  };
+  window.addEventListener("error", (event) => recorder.error(event.error || `${event.message} (${event.filename}:${event.lineno})`));
+  window.addEventListener("unhandledrejection", (event) => recorder.error(event.reason));
+  window.__neverfallLoadingDiagnostics = recorder;
+  update();
+  return recorder;
+})();
+
 const WorldEditorPanel = lazy(() => import("./components/WorldEditorPanel")
   .then((module) => ({ default: module.WorldEditorPanel })));
 
@@ -141,6 +212,18 @@ export const Game = ({
 
   useEffect(
     () => {
+      const diagnosticInit = loadingDiagnostics?.begin();
+      const diagnosticStage = (label, completed = false) => {
+        if (!disposed && loadingDiagnostics?.isCurrent(diagnosticInit)) loadingDiagnostics.stage(label, completed);
+      };
+      const diagnosticError = (error) => {
+        if (!disposed && loadingDiagnostics?.isCurrent(diagnosticInit)) loadingDiagnostics.error(error);
+      };
+      const diagnosticCanvas = canvasRef.current;
+      const onContextLost = () => loadingDiagnostics?.context("lost");
+      const onContextRestored = () => loadingDiagnostics?.context("restored after loss");
+      diagnosticCanvas?.addEventListener("webglcontextlost", onContextLost);
+      diagnosticCanvas?.addEventListener("webglcontextrestored", onContextRestored);
       const exitTrace = location === "world" ? getDungeonExitTrace() : null;
       exitTrace?.("World scene loading started");
       setSelectedPlayer(null);
@@ -196,6 +279,7 @@ export const Game = ({
 
           const loadingStartedAt = performance.now();
           const loadStage = async (label, progress, load) => {
+            diagnosticStage(label);
             useLoadingStore.getState().setProgress(progress);
             const started = performance.now();
             if (Meteor.isDevelopment) console.info(`[Loading] ${label} started`);
@@ -204,6 +288,7 @@ export const Game = ({
             }, 10000);
             try {
               const result = await load();
+              diagnosticStage(label, true);
               if (Meteor.isDevelopment) console.info(`[Loading] ${label} completed in ${Math.round(performance.now() - started)}ms`);
               return result;
             } catch (error) {
@@ -221,6 +306,7 @@ export const Game = ({
            * =====================================================
            */
 
+          diagnosticStage("engine creation");
           engine =
             new Engine(
               canvas,
@@ -228,6 +314,8 @@ export const Game = ({
             );
 
 
+          diagnosticStage("engine creation", true);
+          diagnosticStage("scene and sound setup");
           engine.setHardwareScalingLevel(QUALITY_PRESETS[quality].resolutionScale);
           engine.loadingScreen =
             createLoadingScreen();
@@ -260,6 +348,7 @@ export const Game = ({
 
 
           preloadSounds();
+          diagnosticStage("scene and sound setup", true);
 
 
           /*
@@ -269,6 +358,7 @@ export const Game = ({
            */
 
           exitTrace?.("world assets and starting chunk loading started");
+          diagnosticStage("world assets and starting chunk");
           const world =
             await createWorld(
               scene,
@@ -284,6 +374,7 @@ export const Game = ({
                 quality: QUALITY_PRESETS[quality],
               }
             );
+          diagnosticStage("world assets and starting chunk", true);
           exitTrace?.("world assets and starting chunk loading completed");
           if (
             disposed
@@ -315,6 +406,7 @@ export const Game = ({
            * =====================================================
            */
 
+          diagnosticStage("local horse mount");
           mount =
             await createHorseMount({
               scene,
@@ -335,6 +427,7 @@ export const Game = ({
             return;
           }
 
+          diagnosticStage("local horse mount", true);
           const setMounted =
             (
               value
@@ -381,7 +474,9 @@ export const Game = ({
 
           exitTrace?.("WorldRoom scene binding started");
           multiplayer =
-            await loadStage("multiplayer session and scene binding", 55, () => createMultiplayer({
+            await loadStage("multiplayer session and scene binding (55%)", 55, () => createMultiplayer({
+              onDiagnosticStage: diagnosticStage,
+              onDiagnosticError: diagnosticError,
               scene,
 
               player,
@@ -459,6 +554,7 @@ export const Game = ({
           exitTrace?.("nearby enemy loading completed");
           if (disposed) return;
 
+          diagnosticStage("NPC manager setup");
           if (location === "world") useNpcStore.getState().setQuestHandler(multiplayer.npcQuestAction);
           if (location === "world") npcManager = createNpcManager({
             scene,
@@ -466,9 +562,11 @@ export const Game = ({
             getCharacter: () => characterRef.current,
             canInteract: () => playerAlive && !useWaypointStore.getState().traveling && useDungeonStore.getState().location === "world",
           });
+          diagnosticStage("NPC manager setup", true);
           await loadStage("NPC character GLBs", 78, () => npcManager?.ready);
           if (disposed) return;
 
+          diagnosticStage("controls and combat setup (85%)");
           useEquipmentStore.getState().setChangeHandler((action, payload) => {
             if (action === "equip") {
               multiplayer.equipItem(payload.itemId, payload.slot);
@@ -931,10 +1029,12 @@ export const Game = ({
 
           // GUI nameplates need a render pass before their dynamic textures report ready.
           // Keep the loading overlay up while Babylon prepares those materials.
+          diagnosticStage("controls and combat setup (85%)", true);
           await loadStage("terrain paint and saved world objects", 90, () => worldEditor?.start());
           if (disposed) return;
-          await multiplayer.whenInitialPlayersReady();
+          await loadStage("initial player models ready", 90, () => multiplayer.whenInitialPlayersReady());
           if (disposed) return;
+          diagnosticStage("first render and scene readiness");
           const loadingFrameReady = new Promise((resolve, reject) => {
             loadingFrame = () => {
               try {
@@ -954,6 +1054,8 @@ export const Game = ({
           if (disposed) return;
           engine.stopRenderLoop(loadingFrame);
           loadingFrame = null;
+          diagnosticStage("first render and scene readiness", true);
+          diagnosticStage("hide loading screen (100%)");
           useLoadingStore.getState().setProgress(100);
           engine.hideLoadingUI();
           exitTrace?.("loading cleared");
@@ -972,6 +1074,9 @@ export const Game = ({
            * =====================================================
            */
 
+          diagnosticStage("hide loading screen (100%)", true);
+          diagnosticStage("first gameplay frame");
+          let firstGameplayFrame = true;
           let minimapElapsed = 0;
           const performanceOverlay = Meteor.isDevelopment
             ? createPerformanceOverlay({ scene, engine, multiplayer }) : null;
@@ -1149,6 +1254,11 @@ export const Game = ({
 
               performanceOverlay?.update(deltaTime);
               scene.render();
+              if (firstGameplayFrame) {
+                firstGameplayFrame = false;
+                diagnosticStage("first gameplay frame", true);
+                diagnosticStage("running");
+              }
             }
           );
         };
@@ -1159,6 +1269,7 @@ export const Game = ({
           error
         ) => {
           if (disposed) return;
+          diagnosticError(error);
           if (loadingFrame) engine?.stopRenderLoop(loadingFrame);
           exitTrace?.("world scene loading failed", { message: error?.message });
           console.error(
@@ -1193,6 +1304,9 @@ export const Game = ({
        */
 
       return () => {
+        diagnosticStage("React game cleanup");
+        diagnosticCanvas?.removeEventListener("webglcontextlost", onContextLost);
+        diagnosticCanvas?.removeEventListener("webglcontextrestored", onContextRestored);
         disposed =
           true;
         if (getDungeonExitTrace() === exitTrace)
