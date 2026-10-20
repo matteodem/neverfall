@@ -15,6 +15,12 @@ export const WORLD_EDITOR_ASSETS = {
   barrel_2: {
     name: "Barrel 2", path: "/models/environment/medieval_free/props_barrel_02.glb", category: "Structures", scale: 1,
   },
+  lantern: {
+    name: "Lantern",
+    path: "/models/environment/lowpolyfantasyvillage/13_medieval_lantern_on_a_wooden_pole.glb", 
+    category: "Structures", 
+    scale: 1,
+  },
 };
 
 export const getWorldEditorAsset = (assetId) => typeof assetId === "string" &&
