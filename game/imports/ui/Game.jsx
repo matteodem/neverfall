@@ -963,7 +963,7 @@ export const Game = ({
           }
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
-          world.worldChunks?.start();
+          // world.worldChunks?.start();
 
 
           /*
