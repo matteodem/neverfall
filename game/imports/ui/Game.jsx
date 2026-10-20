@@ -546,7 +546,7 @@ export const Game = ({
           }
 
           exitTrace?.("return chunk loading started", { x: player.position.x, y: player.position.y, z: player.position.z });
-          await loadStage("spawn area scenery", 65, () => world.worldChunks?.loadAt(player.position));
+          await loadStage("spawn area scenery", 65, () => world.worldChunks?.preloadAt(player.position));
           if (disposed) return;
           exitTrace?.("return chunk loading completed");
           exitTrace?.("nearby enemy loading started");
@@ -1065,7 +1065,7 @@ export const Game = ({
           }
           if (Meteor.isDevelopment)
             console.info(`[Loading] Initial ${location} ready in ${Math.round(performance.now() - loadingStartedAt)}ms`);
-          // world.worldChunks?.start();
+          world.worldChunks?.start();
 
 
           /*
